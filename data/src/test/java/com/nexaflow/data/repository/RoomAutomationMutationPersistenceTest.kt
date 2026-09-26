@@ -366,6 +366,218 @@ class RoomAutomationMutationPersistenceTest {
         )
     }
 
+    @Test
+    fun createConflictAuditsExistingRevisionWithoutOverwritingDefinition() = runTest {
+        val persistence = persistence()
+        val original = automation("same", "Original", 100L)
+        assertTrue(
+            persistence.commit(
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = original,
+                    occurredAt = 100L
+                )
+            ) is AutomationPersistenceResult.Committed
+        )
+
+        val conflict = persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = original.copy(name = "Must not replace", updatedAt = 200L),
+                occurredAt = 200L
+            )
+        )
+
+        assertEquals(AutomationPersistenceResult.RevisionConflict(1L), conflict)
+        assertEquals("Original", database.automationDao().getAutomationById("same")?.name)
+        assertEquals("REVISION_CONFLICT", database.agentPlatformDao().latestAudit(1).single().eventType)
+    }
+
+    @Test
+    fun updateMissingAutomationReturnsNotFoundAndWritesAudit() = runTest {
+        val persistence = persistence()
+        val missing = automation("missing", "Missing", 100L)
+
+        val result = persistence.commit(
+            request(
+                kind = AutomationMutationKind.UPDATE,
+                automation = missing,
+                expectedRevision = 1L,
+                occurredAt = 100L
+            )
+        )
+
+        assertEquals(AutomationPersistenceResult.NotFound, result)
+        val audit = database.agentPlatformDao().latestAudit(1).single()
+        assertEquals("MUTATION_NOT_FOUND", audit.eventType)
+        assertEquals("NOT_FOUND", audit.outcome)
+    }
+
+    @Test
+    fun enableAndDisableAdvanceRevisionAndProvenance() = runTest {
+        val persistence = persistence()
+        val original = automation("toggle", "Toggle", 100L)
+        persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = original,
+                occurredAt = 100L
+            )
+        )
+
+        val enabled = original.copy(enabled = true, updatedAt = 200L)
+        assertEquals(
+            AutomationPersistenceResult.Committed("toggle", 2L),
+            persistence.commit(
+                request(
+                    kind = AutomationMutationKind.ENABLE,
+                    automation = enabled,
+                    expectedRevision = 1L,
+                    baseDefinitionUpdatedAt = 100L,
+                    occurredAt = 200L
+                )
+            )
+        )
+        assertTrue(database.automationDao().getAutomationById("toggle")?.enabled == true)
+
+        val disabled = enabled.copy(enabled = false, updatedAt = 300L)
+        assertEquals(
+            AutomationPersistenceResult.Committed("toggle", 3L),
+            persistence.commit(
+                request(
+                    kind = AutomationMutationKind.DISABLE,
+                    automation = disabled,
+                    expectedRevision = 2L,
+                    baseDefinitionUpdatedAt = 200L,
+                    occurredAt = 300L
+                )
+            )
+        )
+        val metadata = requireNotNull(database.agentPlatformDao().getAutomationMetadata("toggle"))
+        assertEquals(3L, metadata.revision)
+        assertEquals(300L, metadata.definitionUpdatedAt)
+        val events = database.agentPlatformDao().latestAudit(10).map { it.eventType }.toSet()
+        assertTrue("TASK_ENABLED" in events)
+        assertTrue("TASK_DISABLED" in events)
+    }
+
+    @Test
+    fun deleteRemovesDefinitionAndMetadataAndRecordsIdempotency() = runTest {
+        val persistence = persistence()
+        val original = automation("delete-me", "Delete", 100L)
+        persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = original,
+                occurredAt = 100L
+            )
+        )
+
+        val result = persistence.commit(
+            request(
+                kind = AutomationMutationKind.DELETE,
+                automation = original,
+                expectedRevision = 1L,
+                baseDefinitionUpdatedAt = 100L,
+                idempotencyKey = "delete-once",
+                fingerprint = "delete-fingerprint",
+                occurredAt = 200L
+            )
+        )
+
+        assertEquals(AutomationPersistenceResult.Committed("delete-me", 2L), result)
+        assertTrue(database.automationDao().getAutomationById("delete-me") == null)
+        assertTrue(database.agentPlatformDao().getAutomationMetadata("delete-me") == null)
+        val idempotency = database.agentPlatformDao()
+            .idempotencyForActor("agent:test", 10)
+            .single()
+        assertEquals("delete-me", idempotency.automationId)
+        assertEquals(2L, idempotency.resultRevision)
+        assertEquals("DELETE", idempotency.operation)
+    }
+
+    @Test
+    fun expiredIdempotencyIsPrunedBeforeAKeyCanBeReused() = runTest {
+        val persistence = RoomAutomationMutationPersistence(
+            database = database,
+            automationDao = database.automationDao(),
+            agentPlatformDao = database.agentPlatformDao(),
+            idempotencyRetentionMs = 50L
+        )
+        val original = automation("reuse", "First", 100L)
+        assertTrue(
+            persistence.commit(
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = original,
+                    idempotencyKey = "reusable",
+                    fingerprint = "first",
+                    occurredAt = 100L
+                )
+            ) is AutomationPersistenceResult.Committed
+        )
+
+        val updated = original.copy(name = "Second", updatedAt = 200L)
+        val result = persistence.commit(
+            request(
+                kind = AutomationMutationKind.UPDATE,
+                automation = updated,
+                expectedRevision = 1L,
+                baseDefinitionUpdatedAt = 100L,
+                idempotencyKey = "reusable",
+                fingerprint = "second",
+                occurredAt = 200L
+            )
+        )
+
+        assertEquals(AutomationPersistenceResult.Committed("reuse", 2L), result)
+        assertEquals("Second", database.automationDao().getAutomationById("reuse")?.name)
+    }
+
+    @Test
+    fun invalidMutationContextIsRejectedBeforeAnyWrite() = runTest {
+        val persistence = persistence()
+        val candidate = automation("invalid", "Invalid", 100L)
+        val bad = request(
+            kind = AutomationMutationKind.CREATE,
+            automation = candidate,
+            occurredAt = 100L
+        ).copy(
+            context = AutomationMutationContext(
+                actorId = "contains spaces",
+                origin = AutomationMutationOrigin.AGENT,
+                transport = "TEST"
+            )
+        )
+
+        val result = runCatching { persistence.commit(bad) }
+
+        assertTrue(result.isFailure)
+        assertTrue(database.automationDao().getAutomationById("invalid") == null)
+        assertTrue(database.agentPlatformDao().latestAudit(10).isEmpty())
+    }
+
+    @Test
+    fun blankIdempotencyKeyIsRejectedTransactionally() = runTest {
+        val persistence = persistence()
+        val candidate = automation("blank-key", "Invalid", 100L)
+
+        val result = runCatching {
+            persistence.commit(
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = candidate,
+                    idempotencyKey = " ",
+                    occurredAt = 100L
+                )
+            )
+        }
+
+        assertTrue(result.isFailure)
+        assertTrue(database.automationDao().getAutomationById("blank-key") == null)
+        assertTrue(database.agentPlatformDao().latestAudit(10).isEmpty())
+    }
+
     private fun persistence(
         auditIdGenerator: () -> String = { java.util.UUID.randomUUID().toString() }
     ) = RoomAutomationMutationPersistence(
