@@ -2,6 +2,71 @@
 
 ## [Unreleased]
 
+
+## [v3.90.0] - 2026-09-26
+
+### Fixed — Internet hotspot execution
+
+- Replaced the legacy bare Wi-Fi SoftAP command path with typed Internet tethering control
+  through the elevated Shizuku UserService on Android 16/API 36 and newer. Hotspot start and
+  stop now use the platform TetheringManager contract instead of treating a raw Soft AP as
+  equivalent to Internet tethering.
+- Removed the unsafe Root SoftAP fallback from the semantic hotspot route. NexaFlow no longer
+  advertises an automatic backend that cannot provide the same Internet-tethering contract.
+- Added fresh callback-based hotspot state reads and a dedicated post-action settling window,
+  avoiding stale global-setting reads while Android is still completing an asynchronous
+  tethering transition.
+- Kept background hotspot requests noninteractive and aligned start/stop behavior with the
+  elevated caller identity required by the tethering service.
+
+### Hardened — uncertain side effects and recovery
+
+- Preserved dispatched-but-unconfirmed side effects as explicit uncertain outcomes from the
+  Shizuku bridge through semantic execution, action history, compatibility rollback, snapshot
+  restore, and durable exit recovery.
+- A UserService timeout after dispatch now becomes semantic `UNKNOWN` rather than an ordinary
+  retryable failure. NexaFlow will reconcile state instead of blindly issuing the same side
+  effect through another elevated backend.
+- Prevented Root fallback after an uncertain Shizuku result, eliminating duplicate execution
+  when the first operation may already have completed asynchronously.
+- Distinguished a UserService endpoint that disappears before dispatch from a timeout after
+  dispatch: pre-dispatch transport loss remains a definite failure and can safely fall back;
+  post-dispatch uncertainty cannot.
+- Persisted uncertain exit outcomes in the runtime ledger and blocked automatic replay of those
+  exits. A later independent occurrence may proceed without repeating the unresolved side
+  effect from the previous occurrence.
+- Propagated uncertainty through whole-snapshot restore aggregation and legacy workflow
+  compatibility paths so recovery semantics remain consistent across old and current
+  execution surfaces.
+- Classified semantic unknown outcomes with the dedicated `UNKNOWN_ERROR` diagnostic code
+  instead of the retry-oriented Shizuku-unavailable classification.
+
+### Improved — recovery diagnostics and reliability
+
+- Updated the execution-health wording in every shipped locale so an unresolved recovery item
+  is described as requiring review rather than being incorrectly presented as a paused task.
+- Stabilized same-occurrence Calendar ALL-correlation tests and tightened privileged capability
+  parity expectations around real, supported execution routes.
+- Hardened CI concurrency so an older slow run cannot cancel the build stage of a newer commit.
+
+### Tests and regression coverage
+
+- Added regression coverage for Shizuku timeout parsing, endpoint disappearance before dispatch,
+  hotspot UNKNOWN propagation, no-fallback behavior after uncertain dispatch, durable exit
+  recovery, uncertain snapshot restore, compatibility rollback, and execution-history
+  serialization.
+- Replaced obsolete hotspot tests that still asserted the old bare `start-softap` argv with
+  tests for the typed tethering operation and its recovery contract.
+
+### Compatibility and safety
+
+- No database schema migration is introduced by this release.
+- Existing automations remain compatible with the current persisted model.
+- Automatic Internet-hotspot control uses the reviewed typed Shizuku tethering path where the
+  platform contract is available; NexaFlow does not silently substitute a raw Root SoftAP
+  command when that contract is unavailable.
+
+
 ## [v3.89.0] - 2026-09-25
 
 ### Changed — Adaptive privilege routing and workflow admission
