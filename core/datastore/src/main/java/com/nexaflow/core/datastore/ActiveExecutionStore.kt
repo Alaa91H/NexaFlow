@@ -56,11 +56,39 @@ class ActiveExecutionStore internal constructor(
         return wasStarted
     }
 
-    /** Removes a lifecycle marker when a task is deleted or deliberately reset. */
+    /** Removes the lightweight active marker only. */
     suspend fun clear(automationId: String) {
         dataStore.edit { preferences ->
             preferences[KEY_ACTIVE_EXECUTIONS] =
                 (preferences[KEY_ACTIVE_EXECUTIONS] ?: emptySet()) - automationId
+        }
+    }
+
+    /**
+     * Explicit deletion/reset cleanup for one automation.
+     *
+     * User-confirmed deletion is the policy boundary where unresolved execution
+     * evidence becomes unreachable by id. Remove every durable record owned by
+     * that automation atomically so deleted routines cannot leak checkpoints or
+     * maintenance receipts forever and consume the bounded ledgers.
+     */
+    suspend fun clearAutomationState(automationId: String) {
+        dataStore.edit { preferences ->
+            preferences[KEY_ACTIVE_EXECUTIONS] =
+                (preferences[KEY_ACTIVE_EXECUTIONS] ?: emptySet()) - automationId
+
+            val checkpoints = checkpoints(preferences)
+            val checkpointIds = checkpoints.values
+                .filter { it.automationId == automationId }
+                .map { it.runId }
+            checkpointIds.forEach(checkpoints::remove)
+            if (checkpointIds.isNotEmpty()) {
+                writeCheckpoints(preferences, checkpoints)
+            }
+
+            val receipts = maintenanceReceipts(preferences)
+                .filterNot { it.automationId == automationId }
+            writeMaintenanceReceipts(preferences, receipts)
         }
     }
 
