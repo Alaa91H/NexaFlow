@@ -178,13 +178,16 @@ class ManualAdmissionPolicyTest {
     @Test
     fun forceRunExecutesMainChainAndLogsTheBypass() = runBlocking {
         val task = stateTriggeredTask("admit-d")
-        engine.forceRun(task)
-        // The durable history copy is user-force-labelled even though the
-        // underlying run record itself is not (runAutomation already recorded
-        // its own RUN entry; forceRun appends the labelled duplicate).
+        val record = engine.forceRun(task)
+        assertEquals(
+            "Force Run must create exactly one durable history row",
+            1,
+            history.records.size
+        )
+        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_FORCE_PREFIX))
         assertTrue(
-            "expected a MANUAL_FORCE_PREFIX-labelled history entry",
-            history.records.any { it.message.startsWith(ExecutionEngine.MANUAL_FORCE_PREFIX) }
+            "the single durable record must carry the force-run audit label",
+            history.records.single().message.startsWith(ExecutionEngine.MANUAL_FORCE_PREFIX)
         )
     }
 

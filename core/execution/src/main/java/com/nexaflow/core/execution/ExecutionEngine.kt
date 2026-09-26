@@ -227,9 +227,14 @@ class ExecutionEngine(
          */
         triggerOccurrence: TriggerOccurrence? = null,
         /** Explicit user-approved manual paths may bypass the automatic trigger gate. */
-        bypassTriggerMatch: Boolean = false
+        bypassTriggerMatch: Boolean = false,
+        /** Optional durable history label for explicit caller intent (for example Force Run). */
+        recordMessagePrefix: String = ""
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
+        fun historyMessage(message: String): String =
+            if (recordMessagePrefix.isBlank()) message
+            else (recordMessagePrefix + message).take(500)
         // Allocate the run identity before admission gates. This lets blocked
         // runs correlate their durable history row with the structured trace
         // without timestamp guessing.
@@ -244,7 +249,7 @@ class ExecutionEngine(
                 automationId = automation.id,
                 automationName = automation.name,
                 success = true,
-                message = "Skipped: automation is already running",
+                message = historyMessage("Skipped: automation is already running"),
                 executedAt = startedAt
             )
             if (skipReportThrottle.shouldReport(
@@ -281,7 +286,7 @@ class ExecutionEngine(
                 automationId = automation.id,
                 automationName = automation.name,
                 success = true,
-                message = "Skipped: trigger occurrence was already processed",
+                message = historyMessage("Skipped: trigger occurrence was already processed"),
                 executedAt = startedAt
             )
             if (skipReportThrottle.shouldReport(
@@ -356,7 +361,7 @@ class ExecutionEngine(
                 automationId = automation.id,
                 automationName = automation.name,
                 success = true,
-                message = "Skipped: maintenance occurrence already completed",
+                message = historyMessage("Skipped: maintenance occurrence already completed"),
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )
@@ -398,7 +403,7 @@ class ExecutionEngine(
                     automationId = automation.id,
                     automationName = automation.name,
                     success = true,
-                    message = "Skipped: ${constraintResult.toGateMessage()}",
+                    message = historyMessage("Skipped: ${constraintResult.toGateMessage()}"),
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
@@ -453,7 +458,7 @@ class ExecutionEngine(
                     automationId = automation.id,
                     automationName = automation.name,
                     success = true,
-                    message = skipDetail,
+                    message = historyMessage(skipDetail),
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
@@ -495,7 +500,7 @@ class ExecutionEngine(
                 automationId = automation.id,
                 automationName = automation.name,
                 success = true,
-                message = "Skipped: maintenance waiting for ${maintenanceReadiness.reason.name}",
+                message = historyMessage("Skipped: maintenance waiting for ${maintenanceReadiness.reason.name}"),
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )
@@ -548,7 +553,7 @@ class ExecutionEngine(
                 automationId = automation.id,
                 automationName = automation.name,
                 success = true,
-                message = admissionMessage,
+                message = historyMessage(admissionMessage),
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )
@@ -607,7 +612,7 @@ class ExecutionEngine(
                     automationId = automation.id,
                     automationName = automation.name,
                     success = true,
-                    message = "Skipped: a prior automation lifecycle still requires cleanup",
+                    message = historyMessage("Skipped: a prior automation lifecycle still requires cleanup"),
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
@@ -689,7 +694,7 @@ class ExecutionEngine(
                         ActionExecutionResult(
                             actionType = action.type.name,
                             success = true,
-                            message = "Skipped: condition not satisfied ($conditionExpr)",
+                            message = historyMessage("Skipped: condition not satisfied ($conditionExpr)"),
                             durationMs = epochMillis.now() - actionStartedAt
                         )
                     )
@@ -838,7 +843,7 @@ class ExecutionEngine(
             automationId = automation.id,
             automationName = automation.name,
             success = results.all { it.success },
-            message = buildExecutionMessage(results),
+            message = historyMessage(buildExecutionMessage(results)),
             executedAt = startedAt,
             channel = channel?.type?.name,
             actionResults = results
@@ -971,13 +976,12 @@ class ExecutionEngine(
      * an explicit confirmation dialog. The decision is durably logged so the
      * history shows the run was user-forced, not trigger-driven.
      */
-    suspend fun forceRun(automation: Automation): ExecutionRecord {
-        val record = runAutomation(automation, bypassTriggerMatch = true)
-        historyRepository.recordExecution(
-            record.copy(message = "$MANUAL_FORCE_PREFIX${record.message}".take(500))
+    suspend fun forceRun(automation: Automation): ExecutionRecord =
+        runAutomation(
+            automation = automation,
+            bypassTriggerMatch = true,
+            recordMessagePrefix = MANUAL_FORCE_PREFIX
         )
-        return record
-    }
 
     /**
      * Runs the exit behavior of a task when its condition stops being true:
