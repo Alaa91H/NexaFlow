@@ -1193,6 +1193,10 @@ class ExecutionEngine(
         activeExecutionStore.clear(automationId)
     }
 
+    /** True when a legacy/stateless run still owns end behavior. */
+    suspend fun hasActiveExitMarker(automationId: String): Boolean =
+        activeExecutionStore.hasStarted(automationId)
+
     /**
      * Deletion guard: a non-terminal action checkpoint means side effects may
      * still be executing or require recovery, so the immutable automation
