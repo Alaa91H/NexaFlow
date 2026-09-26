@@ -196,6 +196,21 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun clearAutomationState_removesOnlyThatAutomationsDurableEvidence() = runBlocking {
+        assertTrue(store.beginCheckpoint(checkpoint("delete-a", "automation-a")))
+        assertTrue(store.beginCheckpoint(checkpoint("keep-b", "automation-b")))
+        store.recordCompletedMaintenanceOccurrence("maintenance:receipt-a", "automation-a", 1_000L)
+        store.recordCompletedMaintenanceOccurrence("maintenance:receipt-b", "automation-b", 1_000L)
+
+        store.clearAutomationState("automation-a")
+
+        assertEquals(null, store.checkpoint("delete-a"))
+        assertNotNull(store.checkpoint("keep-b"))
+        assertFalse(store.hasCompletedMaintenanceOccurrence("maintenance:receipt-a"))
+        assertTrue(store.hasCompletedMaintenanceOccurrence("maintenance:receipt-b"))
+    }
+
+    @Test
     fun completedMaintenanceOccurrenceIsDurableAndDoesNotDuplicate() = runBlocking {
         val key = "maintenance:receipt-contract-${System.nanoTime()}"
 
