@@ -216,4 +216,63 @@ class AgentSchedulePreviewServiceTest {
 
         assertNull(result.preview.triggers.single().occurrences.single().windowEndEpochMillis)
     }
+
+    @Test
+    fun persistedFixedTimezoneIsUsedByDefault() {
+        val from = Instant.parse("2026-09-26T06:30:00Z").toEpochMilli()
+
+        val result = service.preview(
+            AgentSchedulePreviewRequestV1(
+                task = task(
+                    mapOf(
+                        "time" to "09:00",
+                        "repeat" to "DAILY",
+                        "zonePolicy" to "FIXED_IANA",
+                        "zoneId" to "Europe/Berlin"
+                    )
+                ),
+                fromEpochMillis = from,
+                count = 1
+            )
+        ) as AgentSchedulePreviewResult.Success
+
+        assertEquals("Europe/Berlin", result.preview.zoneId)
+        assertEquals(
+            "2026-09-26T07:00:00Z",
+            Instant.ofEpochMilli(
+                result.preview.triggers.single().occurrences.single().fireAtEpochMillis
+            ).toString()
+        )
+    }
+
+    @Test
+    fun explicitDeviceLocalPreviewOverridesPersistedFixedTimezone() {
+        val from = Instant.parse("2026-09-26T06:30:00Z").toEpochMilli()
+
+        val result = service.preview(
+            AgentSchedulePreviewRequestV1(
+                task = task(
+                    mapOf(
+                        "time" to "09:00",
+                        "repeat" to "DAILY",
+                        "zonePolicy" to "FIXED_IANA",
+                        "zoneId" to "Europe/Berlin"
+                    )
+                ),
+                fromEpochMillis = from,
+                count = 1,
+                zonePolicy = AgentScheduleZonePolicyV1.DEVICE_LOCAL
+            )
+        ) as AgentSchedulePreviewResult.Success
+
+        assertEquals("UTC", result.preview.zoneId)
+        assertEquals(
+            "2026-09-26T09:00:00Z",
+            Instant.ofEpochMilli(
+                result.preview.triggers.single().occurrences.single().fireAtEpochMillis
+            ).toString()
+        )
+    }
+
+
 }
