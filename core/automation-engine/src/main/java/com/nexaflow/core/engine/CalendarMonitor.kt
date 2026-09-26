@@ -95,49 +95,22 @@ class CalendarMonitor @Inject constructor(
     fun initialize() {
         if (registered) return
         registered = true
-        runCatching {
+        val observerRegistered = runCatching {
             context.contentResolver.registerContentObserver(
                 CalendarContract.Events.CONTENT_URI,
                 true,
                 observer
             )
+            true
+        }.getOrDefault(false)
+        if (!observerRegistered) {
+            registered = false
+            return
         }
         handler.postDelayed(periodicScan, RESCAN_INTERVAL_MS)
-        scope.launch {
-            // Re-arm the durable active occurrences BEFORE the first rescan:
-            // rescan re-checks the occurrence window, so a task whose activated
-            // occurrence already ended while the process was down fires its
-            // missed exit on that first pass.
-            rearmFromLedger()
-            rescan()
-        }
-    }
-
-    /**
-     * Restores the durable active occurrences into the in-memory map. Keys
-     * carry the occurrence (`id|eventId:start`) so the exit check can find
-     * the exact occurrence that activated the task. Stale keys for
-     * deleted/disabled automations are pruned.
-     */
-    private suspend fun rearmFromLedger() {
-        val enabledIds = repository.getAutomations().first()
-            .filter { it.enabled }
-            .map { it.id }
-            .toSet()
-        activeStore.activeKeys(SOURCE).forEach { key ->
-            val id = key.substringBefore('|')
-            val occurrenceKey = key.substringAfter('|', "")
-            val eventId = occurrenceKey.substringBefore(':')
-            val start = occurrenceKey.substringAfter(':', "")
-            if (id in enabledIds && eventId.isNotEmpty() && start.isNotEmpty()) {
-                activeStates[id] = Occurrence(
-                    eventId.toLongOrNull() ?: return@forEach,
-                    start.toLongOrNull() ?: return@forEach
-                )
-            } else {
-                activeStore.clearAutomation(SOURCE, id)
-            }
-        }
+        // The first pass restores durable ownership before it interprets the
+        // current calendar snapshot.
+        rescan()
     }
 
     fun stop() {
@@ -147,26 +120,128 @@ class CalendarMonitor @Inject constructor(
         runCatching { context.contentResolver.unregisterContentObserver(observer) }
     }
 
+    /** Re-evaluate lifecycle ownership after enable/disable/edit operations. */
+    fun reconcileAutomations() {
+        rescan()
+    }
+
     private fun rescan() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
         scope.launch {
-            val automations = repository.getAutomations().first()
-            val calendarTriggers = automations
-                .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.CALENDAR } }
-            if (calendarTriggers.isEmpty()) return@launch
-            val events = queryUpcomingEvents()
-            val now = System.currentTimeMillis()
-            calendarTriggers.forEach { automation ->
-                handleAutomation(automation, events, now)
+            rescanMutex.withLock {
+                val automations = repository.getAutomations().first()
+                val byId = automations.associateBy { it.id }
+
+                // Disabled/edited lifecycle cleanup does not require calendar
+                // permission, so reconcile durable ownership before the query.
+                rearmFromLedger(byId)
+
+                if (
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    return@withLock
+                }
+
+                val calendarTriggers = automations.filter {
+                    it.enabled && it.triggers.any { trigger ->
+                        trigger.type == TriggerType.CALENDAR
+                    }
+                }
+                if (calendarTriggers.isEmpty()) return@withLock
+
+                val events = queryUpcomingEvents()
+                val now = System.currentTimeMillis()
+                calendarTriggers.forEach { automation ->
+                    handleAutomation(automation, events, now)
+                }
             }
         }
     }
 
-    private fun handleAutomation(
+    /**
+     * Restores authoritative runtime-ledger ownership and promotes old calendar
+     * compatibility markers exactly once. Deleted definitions never authorize
+     * an invented exit; their durable evidence is left visible for recovery.
+     */
+    private suspend fun rearmFromLedger(automations: Map<String, Automation>) {
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = automations[state.automationId]
+                when {
+                    automation == null -> {
+                        activeStates.remove(state.automationId)
+                        activeStore.clearAutomation(SOURCE, state.automationId)
+                    }
+                    !automation.enabled ||
+                        automation.triggers.none { it.type == TriggerType.CALENDAR } -> {
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                    else -> {
+                        val occurrence = decodeOccurrence(state.sourceKey)
+                        if (occurrence != null) {
+                            activeStates[state.automationId] = occurrence
+                            activeStore.markActive(SOURCE, state.sourceKey)
+                        } else {
+                            // Malformed durable evidence must remain visible;
+                            // only its legacy mirror is unsafe to trust.
+                            activeStates.remove(state.automationId)
+                            activeStore.clearAutomation(SOURCE, state.automationId)
+                        }
+                    }
+                }
+            }
+
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val automationId = key.substringBefore('|')
+            val automation = automations[automationId]
+            val occurrence = decodeOccurrence(key)
+            if (automation == null || occurrence == null) {
+                activeStates.remove(automationId)
+                activeStore.clearAutomation(SOURCE, automationId)
+                return@forEach
+            }
+
+            if (runtimeStore.current(automationId) == null) {
+                runtimeStore.activateStrict(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${occurrence.eventId}:${occurrence.start}:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = encodeSourceKey(automationId, occurrence),
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            val current = runtimeStore.current(automationId)
+            if (current?.source == SOURCE) {
+                activeStates[automationId] = decodeOccurrence(current.sourceKey) ?: occurrence
+                activeStore.markActive(SOURCE, current.sourceKey)
+                if (!automation.enabled ||
+                    automation.triggers.none { it.type == TriggerType.CALENDAR }
+                ) {
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = current.occurrenceId
+                    )
+                }
+            } else {
+                // Another stateful source owns this routine. A stale calendar
+                // key may not authorize an exit for that foreign occurrence.
+                activeStates.remove(automationId)
+                activeStore.clearAutomation(SOURCE, automationId)
+            }
+        }
+    }
+
+    private suspend fun handleAutomation(
         automation: Automation,
         events: List<CalendarEvent>,
         now: Long
@@ -182,7 +257,6 @@ class CalendarMonitor @Inject constructor(
         var changed = false
 
         triggers.forEach { indexedTrigger ->
-            val triggerIndex = indexedTrigger.index
             val trigger = indexedTrigger.value
             val eventType = trigger.config["event"] ?: "EVENT_START"
             val beforeMinutes = trigger.config["beforeMinutes"]?.toLongOrNull() ?: 0L
@@ -192,37 +266,50 @@ class CalendarMonitor @Inject constructor(
 
             when (eventType) {
                 "EVENT_START" -> {
-                    matching.forEach { event ->
+                    matching.sortedBy { it.start }.forEach { event ->
                         val fireAt = event.start - beforeMinutes * 60_000L
                         val occurrence = Occurrence(event.id, event.start)
-                        if (now >= fireAt && !processed.contains(occurrence)) {
+                        if (
+                            now >= fireAt &&
+                            now < event.end &&
+                            !processed.contains(occurrence)
+                        ) {
+                            // One automation owns at most one stateful lifecycle.
+                            // Do not consume a second overlapping occurrence while
+                            // the first still owns its exit behavior.
+                            val current = runtimeStore.current(automation.id)
+                            if (current != null) return@forEach
+
+                            val triggerIndices = matchingTriggerIndicesForEvent(
+                                automation = automation,
+                                event = event,
+                                eventType = eventType,
+                                now = now,
+                            )
+                            if (triggerIndices.isEmpty()) return@forEach
+
+                            activateStart(
+                                automation = automation,
+                                event = event,
+                                triggerIndices = triggerIndices,
+                                now = now
+                            )
+                            // Preserve the historical once-per-occurrence policy
+                            // even when another admission gate intentionally
+                            // skips the main action chain.
                             processed.add(occurrence)
                             changed = true
-                            activeStates[automation.id] = occurrence
-                            val occurrenceKey = "${automation.id}|${occurrence.eventId}:${occurrence.start}"
-                            scope.launch { activeStore.markActive(SOURCE, occurrenceKey) }
-                            fire(
-                                automation = automation,
-                                triggerIndices = matchingTriggerIndicesForEvent(
-                                    automation = automation,
-                                    event = event,
-                                    eventType = eventType,
-                                    now = now,
-                                ),
-                                occurredAtEpochMs = now,
-                                eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
-                                completeExitOnFinish = eventType != "EVENT_START",
-                            )
                         }
                     }
                 }
+
                 "EVENT_END" -> {
                     matching.forEach { event ->
                         val occurrence = Occurrence(event.id, event.start)
                         if (now >= event.end && !processed.contains(occurrence)) {
                             processed.add(occurrence)
                             changed = true
-                            fire(
+                            fireOneShot(
                                 automation = automation,
                                 triggerIndices = matchingTriggerIndicesForEvent(
                                     automation = automation,
@@ -232,17 +319,17 @@ class CalendarMonitor @Inject constructor(
                                 ),
                                 occurredAtEpochMs = now,
                                 eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
-                                completeExitOnFinish = eventType != "EVENT_START",
                             )
                         }
                     }
                 }
+
                 else -> { // EVENT_CREATED
                     matching.forEach { event ->
                         if (!processedCreatedIds.contains(event.id)) {
                             processedCreatedIds.add(event.id)
                             changed = true
-                            fire(
+                            fireOneShot(
                                 automation = automation,
                                 triggerIndices = matchingTriggerIndicesForEvent(
                                     automation = automation,
@@ -252,7 +339,6 @@ class CalendarMonitor @Inject constructor(
                                 ),
                                 occurredAtEpochMs = now,
                                 eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
-                                completeExitOnFinish = eventType != "EVENT_START",
                             )
                         }
                     }
@@ -260,8 +346,8 @@ class CalendarMonitor @Inject constructor(
             }
         }
 
-        // Exit behavior: EVENT_START tasks end when the occurrence that
-        // activated them has finished (or disappeared from the queried window).
+        // EVENT_START lifecycles end only when their exact activating
+        // occurrence is known to have ended or disappeared from the query.
         val activeOccurrence = activeStates[automation.id]
         if (activeOccurrence != null) {
             val stillActive = events.any { event ->
@@ -270,17 +356,22 @@ class CalendarMonitor @Inject constructor(
                     now < event.end
             }
             if (!stillActive) {
-                activeStates.remove(automation.id)
-                scope.launch {
+                val state = runtimeStore.current(automation.id)
+                if (state?.source == SOURCE) {
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.TRIGGER_FALSE,
+                        occurrenceId = state.occurrenceId
+                    )
+                } else {
+                    activeStates.remove(automation.id)
                     activeStore.clearAutomation(SOURCE, automation.id)
-                    executionEngine.runExit(automation)
                 }
                 changed = true
             }
         }
 
         if (changed) {
-            // Keep the processed sets bounded to the most recent entries.
             if (processed.size > MAX_PROCESSED) {
                 processedEvents[automation.id] =
                     processed.toList().takeLast(MAX_PROCESSED).toMutableSet()
@@ -292,30 +383,102 @@ class CalendarMonitor @Inject constructor(
         }
     }
 
-    private fun fire(
+    private suspend fun activateStart(
+        automation: Automation,
+        event: CalendarEvent,
+        triggerIndices: Set<Int>,
+        now: Long
+    ) {
+        val occurrence = Occurrence(event.id, event.start)
+        val occurrenceId = "calendar:${automation.id}:${event.id}:${event.start}"
+        executionEngine.runAutomation(
+            automation = automation,
+            lifecycleContext = AutomationLifecycleContext(
+                occurrenceId = occurrenceId,
+                source = SOURCE,
+                sourceKey = encodeSourceKey(automation.id, occurrence),
+                expectedEndAt = event.end
+            ),
+            triggerOccurrence = TriggerOccurrence(
+                matchedTriggerIndices = triggerIndices,
+                occurredAtEpochMs = now,
+                sourceId = SOURCE,
+                eventId = "calendar:EVENT_START:${event.id}:${event.start}",
+            ),
+        )
+        val accepted = runtimeStore.current(automation.id)?.let { state ->
+            state.source == SOURCE && state.occurrenceId == occurrenceId
+        } == true
+        if (accepted) {
+            activeStates[automation.id] = occurrence
+            activeStore.markActive(SOURCE, encodeSourceKey(automation.id, occurrence))
+        }
+    }
+
+    private suspend fun fireOneShot(
         automation: Automation,
         triggerIndices: Set<Int>,
         occurredAtEpochMs: Long,
         eventIdentity: String,
-        completeExitOnFinish: Boolean,
     ) {
         if (triggerIndices.isEmpty()) return
         val dispatchAt = System.currentTimeMillis()
         val last = lastRunAt[automation.id] ?: 0L
         if (dispatchAt - last <= automation.cooldownMillis) return
         lastRunAt[automation.id] = dispatchAt
-        scope.launch {
-            executionEngine.runAutomation(
+        executionEngine.runAutomation(
+            automation = automation,
+            completeExitOnFinish = true,
+            triggerOccurrence = TriggerOccurrence(
+                matchedTriggerIndices = triggerIndices,
+                occurredAtEpochMs = occurredAtEpochMs,
+                sourceId = SOURCE,
+                eventId = eventIdentity,
+            ),
+        )
+    }
+
+    private suspend fun requestExit(
+        automation: Automation,
+        reason: ExitReason,
+        occurrenceId: String
+    ) {
+        when (
+            exitCoordinator.requestExit(
                 automation = automation,
-                completeExitOnFinish = completeExitOnFinish,
-                triggerOccurrence = TriggerOccurrence(
-                    matchedTriggerIndices = triggerIndices,
-                    occurredAtEpochMs = occurredAtEpochMs,
-                    sourceId = SOURCE,
-                    eventId = eventIdentity,
-                ),
+                reason = reason,
+                occurrenceId = occurrenceId
             )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> {
+                activeStates.remove(automation.id)
+                activeStore.clearAutomation(SOURCE, automation.id)
+            }
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                runtimeStore.current(automation.id)
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { state ->
+                        decodeOccurrence(state.sourceKey)?.let { occurrence ->
+                            activeStates[automation.id] = occurrence
+                        }
+                        activeStore.markActive(SOURCE, state.sourceKey)
+                    }
+            }
         }
+    }
+
+    private fun encodeSourceKey(automationId: String, occurrence: Occurrence): String =
+        "$automationId|${occurrence.eventId}:${occurrence.start}"
+
+    private fun decodeOccurrence(sourceKey: String): Occurrence? {
+        val encoded = sourceKey.substringAfter('|', missingDelimiterValue = "")
+        val eventId = encoded.substringBefore(':').toLongOrNull() ?: return null
+        val start = encoded.substringAfter(':', missingDelimiterValue = "").toLongOrNull()
+            ?: return null
+        return Occurrence(eventId, start)
     }
 
     /**
