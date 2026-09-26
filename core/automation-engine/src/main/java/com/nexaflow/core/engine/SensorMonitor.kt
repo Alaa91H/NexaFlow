@@ -260,12 +260,25 @@ class SensorMonitor @Inject constructor(
                         )
                     }
                     else -> {
-                        parseSourceSensors(state.sourceKey)
+                        val restoredSensors = parseSourceSensors(state.sourceKey)
                             .filter { it in configuredStateful[automation.id].orEmpty() }
-                            .forEach { sensor ->
+                            .toSet()
+                        if (restoredSensors.isEmpty()) {
+                            // The configuration no longer contains any sensor
+                            // that can own this occurrence. Close the old
+                            // lifecycle before a newly configured sensor can
+                            // establish another one.
+                            requestExit(
+                                automation = automation,
+                                reason = ExitReason.AUTOMATION_DISABLED,
+                                occurrenceId = state.occurrenceId
+                            )
+                        } else {
+                            restoredSensors.forEach { sensor ->
                                 activeStates.add(automation.id, sensor)
                                 activeStore.markActive(SOURCE, "${automation.id}|$sensor")
                             }
+                        }
                     }
                 }
             }
