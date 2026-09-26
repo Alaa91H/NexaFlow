@@ -1,5 +1,5 @@
 <resources>
-    <string name="ai_chat_title">NexaFlow AI</string>
+    <string name="ai_chat_title">NexaFlow 智能助手</string>
     <string name="ai_chat_no_provider">尚未配置模型提供方</string>
     <string name="ai_chat_clear">清空</string>
     <string name="ai_chat_provider_required">需要模型提供方</string>
