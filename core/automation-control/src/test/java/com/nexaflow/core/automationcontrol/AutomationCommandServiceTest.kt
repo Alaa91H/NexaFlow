@@ -17,7 +17,8 @@ class AutomationCommandServiceTest {
     @Test
     fun createRejectsInvalidDraftBeforePersistence() = runTest {
         val repository = FakeAutomationRepository()
-        val service = service(repository)
+        val persistence = RecordingPersistence(repository)
+        val service = service(repository, persistence)
 
         val result = service.create(
             draft = AgentTaskDraftV1(name = ""),
@@ -25,85 +26,80 @@ class AutomationCommandServiceTest {
         )
 
         assertTrue(result is AutomationMutationResult.Rejected)
+        assertEquals(0, persistence.commitCount)
         assertTrue(repository.current().isEmpty())
     }
 
     @Test
-    fun createPersistsOnlyAfterSuccessfulPreflight() = runTest {
+    fun createPersistsOnlyThroughTransactionalBoundaryAfterPreflight() = runTest {
         val repository = FakeAutomationRepository()
-        val service = service(repository)
+        val persistence = RecordingPersistence(repository)
+        val service = service(repository, persistence)
 
         val result = service.create(
             draft = AgentTaskDraftV1(name = "Agent task"),
-            context = agentContext()
+            context = agentContext(idempotencyKey = "create-1")
         )
 
         assertTrue(result is AutomationMutationResult.Success)
+        assertEquals(1, persistence.commitCount)
+        assertEquals(AutomationMutationKind.CREATE, persistence.lastRequest?.kind)
+        assertEquals("create-1", persistence.lastRequest?.context?.idempotencyKey)
         assertEquals(1, repository.current().size)
         assertEquals("Agent task", repository.current().single().name)
+        assertEquals(1L, (result as AutomationMutationResult.Success).revision)
     }
 
     @Test
-    fun updateRejectsStaleRevisionWithoutWriting() = runTest {
+    fun updateMapsTransactionalRevisionConflictWithoutWriting() = runTest {
         val existing = automation(updatedAt = 50L)
         val repository = FakeAutomationRepository(listOf(existing))
-        val service = service(repository)
+        val persistence = RecordingPersistence(
+            repository = repository,
+            forcedResult = AutomationPersistenceResult.RevisionConflict(7L)
+        )
+        val service = service(repository, persistence)
 
         val result = service.update(
             automationId = existing.id,
             draft = AgentTaskDraftV1(name = "Should not persist"),
-            context = agentContext(expectedRevision = 49L)
+            context = agentContext(expectedRevision = 6L)
         )
 
         assertTrue(result is AutomationMutationResult.Conflict)
+        assertEquals(7L, (result as AutomationMutationResult.Conflict).currentRevision)
         assertEquals("Existing", repository.current().single().name)
         assertEquals(50L, repository.current().single().updatedAt)
     }
 
     @Test
-    fun concurrentUpdateAfterPreflightReturnsConflictInsteadOfOverwriting() = runTest {
-        val existing = automation(updatedAt = 50L)
-        val repository = FakeAutomationRepository(listOf(existing)).apply {
-            failNextCompareAndSetWithRevision = 75L
-        }
-        val service = service(repository)
+    fun idempotentReplayIsReturnedWithoutSecondDefinitionWrite() = runTest {
+        val repository = FakeAutomationRepository()
+        val persistence = RecordingPersistence(
+            repository = repository,
+            forcedResult = AutomationPersistenceResult.IdempotentReplay(
+                automationId = "original",
+                revision = 3L
+            )
+        )
+        val service = service(repository, persistence)
 
-        val result = service.update(
-            automationId = existing.id,
-            draft = AgentTaskDraftV1(name = "Agent edit"),
-            context = agentContext(expectedRevision = 50L)
+        val result = service.create(
+            draft = AgentTaskDraftV1(name = "Replay"),
+            context = agentContext(idempotencyKey = "same-key")
         )
 
-        assertTrue(result is AutomationMutationResult.Conflict)
-        result as AutomationMutationResult.Conflict
-        assertEquals(50L, result.expectedRevision)
-        assertEquals(75L, result.currentRevision)
-        assertEquals(75L, repository.current().single().updatedAt)
-        assertEquals("Existing", repository.current().single().name)
-    }
-
-    @Test
-    fun concurrentDeleteAfterDependencyCheckReturnsConflictInsteadOfDeletingNewerRevision() = runTest {
-        val existing = automation(updatedAt = 50L)
-        val repository = FakeAutomationRepository(listOf(existing)).apply {
-            failNextDeleteCompareAndSetWithRevision = 80L
-        }
-        val service = service(repository)
-
-        val result = service.delete(
-            automationId = existing.id,
-            context = agentContext(expectedRevision = 50L)
+        assertEquals(
+            AutomationMutationResult.IdempotentReplay("original", 3L),
+            result
         )
-
-        assertTrue(result is AutomationMutationResult.Conflict)
-        result as AutomationMutationResult.Conflict
-        assertEquals(50L, result.expectedRevision)
-        assertEquals(80L, result.currentRevision)
-        assertEquals(1, repository.current().size)
-        assertEquals(80L, repository.current().single().updatedAt)
+        assertTrue(repository.current().isEmpty())
     }
 
-    private fun service(repository: AutomationRepository) = AutomationCommandService(
+    private fun service(
+        repository: AutomationRepository,
+        persistence: AutomationMutationPersistence
+    ) = AutomationCommandService(
         repository = repository,
         dryRunInspector = AutomationDryRunInspector {
             WorkflowDryRunReport(
@@ -113,14 +109,21 @@ class AutomationCommandServiceTest {
                 summary = "ok"
             )
         },
+        mutationPersistence = persistence,
         clockMillis = { 100L },
         idGenerator = { "agent-generated-id" }
     )
 
-    private fun agentContext(expectedRevision: Long? = null) = AutomationMutationContext(
+    private fun agentContext(
+        expectedRevision: Long? = null,
+        idempotencyKey: String? = null
+    ) = AutomationMutationContext(
         actorId = "agent:test",
         origin = AutomationMutationOrigin.AGENT,
-        expectedRevision = expectedRevision
+        expectedRevision = expectedRevision,
+        agentId = "agent.test",
+        transport = "TEST",
+        idempotencyKey = idempotencyKey
     )
 
     private fun automation(updatedAt: Long) = Automation(
@@ -140,13 +143,45 @@ class AutomationCommandServiceTest {
         updatedAt = updatedAt
     )
 
+    private class RecordingPersistence(
+        private val repository: FakeAutomationRepository,
+        private val forcedResult: AutomationPersistenceResult? = null
+    ) : AutomationMutationPersistence {
+        var commitCount: Int = 0
+            private set
+        var lastRequest: AutomationMutationCommitRequest? = null
+            private set
+
+        override suspend fun commit(
+            request: AutomationMutationCommitRequest
+        ): AutomationPersistenceResult {
+            commitCount += 1
+            lastRequest = request
+            forcedResult?.let { return it }
+
+            return when (request.kind) {
+                AutomationMutationKind.DELETE -> {
+                    repository.deleteAutomation(request.automation)
+                    AutomationPersistenceResult.Committed(
+                        automationId = request.automation.id,
+                        revision = 2L
+                    )
+                }
+                else -> {
+                    repository.saveAutomation(request.automation)
+                    AutomationPersistenceResult.Committed(
+                        automationId = request.automation.id,
+                        revision = 1L
+                    )
+                }
+            }
+        }
+    }
+
     private class FakeAutomationRepository(
         initial: List<Automation> = emptyList()
     ) : AutomationRepository {
         private val state = MutableStateFlow(initial)
-
-        var failNextCompareAndSetWithRevision: Long? = null
-        var failNextDeleteCompareAndSetWithRevision: Long? = null
 
         fun current(): List<Automation> = state.value
 
@@ -159,42 +194,8 @@ class AutomationCommandServiceTest {
             state.value = state.value.filterNot { it.id == automation.id } + automation
         }
 
-        override suspend fun saveAutomationIfRevisionMatches(
-            automation: Automation,
-            expectedRevision: Long
-        ): Boolean {
-            failNextCompareAndSetWithRevision?.let { concurrentRevision ->
-                failNextCompareAndSetWithRevision = null
-                state.value = state.value.map {
-                    if (it.id == automation.id) it.copy(updatedAt = concurrentRevision) else it
-                }
-                return false
-            }
-            val current = getAutomationById(automation.id) ?: return false
-            if (current.updatedAt != expectedRevision) return false
-            saveAutomation(automation)
-            return true
-        }
-
         override suspend fun deleteAutomation(automation: Automation) {
             state.value = state.value.filterNot { it.id == automation.id }
-        }
-
-        override suspend fun deleteAutomationIfRevisionMatches(
-            automationId: String,
-            expectedRevision: Long
-        ): Boolean {
-            failNextDeleteCompareAndSetWithRevision?.let { concurrentRevision ->
-                failNextDeleteCompareAndSetWithRevision = null
-                state.value = state.value.map {
-                    if (it.id == automationId) it.copy(updatedAt = concurrentRevision) else it
-                }
-                return false
-            }
-            val current = getAutomationById(automationId) ?: return false
-            if (current.updatedAt != expectedRevision) return false
-            deleteAutomation(current)
-            return true
         }
 
         override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
