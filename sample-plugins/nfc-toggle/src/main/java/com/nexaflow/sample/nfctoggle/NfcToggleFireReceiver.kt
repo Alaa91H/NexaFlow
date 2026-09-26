@@ -22,7 +22,7 @@ class NfcToggleFireReceiver : BroadcastReceiver() {
         if (enabled == null) {
             if (isOrderedBroadcast) {
                 resultCode = LocaleProtocol.RESULT_CODE_FAILED
-                resultExtras = errorExtras("Missing 'enabled' configuration")
+                setResultExtras(errorExtras("Missing 'enabled' configuration"))
             }
             return
         }
