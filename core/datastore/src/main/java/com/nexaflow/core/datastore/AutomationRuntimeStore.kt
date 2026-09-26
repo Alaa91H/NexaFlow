@@ -95,6 +95,34 @@ class AutomationRuntimeStore internal constructor(
         runtimeStates(dataStore.data.first()).values.sortedBy { it.activatedAt }
 
     /**
+     * Updates bounded source-specific ownership detail for an already-active
+     * occurrence without changing who owns the lifecycle. Multi-condition
+     * sources such as SENSOR use this to persist the exact active condition set
+     * across process death.
+     */
+    suspend fun updateActiveSourceKey(
+        automationId: String,
+        occurrenceId: String,
+        sourceKey: String
+    ): Boolean {
+        var changed = false
+        dataStore.edit { preferences ->
+            val states = runtimeStates(preferences)
+            val current = states[automationId]
+            if (current?.occurrenceId == occurrenceId &&
+                current.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE
+            ) {
+                states[automationId] = current.copy(
+                    sourceKey = sourceKey.take(AutomationRuntimeState.MAX_SOURCE_KEY_LENGTH)
+                )
+                writeRuntimeStates(preferences, states)
+                changed = true
+            }
+        }
+        return changed
+    }
+
+    /**
      * Atomically moves a matching active occurrence into EXITING. An omitted
      * occurrence id means the caller only owns whichever active occurrence is
      * currently recorded for the automation (used by trigger monitors).
