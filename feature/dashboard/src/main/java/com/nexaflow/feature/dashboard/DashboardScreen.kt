@@ -914,12 +914,17 @@ private fun nextRunText(automation: Automation): String? {
     // Cache per trigger config; recomputes only when triggers change, not on every recomposition
     return remember(automation.triggers, automation.enabled, todayLabel, tomorrowLabel, nextRunPrefixFormat) {
         val nowMillis = System.currentTimeMillis()
-        val next = TimeTriggerCalculator.nextFireTime(trigger.config, nowMillis) ?: return@remember null
-        val zone = ZoneId.systemDefault()
+        val zone = TimeTriggerCalculator.resolveZone(trigger.config) ?: return@remember null
+        val next = TimeTriggerCalculator.nextFireTime(
+            config = trigger.config,
+            fromMillis = nowMillis,
+            zone = zone
+        ) ?: return@remember null
         val nextTime = Instant.ofEpochMilli(next).atZone(zone)
         val now = Instant.ofEpochMilli(nowMillis).atZone(zone)
-        val timeText = android.text.format.DateFormat.getTimeFormat(context)
-            .format(java.util.Date(next))
+        val timeText = android.text.format.DateFormat.getTimeFormat(context).apply {
+            timeZone = java.util.TimeZone.getTimeZone(zone)
+        }.format(java.util.Date(next))
         val dayPrefix = when (nextTime.toLocalDate()) {
             now.toLocalDate() -> todayLabel
             now.toLocalDate().plusDays(1) -> tomorrowLabel
