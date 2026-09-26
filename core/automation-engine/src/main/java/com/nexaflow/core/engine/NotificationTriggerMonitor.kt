@@ -128,9 +128,8 @@ class NotificationTriggerMonitor @Inject constructor(
                             ?: return@forEach
                         val matchingActive = active.any { snapshot ->
                             snapshot.packageName == occurrence.packageName &&
-                                notificationMatchesAutomation(
+                                notificationMatchesContent(
                                     automation = automation,
-                                    event = EVENT_POSTED,
                                     packageName = snapshot.packageName,
                                     title = snapshot.title,
                                     text = snapshot.text
@@ -227,9 +226,8 @@ class NotificationTriggerMonitor @Inject constructor(
                         EVENT_REMOVED ->
                             event == EVENT_POSTED &&
                                 currentOccurrence.packageName == packageName &&
-                                notificationMatchesAutomation(
+                                notificationMatchesContent(
                                     automation = automation,
-                                    event = EVENT_POSTED,
                                     packageName = packageName,
                                     title = title,
                                     text = text
@@ -326,15 +324,19 @@ class NotificationTriggerMonitor @Inject constructor(
         }
     }
 
-    private fun notificationMatchesAutomation(
+    /**
+     * Matches the notification's package/content filters independently of the
+     * configured edge. The opposite edge closes a durable occurrence, so a
+     * REMOVED trigger must be able to recognize the later matching POSTED edge
+     * even though its trigger config still says REMOVED.
+     */
+    private fun notificationMatchesContent(
         automation: Automation,
-        event: String,
         packageName: String,
         title: String?,
         text: String?
     ): Boolean = automation.triggers.any { trigger ->
         trigger.type == TriggerType.NOTIFICATION &&
-            (trigger.config["event"] ?: EVENT_POSTED) == event &&
             matches(trigger.config, packageName, title, text)
     }
 
