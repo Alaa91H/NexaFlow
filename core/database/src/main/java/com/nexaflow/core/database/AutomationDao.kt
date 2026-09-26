@@ -19,6 +19,13 @@ interface AutomationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAutomation(automation: AutomationEntity)
 
+    /**
+     * Collection inserts are executed by Room in a single suspending database
+     * transaction. Bulk import therefore commits every automation or none.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAutomations(automations: List<AutomationEntity>)
+
     @Update
     suspend fun updateAutomation(automation: AutomationEntity)
 
