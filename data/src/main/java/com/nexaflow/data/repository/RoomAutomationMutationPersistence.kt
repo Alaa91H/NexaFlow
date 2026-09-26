@@ -424,6 +424,7 @@ class RoomAutomationMutationPersistence(
                 createdAt = occurredAt
             )
         )
+        agentPlatformDao.pruneAuditToNewest(maxAuditRows)
     }
 
     private suspend fun audit(
@@ -452,6 +453,7 @@ class RoomAutomationMutationPersistence(
                 createdAt = request.occurredAt
             )
         )
+        agentPlatformDao.pruneAuditToNewest(maxAuditRows)
     }
 
     private fun validateContext(request: AutomationMutationCommitRequest) {
