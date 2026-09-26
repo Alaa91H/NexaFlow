@@ -19,20 +19,27 @@ class WearInstallIdentity @Inject constructor(
     private val preferences =
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    @Synchronized
-    fun getOrCreateInstallId(): String {
+    fun getOrCreateInstallId(): String = synchronized(INSTALL_ID_LOCK) {
         preferences.getString(KEY_INSTALL_ID, null)
             ?.takeIf { it.isNotBlank() }
-            ?.let { return it }
+            ?.let { return@synchronized it }
 
         val installId = UUID.randomUUID().toString()
         check(preferences.edit().putString(KEY_INSTALL_ID, installId).commit()) {
             "Unable to persist Wear install identity"
         }
-        return installId
+        installId
     }
 
     private companion object {
+        /**
+         * Multiple WearInstallIdentity instances can briefly overlap during
+         * application/test startup. Synchronizing on the instance is not
+         * sufficient: two instances could both observe an empty preference and
+         * persist different UUIDs. One process-wide lock makes the read/create/
+         * commit sequence atomic across every instance.
+         */
+        val INSTALL_ID_LOCK = Any()
         const val PREFERENCES_NAME = "nexaflow_wear_identity"
         const val KEY_INSTALL_ID = "install_id"
     }
