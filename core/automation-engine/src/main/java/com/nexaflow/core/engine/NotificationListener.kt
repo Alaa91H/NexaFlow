@@ -34,6 +34,23 @@ class NotificationListener : NotificationListenerService(), NotificationListener
         // The in-memory blocked set is empty after a process restart; re-apply
         // the blocks declared by enabled automations.
         monitor.restoreBlockedState()
+        val current = runCatching {
+            activeNotifications
+                .asSequence()
+                .filter { it.packageName != packageName }
+                .filterNot { NotificationAccess.isBlocked(it.packageName) }
+                .map { sbn ->
+                    val extras = sbn.notification.extras
+                    NotificationTriggerMonitor.ActiveNotification(
+                        key = sbn.key,
+                        packageName = sbn.packageName,
+                        title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
+                        text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+                    )
+                }
+                .toList()
+        }.getOrDefault(emptyList())
+        monitor.reconcileActiveNotifications(current)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -48,14 +65,14 @@ class NotificationListener : NotificationListenerService(), NotificationListener
         val extras = sbn.notification.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-        monitor.onNotificationPosted(packageName, title, text)
+        monitor.onNotificationPosted(sbn.key, packageName, title, text)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-        monitor.onNotificationRemoved(sbn.packageName, title, text)
+        monitor.onNotificationRemoved(sbn.key, sbn.packageName, title, text)
     }
 
     /** Cancels every active notification from [packageName] (blocking start or clear action). */
