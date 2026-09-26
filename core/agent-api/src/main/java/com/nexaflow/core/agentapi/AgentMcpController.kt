@@ -205,8 +205,8 @@ class AgentMcpController(
         buildJsonObject {
             put("resultType", "complete")
             putJsonArray("supportedVersions") {
-                add(MODERN_VERSION)
-                add(LEGACY_VERSION)
+                add(JsonPrimitive(MODERN_VERSION))
+                add(JsonPrimitive(LEGACY_VERSION))
             }
             putJsonObject("capabilities") {
                 putJsonObject("tools") { put("listChanged", false) }
@@ -287,7 +287,7 @@ class AgentMcpController(
                     }
                 )
             }
-            if (modern || payload is JsonObject) put("structuredContent", payload)
+            putJsonObject("structuredContent") { put("data", payload) }
             put("isError", isError)
         },
         modern
@@ -355,7 +355,7 @@ class AgentMcpController(
             }.toString().toByteArray(StandardCharsets.UTF_8),
             mapOf(
                 "Content-Type" to "application/json; charset=utf-8",
-                "WWW-Authenticate" to "Bearer realm=\\"NexaFlow MCP\\""
+                "WWW-Authenticate" to "Bearer realm=\"NexaFlow MCP\""
             )
         )
 
