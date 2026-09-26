@@ -223,7 +223,7 @@ class MediaMonitor @Inject constructor(
      * once. Legacy markers do not contain a restore snapshot, so no snapshot is
      * invented during migration.
      */
-    private suspend fun rearmFromLedger() {
+    internal suspend fun rearmFromLedger() {
         val automations = repository.getAutomations().first().associateBy { it.id }
 
         runtimeStore.activeStates()
