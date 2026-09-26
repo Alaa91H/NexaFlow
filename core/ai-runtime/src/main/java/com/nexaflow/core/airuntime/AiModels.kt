@@ -15,6 +15,7 @@ data class AiConversationMessage(
     val text: String,
     val toolCallId: String? = null,
     val toolName: String? = null,
+    val toolCalls: List<AiToolCall> = emptyList(),
     val isError: Boolean = false
 )
 

@@ -65,6 +65,7 @@ class AiConversationEngineTest {
 
         assertEquals(1, executor.calls)
         assertEquals(2, provider.turns)
+        assertEquals(1, provider.secondTurnToolCalls)
         assertTrue(events.any { it is AiConversationEvent.ToolStarted })
         assertTrue(events.last() is AiConversationEvent.Completed)
     }
@@ -95,6 +96,7 @@ class AiConversationEngineTest {
             )
         )
         var turns = 0
+        var secondTurnToolCalls = 0
 
         override fun stream(request: AiProviderRequest) = flow {
             turns += 1
@@ -109,6 +111,9 @@ class AiConversationEngineTest {
                     )
                 )
             } else {
+                secondTurnToolCalls = request.messages
+                    .filter { it.role == AiRole.ASSISTANT }
+                    .sumOf { it.toolCalls.size }
                 emit(AiProviderEvent.TextDelta("done"))
             }
             emit(AiProviderEvent.Finished())

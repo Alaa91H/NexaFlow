@@ -95,6 +95,12 @@ class AiConversationEngine(
                 return@flow
             }
 
+            transcript += AiConversationMessage(
+                role = AiRole.ASSISTANT,
+                text = "",
+                toolCalls = pendingCalls.toList()
+            )
+
             for (call in pendingCalls) {
                 emit(AiConversationEvent.ToolStarted(call))
                 val result = try {
@@ -112,12 +118,6 @@ class AiConversationEngine(
                     )
                 }
                 emit(AiConversationEvent.ToolFinished(result))
-                transcript += AiConversationMessage(
-                    role = AiRole.ASSISTANT,
-                    text = "",
-                    toolCallId = call.id,
-                    toolName = call.name
-                )
                 transcript += AiConversationMessage(
                     role = AiRole.TOOL,
                     text = result.output.toString(),
