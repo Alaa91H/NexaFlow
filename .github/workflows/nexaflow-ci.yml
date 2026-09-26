@@ -411,6 +411,15 @@ jobs:
           test -s "$PHONE"
           test -s "$WEAR"
           test -s "$BUNDLE"
+          sha256sum "$PHONE" | awk '{print $1}' > "$PHONE.sha256"
+          sha256sum "$WEAR" | awk '{print $1}' > "$WEAR.sha256"
+          sha256sum "$BUNDLE" | awk '{print $1}' > "$BUNDLE.sha256"
+          for checksum in "$PHONE.sha256" "$WEAR.sha256" "$BUNDLE.sha256"; do
+            grep -Eq '^[0-9a-f]{64}$' "$checksum" || {
+              echo "::error::Invalid SHA-256 file $checksum"
+              exit 1
+            }
+          done
           python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
 
       - name: Publish GitHub Release
@@ -423,14 +432,17 @@ jobs:
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
           BUNDLE="NexaFlow-$TAG.aab"
+          PHONE_SHA="$PHONE.sha256"
+          WEAR_SHA="$WEAR.sha256"
+          BUNDLE_SHA="$BUNDLE.sha256"
           PRERELEASE=()
           [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$PHONE" "$WEAR" "$BUNDLE" --clobber
+            gh release upload "$TAG" "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA" --clobber
             gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
           else
-            gh release create "$TAG" "$PHONE" "$WEAR" "$BUNDLE" \
+            gh release create "$TAG" "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA" \
               --verify-tag \
               --title "NexaFlow $TAG" \
               --notes-file release-notes.md \
@@ -447,13 +459,20 @@ jobs:
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
           BUNDLE="NexaFlow-$TAG.aab"
+          PHONE_SHA="$PHONE.sha256"
+          WEAR_SHA="$WEAR.sha256"
+          BUNDLE_SHA="$BUNDLE.sha256"
           RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
           test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
           test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
-          MISSING="$(jq --arg phone "$PHONE" --arg wear "$WEAR" --arg bundle "$BUNDLE" \
-            '[$phone, $wear, $bundle] - [.assets[].name] | length' <<<"$RELEASE_JSON")"
+          MISSING="$(jq \
+            --arg phone "$PHONE" --arg phoneSha "$PHONE_SHA" \
+            --arg wear "$WEAR" --arg wearSha "$WEAR_SHA" \
+            --arg bundle "$BUNDLE" --arg bundleSha "$BUNDLE_SHA" \
+            '[$phone, $phoneSha, $wear, $wearSha, $bundle, $bundleSha] - [.assets[].name] | length' \
+            <<<"$RELEASE_JSON")"
           test "$MISSING" = "0"
-          for ASSET in "$PHONE" "$WEAR" "$BUNDLE"; do
+          for ASSET in "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA"; do
             SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
             STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
             test -n "$SIZE" && test "$SIZE" -gt 0

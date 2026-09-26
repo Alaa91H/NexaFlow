@@ -17,20 +17,20 @@ class UpdateCheckerTest {
     fun parseRelease_extractsVersionAndApk() {
         val json = """
         {
-          "tag_name": "v3.7.0-alpha",
+          "tag_name": "v3.7.0",
           "body": "Fixes and features",
           "assets": [
-            {"name": "nexaflow-release.apk", "size": 123456, "browser_download_url": "https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0-alpha/nexaflow-release.apk"},
-            {"name": "nexaflow-release.apk.sha256", "browser_download_url": "https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0-alpha/nexaflow-release.apk.sha256"}
+            {"name": "NexaFlow-v3.7.0.apk", "size": 123456, "browser_download_url": "https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0/NexaFlow-v3.7.0.apk"},
+            {"name": "NexaFlow-v3.7.0.apk.sha256", "browser_download_url": "https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0/NexaFlow-v3.7.0.apk.sha256"}
           ]
         }
         """.trimIndent()
         val info = UpdateChecker.parseRelease(json)
         assertTrue(info != null)
-        assertEquals("v3.7.0-alpha", info!!.version)
-        assertEquals("https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0-alpha/nexaflow-release.apk", info.apkUrl)
+        assertEquals("v3.7.0", info!!.version)
+        assertEquals("https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0/NexaFlow-v3.7.0.apk", info.apkUrl)
         assertEquals(123456L, info.apkSizeBytes)
-        assertEquals("https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0-alpha/nexaflow-release.apk.sha256", info.sha256)
+        assertEquals("https://github.com/Alaa91H/NexaFlow/releases/download/v3.7.0/NexaFlow-v3.7.0.apk.sha256", info.sha256)
         assertTrue(info.canInstall)
     }
 
@@ -41,6 +41,41 @@ class UpdateCheckerTest {
         assertTrue(info != null)
         assertNull(info!!.apkUrl)
         assertFalse(info.canInstall)
+    }
+
+    @Test
+    fun parseRelease_requiresMatchingChecksumBeforeInstall() {
+        val json = """
+        {
+          "tag_name": "v3.90.0",
+          "assets": [
+            {"name": "NexaFlow-v3.90.0.apk", "size": 123, "browser_download_url": "https://x/phone.apk"}
+          ]
+        }
+        """.trimIndent()
+        val info = UpdateChecker.parseRelease(json)!!
+        assertEquals("https://x/phone.apk", info.apkUrl)
+        assertNull(info.sha256)
+        assertFalse(info.canInstall)
+    }
+
+    @Test
+    fun parseRelease_ignoresWearAndDebugApks() {
+        val json = """
+        {
+          "tag_name": "v3.90.0",
+          "assets": [
+            {"name": "NexaFlow-Wear-v3.90.0.apk", "browser_download_url": "https://x/wear.apk"},
+            {"name": "NexaFlow-v3.90.0-debug.apk", "browser_download_url": "https://x/debug.apk"},
+            {"name": "NexaFlow-v3.90.0.apk", "size": 321, "browser_download_url": "https://x/phone.apk"},
+            {"name": "NexaFlow-v3.90.0.apk.sha256", "browser_download_url": "https://x/phone.sha256"}
+          ]
+        }
+        """.trimIndent()
+        val info = UpdateChecker.parseRelease(json)!!
+        assertEquals("https://x/phone.apk", info.apkUrl)
+        assertEquals("https://x/phone.sha256", info.sha256)
+        assertTrue(info.canInstall)
     }
 
     @Test
@@ -84,7 +119,7 @@ class UpdateCheckerTest {
     }
 
     @Test
-    fun parseRelease_ignoresNonApkAssets() {
+    fun parseRelease_ignoresNonReleaseAssets() {
         val json = """
         {
           "tag_name": "v2.0.0",
@@ -95,7 +130,16 @@ class UpdateCheckerTest {
         }
         """.trimIndent()
         val info = UpdateChecker.parseRelease(json)
-        assertEquals("https://x/nexaflow-debug.apk", info!!.apkUrl)
+        assertNull(info!!.apkUrl)
+        assertFalse(info.canInstall)
+    }
+
+    @Test
+    fun parseSha256_acceptsRawAndSha256sumFormats() {
+        val digest = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+        assertEquals(digest, UpdateChecker.parseSha256(digest))
+        assertEquals(digest, UpdateChecker.parseSha256("$digest  NexaFlow-v3.90.0.apk"))
+        assertNull(UpdateChecker.parseSha256("not-a-checksum"))
     }
 
     @Test
