@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ACTION_REVERT_TASK_FROM_NOTIFICATION
 import com.nexaflow.core.execution.ACTION_RUN_TASK_FROM_NOTIFICATION
@@ -45,6 +47,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
     lateinit var executionEngine: ExecutionEngine
 
     @Inject
+    lateinit var runtimeStore: AutomationRuntimeStore
+
+    @Inject
+    lateinit var exitCoordinator: ExitCoordinator
+
+    @Inject
     lateinit var variableRepository: VariableRepository
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -67,10 +75,27 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 }
                 val automation = repository.getAutomationById(automationId)
                 if (automation != null) {
-                    // The revert button restores the pre-run state directly; the
-                    // run button executes the task like any other trigger.
-                    if (revert) executionEngine.runExit(automation)
-                    else executionEngine.runAutomation(automation)
+                    if (revert) {
+                        // Stateful routines must consume the exact durable
+                        // occurrence before any end behavior runs. Bypassing
+                        // ExitCoordinator here could restore once from the
+                        // notification button and then restore a second time
+                        // when the owning trigger later ended.
+                        val runtime = runtimeStore.current(automation.id)
+                        if (runtime != null) {
+                            exitCoordinator.requestExit(
+                                automation = automation,
+                                reason = ExitReason.MANUAL_STOP,
+                                occurrenceId = runtime.occurrenceId
+                            )
+                        } else {
+                            // Legacy/stateless runs have no occurrence ledger;
+                            // preserve the explicit user-facing revert action.
+                            executionEngine.runExit(automation)
+                        }
+                    } else {
+                        executionEngine.runAutomation(automation)
+                    }
                 }
             } finally {
                 result.finish()
