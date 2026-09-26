@@ -13,6 +13,11 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import com.nexaflow.core.execution.ExecutionEngine
@@ -23,6 +28,7 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -57,6 +63,8 @@ class SensorMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -79,8 +87,11 @@ class SensorMonitor @Inject constructor(
 
     private data class PendingSensorOperation(
         val automation: Automation,
+        val sensor: String,
         val enter: Boolean,
         val matchedTriggerIndices: Set<Int> = emptySet(),
+        val occurrenceId: String? = null,
+        val lifecycleStart: Boolean = false,
     )
 
     private val sensorManager by lazy {
