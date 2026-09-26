@@ -97,6 +97,17 @@ class RepositoryImplTest {
             rows.value = rows.value.filterNot { it.id == automation.id }
         }
 
+        override suspend fun deleteAutomationIfRevisionMatches(
+            id: String,
+            expectedRevision: Long
+        ): Int {
+            val before = rows.value
+            val current = before.firstOrNull { it.id == id } ?: return 0
+            if (current.updatedAt != expectedRevision) return 0
+            rows.value = before.filterNot { it.id == id }
+            return 1
+        }
+
         override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
             statusUpdates.add(id to enabled)
             rows.value = rows.value.map {
@@ -158,6 +169,68 @@ class RepositoryImplTest {
         override suspend fun clearHistory() {
             rows.value = emptyList()
         }
+    }
+
+    @Test
+    fun `automation repository compare and set rejects stale revision`() = runTest {
+        val dao = FakeAutomationDao()
+        val repository = AutomationRepositoryImpl(dao)
+        val base = Automation(
+            id = "cas-a",
+            name = "Original",
+            description = "",
+            icon = "",
+            iconColor = 0L,
+            backgroundColor = 0L,
+            category = "",
+            priority = 0,
+            enabled = false,
+            triggers = emptyList(),
+            actions = emptyList(),
+            createdAt = 0L,
+            updatedAt = 10L
+        )
+        repository.saveAutomation(base)
+
+        val stale = repository.saveAutomationIfRevisionMatches(
+            automation = base.copy(name = "Stale", updatedAt = 11L),
+            expectedRevision = 9L
+        )
+        val accepted = repository.saveAutomationIfRevisionMatches(
+            automation = base.copy(name = "Fresh", updatedAt = 11L),
+            expectedRevision = 10L
+        )
+
+        assertFalse(stale)
+        assertTrue(accepted)
+        assertEquals("Fresh", repository.getAutomationById(base.id)?.name)
+    }
+
+    @Test
+    fun `automation repository guarded delete keeps newer revision`() = runTest {
+        val dao = FakeAutomationDao()
+        val repository = AutomationRepositoryImpl(dao)
+        val base = Automation(
+            id = "cas-delete",
+            name = "Keep",
+            description = "",
+            icon = "",
+            iconColor = 0L,
+            backgroundColor = 0L,
+            category = "",
+            priority = 0,
+            enabled = false,
+            triggers = emptyList(),
+            actions = emptyList(),
+            createdAt = 0L,
+            updatedAt = 20L
+        )
+        repository.saveAutomation(base)
+
+        assertFalse(repository.deleteAutomationIfRevisionMatches(base.id, 19L))
+        assertTrue(repository.getAutomationById(base.id) != null)
+        assertTrue(repository.deleteAutomationIfRevisionMatches(base.id, 20L))
+        assertNull(repository.getAutomationById(base.id))
     }
 
     @Test
