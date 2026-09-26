@@ -6,7 +6,9 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.NotificationPreferences
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
@@ -112,13 +114,22 @@ class DashboardViewModelDeleteTest {
 
     private fun arm(id: String) = runBlocking { engine.runAutomation(task(id)) }
 
-    private fun viewModel(repo: AutomationRepository): DashboardViewModel = DashboardViewModel(
-        automationRepository = repo,
-        executionEngine = engine,
-        historyRepository = FakeHistory(),
-        healthRepository = FakeHealth(),
-        appContext = context
-    )
+    private fun viewModel(repo: AutomationRepository): DashboardViewModel {
+        val history = FakeHistory()
+        return DashboardViewModel(
+            automationRepository = repo,
+            executionEngine = engine,
+            exitCoordinator = ExitCoordinator(
+                AutomationRuntimeStore(context),
+                engine,
+                repo,
+                history
+            ),
+            historyRepository = history,
+            healthRepository = FakeHealth(),
+            appContext = context
+        )
+    }
 
     private fun awaitIdle(timeoutMs: Long = 10_000, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
