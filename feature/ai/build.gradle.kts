@@ -40,6 +40,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.androidx.core.core.ktx)
     implementation(platform(libs.androidx.compose.compose.bom))
     implementation(libs.androidx.compose.ui.ui)
     implementation(libs.androidx.compose.ui.ui.tooling.preview)
