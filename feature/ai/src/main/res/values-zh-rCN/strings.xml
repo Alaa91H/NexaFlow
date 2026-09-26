@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">NexaFlow AI</string>
+    <string name="ai_chat_no_provider">尚未配置模型提供方</string>
+    <string name="ai_chat_clear">清空</string>
+    <string name="ai_chat_provider_required">需要模型提供方</string>
+    <string name="ai_chat_provider_required_detail">聊天界面已准备好。连接本地或云端模型提供方后，即可使用自然语言控制自动化。</string>
+    <string name="ai_chat_welcome">询问 NexaFlow</string>
+    <string name="ai_chat_welcome_detail">描述你想检查、创建、修改、运行或诊断的自动化。</string>
+    <string name="ai_chat_tool_running">正在使用 NexaFlow 工具</string>
+    <string name="ai_chat_dismiss">关闭</string>
+    <string name="ai_chat_input_hint">输入命令…</string>
+    <string name="ai_chat_cancel">取消</string>
+    <string name="ai_chat_send">发送</string>
+    <string name="ai_chat_no_provider_error">目前还没有可用的模型提供方。</string>
+    <string name="ai_chat_invalid_request">会话请求无效。</string>
+    <string name="ai_chat_output_limit">模型响应超过了安全输出限制。</string>
+    <string name="ai_chat_tool_limit">工具循环已达到安全限制。</string>
+    <string name="ai_chat_provider_failure">模型提供方无法完成响应。</string>
+</resources>

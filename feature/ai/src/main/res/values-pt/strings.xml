@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">IA do NexaFlow</string>
+    <string name="ai_chat_no_provider">Nenhum fornecedor de modelo configurado</string>
+    <string name="ai_chat_clear">Limpar</string>
+    <string name="ai_chat_provider_required">É necessário um fornecedor de modelo</string>
+    <string name="ai_chat_provider_required_detail">A interface de conversa está pronta. Ligue um fornecedor de modelo local ou na nuvem para controlar automações em linguagem natural.</string>
+    <string name="ai_chat_welcome">Perguntar ao NexaFlow</string>
+    <string name="ai_chat_welcome_detail">Descreva a automação que pretende inspecionar, criar, alterar, executar ou diagnosticar.</string>
+    <string name="ai_chat_tool_running">A usar uma ferramenta NexaFlow</string>
+    <string name="ai_chat_dismiss">Fechar</string>
+    <string name="ai_chat_input_hint">Escreva um comando…</string>
+    <string name="ai_chat_cancel">Cancelar</string>
+    <string name="ai_chat_send">Enviar</string>
+    <string name="ai_chat_no_provider_error">Ainda não existe um fornecedor de modelo disponível.</string>
+    <string name="ai_chat_invalid_request">O pedido de conversa é inválido.</string>
+    <string name="ai_chat_output_limit">A resposta do modelo excedeu o limite seguro de saída.</string>
+    <string name="ai_chat_tool_limit">O ciclo de ferramentas atingiu o limite de segurança.</string>
+    <string name="ai_chat_provider_failure">O fornecedor de modelo não conseguiu concluir a resposta.</string>
+</resources>

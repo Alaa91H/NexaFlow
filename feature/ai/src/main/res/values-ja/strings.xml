@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">NexaFlow AI</string>
+    <string name="ai_chat_no_provider">モデルプロバイダーが未設定です</string>
+    <string name="ai_chat_clear">クリア</string>
+    <string name="ai_chat_provider_required">モデルプロバイダーが必要です</string>
+    <string name="ai_chat_provider_required_detail">チャット画面の準備は完了しています。ローカルまたはクラウドのモデルプロバイダーを接続すると、自然言語で自動化を操作できます。</string>
+    <string name="ai_chat_welcome">NexaFlow に質問</string>
+    <string name="ai_chat_welcome_detail">確認、作成、変更、実行、診断したい自動化を説明してください。</string>
+    <string name="ai_chat_tool_running">NexaFlow ツールを使用中</string>
+    <string name="ai_chat_dismiss">閉じる</string>
+    <string name="ai_chat_input_hint">コマンドを入力…</string>
+    <string name="ai_chat_cancel">キャンセル</string>
+    <string name="ai_chat_send">送信</string>
+    <string name="ai_chat_no_provider_error">利用できるモデルプロバイダーがまだありません。</string>
+    <string name="ai_chat_invalid_request">会話リクエストが無効です。</string>
+    <string name="ai_chat_output_limit">モデル応答が安全な出力上限を超えました。</string>
+    <string name="ai_chat_tool_limit">ツールループが安全上限に達しました。</string>
+    <string name="ai_chat_provider_failure">モデルプロバイダーが応答を完了できませんでした。</string>
+</resources>

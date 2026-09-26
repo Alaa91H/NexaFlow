@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">ذكاء NexaFlow</string>
+    <string name="ai_chat_no_provider">لم يتم إعداد مزود نموذج</string>
+    <string name="ai_chat_clear">مسح</string>
+    <string name="ai_chat_provider_required">يلزم إعداد مزود نموذج</string>
+    <string name="ai_chat_provider_required_detail">واجهة الدردشة جاهزة. صِل نموذجًا محليًا أو سحابيًا لبدء تنفيذ أوامر الأتمتة باللغة الطبيعية.</string>
+    <string name="ai_chat_welcome">اسأل NexaFlow</string>
+    <string name="ai_chat_welcome_detail">صف عملية الأتمتة التي تريد فحصها أو إنشاؤها أو تعديلها أو تشغيلها أو تشخيصها.</string>
+    <string name="ai_chat_tool_running">جارٍ استخدام أداة NexaFlow</string>
+    <string name="ai_chat_dismiss">إغلاق</string>
+    <string name="ai_chat_input_hint">اكتب أمرًا…</string>
+    <string name="ai_chat_cancel">إلغاء</string>
+    <string name="ai_chat_send">إرسال</string>
+    <string name="ai_chat_no_provider_error">لا يتوفر مزود نموذج بعد.</string>
+    <string name="ai_chat_invalid_request">طلب المحادثة غير صالح.</string>
+    <string name="ai_chat_output_limit">تجاوز رد النموذج حد الإخراج الآمن.</string>
+    <string name="ai_chat_tool_limit">بلغت حلقة الأدوات حد الأمان.</string>
+    <string name="ai_chat_provider_failure">تعذر على مزود النموذج إكمال الرد.</string>
+</resources>

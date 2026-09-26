@@ -15,6 +15,8 @@ import androidx.navigation.compose.rememberNavController
 import com.nexaflow.core.ui.isSystemReduceMotionEnabled
 import com.nexaflow.core.ui.nexaFlowEffectsSpec
 import com.nexaflow.core.ui.nexaFlowSpatialSpec
+import com.nexaflow.feature.ai.AiChatScreen
+import com.nexaflow.feature.ai.AiDestination
 import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
 import com.nexaflow.feature.builder.MapPickerScreen
@@ -113,6 +115,9 @@ fun NexaFlowApp(reviewAutomationId: String? = null, onReviewOpened: () -> Unit =
         ) {
             composable("dashboard") {
                 DashboardScreen(navController = navController)
+            }
+            composable(AiDestination.CHAT_ROUTE) {
+                AiChatScreen(navController = navController)
             }
             composable("automation_builder?automationId={automationId}&templateId={templateId}") { entry ->
                 AutomationBuilderScreen(

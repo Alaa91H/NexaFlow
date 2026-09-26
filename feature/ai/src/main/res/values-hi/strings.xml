@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">NexaFlow एआई</string>
+    <string name="ai_chat_no_provider">कोई मॉडल प्रदाता सेट नहीं है</string>
+    <string name="ai_chat_clear">साफ़ करें</string>
+    <string name="ai_chat_provider_required">एक मॉडल प्रदाता आवश्यक है</string>
+    <string name="ai_chat_provider_required_detail">चैट तैयार है। प्राकृतिक भाषा में ऑटोमेशन चलाने के लिए स्थानीय या क्लाउड मॉडल प्रदाता जोड़ें।</string>
+    <string name="ai_chat_welcome">NexaFlow से पूछें</string>
+    <string name="ai_chat_welcome_detail">जिस ऑटोमेशन को जाँचना, बनाना, बदलना, चलाना या निदान करना है उसका वर्णन करें।</string>
+    <string name="ai_chat_tool_running">NexaFlow टूल का उपयोग हो रहा है</string>
+    <string name="ai_chat_dismiss">बंद करें</string>
+    <string name="ai_chat_input_hint">कमांड लिखें…</string>
+    <string name="ai_chat_cancel">रद्द करें</string>
+    <string name="ai_chat_send">भेजें</string>
+    <string name="ai_chat_no_provider_error">अभी कोई मॉडल प्रदाता उपलब्ध नहीं है।</string>
+    <string name="ai_chat_invalid_request">वार्तालाप अनुरोध अमान्य है।</string>
+    <string name="ai_chat_output_limit">मॉडल प्रतिक्रिया सुरक्षित आउटपुट सीमा से अधिक हो गई।</string>
+    <string name="ai_chat_tool_limit">टूल लूप अपनी सुरक्षा सीमा तक पहुँच गया।</string>
+    <string name="ai_chat_provider_failure">मॉडल प्रदाता प्रतिक्रिया पूरी नहीं कर सका।</string>
+</resources>

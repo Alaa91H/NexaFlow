@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">NexaFlow yapay zekâ</string>
+    <string name="ai_chat_no_provider">Model sağlayıcısı yapılandırılmadı</string>
+    <string name="ai_chat_clear">Temizle</string>
+    <string name="ai_chat_provider_required">Bir model sağlayıcısı gerekli</string>
+    <string name="ai_chat_provider_required_detail">Sohbet yüzeyi hazır. Otomasyonları doğal dille yönetmek için yerel veya bulut model sağlayıcısı bağlayın.</string>
+    <string name="ai_chat_welcome">NexaFlow’a sor</string>
+    <string name="ai_chat_welcome_detail">İncelemek, oluşturmak, değiştirmek, çalıştırmak veya tanılamak istediğiniz otomasyonu açıklayın.</string>
+    <string name="ai_chat_tool_running">NexaFlow aracı kullanılıyor</string>
+    <string name="ai_chat_dismiss">Kapat</string>
+    <string name="ai_chat_input_hint">Komut yazın…</string>
+    <string name="ai_chat_cancel">İptal</string>
+    <string name="ai_chat_send">Gönder</string>
+    <string name="ai_chat_no_provider_error">Henüz kullanılabilir bir model sağlayıcısı yok.</string>
+    <string name="ai_chat_invalid_request">Konuşma isteği geçersiz.</string>
+    <string name="ai_chat_output_limit">Model yanıtı güvenli çıktı sınırını aştı.</string>
+    <string name="ai_chat_tool_limit">Araç döngüsü güvenlik sınırına ulaştı.</string>
+    <string name="ai_chat_provider_failure">Model sağlayıcısı yanıtı tamamlayamadı.</string>
+</resources>

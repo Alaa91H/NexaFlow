@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">NexaFlow KI</string>
+    <string name="ai_chat_no_provider">Kein Modellanbieter eingerichtet</string>
+    <string name="ai_chat_clear">Leeren</string>
+    <string name="ai_chat_provider_required">Ein Modellanbieter ist erforderlich</string>
+    <string name="ai_chat_provider_required_detail">Die Chat-Oberfläche ist bereit. Verbinde einen lokalen oder Cloud-Modellanbieter, um Automatisierungen in natürlicher Sprache zu steuern.</string>
+    <string name="ai_chat_welcome">NexaFlow fragen</string>
+    <string name="ai_chat_welcome_detail">Beschreibe die Automatisierung, die du prüfen, erstellen, ändern, ausführen oder diagnostizieren möchtest.</string>
+    <string name="ai_chat_tool_running">NexaFlow-Werkzeug wird verwendet</string>
+    <string name="ai_chat_dismiss">Schließen</string>
+    <string name="ai_chat_input_hint">Befehl eingeben…</string>
+    <string name="ai_chat_cancel">Abbrechen</string>
+    <string name="ai_chat_send">Senden</string>
+    <string name="ai_chat_no_provider_error">Noch ist kein Modellanbieter verfügbar.</string>
+    <string name="ai_chat_invalid_request">Die Konversationsanfrage ist ungültig.</string>
+    <string name="ai_chat_output_limit">Die Modellantwort hat das sichere Ausgabelimit überschritten.</string>
+    <string name="ai_chat_tool_limit">Die Werkzeugschleife hat ihr Sicherheitslimit erreicht.</string>
+    <string name="ai_chat_provider_failure">Der Modellanbieter konnte die Antwort nicht abschließen.</string>
+</resources>

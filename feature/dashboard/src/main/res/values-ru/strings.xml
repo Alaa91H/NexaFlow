@@ -289,4 +289,7 @@
     <string name="task_readiness_constraints">Выполненные ограничения</string>
     <string name="task_readiness_fraction">%1$d из %2$d</string>
     <string name="trigger_wear_event">Часы Wear OS</string>
+
+    <string name="ask_nexaflow">Спросить NexaFlow…</string>
+    <string name="ask_nexaflow_subtitle">Создавайте, изменяйте и диагностируйте автоматизации с ИИ</string>
 </resources>

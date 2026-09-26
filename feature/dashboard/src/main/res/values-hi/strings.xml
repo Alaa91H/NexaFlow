@@ -289,4 +289,7 @@
     <string name="task_readiness_constraints">पूरी शर्तें</string>
     <string name="task_readiness_fraction">%2$d में से %1$d</string>
     <string name="trigger_wear_event">Wear OS घड़ी</string>
+
+    <string name="ask_nexaflow">NexaFlow से पूछें…</string>
+    <string name="ask_nexaflow_subtitle">एआई से ऑटोमेशन बनाएँ, बदलें या उनका निदान करें</string>
 </resources>

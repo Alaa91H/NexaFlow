@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">ИИ NexaFlow</string>
+    <string name="ai_chat_no_provider">Поставщик модели не настроен</string>
+    <string name="ai_chat_clear">Очистить</string>
+    <string name="ai_chat_provider_required">Требуется поставщик модели</string>
+    <string name="ai_chat_provider_required_detail">Интерфейс чата готов. Подключите локальную или облачную модель, чтобы управлять автоматизациями на естественном языке.</string>
+    <string name="ai_chat_welcome">Спросить NexaFlow</string>
+    <string name="ai_chat_welcome_detail">Опишите автоматизацию, которую нужно проверить, создать, изменить, запустить или диагностировать.</string>
+    <string name="ai_chat_tool_running">Используется инструмент NexaFlow</string>
+    <string name="ai_chat_dismiss">Закрыть</string>
+    <string name="ai_chat_input_hint">Введите команду…</string>
+    <string name="ai_chat_cancel">Отмена</string>
+    <string name="ai_chat_send">Отправить</string>
+    <string name="ai_chat_no_provider_error">Поставщик модели пока недоступен.</string>
+    <string name="ai_chat_invalid_request">Запрос диалога недействителен.</string>
+    <string name="ai_chat_output_limit">Ответ модели превысил безопасный предел вывода.</string>
+    <string name="ai_chat_tool_limit">Цикл инструментов достиг безопасного предела.</string>
+    <string name="ai_chat_provider_failure">Поставщик модели не смог завершить ответ.</string>
+</resources>

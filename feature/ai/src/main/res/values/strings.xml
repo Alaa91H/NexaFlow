@@ -1,0 +1,19 @@
+<resources>
+    <string name="ai_chat_title">NexaFlow AI</string>
+    <string name="ai_chat_no_provider">No model provider configured</string>
+    <string name="ai_chat_clear">Clear</string>
+    <string name="ai_chat_provider_required">A model provider is required</string>
+    <string name="ai_chat_provider_required_detail">The chat surface is ready. Connect a local or cloud model provider to start issuing natural-language automation commands.</string>
+    <string name="ai_chat_welcome">Ask NexaFlow</string>
+    <string name="ai_chat_welcome_detail">Describe the automation you want to inspect, create, change, run or diagnose.</string>
+    <string name="ai_chat_tool_running">Using NexaFlow tool</string>
+    <string name="ai_chat_dismiss">Dismiss</string>
+    <string name="ai_chat_input_hint">Type a command…</string>
+    <string name="ai_chat_cancel">Cancel</string>
+    <string name="ai_chat_send">Send</string>
+    <string name="ai_chat_no_provider_error">No model provider is available yet.</string>
+    <string name="ai_chat_invalid_request">The conversation request is invalid.</string>
+    <string name="ai_chat_output_limit">The model response exceeded the safe output limit.</string>
+    <string name="ai_chat_tool_limit">The tool loop reached its safety limit.</string>
+    <string name="ai_chat_provider_failure">The model provider could not complete the response.</string>
+</resources>

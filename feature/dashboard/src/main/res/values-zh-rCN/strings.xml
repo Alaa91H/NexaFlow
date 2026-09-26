@@ -289,4 +289,7 @@
     <string name="task_readiness_constraints">已满足约束</string>
     <string name="task_readiness_fraction">%1$d / %2$d</string>
     <string name="trigger_wear_event">Wear OS 手表</string>
+
+    <string name="ask_nexaflow">询问 NexaFlow…</string>
+    <string name="ask_nexaflow_subtitle">使用 AI 创建、修改或诊断自动化</string>
 </resources>
