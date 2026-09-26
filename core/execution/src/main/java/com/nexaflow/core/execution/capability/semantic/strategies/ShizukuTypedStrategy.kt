@@ -363,7 +363,7 @@ class ShizukuTypedStrategy(
                 result.message.contains("UserService", ignoreCase = true)
         val transport = permissionUnavailable || endpointUnavailable || endpointFailure
         // The bridge can explicitly report that dispatch already happened but
-        // confirmation timed out. Honor that structured signal rather than
+        // confirmation timed out. Preserve that structured signal rather than
         // inferring certainty from a generic failure string. Only operations
         // whose side effects can outlive the transport are promoted to UNKNOWN.
         val uncertain = transportIsUncertain(operation) &&
