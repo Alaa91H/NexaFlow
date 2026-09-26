@@ -63,4 +63,19 @@ fun interface AutomationMutationPersistence {
     suspend fun commit(
         request: AutomationMutationCommitRequest
     ): AutomationPersistenceResult
+
+    /**
+     * Looks up a previously committed idempotency key before a definition read.
+     *
+     * DELETE retries need this path because the successful first request has
+     * already removed the automation row. Implementations that do not persist
+     * idempotency may keep the default null result.
+     */
+    suspend fun resolveStoredIdempotency(
+        context: AutomationMutationContext,
+        kind: AutomationMutationKind,
+        automationId: String?,
+        requestFingerprint: String,
+        occurredAt: Long
+    ): AutomationPersistenceResult? = null
 }
