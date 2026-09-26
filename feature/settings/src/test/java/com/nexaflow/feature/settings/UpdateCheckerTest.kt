@@ -84,7 +84,7 @@ class UpdateCheckerTest {
     }
 
     @Test
-    fun parseRelease_ignoresNonApkAssets() {
+    fun parseRelease_ignoresDebugApkAsInstallCandidate() {
         val json = """
         {
           "tag_name": "v2.0.0",
@@ -95,7 +95,64 @@ class UpdateCheckerTest {
         }
         """.trimIndent()
         val info = UpdateChecker.parseRelease(json)
-        assertEquals("https://x/nexaflow-debug.apk", info!!.apkUrl)
+        assertNull(info!!.apkUrl)
+        assertFalse(info.canInstall)
+    }
+
+    @Test
+    fun parseRelease_selectsPhoneApkEvenWhenWearAssetComesFirst() {
+        val json = """
+        {
+          "tag_name": "v3.90.0",
+          "assets": [
+            {"name": "NexaFlow-Wear-v3.90.0.apk", "size": 11, "browser_download_url": "https://x/wear.apk"},
+            {"name": "NexaFlow-Wear-v3.90.0.apk.sha256", "browser_download_url": "https://x/wear.sha256"},
+            {"name": "NexaFlow-v3.90.0.apk", "size": 22, "browser_download_url": "https://x/phone.apk"},
+            {"name": "NexaFlow-v3.90.0.apk.sha256", "browser_download_url": "https://x/phone.sha256"}
+          ]
+        }
+        """.trimIndent()
+
+        val info = UpdateChecker.parseRelease(json)!!
+
+        assertEquals("https://x/phone.apk", info.apkUrl)
+        assertEquals(22L, info.apkSizeBytes)
+        assertEquals("https://x/phone.sha256", info.sha256)
+        assertTrue(info.canInstall)
+    }
+
+    @Test
+    fun parseRelease_doesNotPairAnotherArtifactsChecksum() {
+        val json = """
+        {
+          "tag_name": "v3.90.0",
+          "assets": [
+            {"name": "NexaFlow-v3.90.0.apk", "size": 22, "browser_download_url": "https://x/phone.apk"},
+            {"name": "NexaFlow-Wear-v3.90.0.apk.sha256", "browser_download_url": "https://x/wear.sha256"}
+          ]
+        }
+        """.trimIndent()
+
+        val info = UpdateChecker.parseRelease(json)!!
+
+        assertEquals("https://x/phone.apk", info.apkUrl)
+        assertNull(info.sha256)
+        assertFalse(info.canInstall)
+    }
+
+    @Test
+    fun parseSha256Text_acceptsDigestOnlyAndSha256sumFormat() {
+        val digest = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+        assertEquals(digest, UpdateChecker.parseSha256Text(digest))
+        assertEquals(digest, UpdateChecker.parseSha256Text("$digest  NexaFlow.apk"))
+        assertEquals(digest, UpdateChecker.parseSha256Text(digest.uppercase()))
+    }
+
+    @Test
+    fun parseSha256Text_rejectsMalformedDigest() {
+        assertNull(UpdateChecker.parseSha256Text(""))
+        assertNull(UpdateChecker.parseSha256Text("not-a-digest"))
+        assertNull(UpdateChecker.parseSha256Text("abc  NexaFlow.apk"))
     }
 
     @Test
