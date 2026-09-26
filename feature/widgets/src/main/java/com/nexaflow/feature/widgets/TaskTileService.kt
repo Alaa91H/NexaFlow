@@ -80,20 +80,20 @@ abstract class TaskTileService : TileService() {
             )
             if (target != null) {
                 // Match the durable in-app toggle contract: persist first.
-                // Enabling may run immediately when current trigger state
-                // matches. Disabling is intentionally NOT allowed to call
-                // ExecutionEngine.runExit directly; the monitoring layer owns
-                // the atomic ACTIVE -> EXITING claim and will reconcile this
-                // committed disable after ACTION_AUTOMATIONS_CHANGED.
+                // Stateful disable cleanup is delegated to the monitor-owned
+                // ExitCoordinator path; legacy/stateless tasks retain their
+                // immediate configured end behavior.
                 repository.updateAutomationStatus(target.id, !target.enabled)
-                if (!target.enabled) {
-                    try {
+                try {
+                    if (target.enabled) {
+                        entryPoint().executionEngine().runDisableCleanup(target)
+                    } else {
                         entryPoint().executionEngine().runWithConditionGate(target)
-                    } catch (_: Exception) {
-                        // The tile must never crash on an execution hiccup; the
-                        // persisted state and monitor reconciliation remain the
-                        // source of truth.
                     }
+                } catch (_: Exception) {
+                    // The tile must never crash on an execution hiccup; the
+                    // persisted state and monitor reconciliation remain the
+                    // source of truth.
                 }
             }
             withContext(Dispatchers.Main) {
