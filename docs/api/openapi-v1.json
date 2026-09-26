@@ -13,6 +13,12 @@
   },
   "security": [{"bearerAuth": []}],
   "paths": {
+    "/auth/pair/complete": {
+      "post": {
+        "security": [],
+        "summary": "Consume one user-created pairing challenge and receive a permanent refresh credential"
+      }
+    },
     "/auth/session": {
       "post": {
         "security": [],

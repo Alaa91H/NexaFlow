@@ -69,6 +69,18 @@ data class AgentApiValidationV1(
 )
 
 @Serializable
+data class AgentApiPairingCompletionRequestV1(
+    val challengeId: String,
+    val challengeSecret: String
+)
+
+@Serializable
+data class AgentApiBootstrapCredentialV1(
+    val agentId: String,
+    val refreshToken: String
+)
+
+@Serializable
 data class AgentApiSessionRequestV1(
     val refreshToken: String,
     val transportKeyFingerprint: String? = null

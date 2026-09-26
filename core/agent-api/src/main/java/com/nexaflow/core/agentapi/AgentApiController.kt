@@ -4,6 +4,7 @@ import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentAuthorizationResult
 import com.nexaflow.core.agentsecurity.AgentIdentityBinding
 import com.nexaflow.core.agentsecurity.AgentOperation
+import com.nexaflow.core.agentsecurity.AgentPairingCompletionResult
 import com.nexaflow.core.agentsecurity.AgentRequestAuthorizer
 import com.nexaflow.core.agentsecurity.AgentSessionIssueResult
 import com.nexaflow.core.automationcontrol.AutomationMutationContext
@@ -61,6 +62,9 @@ class AgentApiController(
         }
         if (request.method == "GET" && path == "/api/v1/schemas/task-v1.json") {
             return rawJson(200, AgentApiDocuments.taskSchemaJson)
+        }
+        if (request.method == "POST" && path == "/api/v1/auth/pair/complete") {
+            return completePairing(request)
         }
         if (request.method == "POST" && path == "/api/v1/auth/session") {
             return exchangeSession(request)
@@ -141,6 +145,49 @@ class AgentApiController(
             request.method == "GET" && path == "/api/v1/audit" ->
                 respond(200, runtime.latestAudit(limitFrom(uri)))
             else -> error(404, "not_found", "API route was not found")
+        }
+    }
+
+    private suspend fun completePairing(
+        request: AgentHttpRequest
+    ): AgentHttpResponse {
+        val body = try {
+            decode<AgentApiPairingCompletionRequestV1>(request)
+        } catch (_: Exception) {
+            return error(400, "invalid_json", "Pairing request is invalid")
+        }
+        if (
+            body.challengeId.isBlank() ||
+            body.challengeSecret.isBlank() ||
+            body.challengeId.length > MAX_PAIRING_FIELD_LENGTH ||
+            body.challengeSecret.length > MAX_PAIRING_FIELD_LENGTH
+        ) {
+            return error(400, "invalid_pairing_challenge", "Pairing challenge is invalid")
+        }
+
+        return when (
+            val result = accessManager.completePairing(
+                challengeId = body.challengeId,
+                challengeSecret = body.challengeSecret
+            )
+        ) {
+            is AgentPairingCompletionResult.Granted -> respond(
+                200,
+                AgentApiBootstrapCredentialV1(
+                    agentId = result.credential.agentId,
+                    refreshToken = result.credential.refreshToken
+                )
+            )
+            AgentPairingCompletionResult.Disabled ->
+                error(403, "agent_access_disabled", "AI Agent Access is disabled")
+            AgentPairingCompletionResult.InvalidChallenge ->
+                error(400, "invalid_pairing_challenge", "Pairing challenge is invalid")
+            AgentPairingCompletionResult.Expired ->
+                error(410, "pairing_expired", "Pairing challenge expired")
+            AgentPairingCompletionResult.Locked ->
+                error(423, "pairing_locked", "Pairing challenge is locked")
+            AgentPairingCompletionResult.CapacityExceeded ->
+                error(409, "agent_capacity_exceeded", "Maximum active agent grants reached")
         }
     }
 
