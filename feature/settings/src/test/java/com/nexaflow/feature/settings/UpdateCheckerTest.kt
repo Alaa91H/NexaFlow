@@ -143,21 +143,64 @@ class UpdateCheckerTest {
     }
 
     @Test
-    fun signingLineage_requiresNonEmptyIntersection() {
+    fun signingLineage_acceptsSameSignerAndForwardRotation() {
         assertTrue(
             UpdateChecker.hasTrustedSigningLineage(
-                installed = setOf("old-cert", "current-cert"),
-                archive = setOf("current-cert", "next-cert")
+                installedCurrent = setOf("current-cert"),
+                archiveCurrent = setOf("current-cert"),
+                archiveHistory = setOf("current-cert")
+            )
+        )
+        assertTrue(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("current-cert"),
+                archiveCurrent = setOf("next-cert"),
+                archiveHistory = setOf("old-cert", "current-cert", "next-cert")
+            )
+        )
+    }
+
+    @Test
+    fun signingLineage_rejectsOldKeyRollbackAndUnrelatedSigner() {
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("current-cert"),
+                archiveCurrent = setOf("old-cert"),
+                archiveHistory = setOf("old-cert")
             )
         )
         assertFalse(
             UpdateChecker.hasTrustedSigningLineage(
-                installed = setOf("installed-cert"),
-                archive = setOf("other-cert")
+                installedCurrent = setOf("installed-cert"),
+                archiveCurrent = setOf("other-cert"),
+                archiveHistory = setOf("other-cert")
             )
         )
-        assertFalse(UpdateChecker.hasTrustedSigningLineage(emptySet(), setOf("cert")))
-        assertFalse(UpdateChecker.hasTrustedSigningLineage(setOf("cert"), emptySet()))
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = emptySet(),
+                archiveCurrent = setOf("cert"),
+                archiveHistory = setOf("cert")
+            )
+        )
+    }
+
+    @Test
+    fun signingLineage_requiresExactSetForMultipleSigners() {
+        assertTrue(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("a", "b"),
+                archiveCurrent = setOf("a", "b"),
+                archiveHistory = setOf("a", "b")
+            )
+        )
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("a", "b"),
+                archiveCurrent = setOf("a", "c"),
+                archiveHistory = setOf("a", "b", "c")
+            )
+        )
     }
 
     @Test
