@@ -94,6 +94,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core:ui-components"))
     implementation(project(":core:execution"))
+    implementation(project(":core:automation-engine"))
     implementation(project(":core:rom-integration"))
     testImplementation(libs.junit.junit)
     testImplementation(libs.org.robolectric.robolectric)
