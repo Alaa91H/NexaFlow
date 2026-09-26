@@ -1,5 +1,5 @@
 <resources>
-    <string name="ai_chat_title">NexaFlow AI</string>
+    <string name="ai_chat_title">NexaFlow AI アシスタント</string>
     <string name="ai_chat_no_provider">モデルプロバイダーが未設定です</string>
     <string name="ai_chat_clear">クリア</string>
     <string name="ai_chat_provider_required">モデルプロバイダーが必要です</string>
