@@ -84,6 +84,24 @@ class ExitCoordinatorTest {
     }
 
     @Test
+    fun `missing automation definition preserves durable lifecycle for review`() = runBlocking {
+        val history = RecordingHistory()
+        val repository = FakeRepository(emptyList())
+        val engine = testEngine(context, history)
+        val coordinator = ExitCoordinator(store, engine, repository, history)
+        assertTrue(store.activate(activeState(expectedEndAt = 1L)))
+
+        val outcomes = coordinator.reconcile(ExitReason.PROCESS_RECOVERY)
+
+        assertEquals(1, outcomes.size)
+        assertTrue(outcomes.single() is ExitCoordinatorResult.RecoveryRequired)
+        val preserved = checkNotNull(store.current("exit-task"))
+        assertEquals("occurrence-1", preserved.occurrenceId)
+        assertEquals(AutomationRuntimeLifecycleState.ACTIVE, preserved.lifecycleState)
+        assertTrue(history.exits.isEmpty())
+    }
+
+    @Test
     fun `failed exit receives one bounded automatic recovery attempt`() = runBlocking {
         val history = RecordingHistory()
         val automation = testAutomation("exit-task", emptyList()).copy(

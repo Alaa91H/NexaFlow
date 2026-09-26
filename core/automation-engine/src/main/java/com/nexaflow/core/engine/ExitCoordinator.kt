@@ -86,10 +86,15 @@ class ExitCoordinator(
             val automation = automationRepository.getAutomationById(state.automationId)
             if (automation == null) {
                 // The immutable automation definition is gone, so executing a
-                // stale exit would be unsafe. Keep no orphaned active runtime.
-                runtimeStore.clear(state.automationId, state.occurrenceId)
-                Log.w(TAG, "Dropped runtime lifecycle for deleted automation")
-                return@mapNotNull ExitCoordinatorResult.NotActive
+                // stale exit would be unsafe. The durable row is evidence that
+                // a stateful occurrence may still own external/device state;
+                // deleting it would falsely imply cleanup succeeded. Preserve
+                // it for explicit recovery/diagnostics instead.
+                Log.w(
+                    TAG,
+                    "Automation definition missing for ${state.automationId}; retaining runtime lifecycle for review"
+                )
+                return@mapNotNull ExitCoordinatorResult.RecoveryRequired(state)
             }
 
             if (state.lifecycleState == AutomationRuntimeLifecycleState.EXIT_FAILED) {
