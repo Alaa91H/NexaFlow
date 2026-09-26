@@ -694,6 +694,30 @@ class RoomAutomationMutationPersistenceTest {
     }
 
     @Test
+    fun earlyReplayLookupRejectsOversizedMetadataWithoutWritingAudit() = runTest {
+        val persistence = persistence()
+        val context = AutomationMutationContext(
+            actorId = "agent:test",
+            origin = AutomationMutationOrigin.AGENT,
+            transport = "x".repeat(257),
+            idempotencyKey = "lookup-key"
+        )
+
+        val result = runCatching {
+            persistence.resolveStoredIdempotency(
+                context = context,
+                kind = AutomationMutationKind.CREATE,
+                automationId = null,
+                requestFingerprint = "fingerprint",
+                occurredAt = 100L
+            )
+        }
+
+        assertTrue(result.isFailure)
+        assertTrue(database.agentPlatformDao().latestAudit(10).isEmpty())
+    }
+
+    @Test
     fun blankIdempotencyKeyIsRejectedTransactionally() = runTest {
         val persistence = persistence()
         val candidate = automation("blank-key", "Invalid", 100L)
