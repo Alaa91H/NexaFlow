@@ -2,13 +2,14 @@ package com.nexaflow.core.engine
 
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
+import java.security.MessageDigest
 
 /**
  * SMS trigger matching shared by the legacy [SmsReceiver] (SMS_RECEIVED
  * broadcast) and the Android 17-safe [SmsConsentReceiver] (User Consent API).
- * Matching itself is pure and unit-testable; the companion-level [lastRunAt]
- * map is deliberately shared mutable state so both paths cannot double-fire
- * the same automation for one message.
+ * Matching itself is pure and unit-testable. Cross-receiver duplicate
+ * suppression is handled by the durable SmsDeliveryStore, so process death or
+ * two overlapping receiver instances cannot double-fire one physical message.
  */
 object SmsTriggerMatcher {
 
@@ -70,9 +71,18 @@ object SmsTriggerMatcher {
         automation.triggers.firstOrNull { it.type == TriggerType.SMS }?.config?.get("reply")
 
     /**
-     * Shared per-automation cooldown across BOTH SMS paths (legacy broadcast
-     * + User Consent). Because the same message can reach both receivers on
-     * some devices, a single map prevents the automation from double-firing.
+     * Privacy-safe identity for one physical SMS delivery.
+     *
+     * The service-center timestamp is part of the digest so two legitimate
+     * identical texts sent later are different events. When Android omits the
+     * timestamp, callers pass a short receive-time bucket instead.
      */
-    val lastRunAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    fun deliveryFingerprint(sender: String, body: String, messageTimestamp: Long): String {
+        val normalizedSender = sender.trim().lowercase()
+        val normalizedBody = body.trim()
+        val input = "$normalizedSender\u0000$normalizedBody\u0000$messageTimestamp"
+        return MessageDigest.getInstance("SHA-256")
+            .digest(input.toByteArray(Charsets.UTF_8))
+            .joinToString("") { byte -> "%02x".format(byte) }
+    }
 }
