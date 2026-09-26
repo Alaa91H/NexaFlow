@@ -116,20 +116,30 @@ data class AgentSecurityStateV1(
 data class AgentBootstrapCredential(
     val agentId: String,
     val refreshToken: String
-)
+) {
+    override fun toString(): String =
+        "AgentBootstrapCredential(agentId=$agentId, refreshToken=<redacted>)"
+}
 
 data class AgentPairingOffer(
     val challengeId: String,
     val challengeSecret: String,
     val expiresAt: Long
-)
+) {
+    override fun toString(): String =
+        "AgentPairingOffer(challengeId=$challengeId, challengeSecret=<redacted>, expiresAt=$expiresAt)"
+}
 
 data class AgentSessionCredential(
     val agentId: String,
     val accessToken: String,
     val rotatedRefreshToken: String,
     val expiresAt: Long
-)
+) {
+    override fun toString(): String =
+        "AgentSessionCredential(agentId=$agentId, accessToken=<redacted>, " +
+            "rotatedRefreshToken=<redacted>, expiresAt=$expiresAt)"
+}
 
 data class AgentSecurityStatus(
     val accessEnabled: Boolean,
