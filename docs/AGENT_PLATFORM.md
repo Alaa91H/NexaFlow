@@ -164,8 +164,9 @@ Implemented foundation:
 - [x] bounded history and redacted audit reads
 - [x] permanent-agent refresh credential -> short-lived bearer session exchange
 - [x] scope authorization and shared abuse controls
-- [x] `Idempotency-Key` for task mutations
-- [x] `ETag` / `If-Match` optimistic concurrency
+- [x] `Idempotency-Key` for task mutations and side-effecting manual runs
+- [x] atomic run reservation prevents timeout/retry duplicate side effects
+- [x] `ETag` / `If-Match` optimistic concurrency, including manual runs
 - [x] lifecycle-consistent enable/disable/delete behavior
 - [x] host/origin hardening for loopback requests
 - [x] bounded HTTP/1.1 request parsing; chunked transfer is rejected
