@@ -240,7 +240,7 @@ class NotificationTriggerMonitor @Inject constructor(
                         requestExit(
                             automation = automation,
                             reason = ExitReason.TRIGGER_FALSE,
-                            occurrenceId = current!!.occurrenceId
+                            occurrenceId = current.occurrenceId
                         )
                     }
                 }
