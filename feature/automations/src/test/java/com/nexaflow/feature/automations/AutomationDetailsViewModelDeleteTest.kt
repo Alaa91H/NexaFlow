@@ -7,7 +7,9 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.NotificationPreferences
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
@@ -118,15 +120,23 @@ class AutomationDetailsViewModelDeleteTest {
     /** Arms the durable active marker for [id] through the real engine. */
     private fun arm(id: String) = runBlocking { engine.runAutomation(task(id)) }
 
-    private fun vm(id: String, repo: AutomationRepository): AutomationDetailsViewModel =
-        AutomationDetailsViewModel(
+    private fun vm(id: String, repo: AutomationRepository): AutomationDetailsViewModel {
+        val history = FakeHistory()
+        return AutomationDetailsViewModel(
             repository = repo,
             healthRepository = FakeHealth(),
-            historyRepository = FakeHistory(),
+            historyRepository = history,
             executionEngine = engine,
+            exitCoordinator = ExitCoordinator(
+                AutomationRuntimeStore(context),
+                engine,
+                repo,
+                history
+            ),
             savedStateHandle = SavedStateHandle(mapOf("automationId" to id)),
             appContext = context
         )
+    }
 
     /**
      * Drives the viewModelScope coroutine (posted to the Robolectric main
