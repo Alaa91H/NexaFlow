@@ -210,7 +210,9 @@ class AgentMcpRestToolExecutor(
             source.header("x-nexaflow-transport-key")?.let {
                 put("x-nexaflow-transport-key", it)
             }
-            source.header("x-request-id")?.let { put("x-request-id", it) }
+            val requestId = extraHeaders["x-request-id"]
+                ?: source.header("x-request-id")
+            requestId?.let { put("x-request-id", it) }
             if (bytes.isNotEmpty()) put("content-type", "application/json")
             putAll(extraHeaders)
         }
@@ -226,10 +228,13 @@ class AgentMcpRestToolExecutor(
         }
     }
 
-    private fun mutationHeaders(arguments: JsonObject) = mapOf(
-        "idempotency-key" to requiredString(arguments, "idempotencyKey"),
-        "if-match" to "\\"${requiredLong(arguments, "revision")}\\""
-    )
+    private fun mutationHeaders(arguments: JsonObject) = buildMap {
+        put("idempotency-key", requiredString(arguments, "idempotencyKey"))
+        put("if-match", "\"${requiredLong(arguments, "revision")}\"")
+        arguments["requestId"]?.jsonPrimitive?.contentOrNull
+            ?.takeIf(String::isNotBlank)
+            ?.let { put("x-request-id", it) }
+    }
 
     private fun taskId(arguments: JsonObject): String {
         val id = requiredString(arguments, "id")
