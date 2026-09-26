@@ -48,9 +48,10 @@ object PrivilegedRunner {
      * Runs an untrusted-command shell request through the best currently
      * granted elevated channel. Shizuku is preferred when it is granted and
      * its UserService is connected; Root — which is an absolute grant — is
-     * always tried when the Shizuku transport is not usable, and vice versa.
-     * A failing transport never hides the other granted runtime (the old
-     * behavior surfaced "reconnect Shizuku" on root-granted devices).
+     * tried when the Shizuku transport is definitely unusable before a side
+     * effect is known to have been dispatched. An uncertain transport result
+     * is terminal for this attempt: retrying the same command through Root
+     * could duplicate a side effect that already landed.
      */
     fun runShell(command: String): SystemControlResult {
         val safe = SafeCommandBuilder.validateUserCommand(command)
@@ -59,7 +60,7 @@ object PrivilegedRunner {
         var lastFailure: SystemControlResult? = null
         if (isShizukuGranted()) {
             val viaShizuku = runShizuku(safe)
-            if (viaShizuku.success) return viaShizuku
+            if (viaShizuku.success || viaShizuku.outcomeUncertain) return viaShizuku
             lastFailure = viaShizuku
         }
         if (isRootAvailable()) {
@@ -90,19 +91,18 @@ object PrivilegedRunner {
      * elevated channel. The operation itself has a closed argv shape, so this
      * fallback never turns workflow input into a shell expression.
      *
-     * Root is an absolute privilege: whenever the Shizuku transport is granted
-     * but its UserService cannot execute (server restarted, bind dropped), the
-     * very same operation is retried through the granted root shell instead of
-     * failing with a Shizuku reconnect demand — and the reverse holds on
-     * Shizuku-only devices. Only a failure from BOTH granted transports (or no
-     * granted transport at all) surfaces as an error.
+     * Root is an absolute privilege: when Shizuku definitely fails before a
+     * side effect can be confirmed as dispatched (server restarted, bind
+     * dropped), the same operation may fall back to the granted root shell.
+     * If Shizuku reports an uncertain outcome, execution stops immediately so
+     * a possible side effect is reconciled instead of being issued twice.
      */
     fun runElevatedOperation(operation: PrivilegedOperation): SystemControlResult {
         operationRouteProbe?.let { probe -> return resolveOperationRoute(probe(operation)) }
         var lastFailure: SystemControlResult? = null
         if (isShizukuGranted()) {
             val viaShizuku = runShizukuOperation(operation)
-            if (viaShizuku.success) return viaShizuku
+            if (viaShizuku.success || viaShizuku.outcomeUncertain) return viaShizuku
             lastFailure = viaShizuku
         }
         if (isRootAvailable()) {
