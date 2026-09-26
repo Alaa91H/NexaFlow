@@ -6,12 +6,18 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -33,6 +39,8 @@ class RingerModeMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -102,50 +110,152 @@ class RingerModeMonitor @Inject constructor(
             }
             val automations = repository.getAutomations().first()
             val byId = automations.associateBy { it.id }
-            val now = System.currentTimeMillis()
-            // Restore durable active markers first so a task that fired before
-            // a process restart is never fired again while its condition still
-            // holds; run the end behavior of tasks disabled or deleted while
-            // the process was down.
-            // Disabling a task is an explicit abandonment of its lifecycle:
-            // the durable mark is pruned without firing a stale exit (the exit
-            // contract covers the mode ENDING while the task stays enabled,
-            // never a deliberate disable).
-            activeStore.activeKeys(SOURCE).forEach { key ->
-                val id = key.substringBefore('|')
-                val automation = byId[id]
-                when {
-                    automation?.enabled == true -> {
-                        activeModes[id] = key.substringAfter('|', "NORMAL")
-                    }
-                    else -> {
-                        activeModes.remove(id)
-                        activeStore.clearAutomation(SOURCE, id)
-                    }
+
+            rearmFromLedger(byId)
+
+            // Preserve a durable lifecycle for disabled/edited routines until
+            // their configured end behavior has either succeeded or been
+            // retained as EXIT_FAILED by ExitCoordinator.
+            automations
+                .filter { automation ->
+                    val state = runtimeStore.current(automation.id)
+                    state?.source == SOURCE &&
+                        (!automation.enabled || automation.triggers.none { it.type == TriggerType.RINGER_MODE })
                 }
-            }
+                .forEach { automation -> requestExit(automation, ExitReason.AUTOMATION_DISABLED) }
+
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.RINGER_MODE } }
                 .forEach { automation ->
-                    val ringerTriggers = automation.triggers.filter { it.type == TriggerType.RINGER_MODE }
-                    val matchesNow = ringerTriggers.any {
-                        (it.config["mode"] ?: "NORMAL") == currentMode
-                    }
+                    val matchesNow = automation.triggers
+                        .filter { it.type == TriggerType.RINGER_MODE }
+                        .any { (it.config["mode"] ?: "NORMAL") == currentMode }
                     if (matchesNow) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        if (activeModes[automation.id] == null && now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
-                            activeModes[automation.id] = currentMode
-                            activeStore.markActive(SOURCE, "${automation.id}|$currentMode")
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (activeModes.remove(automation.id) != null) {
-                        // The condition already ended: run the exit behavior.
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
+                        activateIfNeeded(automation, currentMode)
+                    } else {
+                        requestExit(automation, ExitReason.TRIGGER_FALSE)
                     }
                 }
         }
+    }
+
+    /**
+     * Restores durable ringer ownership before evaluating the current mode and
+     * upgrades pre-runtime-ledger ActiveTriggerStore entries in place. A legacy
+     * key is promoted only when no newer lifecycle already owns the routine.
+     */
+    private suspend fun rearmFromLedger(
+        automations: Map<String, com.nexaflow.domain.models.Automation>
+    ) {
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = automations[state.automationId]
+                if (automation != null) {
+                    activeModes[state.automationId] = state.sourceKey.substringAfter('|', "")
+                    activeStore.markActive(SOURCE, state.sourceKey)
+                }
+            }
+
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val automationId = key.substringBefore('|')
+            val automation = automations[automationId]
+            if (automation == null) {
+                // The immutable definition is gone, so do not invent an exit;
+                // only remove the compatibility mirror.
+                activeModes.remove(automationId)
+                activeStore.clearAutomation(SOURCE, automationId)
+                return@forEach
+            }
+            if (runtimeStore.current(automationId) == null) {
+                runtimeStore.activate(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = key.ifBlank { "$automationId|legacy" },
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+            runtimeStore.current(automationId)
+                ?.takeIf { it.source == SOURCE }
+                ?.let { state ->
+                    activeModes[automationId] = state.sourceKey.substringAfter('|', "")
+                    activeStore.markActive(SOURCE, state.sourceKey)
+                }
+        }
+    }
+
+    private suspend fun activateIfNeeded(
+        automation: com.nexaflow.domain.models.Automation,
+        mode: String
+    ) {
+        val existing = runtimeStore.current(automation.id)
+        if (existing?.source == SOURCE) {
+            activeModes[automation.id] = existing.sourceKey.substringAfter('|', mode)
+            activeStore.markActive(SOURCE, existing.sourceKey)
+            return
+        }
+        if (existing != null) {
+            // Another stateful trigger owns this automation lifecycle.
+            activeModes.remove(automation.id)
+            activeStore.clearAutomation(SOURCE, automation.id)
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        val last = lastRunAt[automation.id] ?: 0L
+        if (now - last <= automation.cooldownMillis) return
+
+        val sourceKey = "${automation.id}|$mode"
+        val occurrenceId = "ringer:${automation.id}:${UUID.randomUUID()}"
+        lastRunAt[automation.id] = now
+        executionEngine.runAutomation(
+            automation = automation,
+            lifecycleContext = AutomationLifecycleContext(
+                occurrenceId = occurrenceId,
+                source = SOURCE,
+                sourceKey = sourceKey
+            )
+        )
+        val admitted = runtimeStore.current(automation.id)?.let { state ->
+            state.source == SOURCE && state.occurrenceId == occurrenceId
+        } == true
+        if (admitted) {
+            activeModes[automation.id] = mode
+            activeStore.markActive(SOURCE, sourceKey)
+        }
+    }
+
+    private suspend fun requestExit(
+        automation: com.nexaflow.domain.models.Automation,
+        reason: ExitReason
+    ) {
+        val state = runtimeStore.current(automation.id)
+        if (state?.source != SOURCE) {
+            if (state == null) clearLegacyState(automation.id)
+            return
+        }
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = reason,
+                occurrenceId = state.occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> clearLegacyState(automation.id)
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> Unit
+        }
+    }
+
+    private suspend fun clearLegacyState(automationId: String) {
+        activeModes.remove(automationId)
+        activeStore.clearAutomation(SOURCE, automationId)
     }
 
     fun stop() {
@@ -156,31 +266,26 @@ class RingerModeMonitor @Inject constructor(
         } catch (_: Throwable) {
             // ignore
         }
+        // Durable lifecycle ownership survives monitor restarts; only volatile
+        // callback hints are discarded here.
+        activeModes.clear()
     }
 
     private fun handleModeChange(mode: String) {
         scope.launch {
             val automations = repository.getAutomations().first()
-            val now = System.currentTimeMillis()
             automations
                 .filter { automation ->
                     automation.enabled && automation.triggers.any { it.type == TriggerType.RINGER_MODE }
                 }
                 .forEach { automation ->
-                    val ringerTriggers = automation.triggers.filter { it.type == TriggerType.RINGER_MODE }
-                    val matchesAny = ringerTriggers.any { (it.config["mode"] ?: "NORMAL") == mode }
+                    val matchesAny = automation.triggers
+                        .filter { it.type == TriggerType.RINGER_MODE }
+                        .any { (it.config["mode"] ?: "NORMAL") == mode }
                     if (matchesAny) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
-                            activeModes[automation.id] = mode
-                            activeStore.markActive(SOURCE, "${automation.id}|$mode")
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (activeModes.remove(automation.id) != null) {
-                        // The sound mode changed away: the condition ended, fire exit.
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
+                        activateIfNeeded(automation, mode)
+                    } else {
+                        requestExit(automation, ExitReason.TRIGGER_FALSE)
                     }
                 }
         }
