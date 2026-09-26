@@ -151,6 +151,7 @@ class MonitoringService : Service() {
             mediaMonitor.reconcileAutomations()
             deviceEventMonitor.reconcileAutomations()
             deviceStateMonitor28.reconcileAutomations()
+            romSettingMonitor.reconcileAutomations()
             wearEventRouter.reconcileAutomations()
         }
     }
