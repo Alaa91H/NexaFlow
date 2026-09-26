@@ -302,15 +302,16 @@ class BluetoothMonitor @Inject constructor(
     private suspend fun requestExit(
         automation: com.nexaflow.domain.models.Automation,
         reason: ExitReason,
-        occurrenceId: String? = runtimeStore.current(automation.id)
+        occurrenceId: String? = null
+    ) {
+        val ownedOccurrenceId = occurrenceId ?: runtimeStore.current(automation.id)
             ?.takeIf { it.source == SOURCE }
             ?.occurrenceId
-    ) {
         when (
             exitCoordinator.requestExit(
                 automation = automation,
                 reason = reason,
-                occurrenceId = occurrenceId
+                occurrenceId = ownedOccurrenceId
             )
         ) {
             is ExitCoordinatorResult.Executed,
