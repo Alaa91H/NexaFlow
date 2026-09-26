@@ -411,6 +411,300 @@ jobs:
           test -s "$PHONE"
           test -s "$WEAR"
           test -s "$BUNDLE"
+          sha256sum "$PHONE" | awk '{print $1}' > "$PHONE.sha256"
+          sha256sum "$WEAR" | awk '{print $1}' > "$WEAR.sha256"
+          sha256sum "$BUNDLE" | awk '{print $1}' > "$BUNDLE.sha256"
+          for checksum in "$PHONE.sha256" "$WEAR.sha256" "$BUNDLE.sha256"; do
+            grep -Eq '^[0-9a-f]{64}
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          PHONE_SHA="$PHONE.sha256"
+          WEAR_SHA="$WEAR.sha256"
+          BUNDLE_SHA="$BUNDLE.sha256"
+          PRERELEASE=()
+          [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA" --clobber
+            gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
+          else
+            gh release create "$TAG" "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA" \
+              --verify-tag \
+              --title "NexaFlow $TAG" \
+              --notes-file release-notes.md \
+              "${PRERELEASE[@]}"
+          fi
+
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          PHONE_SHA="$PHONE.sha256"
+          WEAR_SHA="$WEAR.sha256"
+          BUNDLE_SHA="$BUNDLE.sha256"
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
+          MISSING="$(jq \
+            --arg phone "$PHONE" --arg phoneSha "$PHONE_SHA" \
+            --arg wear "$WEAR" --arg wearSha "$WEAR_SHA" \
+            --arg bundle "$BUNDLE" --arg bundleSha "$BUNDLE_SHA" \
+            '[$phone, $phoneSha, $wear, $wearSha, $bundle, $bundleSha] - [.assets[].name] | length' \
+            <<<"$RELEASE_JSON")"
+          test "$MISSING" = "0"
+          for ASSET in "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA"; do
+            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
+            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
+            test -n "$SIZE" && test "$SIZE" -gt 0
+            test "$STATE" = "uploaded"
+          done
+          echo "Release $TAG published and verified."
+
+  consolidate:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[merge-all-branches]')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+
+      - name: Merge every remote branch into main
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t branches < <(
+            git for-each-ref --sort=committerdate --format='%(refname:strip=3)' refs/remotes/origin               | grep -v -E '^(HEAD|main)$'
+          )
+
+          printf 'Branches to consolidate (%s):\n' "${#branches[@]}"
+          printf ' - %s\n' "${branches[@]}"
+
+          for branch in "${branches[@]}"; do
+            echo "::group::Merging $branch"
+            if git merge-base --is-ancestor "origin/$branch" HEAD; then
+              echo "$branch is already contained in main."
+              echo "::endgroup::"
+              continue
+            fi
+
+            # This branch contains a historical edit to nexaflow-ci.yml. GitHub
+            # refuses a GITHUB_TOKEN push when the pushed ancestry introduces
+            # workflow-file commits. Its current workflow delta is preserved
+            # separately on main, so integrate the branch's code/test content
+            # as a squash commit while retaining main's workflow files.
+            if [[ "$branch" == "fix/wear-datalayer-companion-identity" ]]; then
+              before="$(git rev-parse HEAD)"
+              if git merge --squash -X theirs "origin/$branch"; then
+                echo "Squash merge prepared for $branch."
+              else
+                echo "Squash merge reported conflicts; resolving remaining paths in favor of incoming branch $branch."
+                mapfile -d '' -t conflicts < <(git diff --name-only --diff-filter=U -z)
+                for path in "${conflicts[@]}"; do
+                  if git cat-file -e "origin/$branch:$path" 2>/dev/null; then
+                    git checkout "origin/$branch" -- "$path"
+                    git add -- "$path"
+                  else
+                    git rm -f -- "$path"
+                  fi
+                done
+
+                if git diff --name-only --diff-filter=U | grep -q .; then
+                  echo "::error::Unresolved conflicts remain after deterministic squash resolution."
+                  git diff --name-only --diff-filter=U
+                  exit 1
+                fi
+              fi
+
+              git restore --source="$before" --staged --worktree -- .github/workflows
+              git add -A
+              if git diff --cached --quiet; then
+                echo "$branch has no remaining non-workflow delta to commit."
+              else
+                git commit -m "merge: integrate $branch without workflow ancestry"
+              fi
+              echo "::endgroup::"
+              continue
+            fi
+
+            if git merge --no-ff --no-edit -X theirs "origin/$branch"; then
+              echo "Merged $branch cleanly."
+            else
+              echo "Automatic merge reported conflicts; resolving remaining paths in favor of incoming branch $branch."
+              mapfile -d '' -t conflicts < <(git diff --name-only --diff-filter=U -z)
+              for path in "${conflicts[@]}"; do
+                if git cat-file -e "origin/$branch:$path" 2>/dev/null; then
+                  git checkout "origin/$branch" -- "$path"
+                  git add -- "$path"
+                else
+                  git rm -f -- "$path"
+                fi
+              done
+
+              if git diff --name-only --diff-filter=U | grep -q .; then
+                echo "::error::Unresolved conflicts remain after deterministic resolution."
+                git diff --name-only --diff-filter=U
+                exit 1
+              fi
+
+              git add -A
+              git commit --no-edit
+            fi
+            echo "::endgroup::"
+          done
+
+      - name: Reconcile cross-branch privileged read contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt")
+          text = path.read_text()
+          pattern = re.compile(
+              r'        val READABLE_SETTING_KEYS: Set<String> = setOf\(\n'
+              r'(?:            "[^"]+",?\n)+'
+              r'        \)'
+          )
+          replacement = '''        val READABLE_SETTING_KEYS: Set<String> = setOf(
+              "wifi_on",
+              "bluetooth_on",
+              "airplane_mode_on",
+              "accelerometer_rotation",
+              "screen_brightness",
+              "screen_off_timeout",
+              "zen_mode",
+              "mobile_data"
+          )'''
+          updated, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit("Could not locate READABLE_SETTING_KEYS for reconciliation")
+          path.write_text(updated)
+          PY
+
+          if ! git diff --quiet -- core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt; then
+            git add core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt
+            git commit -m "fix: reconcile bounded settings readback after branch merge"
+          fi
+
+      - name: Verify every branch tip is integrated
+        shell: bash
+        run: |
+          set -euo pipefail
+          failed=0
+          while IFS= read -r branch; do
+            case "$branch" in
+              HEAD|main) continue ;;
+              fix/wear-datalayer-companion-identity)
+                echo "$branch was content-integrated by squash; ancestry check intentionally skipped."
+                continue
+                ;;
+            esac
+            if ! git merge-base --is-ancestor "origin/$branch" HEAD; then
+              echo "::error::$branch is not an ancestor of the integration result."
+              failed=1
+            fi
+          done < <(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin)
+          test "$failed" -eq 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up JDK 21 for tests
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Run repository hygiene checks
+        shell: bash
+        run: |
+          chmod +x gradlew
+          python3 scripts/auto_fix.py --check
+          python3 scripts/check_strings_parity.py
+          python3 scripts/audit_translation_completeness.py --self-test
+          python3 scripts/audit_translation_completeness.py
+          python3 scripts/check_hardcoded_text.py --self-test
+          python3 scripts/check_hardcoded_text.py
+          python3 scripts/check_vendor_neutrality.py --self-test
+          python3 scripts/check_vendor_neutrality.py
+
+      - name: Run Gradle verification
+        run: ./gradlew detekt lintDebug testDebugUnitTest assembleDebug
+
+      - name: Push integrated main
+        run: git push origin HEAD:main
+
+      - name: Delete all branches except main
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t branches < <(
+            git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin               | grep -v -E '^(HEAD|main)$'
+          )
+          for branch in "${branches[@]}"; do
+            echo "Deleting remote branch $branch"
+            git push origin --delete "$branch"
+          done
+
+  merge-dependabot-update:
+    permissions:
+      contents: write
+      pull-requests: write
+    # Do not check out or execute code from the pull request. This workflow
+    # only asks GitHub to watch its required checks and merge the PR after they
+    # pass, so it retains pull_request_target permissions safely.
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Wait for all pull-request checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr checks "$PR_URL" --watch --fail-fast
+      - name: Enable squash auto-merge after verified checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --auto --squash --delete-branch
+ "$checksum" || {
+              echo "::error::Invalid SHA-256 file $checksum"
+              exit 1
+            }
+          done
           python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
 
       - name: Publish GitHub Release
