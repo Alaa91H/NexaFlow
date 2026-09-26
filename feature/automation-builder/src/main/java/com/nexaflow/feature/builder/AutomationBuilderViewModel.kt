@@ -216,7 +216,6 @@ class AutomationBuilderViewModel @Inject constructor(
                 )
             )
             val wasEnabled = prev?.enabled == true
-            val nowDisabled = !storedAutomation.enabled
             existing = storedAutomation
             repository.saveAutomation(storedAutomation)
             // Disable cleanup is owned by the durable monitoring lifecycle.
