@@ -8,6 +8,7 @@ import com.nexaflow.core.automationcontrol.AutomationMutationContext
 import com.nexaflow.core.automationcontrol.AutomationMutationKind
 import com.nexaflow.core.automationcontrol.AutomationMutationOrigin
 import com.nexaflow.core.automationcontrol.AutomationPersistenceResult
+import com.nexaflow.core.database.AgentAuditEntity
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.data.mapper.toDomain
 import com.nexaflow.data.mapper.toEntity
@@ -450,6 +451,55 @@ class RoomAutomationMutationPersistenceTest {
                 .idempotencyForActor("agent:test", 10)
                 .isEmpty()
         )
+    }
+
+    @Test
+    fun auditRetentionPrunesExpiredRowsAndEnforcesNewestRowCap() = runTest {
+        val dao = database.agentPlatformDao()
+        listOf(
+            AgentAuditEntity(
+                id = "old",
+                eventType = "OLD",
+                outcome = "TEST",
+                actorId = "agent:test",
+                createdAt = 10L
+            ),
+            AgentAuditEntity(
+                id = "mid",
+                eventType = "MID",
+                outcome = "TEST",
+                actorId = "agent:test",
+                createdAt = 80L
+            ),
+            AgentAuditEntity(
+                id = "new",
+                eventType = "NEW",
+                outcome = "TEST",
+                actorId = "agent:test",
+                createdAt = 90L
+            )
+        ).forEach { dao.insertAudit(it) }
+
+        val persistence = RoomAutomationMutationPersistence(
+            database = database,
+            automationDao = database.automationDao(),
+            agentPlatformDao = dao,
+            auditRetentionMs = 50L,
+            maxAuditRows = 2
+        )
+        val result = persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = automation("retention", "Retention", 100L),
+                occurredAt = 100L
+            )
+        )
+
+        assertTrue(result is AutomationPersistenceResult.Committed)
+        val remaining = dao.latestAudit(10)
+        assertEquals(2, remaining.size)
+        assertEquals(setOf("TASK_CREATED", "NEW"), remaining.map { it.eventType }.toSet())
+        assertTrue(remaining.none { it.id == "old" || it.eventType == "MID" })
     }
 
     @Test
