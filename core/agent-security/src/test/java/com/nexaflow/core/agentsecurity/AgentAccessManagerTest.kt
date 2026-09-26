@@ -285,7 +285,7 @@ class AgentAccessManagerTest {
         val fixture = fixture()
         fixture.manager.setAccessEnabled(true)
 
-        repeat(AgentAccessManager.MAX_ACTIVE_AGENTS) { index ->
+        repeat(32) { index ->
             assertTrue(
                 fixture.manager.grantPermanentAccess(identity("agent.$index")) is
                     AgentGrantResult.Granted
@@ -300,7 +300,7 @@ class AgentAccessManagerTest {
                 AgentGrantResult.Granted
         )
         assertEquals(
-            AgentAccessManager.MAX_ACTIVE_AGENTS,
+            32,
             fixture.manager.status().activeAgentCount
         )
     }
