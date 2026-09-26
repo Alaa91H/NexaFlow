@@ -349,12 +349,19 @@ class ShizukuTypedStrategy(
         )
     } else {
         val permissionUnavailable =
-            result.message.contains("not granted", ignoreCase = true) ||
-                result.message.contains("not available", ignoreCase = true)
+            result.message.contains("not granted", ignoreCase = true)
+        // A bound endpoint can disappear after availability() but before the
+        // actual binder call. ShizukuShellBridge reports that race as
+        // "UserService is unavailable"; no operation was dispatched, so this
+        // is a definite transport failure and safe strategy fallback.
+        val endpointUnavailable =
+            result.message.contains("UserService", ignoreCase = true) &&
+                (result.message.contains("unavailable", ignoreCase = true) ||
+                    result.message.contains("not available", ignoreCase = true))
         val endpointFailure =
             result.message.contains("failed", ignoreCase = true) &&
                 result.message.contains("UserService", ignoreCase = true)
-        val transport = permissionUnavailable || endpointFailure
+        val transport = permissionUnavailable || endpointUnavailable || endpointFailure
         // The bridge can explicitly report that dispatch already happened but
         // confirmation timed out. Honor that structured signal rather than
         // inferring certainty from a generic failure string. Only operations
