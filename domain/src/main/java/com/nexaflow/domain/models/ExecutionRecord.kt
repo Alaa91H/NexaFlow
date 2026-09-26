@@ -19,7 +19,12 @@ data class ActionExecutionResult(
     /** Whether execution attempted an independent post-condition verification. */
     val verificationAttempted: Boolean = false,
     /** null = not applicable/unavailable; true/false = explicit verification verdict. */
-    val verified: Boolean? = null
+    val verified: Boolean? = null,
+    /**
+     * True when the side effect may already have landed but its final state
+     * could not be confirmed. Recovery must never auto-replay this action.
+     */
+    val outcomeUncertain: Boolean = false
 )
 
 /**
