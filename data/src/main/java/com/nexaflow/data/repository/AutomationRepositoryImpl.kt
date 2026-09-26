@@ -44,6 +44,14 @@ class AutomationRepositoryImpl @Inject constructor(
         automationDao.deleteAutomation(automation.toEntity())
     }
 
+    override suspend fun deleteAutomationIfRevisionMatches(
+        automationId: String,
+        expectedRevision: Long
+    ): Boolean = automationDao.deleteAutomationIfRevisionMatches(
+        id = automationId,
+        expectedRevision = expectedRevision
+    ) == 1
+
     override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
         automationDao.updateAutomationStatus(id, enabled)
     }
