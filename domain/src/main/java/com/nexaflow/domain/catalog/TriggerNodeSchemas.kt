@@ -17,7 +17,9 @@ internal object TriggerNodeSchemas {
             dateField("startDate"),
             dateField("endDate"),
             stringField("endMode"),
-            integerField("endCount", min = 1.0, max = 999.0)
+            integerField("endCount", min = 1.0, max = 999.0),
+            enumField("zonePolicy", "DEVICE_LOCAL", "FIXED_IANA", default = "DEVICE_LOCAL"),
+            stringField("zoneId")
         )
         TriggerType.BATTERY -> schema(
             enumField("direction", "ABOVE", "BELOW", default = "ABOVE"),
