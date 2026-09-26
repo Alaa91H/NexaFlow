@@ -7,6 +7,8 @@ import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.automationcontrol.AutomationCommandService
 import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
 import com.nexaflow.core.automationcontrol.WorkflowDryRunInspector
+import com.nexaflow.core.automationcontrol.schedule.AgentSchedulePreviewService
+import com.nexaflow.core.automationcontrol.simulation.AgentSimulationService
 import com.nexaflow.core.database.AgentPlatformDao
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
@@ -427,6 +429,21 @@ object AppModule {
         dryRunInspector = WorkflowDryRunInspector(workflowDryRunService),
         mutationPersistence = mutationPersistence,
         auditSink = auditSink
+    )
+
+    @Provides
+    @Singleton
+    fun provideAgentSchedulePreviewService(): AgentSchedulePreviewService =
+        AgentSchedulePreviewService()
+
+    @Provides
+    @Singleton
+    fun provideAgentSimulationService(
+        commandService: AutomationCommandService,
+        schedulePreviewService: AgentSchedulePreviewService
+    ): AgentSimulationService = AgentSimulationService(
+        commandService = commandService,
+        schedulePreviewService = schedulePreviewService
     )
 
     @Provides
