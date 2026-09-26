@@ -81,7 +81,7 @@ class AgentApiController(
                 uri = uri,
                 path = path,
                 agentId = checkNotNull(principal.agentId),
-                transport = transport
+                transport = TRANSPORT
             )
         } catch (_: SerializationException) {
             error(400, "invalid_json", "Request JSON does not match the API schema")
