@@ -243,7 +243,7 @@ class AgentMcpController(
     ): AgentHttpResponse {
         val name = params["name"]?.jsonPrimitive?.contentOrNull
             ?: return protocolError(id, -32602, "Missing tool name", modern)
-        val definition = AgentMcpToolRegistry.find(name)
+        AgentMcpToolRegistry.find(name)
             ?: return toolResult(
                 id,
                 buildJsonObject {
@@ -255,9 +255,6 @@ class AgentMcpController(
                 isError = true,
                 modern = modern
             )
-
-        authorize(request, definition.requiredScopes, toolCall = true)
-            ?.let { return it }
 
         val arguments = params["arguments"] as? JsonObject ?: buildJsonObject {}
         val response = toolExecutor.execute(name, arguments, request)
