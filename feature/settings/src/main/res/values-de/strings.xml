@@ -239,4 +239,38 @@
     <string name="blocked_calls_title">Blockierte Anrufe</string>
     <string name="blocked_calls_empty">Noch keine blockierten Anrufe</string>
     <string name="blocked_calls_filter_all">Alle Regeln</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">KI &amp; Agenten</string>
+    <string name="ai_agents_subtitle">Permanenter Zugriff, Kopplung und Agentenaktivität</string>
+    <string name="agent_access_title">KI-Agentenzugriff</string>
+    <string name="agent_access_on">Vollständiger permanenter Zugriff ist aktiviert</string>
+    <string name="agent_access_off">Deaktiviert — Agenten können weder verbinden noch Aktionen ausführen</string>
+    <string name="agent_gateway_title">Lokales Agenten-Gateway</string>
+    <string name="agent_gateway_running">Läuft auf 127.0.0.1:%1$d</string>
+    <string name="agent_gateway_stopped">Nicht aktiv</string>
+    <string name="agent_gateway_rest">REST-API · /api/v1</string>
+    <string name="agent_gateway_mcp">MCP-Protokoll · /mcp</string>
+    <string name="agent_add_title">Agent hinzufügen</string>
+    <string name="agent_name_label">Agentenname</string>
+    <string name="agent_name_hint">Beispiel: Mein Laptop</string>
+    <string name="agent_generate_pairing">Kopplungscode erzeugen</string>
+    <string name="agent_pairing_payload">Einmalige Kopplungsdaten</string>
+    <string name="agent_pairing_help">Gib diese Daten nur dem Agenten, dem du vertraust. Sie laufen in 5 Minuten ab.</string>
+    <string name="agent_copy_payload">Daten kopieren</string>
+    <string name="agent_payload_copied">Kopplungsdaten kopiert</string>
+    <string name="agent_expires_at">Läuft ab um %1$s</string>
+    <string name="agent_trusted_title">Vertrauenswürdige Agenten</string>
+    <string name="agent_none">Keine Agenten gekoppelt</string>
+    <string name="agent_full_access">Vollständiger permanenter Zugriff</string>
+    <string name="agent_active_sessions">%1$d aktive Sitzung(en)</string>
+    <string name="agent_revoke">Widerrufen</string>
+    <string name="agent_revoke_all">Alle widerrufen</string>
+    <string name="agent_revoke_all_title">Alle Agenten widerrufen?</string>
+    <string name="agent_revoke_all_message">Alle Agenten-Zugangsdaten und Sitzungen funktionieren danach nicht mehr. Bestehende Automatisierungen bleiben erhalten.</string>
+    <string name="agent_activity_title">Agentenaktivität</string>
+    <string name="agent_activity_empty">Noch keine Agentenaktivität</string>
+    <string name="agent_refresh">Aktualisieren</string>
+    <string name="agent_operation_failed">Agentenvorgang konnte nicht abgeschlossen werden</string>
+    <string name="agent_pending_pairings">%1$d ausstehende Kopplungsanfrage(n)</string>
 </resources>
