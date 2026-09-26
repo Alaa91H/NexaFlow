@@ -115,8 +115,14 @@ class WearCommandListenerService : WearableListenerService() {
         if (automationId.isBlank()) return
         serviceScope.launch {
             runCatching {
-                entryPoint.automationRepository()
-                    .updateAutomationStatus(automationId, enabled)
+                val repository = entryPoint.automationRepository()
+                val automation = repository.getAutomationById(automationId)
+                    ?: return@runCatching
+                val wasEnabled = automation.enabled
+                repository.updateAutomationStatus(automationId, enabled)
+                if (wasEnabled && !enabled) {
+                    entryPoint.executionEngine().runDisableCleanup(automation)
+                }
                 entryPoint.executionEngine().notifyAutomationsChanged()
             }.onFailure {
                 Log.w(TAG, "Wear toggle failed for automation $automationId", it)
