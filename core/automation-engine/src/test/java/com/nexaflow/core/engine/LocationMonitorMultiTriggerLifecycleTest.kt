@@ -5,6 +5,8 @@ import android.location.Location
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
@@ -18,6 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -94,6 +97,94 @@ class LocationMonitorMultiTriggerLifecycleTest {
             scope = CoroutineScope(Dispatchers.Default),
         )
         return Triple(monitor, runtimeStore, activeStore)
+    }
+
+    @Test
+    fun orphanedLocationLifecycleIsPreservedForRecoveryReview() = runBlocking {
+        val id = "location-orphan"
+        val repository = FakeRepository(emptyList())
+        val history = RecordingHistory()
+        val runtimeStore = AutomationRuntimeStore(context)
+        val activeStore = ActiveTriggerStore(context)
+        runtimeStore.clear(id)
+        activeStore.clearAutomation("location", id)
+        runtimeStore.activateStrict(
+            AutomationRuntimeState(
+                automationId = id,
+                occurrenceId = "location-orphan-occurrence",
+                source = "location",
+                sourceKey = "location-indices:0",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L,
+            )
+        )
+        activeStore.markActive("location", id)
+
+        val engine = testEngine(context, history)
+        val monitor = LocationMonitor(
+            context = context,
+            repository = repository,
+            executionEngine = engine,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
+            runtimeStore = runtimeStore,
+            activeStore = activeStore,
+            scope = CoroutineScope(Dispatchers.Default),
+        )
+
+        monitor.rearmFromLedger()
+
+        assertEquals(
+            AutomationRuntimeLifecycleState.ACTIVE,
+            runtimeStore.current(id)?.lifecycleState
+        )
+        assertEquals("location-orphan-occurrence", runtimeStore.current(id)?.occurrenceId)
+        assertTrue(activeStore.activeKeys("location").isEmpty())
+
+        runtimeStore.clear(id)
+        Unit
+    }
+
+    @Test
+    fun disabledLocationLifecycleRunsExitBeforeOwnershipClears() = runBlocking {
+        val id = "location-disabled"
+        val automation = testAutomation(
+            id = id,
+            triggers = listOf(locationTrigger(radius = 100)),
+        ).copy(enabled = false, actions = emptyList(), exitActions = emptyList())
+        val repository = FakeRepository(listOf(automation))
+        val history = RecordingHistory()
+        val runtimeStore = AutomationRuntimeStore(context)
+        val activeStore = ActiveTriggerStore(context)
+        runtimeStore.clear(id)
+        activeStore.clearAutomation("location", id)
+        runtimeStore.activateStrict(
+            AutomationRuntimeState(
+                automationId = id,
+                occurrenceId = "location-disabled-occurrence",
+                source = "location",
+                sourceKey = "location-indices:0",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L,
+            )
+        )
+        activeStore.markActive("location", id)
+
+        val engine = testEngine(context, history)
+        val monitor = LocationMonitor(
+            context = context,
+            repository = repository,
+            executionEngine = engine,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
+            runtimeStore = runtimeStore,
+            activeStore = activeStore,
+            scope = CoroutineScope(Dispatchers.Default),
+        )
+
+        monitor.rearmFromLedger()
+
+        assertNull(runtimeStore.current(id))
+        assertTrue(activeStore.activeKeys("location").isEmpty())
+        assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
     }
 
     @Test

@@ -84,36 +84,78 @@ class LocationMonitor @Inject constructor(
      * Restores the durable active ids into the in-memory map. Stale keys for
      * deleted/disabled automations are pruned.
      */
-    private suspend fun rearmFromLedger() {
+    internal suspend fun rearmFromLedger() {
         val automations = repository.getAutomations().first().associateBy { it.id }
-        val enabledIds = automations.values.filter { it.enabled }.map { it.id }.toSet()
         // The occurrence ledger is authoritative. Restore it before consuming
         // location fixes so a process death cannot lose a real active task.
         runtimeStore.activeStates()
             .filter { it.source == SOURCE }
             .forEach { state ->
-                if (state.automationId in enabledIds) {
-                    activeStates[state.automationId] = true
-                    activeTriggerIndices[state.automationId] =
-                        decodeSourceKey(state.sourceKey).ifEmpty {
-                            fallbackLocationTriggerIndices(automations[state.automationId])
+                val automation = automations[state.automationId]
+                when {
+                    automation == null -> {
+                        // Missing immutable definition is not proof that any
+                        // owned external/device state was cleaned up. Preserve
+                        // the durable row for recovery review and drop only
+                        // volatile/compatibility mirrors.
+                        activeStates.remove(state.automationId)
+                        activeTriggerIndices.remove(state.automationId)
+                        activeStore.clearAutomation(SOURCE, state.automationId)
+                    }
+                    automation.enabled &&
+                        automation.triggers.any { it.type == TriggerType.LOCATION } -> {
+                        activeStates[state.automationId] = true
+                        activeTriggerIndices[state.automationId] =
+                            decodeSourceKey(state.sourceKey).ifEmpty {
+                                fallbackLocationTriggerIndices(automation)
+                            }
+                        activeStore.markActive(SOURCE, state.automationId)
+                    }
+                    else -> {
+                        when (
+                            exitCoordinator.requestExit(
+                                automation = automation,
+                                reason = ExitReason.AUTOMATION_DISABLED,
+                                occurrenceId = state.occurrenceId
+                            )
+                        ) {
+                            is ExitCoordinatorResult.Executed,
+                            ExitCoordinatorResult.NotActive,
+                            ExitCoordinatorResult.StaleOccurrence -> {
+                                activeStates.remove(state.automationId)
+                                activeTriggerIndices.remove(state.automationId)
+                                activeStore.clearAutomation(SOURCE, state.automationId)
+                            }
+                            ExitCoordinatorResult.AlreadyInProgress,
+                            is ExitCoordinatorResult.RecoveryRequired -> {
+                                activeStates[state.automationId] = true
+                                activeTriggerIndices[state.automationId] =
+                                    decodeSourceKey(state.sourceKey).ifEmpty {
+                                        fallbackLocationTriggerIndices(automation)
+                                    }
+                                activeStore.markActive(SOURCE, state.automationId)
+                            }
                         }
-                    activeStore.markActive(SOURCE, state.automationId)
-                } else {
-                    runtimeStore.clear(state.automationId, state.occurrenceId)
+                    }
                 }
             }
         activeStore.activeKeys(SOURCE).forEach { key ->
             val id = key.substringBefore('|')
-            if (id in enabledIds) {
+            val automation = automations[id]
+            if (automation?.enabled == true &&
+                automation.triggers.any { it.type == TriggerType.LOCATION }
+            ) {
                 activeStates[id] = true
                 if (id !in activeTriggerIndices) {
                     activeTriggerIndices[id] =
-                        fallbackLocationTriggerIndices(automations[id])
+                        fallbackLocationTriggerIndices(automation)
                 }
             } else {
                 activeStates.remove(id)
                 activeTriggerIndices.remove(id)
+                // Compatibility-only keys may be discarded when the immutable
+                // definition is unavailable; durable runtime ownership above
+                // remains untouched.
                 activeStore.clearAutomation(SOURCE, id)
             }
         }
