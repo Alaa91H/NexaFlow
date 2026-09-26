@@ -53,6 +53,9 @@ class AgentAccessManager(
             if (!state.accessEnabled) {
                 return@mutate state to AgentGrantResult.Disabled
             }
+            if (!canGrantAgent(state, request.agentId)) {
+                return@mutate state to AgentGrantResult.CapacityExceeded
+            }
             val (next, credential) = applyPermanentGrant(state, request, now)
             next to AgentGrantResult.Granted(credential)
         }
@@ -133,6 +136,11 @@ class AgentAccessManager(
                 } else {
                     AgentPairingCompletionResult.InvalidChallenge
                 }
+            }
+
+            if (!canGrantAgent(state, challenge.request.agentId)) {
+                val next = state.replaceChallenge(challenge.copy(consumedAt = now))
+                return@mutate next to AgentPairingCompletionResult.CapacityExceeded
             }
 
             val consumedState = state.replaceChallenge(
@@ -342,10 +350,15 @@ class AgentAccessManager(
             refreshSecretHash = AgentTokenCodec.hash(refreshSecret),
             createdAt = now
         )
+        val activeOthers = state.grants.filter {
+            it.agentId != request.agentId && it.revokedAt == null
+        }
+        val retainedRevoked = state.grants
+            .filter { it.revokedAt != null }
+            .sortedByDescending { it.revokedAt }
+            .take((MAX_RETAINED_GRANTS - activeOthers.size - 1).coerceAtLeast(0))
         val next = state.copy(
-            grants = state.grants.filterNot {
-                it.agentId == request.agentId && it.revokedAt == null
-            } + grant,
+            grants = activeOthers + retainedRevoked + grant,
             credentials = state.credentials.filterNot {
                 it.agentId == request.agentId
             } + credential,
@@ -357,6 +370,14 @@ class AgentAccessManager(
             agentId = request.agentId,
             refreshToken = AgentTokenCodec.compose(credentialId, refreshSecret)
         )
+    }
+
+    private fun canGrantAgent(
+        state: AgentSecurityStateV1,
+        agentId: String
+    ): Boolean {
+        if (state.grants.any { it.agentId == agentId && it.revokedAt == null }) return true
+        return state.grants.count { it.revokedAt == null } < MAX_ACTIVE_AGENTS
     }
 
     private fun boundedSessions(
@@ -413,6 +434,8 @@ class AgentAccessManager(
         const val DEFAULT_MAX_PAIRING_ATTEMPTS = 5
         const val MAX_ACTIVE_SESSIONS_PER_AGENT = 8
         const val MAX_ACTIVE_PAIRING_CHALLENGES = 16
+        const val MAX_ACTIVE_AGENTS = 32
+        const val MAX_RETAINED_GRANTS = 128
         const val MAX_DISPLAY_NAME_LENGTH = 128
         const val MAX_BINDING_VALUE_LENGTH = 256
         val AGENT_ID_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}")
