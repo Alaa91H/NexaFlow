@@ -18,6 +18,10 @@ internal class SensorActivationState {
         return true
     }
 
+    fun removeAutomation(automationId: String) {
+        active.remove(automationId)
+    }
+
     fun retain(allowed: Map<String, Set<String>>) {
         active.keys.toList().forEach { id ->
             active[id]?.retainAll(allowed[id].orEmpty())
