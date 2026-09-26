@@ -165,10 +165,25 @@ class RepositoryImplTest {
         val dao = FakeAutomationDao()
         val repository = AutomationRepositoryImpl(dao)
 
+        val base = Automation(
+            id = "batch-a",
+            name = "Batch task",
+            description = "",
+            icon = "",
+            iconColor = 0L,
+            backgroundColor = 0L,
+            category = "",
+            priority = 0,
+            enabled = false,
+            triggers = emptyList(),
+            actions = emptyList(),
+            createdAt = 0L,
+            updatedAt = 0L
+        )
         repository.saveAutomationsAtomically(
             listOf(
-                automation("batch-a"),
-                automation("batch-b")
+                base,
+                base.copy(id = "batch-b", name = "Batch task 2")
             )
         )
 
