@@ -143,19 +143,26 @@ class MonitoringService : Service() {
     private val automationChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
             if (intent.action != ACTION_AUTOMATIONS_CHANGED) return
-            batteryMonitor.reconcileAutomations()
-            connectivityMonitor.reconcileAutomations()
-            airplaneModeMonitor.reconcileAutomations()
-            darkModeMonitor.reconcileAutomations()
-            ringerModeMonitor.reconcileAutomations()
-            callStateMonitor.reconcileAutomations()
-            mediaMonitor.reconcileAutomations()
-            volumeMonitor.reconcileAutomations()
-            calendarMonitor.reconcileAutomations()
-            deviceEventMonitor.reconcileAutomations()
-            deviceStateMonitor28.reconcileAutomations()
-            romSettingMonitor.reconcileAutomations()
-            wearEventRouter.reconcileAutomations()
+            scope.launch {
+                // Room has already committed the edit/toggle. Claim disabled
+                // durable lifecycles centrally before individual monitors
+                // reconcile the current device state.
+                exitCoordinator.reconcileDisabledAutomations()
+
+                batteryMonitor.reconcileAutomations()
+                connectivityMonitor.reconcileAutomations()
+                airplaneModeMonitor.reconcileAutomations()
+                darkModeMonitor.reconcileAutomations()
+                ringerModeMonitor.reconcileAutomations()
+                callStateMonitor.reconcileAutomations()
+                mediaMonitor.reconcileAutomations()
+                volumeMonitor.reconcileAutomations()
+                calendarMonitor.reconcileAutomations()
+                deviceEventMonitor.reconcileAutomations()
+                deviceStateMonitor28.reconcileAutomations()
+                romSettingMonitor.reconcileAutomations()
+                wearEventRouter.reconcileAutomations()
+            }
         }
     }
 
@@ -197,9 +204,10 @@ class MonitoringService : Service() {
                 Log.i(TAG, "startup elevated check: rootAvailable=$rootAvail suBin=$suBin shizukuGranted=$shizuku sdk=${android.os.Build.VERSION.SDK_INT}")
             } catch (_: Throwable) {}
             activeTriggerStore.purgeExpired()
-            // A process/service restart can occur after a range end or after a
-            // failed exit. Reconcile durable lifecycle state before callbacks
-            // re-arm so cleanup never depends on seeing a future condition flip.
+            // A restart can occur after the user disabled a task while the
+            // monitoring service was stopped. Resolve that persisted intent
+            // before generic recovery and before callbacks re-arm.
+            exitCoordinator.reconcileDisabledAutomations()
             exitCoordinator.reconcile(ExitReason.PROCESS_RECOVERY)
             // Subscription is established before the external receiver is
             // registered, preserving the EventBus → TriggerIndex route and
