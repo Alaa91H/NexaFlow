@@ -75,7 +75,7 @@ class RoomAutomationMutationPersistence(
         requestFingerprint: String,
         occurredAt: Long
     ): AutomationPersistenceResult? = database.withTransaction {
-        validateIdempotencyContext(context)
+        validateMutationContext(context)
         pruneRetention(occurredAt)
         val rawKey = context.idempotencyKey ?: return@withTransaction null
         val existing = agentPlatformDao.getIdempotency(
@@ -457,23 +457,27 @@ class RoomAutomationMutationPersistence(
     }
 
     private fun validateContext(request: AutomationMutationCommitRequest) {
-        validateIdempotencyContext(request.context)
-        require(request.context.transport.length <= MAX_METADATA_VALUE_LENGTH)
-        requireOptionalBound(request.context.agentId)
-        requireOptionalBound(request.context.providerId)
-        requireOptionalBound(request.context.modelId)
-        requireOptionalBound(request.context.requestId)
-        requireOptionalBound(request.context.conversationId)
-        requireOptionalBound(request.context.riskLevel)
-        require(request.requestFingerprint.isNotBlank())
+        validateMutationContext(request.context)
+        require(request.requestFingerprint.isNotBlank()) {
+            "Mutation request fingerprint must not be blank"
+        }
     }
 
-    private fun validateIdempotencyContext(
+    private fun validateMutationContext(
         context: com.nexaflow.core.automationcontrol.AutomationMutationContext
     ) {
         require(context.actorId.matches(ACTOR_ID_PATTERN)) {
             "Mutation actor id has an invalid format"
         }
+        require(context.transport.length <= MAX_METADATA_VALUE_LENGTH) {
+            "Mutation transport metadata is too long"
+        }
+        requireOptionalBound(context.agentId)
+        requireOptionalBound(context.providerId)
+        requireOptionalBound(context.modelId)
+        requireOptionalBound(context.requestId)
+        requireOptionalBound(context.conversationId)
+        requireOptionalBound(context.riskLevel)
         context.idempotencyKey?.let { rawKey ->
             require(rawKey.isNotBlank() && rawKey.length <= MAX_IDEMPOTENCY_KEY_LENGTH) {
                 "Idempotency key has an invalid length"
