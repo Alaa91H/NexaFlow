@@ -143,19 +143,27 @@ class MonitoringService : Service() {
     private val automationChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
             if (intent.action != ACTION_AUTOMATIONS_CHANGED) return
-            batteryMonitor.reconcileAutomations()
-            connectivityMonitor.reconcileAutomations()
-            airplaneModeMonitor.reconcileAutomations()
-            darkModeMonitor.reconcileAutomations()
-            ringerModeMonitor.reconcileAutomations()
-            callStateMonitor.reconcileAutomations()
-            mediaMonitor.reconcileAutomations()
-            volumeMonitor.reconcileAutomations()
-            calendarMonitor.reconcileAutomations()
-            deviceEventMonitor.reconcileAutomations()
-            deviceStateMonitor28.reconcileAutomations()
-            romSettingMonitor.reconcileAutomations()
-            wearEventRouter.reconcileAutomations()
+            scope.launch {
+                // Room has already committed the edit/toggle before this
+                // broadcast. Claim disabled durable lifecycles centrally first
+                // so no feature ViewModel or individual monitor can execute the
+                // same end behavior outside ExitCoordinator.
+                exitCoordinator.reconcileDisabledAutomations()
+
+                batteryMonitor.reconcileAutomations()
+                connectivityMonitor.reconcileAutomations()
+                airplaneModeMonitor.reconcileAutomations()
+                darkModeMonitor.reconcileAutomations()
+                ringerModeMonitor.reconcileAutomations()
+                callStateMonitor.reconcileAutomations()
+                mediaMonitor.reconcileAutomations()
+                volumeMonitor.reconcileAutomations()
+                calendarMonitor.reconcileAutomations()
+                deviceEventMonitor.reconcileAutomations()
+                deviceStateMonitor28.reconcileAutomations()
+                romSettingMonitor.reconcileAutomations()
+                wearEventRouter.reconcileAutomations()
+            }
         }
     }
 
