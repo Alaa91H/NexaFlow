@@ -4,18 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import java.util.concurrent.Executors
 
 /**
- * Executes the plugin when a task runs. The host sends an explicit
- * [LocaleProtocol.ACTION_FIRE_SETTING] broadcast with the saved config bundle.
- *
- * Ordered-broadcast result contract (recommended, Tasker-compatible):
- *  - success → [LocaleProtocol.RESULT_CODE_OK]
- *  - failure → [LocaleProtocol.RESULT_CODE_FAILED] + %err / %errmsg extras so
- *    the host can show WHY the action failed.
- *
- * Keep [onReceive] fast — hosts may fire while the app is backgrounded. The
- * NFC toggle here is a quick synchronous call; for long work use [goAsync].
+ * Executes the plugin when a task runs. Potentially blocking NFC/reflection/
+ * shell work is moved off BroadcastReceiver.onReceive via [goAsync].
  */
 class NfcToggleFireReceiver : BroadcastReceiver() {
 
@@ -26,21 +19,45 @@ class NfcToggleFireReceiver : BroadcastReceiver() {
             intent.getBundleExtra(LocaleProtocol.EXTRA_BUNDLE)
         )
         val enabled = config["enabled"] as? Boolean
-        val failure = when {
-            enabled == null -> "Missing 'enabled' configuration"
-            else -> NfcController.setNfcEnabled(context, enabled)
+        if (enabled == null) {
+            if (isOrderedBroadcast) {
+                resultCode = LocaleProtocol.RESULT_CODE_FAILED
+                resultExtras = errorExtras("Missing 'enabled' configuration")
+            }
+            return
         }
 
-        if (!isOrderedBroadcast) return
-        if (failure == null) {
-            resultCode = LocaleProtocol.RESULT_CODE_OK
-        } else {
-            resultCode = LocaleProtocol.RESULT_CODE_FAILED
-            // Tasker-compatible error extras — hosts render these in the UI.
-            val extras = Bundle()
-            extras.putInt(LocaleProtocol.EXTRA_TASKER_ERR, 1)
-            extras.putString(LocaleProtocol.EXTRA_TASKER_ERRMSG, failure)
-            setResultExtras(extras)
+        val ordered = isOrderedBroadcast
+        val pending = goAsync()
+        WORKER.execute {
+            try {
+                val failure = NfcController.setNfcEnabled(context.applicationContext, enabled)
+                if (ordered) {
+                    pending.setResultCode(
+                        if (failure == null) {
+                            LocaleProtocol.RESULT_CODE_OK
+                        } else {
+                            LocaleProtocol.RESULT_CODE_FAILED
+                        }
+                    )
+                    if (failure != null) {
+                        pending.setResultExtras(errorExtras(failure))
+                    }
+                }
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
+    private fun errorExtras(message: String): Bundle = Bundle().apply {
+        putInt(LocaleProtocol.EXTRA_TASKER_ERR, 1)
+        putString(LocaleProtocol.EXTRA_TASKER_ERRMSG, message)
+    }
+
+    private companion object {
+        val WORKER = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "NexaFlow-sample-nfc").apply { isDaemon = true }
         }
     }
 }
