@@ -241,4 +241,38 @@
     <string name="blocked_calls_title">已拦截的来电</string>
     <string name="blocked_calls_empty">暂无已拦截的来电</string>
     <string name="blocked_calls_filter_all">所有规则</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">AI 与智能代理</string>
+    <string name="ai_agents_subtitle">永久访问、配对和代理活动</string>
+    <string name="agent_access_title">AI 代理访问</string>
+    <string name="agent_access_on">已启用完整永久访问</string>
+    <string name="agent_access_off">已停用 — 代理无法连接或执行操作</string>
+    <string name="agent_gateway_title">本地代理网关</string>
+    <string name="agent_gateway_running">正在 127.0.0.1:%1$d 上运行</string>
+    <string name="agent_gateway_stopped">未运行</string>
+    <string name="agent_gateway_rest">REST 接口 · /api/v1</string>
+    <string name="agent_gateway_mcp">MCP 协议 · /mcp</string>
+    <string name="agent_add_title">添加代理</string>
+    <string name="agent_name_label">代理名称</string>
+    <string name="agent_name_hint">示例：我的笔记本电脑</string>
+    <string name="agent_generate_pairing">生成配对代码</string>
+    <string name="agent_pairing_payload">一次性配对数据</string>
+    <string name="agent_pairing_help">仅将这些数据提供给你想信任的代理。数据将在 5 分钟后失效。</string>
+    <string name="agent_copy_payload">复制数据</string>
+    <string name="agent_payload_copied">已复制配对数据</string>
+    <string name="agent_expires_at">失效时间：%1$s</string>
+    <string name="agent_trusted_title">受信任的代理</string>
+    <string name="agent_none">没有已配对的代理</string>
+    <string name="agent_full_access">完整永久访问</string>
+    <string name="agent_active_sessions">%1$d 个活动会话</string>
+    <string name="agent_revoke">撤销</string>
+    <string name="agent_revoke_all">全部撤销</string>
+    <string name="agent_revoke_all_title">撤销所有代理的访问权限？</string>
+    <string name="agent_revoke_all_message">所有代理凭据和会话都将停止工作。现有自动化将保留。</string>
+    <string name="agent_activity_title">代理活动</string>
+    <string name="agent_activity_empty">暂无代理活动</string>
+    <string name="agent_refresh">刷新</string>
+    <string name="agent_operation_failed">无法完成代理操作</string>
+    <string name="agent_pending_pairings">%1$d 个待处理配对请求</string>
 </resources>
