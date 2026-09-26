@@ -68,6 +68,43 @@ class ExitCoordinatorTest {
     }
 
     @Test
+    fun `disabled automation is claimed and exited exactly once by central reconcile`() = runBlocking {
+        val history = RecordingHistory()
+        val automation = testAutomation("exit-task", emptyList()).copy(enabled = false)
+        val repository = FakeRepository(listOf(automation))
+        val engine = testEngine(context, history)
+        val coordinator = ExitCoordinator(store, engine, repository, history)
+        assertTrue(store.activate(activeState()))
+
+        val first = coordinator.reconcileDisabledAutomations()
+        val second = coordinator.reconcileDisabledAutomations()
+
+        assertEquals(1, first.count { it is ExitCoordinatorResult.Executed })
+        assertTrue(second.isEmpty())
+        assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
+        assertTrue(store.current("exit-task") == null)
+    }
+
+    @Test
+    fun `enabled automation is untouched by disabled reconcile`() = runBlocking {
+        val history = RecordingHistory()
+        val automation = testAutomation("exit-task", emptyList()).copy(enabled = true)
+        val repository = FakeRepository(listOf(automation))
+        val engine = testEngine(context, history)
+        val coordinator = ExitCoordinator(store, engine, repository, history)
+        assertTrue(store.activate(activeState()))
+
+        val outcomes = coordinator.reconcileDisabledAutomations()
+
+        assertTrue(outcomes.isEmpty())
+        assertEquals(
+            AutomationRuntimeLifecycleState.ACTIVE,
+            store.current("exit-task")?.lifecycleState
+        )
+        assertTrue(history.exits.isEmpty())
+    }
+
+    @Test
     fun `elapsed time window reconciles exit without condition re-evaluation`() = runBlocking {
         val history = RecordingHistory()
         val automation = testAutomation("exit-task", emptyList())
