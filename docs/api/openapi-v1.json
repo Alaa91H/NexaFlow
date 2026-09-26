@@ -38,7 +38,15 @@
     },
     "/tasks/{id}/enable": {"post": {"summary": "Enable a task using If-Match and Idempotency-Key"}},
     "/tasks/{id}/disable": {"post": {"summary": "Disable a task using If-Match and Idempotency-Key"}},
-    "/tasks/{id}/run": {"post": {"summary": "Run a task through the production execution engine"}},
+    "/tasks/{id}/run": {
+      "post": {
+        "summary": "Run a task exactly once for one idempotency key and task revision",
+        "parameters": [
+          {"name": "Idempotency-Key", "in": "header", "required": true, "schema": {"type": "string"}},
+          {"name": "If-Match", "in": "header", "required": true, "schema": {"type": "string"}}
+        ]
+      }
+    },
     "/validate": {"post": {"summary": "Validate and dry-run a task draft"}},
     "/simulate": {"post": {"summary": "Return a no-side-effect execution simulation"}},
     "/schedules/preview": {"post": {"summary": "Preview next schedule occurrences"}},
