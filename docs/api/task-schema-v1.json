@@ -16,13 +16,77 @@
     "priority": {"type": "integer"},
     "enabled": {"type": "boolean", "default": false},
     "showToastOnToggle": {"type": "boolean"},
-    "triggers": {"type": "array", "maxItems": 64},
+    "triggers": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {"$ref": "#/$defs/trigger"}
+    },
     "triggerMatch": {"type": "string", "enum": ["ANY", "ALL"]},
-    "actions": {"type": "array", "maxItems": 256},
-    "constraints": {"type": "array"},
-    "exitActions": {"type": "array", "maxItems": 256},
+    "actions": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {"$ref": "#/$defs/action"}
+    },
+    "constraints": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/constraint"}
+    },
+    "exitActions": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {"$ref": "#/$defs/action"}
+    },
     "revertOnExit": {"type": "boolean"},
     "cooldownSeconds": {"type": "integer", "minimum": 0},
     "maintenance": {"type": ["object", "null"]}
+  },
+  "$defs": {
+    "config": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": {"minLength": 1},
+      "additionalProperties": {"type": "string", "maxLength": 8192}
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"type": "string"},
+        "config": {"$ref": "#/$defs/config"}
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"type": "string"},
+        "config": {"$ref": "#/$defs/config"}
+      }
+    },
+    "endBehavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {"type": "string", "enum": ["LEAVE", "REVERT", "SET_VALUE", "RERUN"]},
+        "config": {"$ref": "#/$defs/config"}
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"type": "string"},
+        "config": {"$ref": "#/$defs/config"},
+        "endBehavior": {
+          "oneOf": [
+            {"$ref": "#/$defs/endBehavior"},
+            {"type": "null"}
+          ]
+        }
+      }
+    }
   }
 }

@@ -3,7 +3,7 @@
   "info": {
     "title": "NexaFlow Agent API",
     "version": "1.0.0",
-    "description": "Loopback-only authenticated REST control plane for paired AI agents."
+    "description": "Loopback-only authenticated control API for NexaFlow agents."
   },
   "servers": [{"url": "http://127.0.0.1:8766/api/v1"}],
   "components": {
@@ -13,21 +13,38 @@
   },
   "security": [{"bearerAuth": []}],
   "paths": {
-    "/auth/session": {"post": {"security": [], "summary": "Exchange a refresh token for an access session"}},
-    "/status": {"get": {"summary": "API status"}},
-    "/capabilities": {"get": {"summary": "Device capabilities"}},
-    "/catalog": {"get": {"summary": "Automation catalog"}},
-    "/tasks": {"get": {"summary": "List tasks"}, "post": {"summary": "Create task"}},
-    "/tasks/{id}": {"get": {"summary": "Get task"}, "patch": {"summary": "Update task"}, "delete": {"summary": "Delete task"}},
-    "/tasks/{id}/enable": {"post": {"summary": "Enable task"}},
-    "/tasks/{id}/disable": {"post": {"summary": "Disable task"}},
-    "/tasks/{id}/run": {"post": {"summary": "Run task"}},
-    "/validate": {"post": {"summary": "Validate task draft"}},
-    "/simulate": {"post": {"summary": "Side-effect-free task simulation"}},
-    "/schedules/preview": {"post": {"summary": "Preview schedule"}},
-    "/history": {"get": {"summary": "Execution history"}},
-    "/audit": {"get": {"summary": "Agent audit"}},
-    "/openapi.json": {"get": {"security": [], "summary": "OpenAPI document"}},
-    "/schemas/task-v1.json": {"get": {"security": [], "summary": "Task JSON Schema"}}
+    "/auth/session": {
+      "post": {
+        "security": [],
+        "summary": "Exchange a permanent refresh credential for a short-lived access session"
+      }
+    },
+    "/status": {"get": {"summary": "Read API and agent-access status"}},
+    "/capabilities": {"get": {"summary": "Read live device capability and privilege observations"}},
+    "/catalog": {"get": {"summary": "Read canonical trigger/action/constraint schemas"}},
+    "/tasks": {
+      "get": {"summary": "List tasks"},
+      "post": {
+        "summary": "Create a task",
+        "parameters": [
+          {"name": "Idempotency-Key", "in": "header", "required": true, "schema": {"type": "string"}}
+        ]
+      }
+    },
+    "/tasks/{id}": {
+      "get": {"summary": "Get a task"},
+      "patch": {"summary": "Update a task using If-Match and Idempotency-Key"},
+      "delete": {"summary": "Delete a task using If-Match and Idempotency-Key"}
+    },
+    "/tasks/{id}/enable": {"post": {"summary": "Enable a task using If-Match and Idempotency-Key"}},
+    "/tasks/{id}/disable": {"post": {"summary": "Disable a task using If-Match and Idempotency-Key"}},
+    "/tasks/{id}/run": {"post": {"summary": "Run a task through the production execution engine"}},
+    "/validate": {"post": {"summary": "Validate and dry-run a task draft"}},
+    "/simulate": {"post": {"summary": "Return a no-side-effect execution simulation"}},
+    "/schedules/preview": {"post": {"summary": "Preview next schedule occurrences"}},
+    "/history": {"get": {"summary": "Read bounded execution history"}},
+    "/audit": {"get": {"summary": "Read bounded redacted agent audit history"}},
+    "/openapi.json": {"get": {"security": [], "summary": "OpenAPI 3.1 document"}},
+    "/schemas/task-v1.json": {"get": {"security": [], "summary": "Agent task JSON Schema"}}
   }
 }

@@ -7,6 +7,8 @@ import com.nexaflow.core.agentapi.AgentApiCapabilityV1
 import com.nexaflow.core.agentapi.AgentApiPrivilegeV1
 import com.nexaflow.core.agentapi.AgentApiRunContext
 import com.nexaflow.core.agentapi.AgentApiRuntime
+import com.nexaflow.core.automationcontrol.AutomationAuditEvent
+import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.database.AgentPlatformDao
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
@@ -26,6 +28,7 @@ class AndroidAgentApiRuntime @Inject constructor(
     private val automationRepository: AutomationRepository,
     private val historyRepository: HistoryRepository,
     private val agentPlatformDao: AgentPlatformDao,
+    private val auditSink: AutomationAuditSink,
     private val executionEngine: ExecutionEngine,
     private val capabilityStateStore: CapabilityStateStore,
     private val privilegeStateStore: PrivilegeStateStore
@@ -55,7 +58,72 @@ class AndroidAgentApiRuntime @Inject constructor(
     override suspend fun run(
         automation: Automation,
         request: AgentApiRunContext
-    ): ExecutionRecord = executionEngine.forceRun(automation)
+    ): ExecutionRecord {
+        val startedAt = System.currentTimeMillis()
+        auditSink.record(
+            AutomationAuditEvent(
+                eventType = "TASK_RUN_REQUESTED",
+                outcome = "REQUESTED",
+                actorId = request.actorId,
+                agentId = request.agentId,
+                automationId = automation.id,
+                requestId = request.requestId,
+                transport = "LOCAL_REST",
+                createdAt = startedAt
+            )
+        )
+        return try {
+            val record = executionEngine.forceRun(automation)
+            auditSink.record(
+                AutomationAuditEvent(
+                    eventType = "TASK_RUN_COMPLETED",
+                    outcome = if (record.success) "SUCCESS" else "FAILED",
+                    actorId = request.actorId,
+                    agentId = request.agentId,
+                    automationId = automation.id,
+                    requestId = request.requestId,
+                    transport = "LOCAL_REST",
+                    details = mapOf(
+                        "executionId" to record.id,
+                        "channel" to (record.channel ?: "NONE")
+                    ),
+                    createdAt = System.currentTimeMillis()
+                )
+            )
+            record
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            auditSink.record(
+                AutomationAuditEvent(
+                    eventType = "TASK_RUN_CANCELLED",
+                    outcome = "CANCELLED",
+                    actorId = request.actorId,
+                    agentId = request.agentId,
+                    automationId = automation.id,
+                    requestId = request.requestId,
+                    transport = "LOCAL_REST",
+                    createdAt = System.currentTimeMillis()
+                )
+            )
+            throw cancelled
+        } catch (failure: Exception) {
+            auditSink.record(
+                AutomationAuditEvent(
+                    eventType = "TASK_RUN_FAILED",
+                    outcome = "FAILED",
+                    actorId = request.actorId,
+                    agentId = request.agentId,
+                    automationId = automation.id,
+                    requestId = request.requestId,
+                    transport = "LOCAL_REST",
+                    details = mapOf(
+                        "failureType" to failure::class.java.simpleName.take(128)
+                    ),
+                    createdAt = System.currentTimeMillis()
+                )
+            )
+            throw failure
+        }
+    }
 
     override suspend fun latestHistory(limit: Int): List<ExecutionRecord> =
         historyRepository.getExecutionHistory().first().take(limit)

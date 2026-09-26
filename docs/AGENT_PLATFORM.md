@@ -153,23 +153,30 @@ capability backends, Root commands, or Shizuku operations.
 
 ## Phase 5 - REST/OpenAPI
 
-Add local `/api/v1` endpoints for:
+Implemented foundation:
 
-- status/capabilities/catalog
-- list/get/create/update/delete tasks
-- enable/disable/run
-- validate/dry-run
-- schedule preview
-- history/audit
+- [x] local `/api/v1` loopback transport
+- [x] status/capabilities/catalog
+- [x] list/get/create/update/delete tasks
+- [x] enable/disable/run
+- [x] validate + no-side-effect simulation/dry-run
+- [x] schedule preview
+- [x] bounded history and redacted audit reads
+- [x] permanent-agent refresh credential -> short-lived bearer session exchange
+- [x] scope authorization and shared abuse controls
+- [x] `Idempotency-Key` for task mutations
+- [x] `ETag` / `If-Match` optimistic concurrency
+- [x] lifecycle-consistent enable/disable/delete behavior
+- [x] host/origin hardening for loopback requests
+- [x] bounded HTTP/1.1 request parsing; chunked transfer is rejected
+- [x] OpenAPI 3.1 and JSON Schema runtime documents
+- [x] checked-in API documents protected by contract-parity tests
 
-Requirements:
-
-- loopback-only by default
-- versioned schemas independent of app version
-- Idempotency-Key on mutations
-- optimistic concurrency
-- generated OpenAPI 3.1 and JSON Schema
-- bounded request parsing
+The REST adapter never writes Room task definitions or invokes AlarmManager
+directly. Mutations flow through `AutomationCommandService`; execution flows
+through the production `ExecutionEngine`; authorization flows through the
+shared permanent Agent Access boundary. The server binds only to
+`127.0.0.1`; LAN and remote transports remain separate later phases.
 
 ## Phase 6 - MCP
 
