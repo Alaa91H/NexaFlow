@@ -44,8 +44,57 @@ class RomSettingMonitorTest {
             mapOf("namespace" to "SYSTEM", "key" to "rom_x", "operator" to "NOT_EQUALS", "value" to "0")
         )
         assertTrue(romSettingMatches(trigger, "1"))
-        assertTrue(romSettingMatches(trigger, null))
+        assertFalse(romSettingMatches(trigger, null))
         assertFalse(romSettingMatches(trigger, "0"))
+    }
+
+    @Test
+    fun `aggregate result is unknown when provider cannot read a valid trigger`() {
+        val trigger = Trigger(
+            TriggerType.ROM_SETTING,
+            mapOf("namespace" to "SYSTEM", "key" to "rom_x", "operator" to "NOT_EQUALS", "value" to "0")
+        )
+
+        assertEquals(
+            RomSettingReadState.UNKNOWN,
+            evaluateRomSettingTriggers(listOf(trigger)) { _, _ -> null }
+        )
+    }
+
+    @Test
+    fun `known match dominates another unknown ROM setting read`() {
+        val first = Trigger(
+            TriggerType.ROM_SETTING,
+            mapOf("namespace" to "SYSTEM", "key" to "rom_a", "operator" to "EQUALS", "value" to "1")
+        )
+        val second = Trigger(
+            TriggerType.ROM_SETTING,
+            mapOf("namespace" to "SECURE", "key" to "rom_b", "operator" to "EQUALS", "value" to "1")
+        )
+
+        assertEquals(
+            RomSettingReadState.MATCHED,
+            evaluateRomSettingTriggers(listOf(first, second)) { _, key ->
+                when (key) {
+                    "rom_a" -> null
+                    "rom_b" -> "1"
+                    else -> null
+                }
+            }
+        )
+    }
+
+    @Test
+    fun `all known non matching ROM settings produce not matched`() {
+        val trigger = Trigger(
+            TriggerType.ROM_SETTING,
+            mapOf("namespace" to "GLOBAL", "key" to "rom_x", "operator" to "EQUALS", "value" to "1")
+        )
+
+        assertEquals(
+            RomSettingReadState.NOT_MATCHED,
+            evaluateRomSettingTriggers(listOf(trigger)) { _, _ -> "0" }
+        )
     }
 
     @Test
