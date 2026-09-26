@@ -4,6 +4,7 @@ import com.nexaflow.core.agentsecurity.AgentOperation
 import com.nexaflow.core.agentsecurity.AgentScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -219,7 +220,7 @@ object AgentMcpToolRegistry {
             properties.forEach { (key, value) -> put(key, value) }
         }
         if (required.isNotEmpty()) {
-            putJsonArray("required") { required.forEach(::add) }
+            putJsonArray("required") { required.forEach { add(JsonPrimitive(it)) } }
         }
     }
 
@@ -245,7 +246,7 @@ object AgentMcpToolRegistry {
 
     private fun enumSchema(vararg values: String) = buildJsonObject {
         put("type", "string")
-        put("enum", buildJsonArray { values.forEach(::add) })
+        put("enum", buildJsonArray { values.forEach { add(JsonPrimitive(it)) } })
     }
 
     private const val TASK_ID_PATTERN = "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
