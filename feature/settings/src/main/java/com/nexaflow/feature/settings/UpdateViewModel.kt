@@ -85,7 +85,8 @@ class UpdateViewModel @Inject constructor(
                 UpdateChecker.downloadAndVerify(
                     getApplication(),
                     info.apkUrl!!,
-                    info.sha256
+                    info.sha256!!,
+                    info.apkSizeBytes
                 )
             }
             if (apk == null) {
