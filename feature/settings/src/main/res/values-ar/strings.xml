@@ -239,4 +239,38 @@
     <string name="blocked_calls_title">المكالمات المحجوبة</string>
     <string name="blocked_calls_empty">لا توجد مكالمات محجوبة بعد</string>
     <string name="blocked_calls_filter_all">كل القواعد</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">الذكاء الاصطناعي والوكلاء</string>
+    <string name="ai_agents_subtitle">وصول دائم واقتران ونشاط الوكلاء</string>
+    <string name="agent_access_title">وصول وكلاء الذكاء الاصطناعي</string>
+    <string name="agent_access_on">تم تفعيل الوصول الدائم الكامل</string>
+    <string name="agent_access_off">معطّل — لا يمكن للوكلاء الاتصال أو التنفيذ</string>
+    <string name="agent_gateway_title">بوابة الوكلاء المحلية</string>
+    <string name="agent_gateway_running">تعمل على 127.0.0.1:%1$d</string>
+    <string name="agent_gateway_stopped">غير قيد التشغيل</string>
+    <string name="agent_gateway_rest">واجهة REST البرمجية · /api/v1</string>
+    <string name="agent_gateway_mcp">بروتوكول MCP · /mcp</string>
+    <string name="agent_add_title">إضافة وكيل</string>
+    <string name="agent_name_label">اسم الوكيل</string>
+    <string name="agent_name_hint">مثال: حاسوبي المحمول</string>
+    <string name="agent_generate_pairing">إنشاء رمز اقتران</string>
+    <string name="agent_pairing_payload">بيانات اقتران لمرة واحدة</string>
+    <string name="agent_pairing_help">أعط هذه البيانات فقط للوكيل الذي تريد الوثوق به. تنتهي صلاحيتها خلال 5 دقائق.</string>
+    <string name="agent_copy_payload">نسخ البيانات</string>
+    <string name="agent_payload_copied">تم نسخ بيانات الاقتران</string>
+    <string name="agent_expires_at">تنتهي الصلاحية في %1$s</string>
+    <string name="agent_trusted_title">الوكلاء الموثوقون</string>
+    <string name="agent_none">لا توجد وكلاء مقترنة</string>
+    <string name="agent_full_access">وصول دائم كامل</string>
+    <string name="agent_active_sessions">%1$d جلسة نشطة</string>
+    <string name="agent_revoke">إلغاء الصلاحية</string>
+    <string name="agent_revoke_all">إلغاء صلاحية الجميع</string>
+    <string name="agent_revoke_all_title">إلغاء صلاحية جميع الوكلاء؟</string>
+    <string name="agent_revoke_all_message">ستتوقف جميع بيانات اعتماد الوكلاء والجلسات عن العمل. ستبقى عمليات الأتمتة الحالية.</string>
+    <string name="agent_activity_title">نشاط الوكلاء</string>
+    <string name="agent_activity_empty">لا يوجد نشاط للوكلاء حتى الآن</string>
+    <string name="agent_refresh">تحديث</string>
+    <string name="agent_operation_failed">تعذر إكمال عملية الوكيل</string>
+    <string name="agent_pending_pairings">%1$d طلب اقتران معلّق</string>
 </resources>
