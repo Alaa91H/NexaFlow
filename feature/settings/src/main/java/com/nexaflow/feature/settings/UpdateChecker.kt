@@ -246,8 +246,10 @@ object UpdateChecker {
         } ?: return@runCatching false
 
         archive.packageName == context.packageName &&
-            PackageInfoCompat.getLongVersionCode(archive) >
-                PackageInfoCompat.getLongVersionCode(installed) &&
+            isForwardVersion(
+                installedVersionCode = PackageInfoCompat.getLongVersionCode(installed),
+                archiveVersionCode = PackageInfoCompat.getLongVersionCode(archive)
+            ) &&
             hasTrustedSigningLineage(
                 installedCurrent = currentSigningDigests(installed),
                 archiveCurrent = currentSigningDigests(archive),
@@ -294,6 +296,11 @@ object UpdateChecker {
                 .digest(signature.toByteArray())
             digest.joinToString("") { "%02x".format(it) }
         }
+
+    internal fun isForwardVersion(
+        installedVersionCode: Long,
+        archiveVersionCode: Long
+    ): Boolean = archiveVersionCode > installedVersionCode
 
     /**
      * A candidate is trusted only when it is the same signer set or when its
