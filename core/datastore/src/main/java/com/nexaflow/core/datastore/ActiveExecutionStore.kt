@@ -56,6 +56,10 @@ class ActiveExecutionStore internal constructor(
         return wasStarted
     }
 
+    /** True when legacy/stateless end behavior still owns this automation. */
+    suspend fun hasStarted(automationId: String): Boolean =
+        automationId in dataStore.data.first()[KEY_ACTIVE_EXECUTIONS].orEmpty()
+
     /** Removes a lifecycle marker when a task is deleted or deliberately reset. */
     suspend fun clear(automationId: String) {
         dataStore.edit { preferences ->
