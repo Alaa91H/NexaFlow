@@ -2,7 +2,10 @@ package com.nexaflow.feature.settings
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.FileProvider
 import java.io.File
 import java.net.HttpURLConnection
@@ -174,6 +177,10 @@ object UpdateChecker {
                 dest.delete()
                 return@runCatching null
             }
+            if (!packageIdentityMatches(context, dest)) {
+                dest.delete()
+                return@runCatching null
+            }
             dest
         }.getOrNull()
     }
@@ -201,6 +208,71 @@ object UpdateChecker {
         }
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
+
+    /**
+     * Verifies that the downloaded archive is the same Android package and
+     * belongs to the installed app's signing lineage before it ever reaches the
+     * package installer. The release checksum protects transport integrity; this
+     * additionally protects package identity if release metadata is tampered
+     * with or the wrong APK asset is attached.
+     *
+     * Signing-certificate history is used instead of current-signer equality so
+     * Android's proof-of-rotation lineage remains compatible with legitimate key
+     * rotation.
+     */
+    internal fun packageIdentityMatches(context: Context, apk: File): Boolean = runCatching {
+        val packageManager = context.packageManager
+        val flags = PackageManager.GET_SIGNING_CERTIFICATES
+        val installed = if (Build.VERSION.SDK_INT >= 33) {
+            packageManager.getPackageInfo(
+                context.packageName,
+                PackageManager.PackageInfoFlags.of(flags.toLong())
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(context.packageName, flags)
+        }
+        val archive = if (Build.VERSION.SDK_INT >= 33) {
+            packageManager.getPackageArchiveInfo(
+                apk.absolutePath,
+                PackageManager.PackageInfoFlags.of(flags.toLong())
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageArchiveInfo(apk.absolutePath, flags)
+        } ?: return@runCatching false
+
+        archive.packageName == context.packageName &&
+            hasTrustedSigningLineage(
+                installed = signingDigests(installed),
+                archive = signingDigests(archive)
+            )
+    }.getOrDefault(false)
+
+    private fun signingDigests(info: PackageInfo): Set<String> {
+        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val signingInfo = info.signingInfo ?: return emptySet()
+            if (signingInfo.hasMultipleSigners()) {
+                signingInfo.apkContentsSigners
+            } else {
+                signingInfo.signingCertificateHistory
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            info.signatures
+        }
+        return signatures.orEmpty().mapTo(linkedSetOf()) { signature ->
+            val digest = MessageDigest.getInstance("SHA-256")
+                .digest(signature.toByteArray())
+            digest.joinToString("") { "%02x".format(it) }
+        }
+    }
+
+    internal fun hasTrustedSigningLineage(
+        installed: Set<String>,
+        archive: Set<String>
+    ): Boolean =
+        installed.isNotEmpty() && archive.isNotEmpty() && installed.any(archive::contains)
 
     /**
      * Hands [apk] to the system installer through a FileProvider URI. The user
