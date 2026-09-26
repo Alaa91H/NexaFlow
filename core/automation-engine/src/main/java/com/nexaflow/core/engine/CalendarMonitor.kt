@@ -153,7 +153,11 @@ class CalendarMonitor @Inject constructor(
                 }
                 if (calendarTriggers.isEmpty()) return@withLock
 
-                val events = queryUpcomingEvents()
+                // An unreadable provider snapshot is UNKNOWN, not "no events".
+                // Treating a transient CalendarProvider failure as an empty
+                // result would incorrectly end every active EVENT_START
+                // lifecycle and run exit actions.
+                val events = queryUpcomingEvents() ?: return@withLock
                 val now = System.currentTimeMillis()
                 calendarTriggers.forEach { automation ->
                     handleAutomation(automation, events, now)
@@ -563,12 +567,11 @@ class CalendarMonitor @Inject constructor(
      * expands recurring events, so a "daily 8am" event is reported for every
      * occurrence inside the window.
      */
-    private fun queryUpcomingEvents(): List<CalendarEvent> {
+    private fun queryUpcomingEvents(): List<CalendarEvent>? {
         val now = System.currentTimeMillis()
         val begin = now - LOOK_BEHIND_MS
         val end = now + LOOK_AHEAD_MS
         val names = calendarNames()
-        val events = ArrayList<CalendarEvent>()
 
         val uri = "content://${CalendarContract.AUTHORITY}/instances/when/$begin/$end".toUri()
         val projection = arrayOf(
@@ -580,33 +583,36 @@ class CalendarMonitor @Inject constructor(
             CalendarContract.Instances.EVENT_LOCATION,
             CalendarContract.Instances.DESCRIPTION
         )
-        runCatching {
-            context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
-                val idCol = cursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID)
-                val calCol = cursor.getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_ID)
-                val titleCol = cursor.getColumnIndexOrThrow(CalendarContract.Instances.TITLE)
-                val beginCol = cursor.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN)
-                val endCol = cursor.getColumnIndexOrThrow(CalendarContract.Instances.END)
-                val locCol = cursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_LOCATION)
-                val descCol = cursor.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION)
-                while (cursor.moveToNext()) {
-                    val id = cursor.getLong(idCol)
-                    val calId = cursor.getLong(calCol)
+        return runCatching {
+            val cursor = context.contentResolver.query(uri, projection, null, null, null)
+                ?: return@runCatching null
+            cursor.use {
+                val events = ArrayList<CalendarEvent>()
+                val idCol = it.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID)
+                val calCol = it.getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_ID)
+                val titleCol = it.getColumnIndexOrThrow(CalendarContract.Instances.TITLE)
+                val beginCol = it.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN)
+                val endCol = it.getColumnIndexOrThrow(CalendarContract.Instances.END)
+                val locCol = it.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_LOCATION)
+                val descCol = it.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION)
+                while (it.moveToNext()) {
+                    val id = it.getLong(idCol)
+                    val calId = it.getLong(calCol)
                     events.add(
                         CalendarEvent(
                             id = id,
                             calendarName = names[calId] ?: "",
-                            title = cursor.getString(titleCol),
-                            location = cursor.getString(locCol),
-                            description = cursor.getString(descCol),
-                            start = cursor.getLong(beginCol),
-                            end = cursor.getLong(endCol)
+                            title = it.getString(titleCol),
+                            location = it.getString(locCol),
+                            description = it.getString(descCol),
+                            start = it.getLong(beginCol),
+                            end = it.getLong(endCol)
                         )
                     )
                 }
+                events
             }
-        }
-        return events
+        }.getOrNull()
     }
 
     /** Identifies a single occurrence of an event (recurring events share [eventId]). */
