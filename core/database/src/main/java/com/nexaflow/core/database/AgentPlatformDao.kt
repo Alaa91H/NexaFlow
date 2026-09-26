@@ -29,6 +29,13 @@ interface AgentPlatformDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertIdempotency(record: AgentIdempotencyEntity)
 
+    /**
+     * Atomically reserves one actor-scoped idempotency key for a side effect.
+     * Room returns -1 when another request already owns the key.
+     */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun reserveIdempotency(record: AgentIdempotencyEntity): Long
+
     @Query(
         "SELECT * FROM agent_idempotency WHERE actorId = :actorId " +
             "ORDER BY createdAt DESC LIMIT :limit"
