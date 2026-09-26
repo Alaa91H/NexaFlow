@@ -103,6 +103,82 @@ jobs:
           app/build/reports/lint-results-debug.xml
           **/build/reports/lint-results-debug.*
 
+  android-integration:
+    name: Android emulator integration
+    needs: lint
+    # Connected Android tests are intentionally a scheduled/manual evidence
+    # lane first. They do not consume PR capacity until the emulator suite has
+    # demonstrated stable signal across repeated runs.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    - name: Grant Gradle execute permission
+      run: chmod +x gradlew
+    - name: Provision Android 15 emulator
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -e /dev/kvm ]; then
+          sudo chmod 666 /dev/kvm
+        fi
+        yes | sdkmanager --licenses >/dev/null || true
+        sdkmanager           "platform-tools"           "emulator"           "system-images;android-35;google_apis;x86_64"
+        echo "no" | avdmanager create avd           --force           --name nexaflow-ci-api35           --package "system-images;android-35;google_apis;x86_64"           --device "pixel_6"
+    - name: Boot emulator
+      shell: bash
+      run: |
+        set -euo pipefail
+        nohup emulator           -avd nexaflow-ci-api35           -no-window           -noaudio           -no-boot-anim           -no-snapshot           -gpu swiftshader_indirect           -camera-back none           -camera-front none           > "$RUNNER_TEMP/nexaflow-emulator.log" 2>&1 &
+        adb wait-for-device
+        deadline=$((SECONDS + 300))
+        until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
+          if [ "$SECONDS" -ge "$deadline" ]; then
+            echo "::error::Android emulator did not finish booting within 5 minutes."
+            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
+            exit 1
+          fi
+          sleep 2
+        done
+        adb shell input keyevent 82 || true
+        adb shell settings put global window_animation_scale 0
+        adb shell settings put global transition_animation_scale 0
+        adb shell settings put global animator_duration_scale 0
+        adb shell getprop ro.build.version.sdk
+    - name: Run connected app instrumentation tests
+      run: ./gradlew :app:connectedDebugAndroidTest --no-parallel --max-workers=2 --console=plain
+    - name: Capture emulator diagnostics
+      if: always()
+      shell: bash
+      run: |
+        adb logcat -d > android-integration-logcat.txt 2>/dev/null || true
+        adb shell getprop > android-integration-properties.txt 2>/dev/null || true
+        cp "$RUNNER_TEMP/nexaflow-emulator.log" android-emulator.log 2>/dev/null || true
+    - name: Upload Android integration evidence
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: android-integration-evidence-api35
+        if-no-files-found: warn
+        path: |
+          app/build/outputs/androidTest-results/**
+          app/build/reports/androidTests/**
+          android-integration-logcat.txt
+          android-integration-properties.txt
+          android-emulator.log
+
   build:
     needs: lint
     if: github.event_name != 'pull_request_target'
