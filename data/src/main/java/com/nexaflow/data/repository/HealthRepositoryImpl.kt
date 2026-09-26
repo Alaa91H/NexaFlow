@@ -31,8 +31,16 @@ class HealthRepositoryImpl @Inject constructor(
             automationRepository.getAutomations(),
             historyRepository.getExecutionHistory()
         ) { automations, records ->
+            // Group once per history emission. Passing the full retained history
+            // into the analyzer for every automation made the projection
+            // O(automationCount × historySize), even though each analyzer only
+            // needs one routine's rows.
+            val recordsByAutomation = records.groupBy { it.automationId }
             automations.map { automation ->
-                AutomationHealthAnalyzer.analyze(automation.id, records)
+                AutomationHealthAnalyzer.analyze(
+                    automation.id,
+                    recordsByAutomation[automation.id].orEmpty()
+                )
             }
         }
 }
