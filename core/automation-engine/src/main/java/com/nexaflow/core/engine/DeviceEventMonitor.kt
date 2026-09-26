@@ -9,34 +9,54 @@ import android.media.AudioManager
 import android.os.BatteryManager
 import android.os.PowerManager
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.execution.compat.EventSource
 import com.nexaflow.core.execution.events.MonitorEventAdapter
 import com.nexaflow.domain.events.EventFilter
 import com.nexaflow.domain.events.EventSubscription
 import com.nexaflow.domain.events.NexaFlowEventBus
 import com.nexaflow.domain.events.NexaFlowEventType
+import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
-import javax.inject.Inject
-import javax.inject.Singleton
 
+/**
+ * Stateful screen/power/headset event monitor.
+ *
+ * AutomationRuntimeStore is the source of truth for ownership across process
+ * death. ActiveTriggerStore remains only as a compatibility mirror for older
+ * installs that armed a state before the runtime ledger existed.
+ */
 @Singleton
 class DeviceEventMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     private val triggerIndex: TriggerIndex,
     private val eventBus: NexaFlowEventBus,
     @ApplicationScope private val scope: CoroutineScope
@@ -44,6 +64,7 @@ class DeviceEventMonitor @Inject constructor(
 
     override val sourceId: String = SOURCE
     override val description: String = "Screen, power and wired-headset events"
+
     private val eventAdapter by lazy { MonitorEventAdapter(this, eventBus) }
     private var eventSubscription: EventSubscription? = null
 
@@ -51,10 +72,9 @@ class DeviceEventMonitor @Inject constructor(
     private var registered = false
 
     private val lastRunAt = ConcurrentHashMap<String, Long>()
-    /** Automations currently in their triggered state (to fire exit on the opposite event). */
-    private val activeStates = ConcurrentHashMap<String, String>()
+    private val evaluationMutex = Mutex()
 
-    /** The event that ends the "active" phase of each device event. */
+    /** The event that ends the active phase of each device event. */
     private val oppositeEvent = mapOf(
         "SCREEN_ON" to "SCREEN_OFF",
         "SCREEN_OFF" to "SCREEN_ON",
@@ -72,8 +92,11 @@ class DeviceEventMonitor @Inject constructor(
                 Intent.ACTION_POWER_CONNECTED -> "POWER_CONNECTED"
                 Intent.ACTION_POWER_DISCONNECTED -> "POWER_DISCONNECTED"
                 Intent.ACTION_HEADSET_PLUG -> {
-                    val state = intent.getIntExtra("state", -1)
-                    if (state == 1) "HEADSET_CONNECTED" else "HEADSET_DISCONNECTED"
+                    when (intent.getIntExtra("state", -1)) {
+                        1 -> "HEADSET_CONNECTED"
+                        0 -> "HEADSET_DISCONNECTED"
+                        else -> return
+                    }
                 }
                 else -> return
             }
@@ -94,9 +117,6 @@ class DeviceEventMonitor @Inject constructor(
             addAction(Intent.ACTION_HEADSET_PLUG)
         }
         scope.launch {
-            // Subscribe before receiver registration: a broadcast accepted by
-            // Android is therefore never lost between the platform boundary and
-            // the canonical event bus.
             eventSubscription = eventBus.subscribe(
                 filter = EventFilter(
                     types = setOf(NexaFlowEventType.SYSTEM_EVENT),
@@ -112,109 +132,25 @@ class DeviceEventMonitor @Inject constructor(
                 eventSubscription = null
                 return@launch
             }
-            context.registerReceiver(receiver, receiverFilter)
-            // Evaluate every enabled task against the CURRENT screen, power and
-            // headset state: a task enabled while its event already holds fires
-            // right away, a task disabled while its condition still holds runs
-            // its exit behavior, and a condition that ended while the process
-            // was down fires its missed exit now instead of waiting for the
-            // next broadcast (which may be long after the end).
-            reconcileAutomations()
-        }
-    }
 
-    /**
-     * Full re-evaluation of every DEVICE / HEADPHONE task against the current
-     * screen, power and headset state. Invoked on initialize and whenever
-     * automations change (enable/disable toggles, saves), so:
-     *  - a task enabled while its event condition already holds fires
-     *    immediately instead of waiting for the next broadcast;
-     *  - a task disabled while its condition still holds stops being tracked
-     *    (its durable mark is pruned) instead of leaking until restart;
-     *  - a condition that ended while the process was down fires its missed
-     *    exit right away.
-     */
-    fun reconcileAutomations() {
-        scope.launch {
-            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            val automations = repository.getAutomations().first()
-            val byId = automations.associateBy { it.id }
-            val now = System.currentTimeMillis()
-            // Restore durable active markers first so a task that fired before
-            // a process restart is never fired again while its condition still
-            // holds; run the end behavior of tasks disabled or deleted while
-            // the process was down.
-            // Disabling a task is an explicit abandonment of its lifecycle:
-            // the durable mark is pruned without firing a stale exit (the exit
-            // contract covers the condition ENDING while the task stays
-            // enabled, never a deliberate disable).
-            activeStore.activeKeys(SOURCE).forEach { key ->
-                val id = key.substringBefore('|')
-                val automation = byId[id]
-                when {
-                    automation?.enabled == true -> {
-                        activeStates[id] = key.substringAfter('|', "SCREEN_ON")
-                    }
-                    else -> {
-                        activeStates.remove(id)
-                        activeStore.clearAutomation(SOURCE, id)
-                    }
-                }
+            val receiverRegistered = runCatching {
+                context.registerReceiver(receiver, receiverFilter)
+                true
+            }.getOrDefault(false)
+            if (!receiverRegistered) {
+                registered = false
+                eventSubscription?.let { eventBus.unsubscribe(it.id) }
+                eventSubscription = null
+                return@launch
             }
-            automations
-                .filter { automation ->
-                    automation.enabled && automation.triggers.any {
-                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
-                    }
-                }
-                .forEach { automation ->
-                    val trigger = automation.triggers.first {
-                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
-                    }
-                    val triggerEvent = if (trigger.type == TriggerType.HEADPHONE) {
-                        when (trigger.config["event"] ?: "CONNECTED") {
-                            "DISCONNECTED" -> "HEADSET_DISCONNECTED"
-                            else -> "HEADSET_CONNECTED"
-                        }
-                    } else {
-                        trigger.config["event"] ?: "SCREEN_ON"
-                    }
-                    // Sample the current state of exactly the monitored event.
-                    val currentlyHolds = when (triggerEvent) {
-                        "SCREEN_ON" -> powerManager.isInteractive
-                        "SCREEN_OFF" -> !powerManager.isInteractive
-                        "POWER_CONNECTED" -> batteryManager.isCharging
-                        "POWER_DISCONNECTED" -> !batteryManager.isCharging
-                        "HEADSET_CONNECTED" -> audioManager.hasWiredOutputDevice()
-                        "HEADSET_DISCONNECTED" -> !audioManager.hasWiredOutputDevice()
-                        else -> false
-                    }
-                    if (currentlyHolds) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        if (activeStates[automation.id] != triggerEvent &&
-                            now - last > automation.cooldownMillis
-                        ) {
-                            lastRunAt[automation.id] = now
-                            activeStates[automation.id] = triggerEvent
-                            activeStore.markActive(SOURCE, "${automation.id}|$triggerEvent")
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (activeStates.remove(automation.id) != null) {
-                        // The condition already ended: run the exit behavior.
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
-                    }
-                }
+
+            reconcileCurrentState()
         }
     }
 
-    /** Equivalent modern check for the deprecated wired-headset state flag. */
-    private fun AudioManager.hasWiredOutputDevice(): Boolean =
-        getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
-            device.type in WIRED_OUTPUT_DEVICE_TYPES
-        }
+    fun reconcileAutomations() {
+        scope.launch { reconcileCurrentState() }
+    }
 
     override fun stop() {
         if (!registered) return
@@ -223,11 +159,7 @@ class DeviceEventMonitor @Inject constructor(
             scope.launch { eventBus.unsubscribe(subscription.id) }
         }
         eventSubscription = null
-        try {
-            context.unregisterReceiver(receiver)
-        } catch (_: Throwable) {
-            // ignore
-        }
+        runCatching { context.unregisterReceiver(receiver) }
     }
 
     private fun publishEvent(event: String) {
@@ -239,51 +171,275 @@ class DeviceEventMonitor @Inject constructor(
         }
     }
 
-    private suspend fun handleCanonicalEvent(event: String) {
-            // Prefer the existing O(1) index once its source flow has emitted.
-            // During service bootstrap, retain the repository fallback so a
-            // first broadcast cannot disappear before TriggerIndex is ready.
+    private suspend fun reconcileCurrentState() {
+        reconcileSnapshot(readCurrentSnapshot())
+    }
+
+    /**
+     * Deterministic restart/edit boundary. A null value is UNKNOWN and must not
+     * fabricate a trigger end.
+     */
+    internal suspend fun reconcileSnapshot(snapshot: Map<String, Boolean?>) =
+        evaluationMutex.withLock {
+            val automations = repository.getAutomations().first()
+            val byId = automations.associateBy { it.id }
+            rearmFromLedger(byId)
+
+            runtimeStore.activeStates()
+                .filter { it.source == SOURCE }
+                .forEach { state ->
+                    val automation = byId[state.automationId]
+                    when {
+                        automation == null -> clearLegacyState(state.automationId)
+                        !automation.enabled || monitoredTrigger(automation) == null -> {
+                            requestExit(
+                                automation = automation,
+                                reason = ExitReason.AUTOMATION_DISABLED,
+                                occurrenceId = state.occurrenceId
+                            )
+                        }
+                        else -> markLegacyActive(state)
+                    }
+                }
+
+            automations
+                .filter { it.enabled && monitoredTrigger(it) != null }
+                .forEach { automation ->
+                    val trigger = monitoredTrigger(automation) ?: return@forEach
+                    val event = configuredEvent(trigger)
+                    val holds = snapshot[event]
+                    val state = runtimeStore.current(automation.id)
+
+                    when (holds) {
+                        true -> when {
+                            state?.source == SOURCE -> markLegacyActive(state)
+                            state != null -> clearLegacyState(automation.id)
+                            else -> activate(automation, event)
+                        }
+
+                        false -> {
+                            if (state?.source == SOURCE) {
+                                requestExit(
+                                    automation = automation,
+                                    reason = ExitReason.TRIGGER_FALSE,
+                                    occurrenceId = state.occurrenceId
+                                )
+                            } else if (state == null) {
+                                clearLegacyState(automation.id)
+                            }
+                        }
+
+                        null -> {
+                            if (state?.source == SOURCE) markLegacyActive(state)
+                            else if (state == null) clearLegacyState(automation.id)
+                        }
+                    }
+                }
+        }
+
+    /**
+     * One canonical edge. Exact trigger edges activate, exact opposite edges
+     * exit. Other events are irrelevant and never imply a condition state.
+     */
+    internal suspend fun handleCanonicalEvent(event: String) =
+        evaluationMutex.withLock {
             val automations = if (triggerIndex.version > 0L) {
                 triggerIndex.bySource(sourceId)
             } else {
                 repository.getAutomations().first()
             }
-            val now = System.currentTimeMillis()
+            val byId = repository.getAutomations().first().associateBy { it.id }
+            rearmFromLedger(byId)
+
             automations
-                .filter { automation ->
-                    automation.enabled && automation.triggers.any {
-                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
-                    }
-                }
+                .filter { it.enabled && monitoredTrigger(it) != null }
                 .forEach { automation ->
-                    val trigger = automation.triggers.first {
-                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
-                    }
-                    val triggerEvent = if (trigger.type == TriggerType.HEADPHONE) {
-                        when (trigger.config["event"] ?: "CONNECTED") {
-                            "DISCONNECTED" -> "HEADSET_DISCONNECTED"
-                            else -> "HEADSET_CONNECTED"
+                    val trigger = monitoredTrigger(automation) ?: return@forEach
+                    val configured = configuredEvent(trigger)
+                    val state = runtimeStore.current(automation.id)
+
+                    when {
+                        event == configured -> when {
+                            state?.source == SOURCE -> markLegacyActive(state)
+                            state != null -> clearLegacyState(automation.id)
+                            else -> activate(automation, event)
                         }
-                    } else {
-                        trigger.config["event"] ?: "SCREEN_ON"
-                    }
-                    if (triggerEvent == event) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
-                            activeStates[automation.id] = event
-                            activeStore.markActive(SOURCE, "${automation.id}|$event")
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (oppositeEvent[triggerEvent] == event) {
-                        // The condition ended: fire the exit behavior once.
-                        if (activeStates.remove(automation.id) != null) {
-                            activeStore.clearAutomation(SOURCE, automation.id)
-                            executionEngine.runExit(automation)
+
+                        oppositeEvent[configured] == event && state?.source == SOURCE -> {
+                            requestExit(
+                                automation = automation,
+                                reason = ExitReason.TRIGGER_FALSE,
+                                occurrenceId = state.occurrenceId
+                            )
                         }
                     }
                 }
+        }
+
+    private suspend fun rearmFromLedger(automations: Map<String, Automation>) {
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = automations[state.automationId]
+                if (automation == null) {
+                    // Definition gone: preserve durable evidence and drop only
+                    // the compatibility mirror.
+                    clearLegacyState(state.automationId)
+                } else {
+                    markLegacyActive(state)
+                }
+            }
+
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val automationId = key.substringBefore('|')
+            val automation = automations[automationId]
+            if (automation == null) {
+                clearLegacyState(automationId)
+                return@forEach
+            }
+
+            if (runtimeStore.current(automationId) == null) {
+                val event = key.substringAfter('|', missingDelimiterValue = "")
+                    .takeIf { it in oppositeEvent.keys }
+                    ?: monitoredTrigger(automation)?.let(::configuredEvent)
+                    ?: return@forEach
+                runtimeStore.activateStrict(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = "$automationId|$event",
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            val state = runtimeStore.current(automationId)
+            if (state?.source == SOURCE) {
+                markLegacyActive(state)
+                if (!automation.enabled || monitoredTrigger(automation) == null) {
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = state.occurrenceId
+                    )
+                }
+            } else {
+                // A stale device-event key must never authorize an exit for a
+                // lifecycle owned by a different stateful source.
+                clearLegacyState(automationId)
+            }
+        }
     }
+
+    private suspend fun activate(automation: Automation, event: String) {
+        val now = System.currentTimeMillis()
+        val last = lastRunAt[automation.id] ?: 0L
+        if (now - last <= automation.cooldownMillis) return
+        lastRunAt[automation.id] = now
+
+        val occurrenceId = "device:${automation.id}:${UUID.randomUUID()}"
+        val sourceKey = "${automation.id}|$event"
+        val triggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+            index.takeIf {
+                (trigger.type == TriggerType.DEVICE || trigger.type == TriggerType.HEADPHONE) &&
+                    configuredEvent(trigger) == event
+            }
+        }.toSet()
+
+        executionEngine.runAutomation(
+            automation = automation,
+            lifecycleContext = AutomationLifecycleContext(
+                occurrenceId = occurrenceId,
+                source = SOURCE,
+                sourceKey = sourceKey
+            ),
+            triggerOccurrence = TriggerOccurrence(
+                matchedTriggerIndices = triggerIndices,
+                occurredAtEpochMs = now,
+                sourceId = SOURCE,
+                eventId = "device:$event"
+            )
+        )
+
+        runtimeStore.current(automation.id)
+            ?.takeIf { it.source == SOURCE && it.occurrenceId == occurrenceId }
+            ?.let { markLegacyActive(it) }
+            ?: clearLegacyState(automation.id)
+    }
+
+    private suspend fun requestExit(
+        automation: Automation,
+        reason: ExitReason,
+        occurrenceId: String
+    ) {
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = reason,
+                occurrenceId = occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> clearLegacyState(automation.id)
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                runtimeStore.current(automation.id)
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { markLegacyActive(it) }
+            }
+        }
+    }
+
+    private suspend fun markLegacyActive(state: AutomationRuntimeState) {
+        activeStore.markActive(SOURCE, state.sourceKey)
+    }
+
+    private suspend fun clearLegacyState(automationId: String) {
+        activeStore.clearAutomation(SOURCE, automationId)
+    }
+
+    private fun monitoredTrigger(automation: Automation): Trigger? =
+        automation.triggers.firstOrNull {
+            it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
+        }
+
+    private fun configuredEvent(trigger: Trigger): String =
+        if (trigger.type == TriggerType.HEADPHONE) {
+            when (trigger.config["event"] ?: "CONNECTED") {
+                "DISCONNECTED" -> "HEADSET_DISCONNECTED"
+                else -> "HEADSET_CONNECTED"
+            }
+        } else {
+            trigger.config["event"] ?: "SCREEN_ON"
+        }
+
+    private fun readCurrentSnapshot(): Map<String, Boolean?> {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+
+        val screenOn = powerManager?.let { runCatching { it.isInteractive }.getOrNull() }
+        val charging = batteryManager?.let { runCatching { it.isCharging }.getOrNull() }
+        val headset = audioManager?.let { runCatching { it.hasWiredOutputDevice() }.getOrNull() }
+
+        return mapOf(
+            "SCREEN_ON" to screenOn,
+            "SCREEN_OFF" to screenOn?.not(),
+            "POWER_CONNECTED" to charging,
+            "POWER_DISCONNECTED" to charging?.not(),
+            "HEADSET_CONNECTED" to headset,
+            "HEADSET_DISCONNECTED" to headset?.not()
+        )
+    }
+
+    /** Equivalent modern check for the deprecated wired-headset state flag. */
+    private fun AudioManager.hasWiredOutputDevice(): Boolean =
+        getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
+            device.type in WIRED_OUTPUT_DEVICE_TYPES
+        }
 
     private companion object {
         const val SOURCE = "device"
@@ -293,5 +449,4 @@ class DeviceEventMonitor @Inject constructor(
             AudioDeviceInfo.TYPE_USB_HEADSET
         )
     }
-
 }

@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.PowerManager
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.events.InMemoryNexaFlowEventBus
@@ -68,7 +71,10 @@ class DeviceEventMonitorExitReconcileTest {
         context = ApplicationProvider.getApplicationContext()
         // Robolectric shares one Application (and its DataStore cache) across
         // test methods, so reset the device source for isolation.
-        runBlocking { ActiveTriggerStore(context).clearSource("device") }
+        runBlocking {
+            ActiveTriggerStore(context).clearSource("device")
+            AutomationRuntimeStore(context).clear("screen-task")
+        }
     }
 
     /**
@@ -95,14 +101,18 @@ class DeviceEventMonitorExitReconcileTest {
     private fun monitorFor(
         repository: AutomationRepository,
         engine: ExecutionEngine,
-        store: ActiveTriggerStore
+        store: ActiveTriggerStore,
+        history: RecordingHistory
     ): DeviceEventMonitor {
         val scope = CoroutineScope(Dispatchers.Default)
+        val runtimeStore = AutomationRuntimeStore(context)
         return DeviceEventMonitor(
             context = context,
             repository = repository,
             executionEngine = engine,
             activeStore = store,
+            runtimeStore = runtimeStore,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
             triggerIndex = TriggerIndex(repository.getAutomations()),
             eventBus = InMemoryNexaFlowEventBus(scope),
             scope = scope
@@ -125,8 +135,12 @@ class DeviceEventMonitorExitReconcileTest {
         // The screen is now OFF (condition ended during downtime).
         setScreenInteractive(false)
 
-        // Fresh monitor instance = the restart.
-        monitorFor(repository, engine, store).initialize()
+        // Fresh monitor instance = the restart. Drive the durable lifecycle
+        // boundary directly so the test does not depend on Robolectric service
+        // state outside this scenario.
+        monitorFor(repository, engine, store, history).reconcileSnapshot(
+            mapOf("SCREEN_ON" to false)
+        )
 
         waitUntil { history.exits.isNotEmpty() }
         assertTrue(
@@ -152,12 +166,71 @@ class DeviceEventMonitorExitReconcileTest {
         // The screen is still ON — the condition still holds after the restart.
         setScreenInteractive(true)
 
-        monitorFor(repository, engine, store).initialize()
+        monitorFor(repository, engine, store, history).reconcileSnapshot(
+            mapOf("SCREEN_ON" to true)
+        )
 
-        // Give the async re-arm a moment, then assert no exit fired.
-        Thread.sleep(300)
+        // The deterministic reconcile is complete before assertions.
+
         assertTrue("no exit while the condition still holds", history.exits.isEmpty())
         assertTrue("active mark survives while the condition holds", store.activeKeys("device").isNotEmpty())
+    }
+
+    @Test
+    fun `unknown current state preserves earned device ownership`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = history,
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(emptyList())
+        )
+        val repository = FakeRepository(listOf(automation("screen-task", "SCREEN_ON")))
+        val store = ActiveTriggerStore(context)
+        store.markActive("device", "screen-task|SCREEN_ON")
+
+        val monitor = monitorFor(repository, engine, store, history)
+        monitor.reconcileSnapshot(mapOf("SCREEN_ON" to null))
+
+        val runtime = AutomationRuntimeStore(context).current("screen-task")
+        assertTrue(runtime?.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE)
+        assertTrue(store.activeKeys("device").isNotEmpty())
+        assertTrue(history.exits.isEmpty())
+    }
+
+    @Test
+    fun `foreign lifecycle ownership clears stale device mirror without exiting owner`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = history,
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(emptyList())
+        )
+        val repository = FakeRepository(listOf(automation("screen-task", "SCREEN_ON")))
+        val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
+        runtimeStore.activateStrict(
+            AutomationRuntimeState(
+                automationId = "screen-task",
+                occurrenceId = "foreign-occurrence",
+                source = "settings",
+                sourceKey = "screen-task|foreign",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
+        store.markActive("device", "screen-task|SCREEN_ON")
+
+        monitorFor(repository, engine, store, history).reconcileSnapshot(
+            mapOf("SCREEN_ON" to true)
+        )
+
+        assertTrue(runtimeStore.current("screen-task")?.source == "settings")
+        assertTrue(store.activeKeys("device").isEmpty())
+        assertTrue(history.exits.isEmpty())
+        runtimeStore.clear("screen-task")
+        Unit
     }
 
     @Test
@@ -176,12 +249,17 @@ class DeviceEventMonitorExitReconcileTest {
         store.markActive("device", "screen-task|SCREEN_ON")
         setScreenInteractive(false)
 
-        monitorFor(repository, engine, store).initialize()
+        monitorFor(repository, engine, store, history).reconcileSnapshot(
+            mapOf("SCREEN_ON" to false)
+        )
 
-        // Give the async prune a moment, then assert nothing fired and the
-        // stale mark is gone.
-        Thread.sleep(300)
-        assertTrue("disabled task must not fire a stale exit", history.exits.isEmpty())
+        // Disabled ownership is reconciled through ExitCoordinator before the
+        // compatibility marker is cleared.
+
+        assertTrue(
+            "disabled task cleanup must run through the exit coordinator",
+            history.exits.any { it == EXIT_NOOP_MARKER }
+        )
         waitUntil { store.activeKeys("device").isEmpty() }
     }
 }
