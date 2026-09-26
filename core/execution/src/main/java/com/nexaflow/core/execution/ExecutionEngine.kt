@@ -12,6 +12,7 @@ import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.DurableExecutionCheckpoint
 import com.nexaflow.core.datastore.DurableExecutionStatus
+import com.nexaflow.core.datastore.DurableVerificationState
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.capability.CapabilityActionMapper
@@ -105,6 +106,8 @@ class ExecutionEngine(
     private val privilegeSnapshotInvalidator: (() -> Unit)? = null,
     /** Live semantic strategy planner; null preserves legacy/test construction. */
     private val semanticWorkflowPlanner: SemanticWorkflowPlanner? = null,
+    /** Test seam for deterministic snapshot-capture failure coverage. */
+    private val snapshotCapture: () -> DeviceStateSnapshot = { DeviceStateSnapshot.capture(context) },
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
     private val snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
         { snapshot, changedActions ->
@@ -571,7 +574,7 @@ class ExecutionEngine(
         val needsSnapshot = automation.revertOnExit ||
             automation.actions.any { it.endBehavior?.mode == EndMode.REVERT }
         val capturedSnapshot = if (needsSnapshot) {
-            runCatching { DeviceStateSnapshot.capture(context) }.getOrNull()
+            runCatching { snapshotCapture() }.getOrNull()
         } else {
             null
         }
@@ -625,7 +628,7 @@ class ExecutionEngine(
         // The durable admission succeeded (or this is a legacy/stateless run),
         // so this invocation may now own the in-memory restore snapshot too.
         if (needsSnapshot) {
-            snapshots[automation.id] = capturedSnapshot
+            capturedSnapshot?.let { snapshots[automation.id] = it }
         }
         // Resolve %variables once per run (single repo read + device probe),
         // then apply pure string substitution per action.
@@ -723,12 +726,30 @@ class ExecutionEngine(
                         message = "Action $actionIndex outcome is unconfirmed: ${result.message.take(160)}",
                         updatedAt = epochMillis.now()
                     ) ?: error("Unable to preserve uncertain checkpoint for run ${payloadContext.runId}")
-                } else {
+                } else if (result.success) {
                     activeExecutionStore.markActionCompleted(
                         runId = payloadContext.runId,
                         actionIndex = actionIndex,
-                        updatedAt = epochMillis.now()
+                        updatedAt = epochMillis.now(),
+                        verificationState = when {
+                            result.verified == true -> DurableVerificationState.VERIFIED
+                            result.verificationAttempted -> DurableVerificationState.UNKNOWN
+                            else -> DurableVerificationState.NOT_REQUIRED
+                        }
                     ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
+                } else {
+                    activeExecutionStore.markActionFailed(
+                        runId = payloadContext.runId,
+                        actionIndex = actionIndex,
+                        updatedAt = epochMillis.now(),
+                        failureCode = result.errorCode ?: "ACTION_FAILED",
+                        verificationState = when {
+                            result.verified == false -> DurableVerificationState.FAILED
+                            result.verified == true -> DurableVerificationState.VERIFIED
+                            result.verificationAttempted -> DurableVerificationState.UNKNOWN
+                            else -> DurableVerificationState.NOT_REQUIRED
+                        }
+                    ) ?: error("Unable to commit failed durable action for run ${payloadContext.runId}")
                 }
                 progressOutcomes.add(result.success)
                 inProgressActionIndex = null
@@ -801,22 +822,11 @@ class ExecutionEngine(
             }
             throw failure
         } finally {
-            // Both progress surfaces stop running together; the in-process
-            // snapshot remains available until durable history catches up.
+            // Progress UI is process-local and can be cleaned immediately.
+            // The durable checkpoint deliberately stays until the main history
+            // row (and any one-shot exit) is committed below.
             executionProgressTracker.finish(automation.id)
             runCatching { runProgressNotifier.finish(automation.id) }
-            if (!checkpointRequiresRecovery) {
-                activeExecutionStore.completeCheckpoint(payloadContext.runId)
-            }
-            // A one-shot exit is meaningful only after the entire main chain is
-            // known to have completed. Do not start end actions after a
-            // cancellation/crash with an uncertain main-side effect; recovery
-            // intentionally classifies that state instead of guessing.
-            if (actionChainCompleted && (completeExitOnFinish || automation.completesExitOnFinish)) {
-                withContext(NonCancellable) {
-                    runExit(automation)
-                }
-            }
         }
         // Actions are executed sequentially, so a SYSTEM_WAIT action placed anywhere
         // pauses the chain for the configured duration (counter mode).
@@ -831,15 +841,44 @@ class ExecutionEngine(
             actionResults = results
         )
         historyRepository.recordExecution(record)
-        // History is now durable. A fully-known action chain has consumed its
-        // checkpoint; interrupted action chains intentionally remain for
-        // ExecutionRecoveryCoordinator to classify on the next startup.
+        // History is the durable commit point for a known main-action chain.
+        // Never remove the checkpoint before this succeeds: a process death in
+        // that window would otherwise lose both the run evidence and recovery
+        // ownership after a side effect already happened.
         if (record.success && maintenanceOccurrenceKey != null) {
-            activeExecutionStore.recordCompletedMaintenanceOccurrence(
-                occurrenceKey = maintenanceOccurrenceKey,
-                automationId = automation.id,
-                completedAt = epochMillis.now()
-            )
+            try {
+                activeExecutionStore.recordCompletedMaintenanceOccurrence(
+                    occurrenceKey = maintenanceOccurrenceKey,
+                    automationId = automation.id,
+                    completedAt = epochMillis.now()
+                )
+            } catch (failure: Throwable) {
+                activeExecutionStore.markRecoveryRequired(
+                    runId = payloadContext.runId,
+                    message = "Main history committed but maintenance completion receipt failed",
+                    updatedAt = epochMillis.now()
+                )
+                throw failure
+            }
+        }
+        // A one-shot exit is meaningful only after the entire main chain is
+        // known and its history row is durable. Preserve EXIT_PENDING until the
+        // end behavior itself commits a successful history record; a known
+        // failure becomes explicit recovery work instead of disappearing.
+        if (actionChainCompleted && (completeExitOnFinish || automation.completesExitOnFinish)) {
+            activeExecutionStore.markExitPending(payloadContext.runId, epochMillis.now())
+            val exitRecord = withContext(NonCancellable) { runExit(automation) }
+            if (!exitRecord.success) {
+                checkpointRequiresRecovery = true
+                activeExecutionStore.markRecoveryRequired(
+                    runId = payloadContext.runId,
+                    message = "One-shot exit failed after main history commit: ${exitRecord.message.take(160)}",
+                    updatedAt = epochMillis.now()
+                )
+            }
+        }
+        if (!checkpointRequiresRecovery) {
+            activeExecutionStore.completeCheckpoint(payloadContext.runId)
         }
         diagnostics.recordTimeline(
             automation = automation,
