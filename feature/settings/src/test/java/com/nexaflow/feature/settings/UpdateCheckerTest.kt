@@ -143,6 +143,24 @@ class UpdateCheckerTest {
     }
 
     @Test
+    fun signingLineage_requiresNonEmptyIntersection() {
+        assertTrue(
+            UpdateChecker.hasTrustedSigningLineage(
+                installed = setOf("old-cert", "current-cert"),
+                archive = setOf("current-cert", "next-cert")
+            )
+        )
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installed = setOf("installed-cert"),
+                archive = setOf("other-cert")
+            )
+        )
+        assertFalse(UpdateChecker.hasTrustedSigningLineage(emptySet(), setOf("cert")))
+        assertFalse(UpdateChecker.hasTrustedSigningLineage(setOf("cert"), emptySet()))
+    }
+
+    @Test
     fun sha256_matchesKnownDigest() {
         // "hello" → known SHA-256.
         val file = File.createTempFile("update-checker", ".bin")
