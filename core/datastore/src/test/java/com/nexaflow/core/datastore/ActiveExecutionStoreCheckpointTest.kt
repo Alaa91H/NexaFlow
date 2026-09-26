@@ -255,6 +255,42 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun recoveryReviewListIsScopedAndNewestFirst() = runBlocking {
+        assertTrue(
+            store.beginCheckpoint(
+                checkpoint("recovery-old").copy(
+                    status = DurableExecutionStatus.RECOVERY_REQUIRED,
+                    updatedAt = 200L,
+                    message = "old"
+                )
+            )
+        )
+        assertTrue(
+            store.beginCheckpoint(
+                checkpoint("recovery-new").copy(
+                    status = DurableExecutionStatus.RECOVERY_REQUIRED,
+                    updatedAt = 400L,
+                    message = "new"
+                )
+            )
+        )
+        assertTrue(
+            store.beginCheckpoint(
+                checkpoint("recovery-other", automationId = "automation-b").copy(
+                    status = DurableExecutionStatus.RECOVERY_REQUIRED,
+                    updatedAt = 500L
+                )
+            )
+        )
+        assertTrue(store.beginCheckpoint(checkpoint("active-own").copy(updatedAt = 600L)))
+
+        val items = store.recoveryRequiredForAutomation("automation-a")
+
+        assertEquals(listOf("recovery-new", "recovery-old"), items.map { it.runId })
+        assertEquals(listOf("new", "old"), items.map { it.message })
+    }
+
+    @Test
     fun recoveryCountReadsOnlyDurableRecoveryRequiredRecordsForSelectedAutomation() = runBlocking {
         val own = checkpoint("run-own-recovery").copy(
             status = DurableExecutionStatus.RECOVERY_REQUIRED
