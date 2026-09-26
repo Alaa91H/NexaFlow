@@ -12,6 +12,8 @@ import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.data.mapper.toDomain
 import com.nexaflow.data.mapper.toEntity
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.MaintenanceKind
+import com.nexaflow.domain.models.MaintenanceProfile
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -209,6 +211,116 @@ class RoomAutomationMutationPersistenceTest {
         assertEquals(
             "Human edit",
             database.automationDao().getAutomationById("task")?.name
+        )
+    }
+
+    @Test
+    fun transactionRejectsNewCircularDependency() = runTest {
+        val persistence = persistence()
+        val first = automation(id = "a", name = "A", updatedAt = 100L)
+        val second = automation(id = "b", name = "B", updatedAt = 110L)
+
+        assertTrue(
+            persistence.commit(
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = second,
+                    occurredAt = 110L
+                )
+            ) is AutomationPersistenceResult.Committed
+        )
+        assertTrue(
+            persistence.commit(
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = first.copy(
+                        maintenanceProfile = MaintenanceProfile(
+                            kind = MaintenanceKind.AUTOMATION,
+                            dependencyAutomationIds = listOf("b")
+                        )
+                    ),
+                    occurredAt = 120L
+                )
+            ) is AutomationPersistenceResult.Committed
+        )
+
+        val result = persistence.commit(
+            request(
+                kind = AutomationMutationKind.UPDATE,
+                automation = second.copy(
+                    updatedAt = 200L,
+                    maintenanceProfile = MaintenanceProfile(
+                        kind = MaintenanceKind.AUTOMATION,
+                        dependencyAutomationIds = listOf("a")
+                    )
+                ),
+                expectedRevision = 1L,
+                baseDefinitionUpdatedAt = 110L,
+                occurredAt = 200L
+            )
+        )
+
+        assertTrue(result is AutomationPersistenceResult.DependencyConflict)
+        assertTrue(
+            database.automationDao()
+                .getAutomationById("b")
+                ?.toDomain()
+                ?.maintenanceProfile
+                ?.dependencyAutomationIds
+                .orEmpty()
+                .isEmpty()
+        )
+        assertEquals(
+            1L,
+            database.agentPlatformDao().getAutomationMetadata("b")?.revision
+        )
+    }
+
+    @Test
+    fun transactionRejectsDeleteWhenDependencyAppearedAfterPreflight() = runTest {
+        val persistence = persistence()
+        val target = automation(id = "target", name = "Target", updatedAt = 100L)
+        val dependent = automation(
+            id = "dependent",
+            name = "Dependent",
+            updatedAt = 110L
+        ).copy(
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.AUTOMATION,
+                dependencyAutomationIds = listOf("target")
+            )
+        )
+
+        persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = target,
+                occurredAt = 100L
+            )
+        )
+        persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = dependent,
+                occurredAt = 110L
+            )
+        )
+
+        val result = persistence.commit(
+            request(
+                kind = AutomationMutationKind.DELETE,
+                automation = target,
+                expectedRevision = 1L,
+                baseDefinitionUpdatedAt = 100L,
+                occurredAt = 200L
+            )
+        )
+
+        assertTrue(result is AutomationPersistenceResult.DependencyConflict)
+        assertTrue(database.automationDao().getAutomationById("target") != null)
+        assertEquals(
+            1L,
+            database.agentPlatformDao().getAutomationMetadata("target")?.revision
         )
     }
 
