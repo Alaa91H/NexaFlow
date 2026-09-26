@@ -150,6 +150,7 @@ class MonitoringService : Service() {
             ringerModeMonitor.reconcileAutomations()
             callStateMonitor.reconcileAutomations()
             mediaMonitor.reconcileAutomations()
+            volumeMonitor.reconcileAutomations()
             deviceEventMonitor.reconcileAutomations()
             deviceStateMonitor28.reconcileAutomations()
             wearEventRouter.reconcileAutomations()
