@@ -329,6 +329,23 @@ class ActiveExecutionStore internal constructor(
                 it.status == DurableExecutionStatus.RECOVERY_REQUIRED
         }
 
+    /**
+     * Read-only recovery evidence for one automation, newest update first.
+     * This never claims, retries, or clears work; UI/diagnostics can inspect the
+     * durable ledger without changing execution semantics.
+     */
+    suspend fun recoveryRequiredForAutomation(
+        automationId: String
+    ): List<DurableExecutionCheckpoint> =
+        checkpoints(dataStore.data.first()).values
+            .asSequence()
+            .filter {
+                it.automationId == automationId &&
+                    it.status == DurableExecutionStatus.RECOVERY_REQUIRED
+            }
+            .sortedByDescending { it.updatedAt }
+            .toList()
+
     /** True when a recurring-maintenance occurrence already completed successfully. */
     suspend fun hasCompletedMaintenanceOccurrence(occurrenceKey: String): Boolean =
         maintenanceReceipts(dataStore.data.first()).any { it.occurrenceKey == occurrenceKey }
