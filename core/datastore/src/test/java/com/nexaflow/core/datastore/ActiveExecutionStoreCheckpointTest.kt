@@ -179,6 +179,33 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun definitiveFailureIsPersistedAsFailedAndAdvancesCursor() = runBlocking {
+        assertTrue(store.beginCheckpoint(checkpoint("run-node-failed")))
+        store.markActionStarted(
+            runId = "run-node-failed",
+            actionIndex = 0,
+            idempotencyKey = "run-node-failed:0:ACTION",
+            updatedAt = 110L,
+            nodeId = "node-failed"
+        )
+
+        val failed = store.markActionFailed(
+            runId = "run-node-failed",
+            actionIndex = 0,
+            updatedAt = 120L,
+            failureCode = "PERMISSION_DENIED",
+            verificationState = DurableVerificationState.FAILED
+        )
+
+        assertEquals(DurableExecutionStatus.ACTION_COMPLETED, failed?.status)
+        assertEquals(1, failed?.nextActionIndex)
+        assertEquals(setOf(0), failed?.completedActionIndexes)
+        assertEquals(DurableNodeExecutionState.FAILED, failed?.nodeExecutions?.single()?.state)
+        assertEquals(DurableVerificationState.FAILED, failed?.nodeExecutions?.single()?.verificationState)
+        assertEquals("PERMISSION_DENIED", failed?.nodeExecutions?.single()?.failureCode)
+    }
+
+    @Test
     fun interruptedNodeIsPersistedAsUnknownAndNeverReportedAsSuccess() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-node-unknown")))
         store.markActionStarted(

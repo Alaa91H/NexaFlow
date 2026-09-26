@@ -22,9 +22,10 @@ import kotlinx.coroutines.withContext
  *   with exponential backoff + jitter up to `maxAttempts`;
  * - HTTP 4xx (except 429) are **permanent** — they fail immediately without
  *   burning retries on a request that will never succeed;
- * - every attempt carries the **same `Idempotency-Key`** (hash of
- *   automationId | action | method | url | body) so a server honoring the
- *   header de-duplicates a replayed request.
+ * - every attempt carries the **same `Idempotency-Key`** for one logical
+ *   action execution, while a later independent run gets a different key.
+ *   The identity is runId | nodeId | resolved request input, so a server
+ *   honoring the header de-duplicates retries without suppressing future runs.
  *
  * The transport is injectable for atomic tests; [SecureHttpTransport] is
  * the production default.
@@ -60,8 +61,8 @@ class HttpRequestHandler(
         val policy = retryPolicy(action.config)
         // Stable across every attempt of the same logical call.
         val idempotencyKey = retryExecutor.idempotencyKey(
-            ctx.automationId ?: "unknown",
-            action.type.name,
+            ctx.executionId ?: ctx.runContext?.runId ?: ctx.automationId ?: "unknown",
+            ctx.nodeId ?: action.type.name,
             "$method|$url|$body"
         )
         val headers = customHeaders + mapOf(

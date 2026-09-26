@@ -206,6 +206,46 @@ class ActiveExecutionStore internal constructor(
         )
     }
 
+    /** Commits one definitively failed action and advances the cursor exactly once. */
+    suspend fun markActionFailed(
+        runId: String,
+        actionIndex: Int,
+        updatedAt: Long,
+        failureCode: String? = null,
+        verificationState: DurableVerificationState = DurableVerificationState.UNKNOWN
+    ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        require(actionIndex == checkpoint.nextActionIndex) {
+            "Action failure ordering mismatch for run $runId"
+        }
+        val nodeId = checkpoint.currentNodeId ?: "action:$actionIndex"
+        val activeNode = checkpoint.nodeExecutions.lastOrNull {
+            it.nodeId == nodeId && it.state == DurableNodeExecutionState.RUNNING
+        }
+        val nextNodes = if (activeNode == null) {
+            checkpoint.nodeExecutions
+        } else {
+            checkpoint.nodeExecutions.map { node ->
+                if (node === activeNode) {
+                    node.copy(
+                        state = DurableNodeExecutionState.FAILED,
+                        completedAt = updatedAt,
+                        verificationState = verificationState,
+                        failureCode = failureCode?.take(MAX_FAILURE_CODE_LENGTH)
+                    )
+                } else node
+            }
+        }
+        checkpoint.copy(
+            status = DurableExecutionStatus.ACTION_COMPLETED,
+            nextActionIndex = actionIndex + 1,
+            completedActionIndexes = checkpoint.completedActionIndexes + actionIndex,
+            nodeExecutions = nextNodes,
+            verificationState = verificationState,
+            updatedAt = updatedAt,
+            message = failureCode?.take(MAX_MESSAGE_LENGTH)
+        )
+    }
+
     /**
      * Records uncertainty after an interrupted side effect. Recovery must verify
      * the external effect or compensate; it must not blindly re-run this action.
@@ -431,5 +471,6 @@ class ActiveExecutionStore internal constructor(
         const val MAX_MAINTENANCE_RECEIPTS = 256
         const val MAINTENANCE_RECEIPT_RETENTION_MS = 45L * 24 * 60 * 60 * 1000
         const val MAX_MESSAGE_LENGTH = 512
+        const val MAX_FAILURE_CODE_LENGTH = 128
     }
 }

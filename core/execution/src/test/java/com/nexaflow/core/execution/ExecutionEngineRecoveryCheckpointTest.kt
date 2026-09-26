@@ -6,6 +6,7 @@ import androidx.paging.PagingState
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.DurableExecutionStatus
+import com.nexaflow.core.datastore.DurableNodeExecutionState
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
@@ -45,6 +46,36 @@ class ExecutionEngineRecoveryCheckpointTest {
         }
     }
 
+    private class SuccessfulHandler : ActionHandler {
+        override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+
+        override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult =
+            SystemControlResult.ok("done")
+    }
+
+    private class FailedHandler : ActionHandler {
+        override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+
+        override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult =
+            SystemControlResult.fail(
+                message = "permission denied",
+                errorCode = "PERMISSION_DENIED",
+                verificationAttempted = true,
+                verified = false
+            )
+    }
+
+    private class MainThenExitHandler : ActionHandler {
+        override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+
+        override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult =
+            if (action.config["phase"] == "exit") {
+                SystemControlResult.fail("exit failed", errorCode = "EXIT_FAILED")
+            } else {
+                SystemControlResult.ok("main done")
+            }
+    }
+
     private class UncertainHandler : ActionHandler {
         var calls: Int = 0
         override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
@@ -71,6 +102,20 @@ class ExecutionEngineRecoveryCheckpointTest {
         override suspend fun recordExecution(record: ExecutionRecord) = Unit
     }
 
+    private class ThrowingHistory : HistoryRepository {
+        override fun getExecutionHistory(): Flow<List<ExecutionRecord>> = flowOf(emptyList())
+        override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> =
+            object : PagingSource<Int, ExecutionRecord>() {
+                override fun getRefreshKey(state: PagingState<Int, ExecutionRecord>): Int? = null
+                override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ExecutionRecord> =
+                    LoadResult.Page(emptyList(), null, null)
+            }
+        override suspend fun getExecutionById(id: String): ExecutionRecord? = null
+        override suspend fun recordExecution(record: ExecutionRecord) {
+            throw IllegalStateException("history write failed")
+        }
+    }
+
     private fun automation() = Automation(
         id = "checkpoint-recovery-task",
         name = "Checkpoint recovery task",
@@ -87,6 +132,138 @@ class ExecutionEngineRecoveryCheckpointTest {
         createdAt = 0L,
         updatedAt = 0L
     )
+
+    @Test
+    fun successfulActionCheckpointSurvivesUntilHistoryCommit() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = ActiveExecutionStore(context)
+        val runId = "history-failure-${System.nanoTime()}"
+        val task = automation()
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = ThrowingHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(SuccessfulHandler())),
+            activeExecutionStore = store
+        )
+
+        try {
+            val failure = runCatching {
+                engine.runAutomation(
+                    automation = task,
+                    runContext = WorkflowRunContext(runId, task.id, 1L)
+                )
+            }.exceptionOrNull()
+
+            assertNotNull("history failure must reach the caller", failure)
+            val checkpoint = store.checkpoint(runId)
+            assertNotNull("checkpoint must survive until history is durable", checkpoint)
+            assertEquals(DurableExecutionStatus.ACTION_COMPLETED, checkpoint?.status)
+            assertEquals(DurableNodeExecutionState.SUCCEEDED, checkpoint?.nodeExecutions?.single()?.state)
+        } finally {
+            store.clearCheckpoint(runId)
+            store.clear(task.id)
+        }
+    }
+
+    @Test
+    fun definitiveActionFailureIsNeverPersistedAsSucceeded() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = ActiveExecutionStore(context)
+        val runId = "known-failure-${System.nanoTime()}"
+        val task = automation()
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = ThrowingHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(FailedHandler())),
+            activeExecutionStore = store
+        )
+
+        try {
+            runCatching {
+                engine.runAutomation(
+                    automation = task,
+                    runContext = WorkflowRunContext(runId, task.id, 1L)
+                )
+            }
+
+            val checkpoint = store.checkpoint(runId)
+            assertNotNull(checkpoint)
+            assertEquals(DurableExecutionStatus.ACTION_COMPLETED, checkpoint?.status)
+            assertEquals(DurableNodeExecutionState.FAILED, checkpoint?.nodeExecutions?.single()?.state)
+            assertEquals("PERMISSION_DENIED", checkpoint?.nodeExecutions?.single()?.failureCode)
+        } finally {
+            store.clearCheckpoint(runId)
+            store.clear(task.id)
+        }
+    }
+
+    @Test
+    fun failedSnapshotCaptureDoesNotAbortMainActions() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = ActiveExecutionStore(context)
+        val runId = "snapshot-failure-${System.nanoTime()}"
+        val task = automation().copy(revertOnExit = true)
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = NoopHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(SuccessfulHandler())),
+            activeExecutionStore = store,
+            snapshotCapture = { error("capture failed") }
+        )
+
+        try {
+            val record = engine.runAutomation(
+                automation = task,
+                runContext = WorkflowRunContext(runId, task.id, 1L)
+            )
+
+            assertTrue(record.success)
+            assertEquals(null, store.checkpoint(runId))
+        } finally {
+            store.clearCheckpoint(runId)
+            store.clear(task.id)
+        }
+    }
+
+    @Test
+    fun failedOneShotExitLeavesExplicitRecoveryRecord() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = ActiveExecutionStore(context)
+        val runId = "exit-failure-${System.nanoTime()}"
+        val base = automation()
+        val task = base.copy(
+            actions = listOf(
+                Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("phase" to "main"))
+            ),
+            exitActions = listOf(
+                Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("phase" to "exit"))
+            )
+        )
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = NoopHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(MainThenExitHandler())),
+            activeExecutionStore = store
+        )
+
+        try {
+            val record = engine.runAutomation(
+                automation = task,
+                runContext = WorkflowRunContext(runId, task.id, 1L),
+                completeExitOnFinish = true
+            )
+
+            assertTrue(record.success)
+            assertEquals(DurableExecutionStatus.RECOVERY_REQUIRED, store.checkpoint(runId)?.status)
+        } finally {
+            store.clearCheckpoint(runId)
+            store.clear(task.id)
+        }
+    }
 
     @Test
     fun uncertainResultIsNeverRetriedAndRemainsRecoverable() = runBlocking {

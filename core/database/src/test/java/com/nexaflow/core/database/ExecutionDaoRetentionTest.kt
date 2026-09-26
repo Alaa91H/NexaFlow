@@ -3,6 +3,7 @@ package com.nexaflow.core.database
 import androidx.paging.PagingSource
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -163,6 +164,37 @@ class ExecutionDaoRetentionTest {
 
         val page = result as PagingSource.LoadResult.Page<Int, ExecutionRecordEntity>
         assertEquals(listOf("legacy-deferral", "a-new-skip", "a-old-skip"), page.data.map { it.id })
+    }
+
+    @Test
+    fun latestExecutions_returnsExactlyOneRowPerRoutineWhenTimestampsCollide() = runBlocking {
+        dao.insertExecution(entity("a-latest", 100L, automationId = "routine-a"))
+        dao.insertExecution(entity("b-old-collision", 100L, automationId = "routine-b"))
+        dao.insertExecution(entity("b-latest", 200L, automationId = "routine-b"))
+        dao.insertExecution(entity("c-old", 50L, automationId = "routine-c"))
+        dao.insertExecution(entity("c-latest", 300L, automationId = "routine-c"))
+
+        val latest = dao.getLatestExecutions().first()
+
+        assertEquals(3, latest.size)
+        assertEquals(
+            mapOf(
+                "routine-a" to "a-latest",
+                "routine-b" to "b-latest",
+                "routine-c" to "c-latest"
+            ),
+            latest.associate { it.automationId to it.id }
+        )
+    }
+
+    @Test
+    fun latestExecutions_usesDeterministicIdTieBreakerWithinOneRoutine() = runBlocking {
+        dao.insertExecution(entity("same-a", 100L, automationId = "routine-a"))
+        dao.insertExecution(entity("same-z", 100L, automationId = "routine-a"))
+
+        val latest = dao.getLatestExecutions().first()
+
+        assertEquals(listOf("same-z"), latest.map { it.id })
     }
 
     @Test

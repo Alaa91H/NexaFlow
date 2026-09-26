@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import java.util.UUID
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,10 +18,13 @@ class WearInstallIdentityTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        context.getSharedPreferences("nexaflow_wear_identity", Context.MODE_PRIVATE)
-            .edit()
+        val cleared = context.getSharedPreferences(
+            "nexaflow_wear_identity",
+            Context.MODE_PRIVATE
+        ).edit()
             .clear()
-            .apply()
+            .commit()
+        assertTrue("test precondition: identity store must be cleared synchronously", cleared)
     }
 
     @Test
