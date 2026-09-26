@@ -56,6 +56,10 @@ class ActiveExecutionStore internal constructor(
         return wasStarted
     }
 
+    /** True when legacy/stateless end behavior still owns this automation. */
+    suspend fun hasStarted(automationId: String): Boolean =
+        automationId in dataStore.data.first()[KEY_ACTIVE_EXECUTIONS].orEmpty()
+
     /** Removes a lifecycle marker when a task is deleted or deliberately reset. */
     suspend fun clear(automationId: String) {
         dataStore.edit { preferences ->
@@ -327,6 +331,16 @@ class ActiveExecutionStore internal constructor(
         checkpoints(dataStore.data.first()).values.count {
             it.automationId == automationId &&
                 it.status == DurableExecutionStatus.RECOVERY_REQUIRED
+        }
+
+    /**
+     * True while this automation owns any non-terminal execution checkpoint.
+     * Deletion must keep the immutable definition available until recovery no
+     * longer depends on it.
+     */
+    suspend fun hasUnresolvedCheckpointForAutomation(automationId: String): Boolean =
+        checkpoints(dataStore.data.first()).values.any {
+            it.automationId == automationId && !it.isTerminal
         }
 
     /**
