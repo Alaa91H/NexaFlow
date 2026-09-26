@@ -283,6 +283,47 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
+    fun `delete preparation blocks while a durable owner has not reconciled`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val runtimeStore = AutomationRuntimeStore(context)
+        val engine = engine(handler, history, runtimeStore = runtimeStore)
+        val automation = automation(exitActions = listOf(action))
+        runtimeStore.activateStrict(
+            AutomationRuntimeState(
+                automationId = automation.id,
+                occurrenceId = "delete-owned",
+                source = "connectivity",
+                sourceKey = "${automation.id}|CONNECTED",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
+
+        val ready = engine.prepareForDeletion(automation, timeoutMillis = 100L)
+
+        assertFalse("deletion must not discard a still-owned lifecycle", ready)
+        assertEquals(0, handler.calls)
+        assertEquals(
+            AutomationRuntimeLifecycleState.ACTIVE,
+            runtimeStore.current(automation.id)?.lifecycleState
+        )
+    }
+
+    @Test
+    fun `delete preparation completes legacy cleanup before allowing deletion`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(exitActions = listOf(action))
+
+        val ready = engine.prepareForDeletion(automation, timeoutMillis = 100L)
+
+        assertTrue(ready)
+        assertEquals("configured end behavior must complete before delete", 1, handler.calls)
+    }
+
+    @Test
     fun `disable cleanup preserves immediate legacy exit when no durable owner exists`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
