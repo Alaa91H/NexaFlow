@@ -95,8 +95,8 @@ class RingerModeMonitor @Inject constructor(
      * (enable/disable toggles, saves), so:
      *  - a task enabled while its mode already matches fires immediately
      *    instead of waiting for the next mode change;
-     *  - a task disabled while its condition still holds stops being tracked
-     *    (its durable mark is pruned) instead of leaking until restart;
+     *  - a task disabled while its condition still holds closes its durable
+     *    occurrence through ExitCoordinator before compatibility state clears;
      *  - a mode that was left while the process was down fires its missed
      *    exit right away.
      */
