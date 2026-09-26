@@ -9,6 +9,11 @@ import androidx.core.content.ContextCompat
 import androidx.paging.PagingSource
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.DurableExecutionCheckpoint
+import com.nexaflow.core.datastore.DurableExecutionStatus
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
@@ -111,7 +116,8 @@ class ExecutionEngineDeleteLifecycleTest {
         // first keeps the class re-runnable in one JVM (DataStore is a JVM-wide
         // singleton per file, frozen at the first sandbox it ever sees).
         listOf("delete-lifecycle-a", "delete-lifecycle-b", "delete-lifecycle-c").forEach {
-            ActiveExecutionStore(context).clear(it)
+            ActiveExecutionStore(context).clearAutomationState(it)
+            AutomationRuntimeStore(context).clear(it)
         }
     }
 
@@ -159,6 +165,44 @@ class ExecutionEngineDeleteLifecycleTest {
         assertEquals("no end action may run after delete on a fresh engine", 1, handler.calls)
         assertTrue(freshEngineExit.message.contains("task was not active"))
         idleMainLooper()
+    }
+
+    @Test
+    fun `delete removes runtime ownership and recovery checkpoints for unreachable id`() = runBlocking {
+        val id = "delete-lifecycle-c"
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val runtimeStore = AutomationRuntimeStore(context)
+        val executionStore = ActiveExecutionStore(context)
+
+        runtimeStore.activateStrict(
+            AutomationRuntimeState(
+                automationId = id,
+                occurrenceId = "delete-occurrence",
+                source = "connectivity",
+                sourceKey = "$id|CONNECTED",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
+        executionStore.beginCheckpoint(
+            DurableExecutionCheckpoint(
+                runId = "delete-run",
+                automationId = id,
+                workflowVersion = 4,
+                totalActions = 1,
+                nextActionIndex = 0,
+                status = DurableExecutionStatus.RECOVERY_REQUIRED,
+                startedAt = 1L,
+                updatedAt = 2L
+            )
+        )
+
+        engine.onAutomationDeleted(id)
+
+        assertEquals(null, runtimeStore.current(id))
+        assertEquals(null, executionStore.checkpoint("delete-run"))
     }
 
     @Test
