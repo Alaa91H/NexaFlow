@@ -8,12 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
-import com.nexaflow.core.execution.handler.ActionExecutionContext
-import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
-import com.nexaflow.core.rom.model.SystemControlResult
-import com.nexaflow.domain.models.Action
-import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthAnalyzer
 import com.nexaflow.domain.models.AutomationHealthReport
@@ -94,27 +89,18 @@ class DashboardViewModelDeleteTest {
         priority = 1,
         enabled = true,
         triggers = listOf(Trigger(TriggerType.CONNECTIVITY, mapOf("state" to "CONNECTED"))),
-        actions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, emptyMap())),
-        exitActions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, emptyMap())),
+        actions = emptyList(),
+        exitActions = emptyList(),
         createdAt = 0L,
         updatedAt = 0L
     )
 
-    private fun newEngine(): ExecutionEngine {
-        val handler = object : ActionHandler {
-            override val supportedTypes = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
-            override suspend fun execute(
-                action: Action,
-                ctx: ActionExecutionContext
-            ): SystemControlResult = SystemControlResult.ok("ok")
-        }
-        return ExecutionEngine(
-            context = context,
-            historyRepository = FakeHistory(),
-            notificationPreferences = NotificationPreferences(context),
-            actionRegistry = ActionRegistry.from(listOf(handler))
-        )
-    }
+    private fun newEngine(): ExecutionEngine = ExecutionEngine(
+        context = context,
+        historyRepository = FakeHistory(),
+        notificationPreferences = NotificationPreferences(context),
+        actionRegistry = ActionRegistry.from(emptyList())
+    )
 
     @Before
     fun setUp() = runBlocking {
@@ -125,7 +111,7 @@ class DashboardViewModelDeleteTest {
         }
     }
 
-    private fun arm(id: String) = runBlocking { engine.runAutomation(task(id)) }
+    private fun arm(id: String) = runBlocking { ActiveExecutionStore(context).markStarted(id) }
 
     private fun viewModel(repo: AutomationRepository): DashboardViewModel = DashboardViewModel(
         automationRepository = repo,
