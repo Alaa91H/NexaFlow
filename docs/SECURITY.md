@@ -14,7 +14,7 @@ NexaFlow executes user-configured actions with the permissions and elevated prov
 
 ## Storage and migration
 
-Room schema 20 persists task capability tokens separately from portable serialization and stores trigger-match policy explicitly. Migration 18→19 adds the nullable capability column; migration 19→20 adds the non-null trigger-match column with a backward-compatible `ANY` default. Historical migration chains are exercised by tests; original exported schema snapshots 2 and 13 remain unavailable and have not been fabricated. Back up important workflows before upgrades.
+Room schema 21 persists task capability tokens separately from portable serialization and stores trigger-match policy explicitly. Migration 18→19 adds the nullable capability column; migration 19→20 adds the non-null trigger-match column with a backward-compatible `ANY` default; migration 20→21 adds agent provenance metadata, bounded redacted audit events and hashed idempotency records. Raw idempotency keys are never persisted. Historical migration chains are exercised by tests; original exported schema snapshots 2 and 13 remain unavailable and have not been fabricated. Back up important workflows before upgrades.
 
 ## Evidence and limits
 
