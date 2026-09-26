@@ -108,10 +108,10 @@ data class DurableExecutionCheckpoint(
     val workflowId: String = automationId,
     val workflowVersion: Int = 1,
     /**
-     * Exact persisted automation revision captured at admission. Zero denotes a
-     * legacy checkpoint created before revision pinning existed.
+     * Exact persisted automation revision captured at admission. Null denotes
+     * a legacy checkpoint created before revision pinning existed.
      */
-    val workflowRevision: Long = 0L,
+    val workflowRevision: Long? = null,
     val parentRunId: String? = null,
     val correlationId: String? = null,
     val causationId: String? = null,
@@ -137,7 +137,9 @@ data class DurableExecutionCheckpoint(
         require(automationId.isNotBlank()) { "automationId must not be blank" }
         require(workflowId.isNotBlank()) { "workflowId must not be blank" }
         require(workflowVersion > 0) { "workflowVersion must be positive" }
-        require(workflowRevision >= 0L) { "workflowRevision must not be negative" }
+        require(workflowRevision == null || workflowRevision >= 0L) {
+            "workflowRevision must not be negative"
+        }
         require(parentRunId == null || parentRunId.isNotBlank()) { "parentRunId must not be blank" }
         require(correlationId == null || correlationId.isNotBlank()) { "correlationId must not be blank" }
         require(causationId == null || causationId.isNotBlank()) { "causationId must not be blank" }
