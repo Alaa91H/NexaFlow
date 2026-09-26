@@ -85,7 +85,7 @@ object UpdateChecker {
         } else {
             setOf(
                 "$apkName.sha256".lowercase(),
-                apkName.removeSuffix(".apk").plus(".sha256").lowercase()
+                apkName.dropLast(4).plus(".sha256").lowercase()
             )
         }
         val sha256 = assetList.firstOrNull {
@@ -194,7 +194,7 @@ object UpdateChecker {
      * rejected instead of silently disabling verification.
      */
     internal fun parseSha256Text(text: String): String? {
-        val token = text.trim().substringBefore(Regex("\\s+")).lowercase()
+        val token = text.trim().split(Regex("\\s+"), limit = 2).firstOrNull().orEmpty().lowercase()
         return token.takeIf { it.matches(Regex("[0-9a-f]{64}")) }
     }
 
