@@ -1113,7 +1113,7 @@ class ExecutionEngine(
                             executionId = exitExecutionId,
                             nodeId = "end:$actionIndex"
                         )
-                    } ?: return@forEach
+                    } ?: return@forEachIndexed
                     add(
                         ActionExecutionResult(
                             actionType = "${action.type.name}_END",
