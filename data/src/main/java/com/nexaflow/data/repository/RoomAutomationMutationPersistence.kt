@@ -76,9 +76,15 @@ class RoomAutomationMutationPersistence(
             keyHash = sha256(rawKey)
         ) ?: return@withTransaction null
 
+        val automationMatches = when (kind) {
+            // CREATE fingerprints intentionally omit the server-generated id,
+            // so a retry can be recognized before allocating another id.
+            AutomationMutationKind.CREATE -> automationId == null || existing.automationId == automationId
+            else -> existing.automationId == automationId
+        }
         if (existing.requestFingerprint == requestFingerprint &&
             existing.operation == kind.name &&
-            existing.automationId == automationId
+            automationMatches
         ) {
             AutomationPersistenceResult.IdempotentReplay(
                 automationId = existing.automationId,
