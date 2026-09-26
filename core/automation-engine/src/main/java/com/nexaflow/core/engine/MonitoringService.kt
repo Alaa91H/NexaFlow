@@ -149,6 +149,7 @@ class MonitoringService : Service() {
             darkModeMonitor.reconcileAutomations()
             ringerModeMonitor.reconcileAutomations()
             mediaMonitor.reconcileAutomations()
+            calendarMonitor.reconcileAutomations()
             deviceEventMonitor.reconcileAutomations()
             deviceStateMonitor28.reconcileAutomations()
             wearEventRouter.reconcileAutomations()
