@@ -173,27 +173,60 @@ class AutomationDetailsViewModel @Inject constructor(
         if (_deleting.value) return
         _deleting.value = true
         viewModelScope.launch {
+            var disabledForDelete = false
+            var currentName = automationId
             try {
-                repository.getAutomationById(automationId)?.let { repository.deleteAutomation(it) }
-                // The row is gone: no monitor can ever resolve this id again, so
-                // the engine ledger is unreachable. Cleanup is therefore
-                // best-effort — a storage failure must not strand the user on a
-                // screen for a task that no longer exists.
+                val current = repository.getAutomationById(automationId)
+                if (current != null) {
+                    currentName = current.name
+                    // Keep the immutable definition available while end behavior
+                    // is being reconciled. Deleting first would make the owning
+                    // monitor unable to restore state or run its configured exit.
+                    if (current.enabled) {
+                        repository.updateAutomationStatus(automationId, false)
+                        disabledForDelete = true
+                    }
+                    val cleanupReady = executionEngine.prepareForDeletion(current)
+                    if (!cleanupReady) {
+                        _executionMessage.value = appContext.getString(
+                            R.string.task_delete_failed,
+                            current.name
+                        )
+                        return@launch
+                    }
+                    try {
+                        repository.deleteAutomation(current)
+                    } catch (failure: Exception) {
+                        // The delete itself failed after cleanup succeeded.
+                        // Restore the user's enabled flag so a transient Room
+                        // failure does not silently change the task definition.
+                        if (disabledForDelete) {
+                            runCatching {
+                                repository.updateAutomationStatus(automationId, true)
+                                executionEngine.notifyAutomationsChanged()
+                            }
+                        }
+                        throw failure
+                    }
+                }
+
+                // The row is now gone (or was already gone elsewhere), so its
+                // remaining durable identities are explicitly unreachable.
                 try {
                     executionEngine.onAutomationDeleted(automationId)
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (_: Exception) {
-                    // Best-effort; the durable marker is inert once the row is gone.
+                    // Best-effort after the authoritative row deletion.
                 }
                 onDeleted()
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                // Room rolls the delete back on failure, so the task still exists
-                // and its engine state must stay intact. Surface the failure
-                // instead of crashing the app.
-                _executionMessage.value = appContext.getString(R.string.task_delete_failed)
+                _executionMessage.value = appContext.getString(
+                    R.string.task_delete_failed,
+                    currentName
+                )
             } finally {
                 _deleting.value = false
             }

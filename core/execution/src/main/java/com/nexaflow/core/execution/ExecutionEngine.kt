@@ -52,6 +52,7 @@ import com.nexaflow.domain.variables.RuntimeValueCodec
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -1000,6 +1001,37 @@ class ExecutionEngine(
             return null
         }
         return runExit(automation, forceConfiguredEnd = true)
+    }
+
+    /**
+     * Pre-delete cleanup barrier.
+     *
+     * Callers must first persist the task as disabled so monitor-owned
+     * lifecycles can observe that policy change while the immutable definition
+     * still exists. Stateless/legacy cleanup completes synchronously through
+     * [runDisableCleanup]. Stateful cleanup is delegated to the owning monitor
+     * and this method waits only for the durable occurrence to disappear.
+     * EXIT_FAILED or a timeout blocks deletion so recoverable state is never
+     * discarded merely because the user tapped Delete.
+     */
+    suspend fun prepareForDeletion(
+        automation: Automation,
+        timeoutMillis: Long = 15_000L
+    ): Boolean {
+        require(timeoutMillis > 0L) { "timeoutMillis must be positive" }
+
+        val direct = runDisableCleanup(automation)
+        if (direct != null) return direct.success
+
+        val deadlineNanos = System.nanoTime() + timeoutMillis * 1_000_000L
+        while (System.nanoTime() < deadlineNanos) {
+            val state = automationRuntimeStore.current(automation.id) ?: return true
+            if (state.lifecycleState == AutomationRuntimeLifecycleState.EXIT_FAILED) {
+                return false
+            }
+            delay(50L)
+        }
+        return automationRuntimeStore.current(automation.id) == null
     }
 
     /**
