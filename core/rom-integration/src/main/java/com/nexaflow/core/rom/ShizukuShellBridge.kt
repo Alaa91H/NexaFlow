@@ -179,8 +179,16 @@ object ShizukuShellBridge {
             SystemControlResult.ok(output.trim().ifBlank { "Operation executed" })
         } else {
             SystemControlResult.fail(
-                "Operation failed (exit ${exit ?: "unknown"}): " + output.trim().ifBlank { operation }
+                message = "Operation failed (exit ${exit ?: "unknown"}): " +
+                    output.trim().ifBlank { operation },
+                // Exit 124 is emitted only after the UserService already
+                // dispatched/waited on an operation. The side effect may have
+                // landed even though confirmation timed out, so callers must
+                // reconcile the resulting state instead of blind-retrying.
+                outcomeUncertain = exit == USER_SERVICE_TIMEOUT_EXIT_CODE
             )
         }
     }
+
+    private const val USER_SERVICE_TIMEOUT_EXIT_CODE = 124
 }

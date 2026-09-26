@@ -750,7 +750,8 @@ class ExecutionEngine(
                     channel = result.executionChannel ?: channel?.type?.name,
                     errorCode = result.errorCode,
                     verificationAttempted = result.verificationAttempted,
-                    verified = result.verified
+                    verified = result.verified,
+                    outcomeUncertain = result.outcomeUncertain
                 )
                 list.add(execResult)
 
@@ -1029,7 +1030,8 @@ class ExecutionEngine(
                     channel = restoreResult.executionChannel ?: channel?.type?.name,
                     errorCode = restoreResult.errorCode,
                     verificationAttempted = restoreResult.verificationAttempted,
-                    verified = restoreResult.verified
+                    verified = restoreResult.verified,
+                    outcomeUncertain = restoreResult.outcomeUncertain
                 )
             )
         } else {
@@ -1061,7 +1063,8 @@ class ExecutionEngine(
                             channel = result.executionChannel ?: channel?.type?.name,
                             errorCode = result.errorCode,
                             verificationAttempted = result.verificationAttempted,
-                            verified = result.verified
+                            verified = result.verified,
+                            outcomeUncertain = result.outcomeUncertain
                         )
                     )
                 }
@@ -1078,7 +1081,8 @@ class ExecutionEngine(
                             channel = result.executionChannel ?: channel?.type?.name,
                             errorCode = result.errorCode,
                             verificationAttempted = result.verificationAttempted,
-                            verified = result.verified
+                            verified = result.verified,
+                            outcomeUncertain = result.outcomeUncertain
                         )
                     )
                 }

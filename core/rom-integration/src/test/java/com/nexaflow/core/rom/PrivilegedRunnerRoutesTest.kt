@@ -11,9 +11,9 @@ import org.junit.Test
  * Regression tests for the elevated-route selection contract: a granted-but-
  * unusable transport (Shizuku server alive with its UserService gone, or a
  * dropped bind) must never mask the other granted runtime. Root is an
- * absolute privilege — any command or typed operation that fails on the
- * Shizuku transport must be retried through a granted root shell, and only
- * a failure from BOTH granted transports surfaces as an error.
+ * absolute privilege — a definite pre-dispatch Shizuku transport failure may
+ * be retried through a granted root shell. An uncertain result must stop
+ * fallback so a side effect that may already have landed is never duplicated.
  *
  * Every real transport is replaced by a seam ([PrivilegedRunner] probes and
  * [ShizukuShellBridge.operationProbe]), so the whole matrix runs on a plain
@@ -29,6 +29,7 @@ class PrivilegedRunnerRoutesTest {
         PrivilegedRunner.shellRouteProbe = null
         PrivilegedRunner.operationRouteProbe = null
         ShizukuShellBridge.operationProbe = null
+        ShizukuShellBridge.legacyExecProbe = null
     }
 
     // ── Root-only devices: everything executes through su ────────────────
@@ -105,6 +106,48 @@ class PrivilegedRunnerRoutesTest {
         )
 
         assertTrue("root fallback failed: ${result.message}", result.success)
+    }
+
+    @Test
+    fun `runShell does not fall back after uncertain Shizuku dispatch`() {
+        PrivilegedRunner.shizukuGrantProbe = { true }
+        ShizukuShellBridge.legacyExecProbe = {
+            "124\nOperation confirmation timed out"
+        }
+        PrivilegedRunner.rootProbeOverride = { true }
+        var suInvocations = 0
+        PrivilegedRunner.suRunnerProbe = {
+            suInvocations++
+            SystemControlResult.ok("must not be retried")
+        }
+
+        val result = PrivilegedRunner.runShell("settings put global wifi_on 1")
+
+        assertFalse(result.success)
+        assertTrue(result.outcomeUncertain)
+        assertEquals(0, suInvocations)
+    }
+
+    @Test
+    fun `runElevatedOperation does not fall back after uncertain Shizuku dispatch`() {
+        PrivilegedRunner.shizukuGrantProbe = { true }
+        ShizukuShellBridge.operationProbe = {
+            "124\nOperation confirmation timed out"
+        }
+        PrivilegedRunner.rootProbeOverride = { true }
+        var suInvocations = 0
+        PrivilegedRunner.suRunnerProbe = {
+            suInvocations++
+            SystemControlResult.ok("must not be retried")
+        }
+
+        val result = PrivilegedRunner.runElevatedOperation(
+            PrivilegedOperation.ForceStopPackage("com.example.app")
+        )
+
+        assertFalse(result.success)
+        assertTrue(result.outcomeUncertain)
+        assertEquals(0, suInvocations)
     }
 
     // ── Shizuku stays preferred while it actually works ───────────────────

@@ -110,7 +110,8 @@ class AutomationWorkflowRunner(
                     actionType = "STATE_RESTORE",
                     success = rollback.success,
                     message = rollback.message,
-                    durationMs = 0
+                    durationMs = 0,
+                    outcomeUncertain = rollback.outcomeUncertain
                 )
             )
             results = listOf(rollback)

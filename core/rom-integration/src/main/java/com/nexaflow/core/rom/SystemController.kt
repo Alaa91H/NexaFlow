@@ -627,9 +627,12 @@ class SystemController(
     fun setHotspot(enabled: Boolean): SystemControlResult {
         val result = PrivilegedRunner.runElevatedOperation(PrivilegedOperation.SetHotspot(enabled))
         return if (result.success) {
-            SystemControlResult.ok(if (enabled) "Hotspot enabled" else "Hotspot disabled")
+            result.copy(message = if (enabled) "Hotspot enabled" else "Hotspot disabled")
         } else {
-            SystemControlResult.fail("Failed to toggle hotspot: ${result.message}")
+            // Preserve provenance and outcomeUncertain. Re-wrapping this as a
+            // fresh failure would make recovery treat a dispatched-but-
+            // unconfirmed tethering request as safe to execute again.
+            result.copy(message = "Failed to toggle hotspot: ${result.message}")
         }
     }
 

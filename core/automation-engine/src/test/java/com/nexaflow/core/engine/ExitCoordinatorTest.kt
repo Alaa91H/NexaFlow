@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
 import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitClaim
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -114,6 +115,55 @@ class ExitCoordinatorTest {
         val limited = coordinator.reconcile(ExitReason.PROCESS_RECOVERY).single()
         assertTrue(limited is ExitCoordinatorResult.RecoveryRequired)
         assertEquals(5, checkNotNull(store.current("exit-task")).exitAttempt)
+    }
+
+    @Test
+    fun `uncertain exit is never auto replayed and a later occurrence can proceed`() = runBlocking {
+        val history = RecordingHistory()
+        val automation = testAutomation("exit-task", emptyList())
+        val repository = FakeRepository(listOf(automation))
+        val engine = testEngine(context, history)
+        val coordinator = ExitCoordinator(store, engine, repository, history)
+        assertTrue(store.activate(activeState()))
+
+        val claim = store.claimExit(
+            automationId = automation.id,
+            occurrenceId = "occurrence-1",
+            reason = ExitReason.TRIGGER_FALSE,
+            now = 2L
+        )
+        assertTrue(claim is ExitClaim.Claimed)
+        assertTrue(
+            store.failExit(
+                automationId = automation.id,
+                occurrenceId = "occurrence-1",
+                reason = ExitReason.TRIGGER_FALSE,
+                error = "dispatch confirmation timed out",
+                now = 3L,
+                outcomeUncertain = true
+            )
+        )
+
+        val before = checkNotNull(store.current(automation.id))
+        assertTrue(before.exitOutcomeUncertain)
+        assertEquals(1, before.exitAttempt)
+
+        val recovery = coordinator.reconcile(ExitReason.PROCESS_RECOVERY).single()
+        assertTrue(recovery is ExitCoordinatorResult.RecoveryRequired)
+
+        val after = checkNotNull(store.current(automation.id))
+        assertTrue(after.exitOutcomeUncertain)
+        assertEquals(
+            "uncertain exit must not spend another attempt",
+            1,
+            after.exitAttempt
+        )
+
+        assertTrue(
+            "a new independent occurrence may replace terminal uncertain recovery state",
+            store.activate(activeState("occurrence-2"))
+        )
+        assertEquals("occurrence-2", checkNotNull(store.current(automation.id)).occurrenceId)
     }
 
     @Test

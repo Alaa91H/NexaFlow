@@ -52,6 +52,12 @@ data class AutomationRuntimeState(
     val exitAttempt: Int = 0,
     val exitReason: ExitReason? = null,
     val lastError: String? = null,
+    /**
+     * True when an exit side effect may have landed but could not be confirmed.
+     * Such an occurrence is terminal for automatic retry; a later independent
+     * activation may replace it without replaying the uncertain exit.
+     */
+    val exitOutcomeUncertain: Boolean = false,
     val schemaVersion: Int = 1
 ) {
     init {

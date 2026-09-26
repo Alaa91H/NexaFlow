@@ -4,6 +4,7 @@ import com.nexaflow.core.rom.PrivilegedOperation
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.core.execution.capability.semantic.OperationOutcomeStatus
 import com.nexaflow.core.execution.capability.semantic.TypedOperationRequest
+import com.nexaflow.domain.capability.CapabilityErrorCode
 import com.nexaflow.domain.capability.operation.SemanticOperationId
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -82,7 +83,45 @@ class ShizukuTypedStrategyTest {
         // The side effect may have landed before the transport dropped: UNKNOWN
         // forces the router to reconcile by reading state, never re-execute.
         assertEquals(OperationOutcomeStatus.UNKNOWN, outcome.status)
+        assertEquals(CapabilityErrorCode.UNKNOWN_ERROR, outcome.errorCode)
         assertFalse(outcome.transportFailure)
+    }
+
+    @Test
+    fun timedOutHotspotDispatchIsUnknownNotRetryableFailure() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+        sink.nextResult = SystemControlResult.fail(
+            message = "Operation failed (exit 124): TetheringManager start request timed out",
+            outcomeUncertain = true
+        )
+
+        val outcome = strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, true),
+            SemanticOperationId.HOTSPOT_SET_STATE
+        )
+
+        assertEquals(OperationOutcomeStatus.UNKNOWN, outcome.status)
+        assertEquals(CapabilityErrorCode.UNKNOWN_ERROR, outcome.errorCode)
+        assertFalse(outcome.transportFailure)
+        assertEquals("true", outcome.metadata["requestedEnabled"])
+    }
+
+    @Test
+    fun vanishedUserServiceBeforeDispatchIsSafeTransportFallback() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+        sink.nextResult = SystemControlResult.fail(
+            "Shizuku UserService is unavailable; reconnect Shizuku and retry"
+        )
+
+        val outcome = strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, true),
+            SemanticOperationId.HOTSPOT_SET_STATE
+        )
+
+        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
+        assertTrue(outcome.transportFailure)
     }
 
     @Test
@@ -214,14 +253,19 @@ class ShizukuTypedStrategyTest {
     }
 
     @Test
-    fun hotspotUsesClosedWifiShellCommand() = runTest {
+    fun hotspotUsesClosedTypedTetheringOperation() = runTest {
         val sink = RecordingSink()
         val strategy = strategy(granted = true, bound = true, sink = sink)
-        strategy.execute(request(SemanticOperationId.HOTSPOT_SET_STATE, true), SemanticOperationId.HOTSPOT_SET_STATE)
-        assertEquals(
-            listOf("cmd", "wifi", "start-softap"),
-            sink.lastOperation?.argv()
+
+        strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, true),
+            SemanticOperationId.HOTSPOT_SET_STATE
         )
+
+        // Production UserShellService intercepts this typed operation and uses
+        // TetheringManager. The test must not re-introduce a dependency on the
+        // legacy bare WifiShell start-softap argv.
+        assertEquals(PrivilegedOperation.SetHotspot(true), sink.lastOperation)
     }
 
 }

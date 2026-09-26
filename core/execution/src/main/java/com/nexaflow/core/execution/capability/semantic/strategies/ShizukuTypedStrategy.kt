@@ -349,13 +349,25 @@ class ShizukuTypedStrategy(
         )
     } else {
         val permissionUnavailable =
-            result.message.contains("not granted", ignoreCase = true) ||
-                result.message.contains("not available", ignoreCase = true)
+            result.message.contains("not granted", ignoreCase = true)
+        // A bound endpoint can disappear after availability() but before the
+        // actual binder call. ShizukuShellBridge reports that race as
+        // "UserService is unavailable"; no operation was dispatched, so this
+        // is a definite transport failure and safe strategy fallback.
+        val endpointUnavailable =
+            result.message.contains("UserService", ignoreCase = true) &&
+                (result.message.contains("unavailable", ignoreCase = true) ||
+                    result.message.contains("not available", ignoreCase = true))
         val endpointFailure =
             result.message.contains("failed", ignoreCase = true) &&
                 result.message.contains("UserService", ignoreCase = true)
-        val transport = permissionUnavailable || endpointFailure
-        val uncertain = endpointFailure && transportIsUncertain(operation)
+        val transport = permissionUnavailable || endpointUnavailable || endpointFailure
+        // The bridge can explicitly report that dispatch already happened but
+        // confirmation timed out. Preserve that structured signal rather than
+        // inferring certainty from a generic failure string. Only operations
+        // whose side effects can outlive the transport are promoted to UNKNOWN.
+        val uncertain = transportIsUncertain(operation) &&
+            (result.outcomeUncertain || endpointFailure)
         OperationOutcome(
             operation = operation,
             status = if (uncertain) OperationOutcomeStatus.UNKNOWN else OperationOutcomeStatus.FAILED,
@@ -363,6 +375,7 @@ class ShizukuTypedStrategy(
             errorCode = when {
                 result.message.contains("not granted", ignoreCase = true) ->
                     CapabilityErrorCode.SHIZUKU_DENIED
+                uncertain -> CapabilityErrorCode.UNKNOWN_ERROR
                 transport -> CapabilityErrorCode.SHIZUKU_UNAVAILABLE
                 else -> CapabilityErrorCode.POLICY_NOT_SATISFIED
             },
