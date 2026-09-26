@@ -710,7 +710,9 @@ class ExecutionEngine(
                         automation.id,
                         automation.revertOnExit,
                         payloadContext,
-                        dataRuntime
+                        dataRuntime,
+                        executionId = payloadContext.runId,
+                        nodeId = "action:$actionIndex"
                     )
                     // UNKNOWN means the backend may already have applied the
                     // side effect. Never blind-retry it: preserve the durable
@@ -1053,6 +1055,7 @@ class ExecutionEngine(
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
+        val exitExecutionId = UUID.randomUUID().toString()
         // revertOnExit deliberately supersedes both per-action end behaviors and
         // exitActions: the whole device state is restored instead. Do not "fix"
         // this to run them too — that would double-apply end actions after a revert.
@@ -1083,15 +1086,33 @@ class ExecutionEngine(
                 // is honored exactly as configured, before the custom exit actions.
                 val snapshot = snapshots.remove(automation.id)
                     ?: DeviceStateSnapshot.decodeForRuntime(runtimeSnapshotJson)
-                automation.actions.forEach { action ->
-                    val behavior = action.endBehavior ?: return@forEach
+                automation.actions.forEachIndexed { actionIndex, action ->
+                    val behavior = action.endBehavior ?: return@forEachIndexed
                     val actionStartedAt = epochMillis.now()
                     val result: SystemControlResult = when (behavior.mode) {
                         EndMode.LEAVE -> null
                         EndMode.REVERT -> snapshot?.restoreSetting(context, action)
                             ?: SystemControlResult.fail("No captured state to restore for ${action.type.name}")
-                        EndMode.RERUN -> executeAction(resolveAction(action, variables), controller, notif, channel)
-                        EndMode.SET_VALUE -> executeAction(resolveAction(action.withConfig(behavior.config), variables), controller, notif, channel)
+                        EndMode.RERUN -> executeAction(
+                            action = resolveAction(action, variables),
+                            controller = controller,
+                            notif = notif,
+                            channel = channel,
+                            automationId = automation.id,
+                            revertOnExit = automation.revertOnExit,
+                            executionId = exitExecutionId,
+                            nodeId = "end:$actionIndex"
+                        )
+                        EndMode.SET_VALUE -> executeAction(
+                            action = resolveAction(action.withConfig(behavior.config), variables),
+                            controller = controller,
+                            notif = notif,
+                            channel = channel,
+                            automationId = automation.id,
+                            revertOnExit = automation.revertOnExit,
+                            executionId = exitExecutionId,
+                            nodeId = "end:$actionIndex"
+                        )
                     } ?: return@forEach
                     add(
                         ActionExecutionResult(
@@ -1108,9 +1129,18 @@ class ExecutionEngine(
                     )
                 }
                 // The explicitly configured exit actions run last.
-                automation.exitActions.forEach { action ->
+                automation.exitActions.forEachIndexed { exitIndex, action ->
                     val actionStartedAt = epochMillis.now()
-                    val result = executeAction(resolveAction(action, variables), controller, notif, channel)
+                    val result = executeAction(
+                        action = resolveAction(action, variables),
+                        controller = controller,
+                        notif = notif,
+                        channel = channel,
+                        automationId = automation.id,
+                        revertOnExit = automation.revertOnExit,
+                        executionId = exitExecutionId,
+                        nodeId = "exit:$exitIndex"
+                    )
                     add(
                         ActionExecutionResult(
                             actionType = action.type.name,
@@ -1253,12 +1283,14 @@ class ExecutionEngine(
         automationId: String? = null,
         revertOnExit: Boolean = false,
         runContext: WorkflowRunContext? = null,
-        dataRuntime: ScopedDataRuntime? = null
+        dataRuntime: ScopedDataRuntime? = null,
+        executionId: String? = runContext?.runId,
+        nodeId: String? = null
     ): SystemControlResult {
         val capabilityRequest = CapabilityActionMapper.requestFor(
             action = action,
             workflowId = automationId,
-            executionId = runContext?.runId
+            executionId = executionId
         )
         if (capabilityRequest != null && capabilityExecutionService != null) {
             val capabilityResult = capabilityExecutionService.execute(capabilityRequest)
@@ -1279,6 +1311,8 @@ class ExecutionEngine(
                     notificationSettings = notif,
                     channel = channel,
                     automationId = automationId,
+                    executionId = executionId,
+                    nodeId = nodeId,
                     revertOnExit = revertOnExit,
                     runContext = runContext,
                     dataRuntime = dataRuntime,
