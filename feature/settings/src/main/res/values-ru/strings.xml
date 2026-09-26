@@ -251,7 +251,7 @@
     <string name="agent_gateway_title">Локальный шлюз агентов</string>
     <string name="agent_gateway_running">Работает на 127.0.0.1:%1$d</string>
     <string name="agent_gateway_stopped">Не запущен</string>
-    <string name="agent_gateway_rest">REST API · /api/v1</string>
+    <string name="agent_gateway_rest">Интерфейс REST · /api/v1</string>
     <string name="agent_gateway_mcp">Протокол MCP · /mcp</string>
     <string name="agent_add_title">Добавить агента</string>
     <string name="agent_name_label">Имя агента</string>
