@@ -2,8 +2,12 @@ package com.nexaflow.feature.settings
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.FileProvider
+import androidx.core.content.pm.PackageInfoCompat
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -174,6 +178,10 @@ object UpdateChecker {
                 dest.delete()
                 return@runCatching null
             }
+            if (!packageIdentityMatches(context, dest)) {
+                dest.delete()
+                return@runCatching null
+            }
             dest
         }.getOrNull()
     }
@@ -200,6 +208,120 @@ object UpdateChecker {
             }
         }
         return digest.digest().joinToString("") { "%02x".format(it) }
+    }
+
+    /**
+     * Verifies that the downloaded archive is the same Android package and
+     * belongs to the installed app's signing lineage before it ever reaches the
+     * package installer. The release checksum protects transport integrity; this
+     * additionally protects package identity if release metadata is tampered
+     * with or the wrong APK asset is attached. The archive must also advance
+     * versionCode, so a validly signed historical APK cannot be offered as an
+     * in-app "update".
+     *
+     * Signing-certificate history is used instead of current-signer equality so
+     * Android's proof-of-rotation lineage remains compatible with legitimate key
+     * rotation.
+     */
+    internal fun packageIdentityMatches(context: Context, apk: File): Boolean = runCatching {
+        val packageManager = context.packageManager
+        val flags = PackageManager.GET_SIGNING_CERTIFICATES
+        val installed = if (Build.VERSION.SDK_INT >= 33) {
+            packageManager.getPackageInfo(
+                context.packageName,
+                PackageManager.PackageInfoFlags.of(flags.toLong())
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(context.packageName, flags)
+        }
+        val archive = if (Build.VERSION.SDK_INT >= 33) {
+            packageManager.getPackageArchiveInfo(
+                apk.absolutePath,
+                PackageManager.PackageInfoFlags.of(flags.toLong())
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageArchiveInfo(apk.absolutePath, flags)
+        } ?: return@runCatching false
+
+        archive.packageName == context.packageName &&
+            isForwardVersion(
+                installedVersionCode = PackageInfoCompat.getLongVersionCode(installed),
+                archiveVersionCode = PackageInfoCompat.getLongVersionCode(archive)
+            ) &&
+            hasTrustedSigningLineage(
+                installedCurrent = currentSigningDigests(installed),
+                archiveCurrent = currentSigningDigests(archive),
+                archiveHistory = signingHistoryDigests(archive)
+            )
+    }.getOrDefault(false)
+
+    /**
+     * Current signer(s) only. For a single-signer package this is the newest
+     * certificate after a key rotation; accepting an arbitrary historical
+     * intersection would permit a rollback APK signed only by an old key.
+     */
+    private fun currentSigningDigests(info: PackageInfo): Set<String> {
+        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.signingInfo?.apkContentsSigners ?: return emptySet()
+        } else {
+            @Suppress("DEPRECATION")
+            info.signatures
+        }
+        return digestSignatures(signatures.orEmpty())
+    }
+
+    /**
+     * Full proof-of-rotation lineage exposed by the candidate APK. Multi-signer
+     * packages cannot use signer rotation, so their trusted history is exactly
+     * their current signer set.
+     */
+    private fun signingHistoryDigests(info: PackageInfo): Set<String> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return currentSigningDigests(info)
+        }
+        val signingInfo = info.signingInfo ?: return emptySet()
+        val signatures = if (signingInfo.hasMultipleSigners()) {
+            signingInfo.apkContentsSigners
+        } else {
+            signingInfo.signingCertificateHistory
+        }
+        return digestSignatures(signatures.orEmpty())
+    }
+
+    private fun digestSignatures(signatures: Array<out android.content.pm.Signature>): Set<String> =
+        signatures.mapTo(linkedSetOf()) { signature ->
+            val digest = MessageDigest.getInstance("SHA-256")
+                .digest(signature.toByteArray())
+            digest.joinToString("") { "%02x".format(it) }
+        }
+
+    internal fun isForwardVersion(
+        installedVersionCode: Long,
+        archiveVersionCode: Long
+    ): Boolean = archiveVersionCode > installedVersionCode
+
+    /**
+     * A candidate is trusted only when it is the same signer set or when its
+     * proof-of-rotation history contains every currently installed signer.
+     *
+     * This direction matters: `old ∩ current != empty` is insufficient because
+     * an APK signed only with an old certificate would otherwise pass after the
+     * app has legitimately rotated to a newer certificate.
+     */
+    internal fun hasTrustedSigningLineage(
+        installedCurrent: Set<String>,
+        archiveCurrent: Set<String>,
+        archiveHistory: Set<String>
+    ): Boolean {
+        if (installedCurrent.isEmpty() || archiveCurrent.isEmpty() || archiveHistory.isEmpty()) {
+            return false
+        }
+        if (installedCurrent.size > 1 || archiveCurrent.size > 1) {
+            return installedCurrent == archiveCurrent
+        }
+        return installedCurrent.all(archiveHistory::contains)
     }
 
     /**
