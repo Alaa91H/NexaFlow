@@ -125,9 +125,10 @@ class BluetoothMonitor @Inject constructor(
                         isBluetoothTrigger(trigger.type) && wantsEvent(trigger.config, "CONNECTED")
                     }
                     if (!hasConnectCondition) return@forEach
-                    activeConnections.remove(automation.id)
-                    activeStore.clearAutomation(SOURCE, automation.id)
-                    exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.TRIGGER_FALSE
+                    )
                 }
         }
     }
@@ -157,11 +158,8 @@ class BluetoothMonitor @Inject constructor(
      * device address (`id|AA:BB:..`), so the restored entry matches the exit
      * check exactly. Stale keys for deleted/disabled automations are pruned.
      */
-    private suspend fun rearmFromLedger() {
-        val enabledIds = repository.getAutomations().first()
-            .filter { it.enabled }
-            .map { it.id }
-            .toSet()
+    internal suspend fun rearmFromLedger() {
+        val automations = repository.getAutomations().first().associateBy { it.id }
         // The durable occurrence ledger is authoritative: a session that
         // survived a process restart re-arms only its exit side, so the
         // configured end behavior still runs exactly once on the opposite
@@ -170,18 +168,36 @@ class BluetoothMonitor @Inject constructor(
         runtimeStore.activeStates()
             .filter { it.source == SOURCE }
             .forEach { state ->
-                if (state.automationId in enabledIds) {
-                    activeConnections[state.automationId] = state.sourceKey
-                        .substringAfter('|', state.sourceKey)
-                } else {
-                    runtimeStore.clear(state.automationId, state.occurrenceId)
+                val automation = automations[state.automationId]
+                when {
+                    automation == null -> {
+                        // Missing immutable definition is not a successful
+                        // cleanup signal. Preserve durable ownership for
+                        // recovery review and clear only volatile mirrors.
+                        activeConnections.remove(state.automationId)
+                        activeStore.clearAutomation(SOURCE, state.automationId)
+                    }
+                    automation.enabled && automation.triggers.any { isBluetoothTrigger(it.type) } -> {
+                        activeConnections[state.automationId] = state.sourceKey
+                            .substringAfter('|', state.sourceKey)
+                        activeStore.markActive(SOURCE, state.sourceKey)
+                    }
+                    else -> requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = state.occurrenceId
+                    )
                 }
             }
         activeStore.activeKeys(SOURCE).forEach { key ->
             val id = key.substringBefore('|')
-            if (id in enabledIds) {
-                activeConnections[id] = key.substringAfter('|', "")
+            val automation = automations[id]
+            if (automation?.enabled == true && automation.triggers.any { isBluetoothTrigger(it.type) }) {
+                if (runtimeStore.current(id)?.source == SOURCE) {
+                    activeConnections[id] = key.substringAfter('|', "")
+                }
             } else {
+                activeConnections.remove(id)
                 activeStore.clearAutomation(SOURCE, id)
             }
         }
@@ -219,27 +235,32 @@ class BluetoothMonitor @Inject constructor(
                             val last = lastRunAt[automation.id] ?: 0L
                             if (now - last > automation.cooldownMillis) {
                                 lastRunAt[automation.id] = now
-                                activeConnections[automation.id] = address
-                                activeStore.markActive(SOURCE, "${automation.id}|$address")
-                                // Strict durable admission: the run owns an
-                                // occurrence only when the runtime store accepts
-                                // it; the exit is coordinator-driven and
-                                // restart-safe.
                                 val occurrenceId = "bluetooth:${automation.id}:${UUID.randomUUID()}"
+                                val sourceKey = "${automation.id}|$address"
                                 executionEngine.runAutomation(
                                     automation = automation,
                                     lifecycleContext = AutomationLifecycleContext(
                                         occurrenceId = occurrenceId,
                                         source = SOURCE,
-                                        sourceKey = "${automation.id}|$address"
+                                        sourceKey = sourceKey
                                     )
                                 )
+                                val accepted = runtimeStore.current(automation.id)?.let { state ->
+                                    state.source == SOURCE && state.occurrenceId == occurrenceId
+                                } == true
+                                if (accepted) {
+                                    activeConnections[automation.id] = address
+                                    activeStore.markActive(SOURCE, sourceKey)
+                                } else {
+                                    lastRunAt.remove(automation.id)
+                                }
                             }
                         } else if (firesOnDisconnect && activeConnections[automation.id] == address) {
                             // The device reconnected: the disconnect condition ended.
-                            activeConnections.remove(automation.id)
-                            activeStore.clearAutomation(SOURCE, automation.id)
-                            exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)
+                            requestExit(
+                                automation = automation,
+                                reason = ExitReason.TRIGGER_FALSE
+                            )
                         }
                     } else {
                         if (firesOnDisconnect) {
@@ -261,12 +282,46 @@ class BluetoothMonitor @Inject constructor(
                             }
                         } else if (firesOnConnect && activeConnections[automation.id] == address) {
                             // The device disconnected: the connect condition ended.
-                            activeConnections.remove(automation.id)
-                            activeStore.clearAutomation(SOURCE, automation.id)
-                            exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)
+                            requestExit(
+                                automation = automation,
+                                reason = ExitReason.TRIGGER_FALSE
+                            )
                         }
                     }
                 }
+        }
+    }
+
+    private suspend fun requestExit(
+        automation: com.nexaflow.domain.models.Automation,
+        reason: ExitReason,
+        occurrenceId: String? = runtimeStore.current(automation.id)
+            ?.takeIf { it.source == SOURCE }
+            ?.occurrenceId
+    ) {
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = reason,
+                occurrenceId = occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> {
+                activeConnections.remove(automation.id)
+                activeStore.clearAutomation(SOURCE, automation.id)
+            }
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                runtimeStore.current(automation.id)
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { state ->
+                        activeConnections[automation.id] =
+                            state.sourceKey.substringAfter('|', state.sourceKey)
+                        activeStore.markActive(SOURCE, state.sourceKey)
+                    }
+            }
         }
     }
 
