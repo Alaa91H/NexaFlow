@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -32,7 +33,7 @@ class MediaMonitorLifecycleTest {
     private lateinit var context: Context
     private lateinit var runtimeStore: AutomationRuntimeStore
     private lateinit var activeStore: ActiveTriggerStore
-    private val ids = listOf("media-active", "media-exit-failed")
+    private val ids = listOf("media-active", "media-exit-failed", "media-legacy", "media-orphan")
 
     @Before
     fun setUp() {
@@ -95,6 +96,62 @@ class MediaMonitorLifecycleTest {
         assertNull(runtimeStore.current(automation.id))
         assertTrue(activeStore.activeKeys("media").none { it == automation.id })
         assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
+    }
+
+    @Test
+    fun `legacy active marker is promoted before opposite-state exit`() = runBlocking {
+        val history = RecordingHistory()
+        val automation = startedAutomation("media-legacy")
+        val monitor = monitorFor(automation, history)
+        activeStore.markActive("media", automation.id)
+
+        monitor.rearmFromLedger()
+
+        val promoted = runtimeStore.current(automation.id)
+        assertEquals("media", promoted?.source)
+        assertEquals(AutomationRuntimeLifecycleState.ACTIVE, promoted?.lifecycleState)
+
+        monitor.reconcilePlaybackState(playing = false)
+
+        assertNull(runtimeStore.current(automation.id))
+        assertTrue(activeStore.activeKeys("media").none { it == automation.id })
+        assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
+    }
+
+    @Test
+    fun `missing definition never erases orphaned durable occurrence`() = runBlocking {
+        val history = RecordingHistory()
+        val repository = FakeRepository(emptyList())
+        val engine = testEngine(context, history)
+        val monitor = MediaMonitor(
+            context = context,
+            repository = repository,
+            executionEngine = engine,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
+            runtimeStore = runtimeStore,
+            activeStore = activeStore,
+            scope = CoroutineScope(Dispatchers.Default)
+        )
+        runtimeStore.activateStrict(
+            AutomationRuntimeState(
+                automationId = "media-orphan",
+                occurrenceId = "media:orphan:1",
+                source = "media",
+                sourceKey = "media-orphan",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
+        activeStore.markActive("media", "media-orphan")
+
+        monitor.rearmFromLedger()
+
+        assertEquals(
+            AutomationRuntimeLifecycleState.ACTIVE,
+            runtimeStore.current("media-orphan")?.lifecycleState
+        )
+        assertTrue(activeStore.activeKeys("media").none { it == "media-orphan" })
+        assertTrue(history.exits.isEmpty())
     }
 
     @Test
