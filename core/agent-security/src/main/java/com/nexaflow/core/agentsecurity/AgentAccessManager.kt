@@ -13,7 +13,7 @@ class AgentAccessManager(
     private val store: AgentSecurityStore,
     private val clockMillis: () -> Long = System::currentTimeMillis,
     private val idGenerator: () -> String = { UUID.randomUUID().toString() },
-    private val secretGenerator: () -> String = AgentTokenCodec::newSecret,
+    private val secretGenerator: () -> String = { AgentTokenCodec.newSecret() },
     private val sessionDurationMs: Long = DEFAULT_SESSION_DURATION_MS,
     private val pairingDurationMs: Long = DEFAULT_PAIRING_DURATION_MS,
     private val maxPairingAttempts: Int = DEFAULT_MAX_PAIRING_ATTEMPTS
