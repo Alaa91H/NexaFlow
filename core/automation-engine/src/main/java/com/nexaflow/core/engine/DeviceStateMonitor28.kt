@@ -312,26 +312,7 @@ class DeviceStateMonitor28 @Inject constructor(
     }
 
     private fun evaluateAll() {
-        scope.launch {
-            val automations = repository.getAutomations().first()
-            automations
-                .filter { it.enabled && it.triggers.any { t -> t.type in STATE_TRIGGERS } }
-                .forEach { automation ->
-                    val trigger = automation.triggers.first { it.type in STATE_TRIGGERS }
-                    val satisfied = runCatching {
-                        isSatisfied(trigger.type, trigger.config)
-                    }.getOrDefault(false)
-                    if (satisfied) {
-                        if (activeStates.put(automation.id, true) == null) {
-                            activeStore.markActive(SOURCE, automation.id)
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (activeStates.remove(automation.id) != null) {
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
-                    }
-                }
-        }
+        scope.launch { reconcileStateTriggers() }
     }
 
     /**
@@ -375,63 +356,191 @@ class DeviceStateMonitor28 @Inject constructor(
     }
 
     /**
-     * Full re-evaluation of every state-triggered task against the current
-     * device state. Invoked on initialize and whenever automations change
-     * (enable/disable toggles, saves), so:
-     *  - a task enabled while its state condition already holds fires
-     *    immediately instead of waiting for the next observer/callback;
-     *  - a task disabled while its condition still holds stops being tracked
-     *    (its durable mark is pruned) instead of leaking until restart;
-     *  - a condition that ended while the process was down fires its missed
-     *    exit right away.
+     * Full re-evaluation of every state trigger. The runtime ledger is
+     * authoritative; unreadable hardware/provider state is UNKNOWN and never
+     * fabricated into an exit.
      */
     fun reconcileAutomations() {
-        scope.launch {
-            val automations = repository.getAutomations().first()
-            val byId = automations.associateBy { it.id }
-            // Restore durable active markers first so a task that fired before
-            // a process restart is never fired again while its condition still
-            // holds; run the end behavior of tasks disabled or deleted while
-            // the process was down.
-            // Disabling a task is an explicit abandonment of its lifecycle:
-            // the durable mark is pruned without firing a stale exit (the exit
-            // contract covers the condition ENDING while the task stays
-            // enabled, never a deliberate disable).
-            activeStore.activeKeys(SOURCE).forEach { id ->
-                val automation = byId[id]
+        scope.launch { reconcileStateTriggers() }
+    }
+
+    internal suspend fun reconcileStateTriggers() = evaluationMutex.withLock {
+        val automations = repository.getAutomations().first()
+        val byId = automations.associateBy { it.id }
+
+        rearmFromLedger(byId)
+
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = byId[state.automationId]
                 when {
-                    automation?.enabled == true -> activeStates[id] = true
-                    else -> {
-                        activeStates.remove(id)
-                        activeStore.clearAutomation(SOURCE, id)
+                    automation == null -> clearLegacyState(state.automationId)
+                    !automation.enabled ||
+                        automation.triggers.none { it.type in STATE_TRIGGERS } -> {
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                    else -> markLegacyActive(state)
+                }
+            }
+
+        automations
+            .filter { it.enabled && it.triggers.any { trigger -> trigger.type in STATE_TRIGGERS } }
+            .forEach { automation ->
+                val trigger = automation.triggers.first { it.type in STATE_TRIGGERS }
+                val current = runtimeStore.current(automation.id)
+                val satisfied = runCatching {
+                    isSatisfied(trigger.type, trigger.config)
+                }.getOrNull()
+
+                when (satisfied) {
+                    true -> when {
+                        current?.source == SOURCE -> markLegacyActive(current)
+                        current != null -> clearLegacyState(automation.id)
+                        else -> activate(automation, trigger.type)
+                    }
+
+                    false -> {
+                        if (current?.source == SOURCE) {
+                            requestExit(
+                                automation = automation,
+                                reason = ExitReason.TRIGGER_FALSE,
+                                occurrenceId = current.occurrenceId
+                            )
+                        } else if (current == null) {
+                            clearLegacyState(automation.id)
+                        }
+                    }
+
+                    null -> {
+                        if (current?.source == SOURCE) markLegacyActive(current)
+                        else if (current == null) clearLegacyState(automation.id)
                     }
                 }
             }
-            automations
-                .filter { it.enabled && it.triggers.any { t -> t.type in STATE_TRIGGERS } }
-                .forEach { automation ->
-                    val trigger = automation.triggers.first { it.type in STATE_TRIGGERS }
-                    val satisfied = runCatching {
-                        isSatisfied(trigger.type, trigger.config)
-                    }.getOrDefault(false)
-                    if (satisfied) {
-                        // Fire now when the condition holds and the task is not
-                        // already in its triggered state (once per enablement).
-                        if (activeStates.put(automation.id, true) == null) {
-                            activeStore.markActive(SOURCE, automation.id)
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (activeStates.remove(automation.id) != null) {
-                        // The condition already ended: run the exit behavior.
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
-                    }
+    }
+
+    private suspend fun rearmFromLedger(automations: Map<String, Automation>) {
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                if (automations[state.automationId] != null) {
+                    markLegacyActive(state)
+                } else {
+                    // Definition gone: keep durable evidence for recovery and
+                    // drop only the old compatibility marker.
+                    clearLegacyState(state.automationId)
                 }
+            }
+
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val automationId = key.substringBefore('|')
+            val automation = automations[automationId]
+            if (automation == null) {
+                clearLegacyState(automationId)
+                return@forEach
+            }
+
+            if (runtimeStore.current(automationId) == null) {
+                val type = automation.triggers.firstOrNull { it.type in STATE_TRIGGERS }?.type
+                    ?: return@forEach
+                runtimeStore.activateStrict(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = "$automationId|${type.name}",
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            val state = runtimeStore.current(automationId)
+            if (state?.source == SOURCE) {
+                markLegacyActive(state)
+                if (!automation.enabled ||
+                    automation.triggers.none { it.type in STATE_TRIGGERS }
+                ) {
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = state.occurrenceId
+                    )
+                }
+            } else {
+                clearLegacyState(automationId)
+            }
         }
     }
 
+    private suspend fun activate(automation: Automation, type: TriggerType) {
+        val occurrenceId = "device-state:${automation.id}:${UUID.randomUUID()}"
+        val sourceKey = "${automation.id}|${type.name}"
+        val now = System.currentTimeMillis()
+        val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+            index.takeIf { trigger.type == type }
+        }.toSet()
+
+        executionEngine.runAutomation(
+            automation = automation,
+            lifecycleContext = AutomationLifecycleContext(
+                occurrenceId = occurrenceId,
+                source = SOURCE,
+                sourceKey = sourceKey
+            ),
+            triggerOccurrence = TriggerOccurrence(
+                matchedTriggerIndices = matchedTriggerIndices,
+                occurredAtEpochMs = now,
+                sourceId = SOURCE,
+                eventId = "device-state:${type.name.lowercase()}"
+            )
+        )
+
+        runtimeStore.current(automation.id)
+            ?.takeIf { it.source == SOURCE && it.occurrenceId == occurrenceId }
+            ?.let { markLegacyActive(it) }
+            ?: clearLegacyState(automation.id)
+    }
+
+    private suspend fun requestExit(
+        automation: Automation,
+        reason: ExitReason,
+        occurrenceId: String
+    ) {
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = reason,
+                occurrenceId = occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> clearLegacyState(automation.id)
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                runtimeStore.current(automation.id)
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { markLegacyActive(it) }
+            }
+        }
+    }
+
+    private suspend fun markLegacyActive(state: AutomationRuntimeState) {
+        activeStore.markActive(SOURCE, state.sourceKey)
+    }
+
+    private suspend fun clearLegacyState(automationId: String) {
+        activeStore.clearAutomation(SOURCE, automationId)
+    }
+
     /** Evaluates a single state trigger against the live device state. */
-    private fun isSatisfied(type: TriggerType, config: Map<String, String>): Boolean {
+    internal fun isSatisfied(type: TriggerType, config: Map<String, String>): Boolean? {
         val wantOn = (config["state"] ?: "ON") == "ON"
         return when (type) {
             TriggerType.DND_STATE -> {
@@ -457,19 +566,21 @@ class DeviceStateMonitor28 @Inject constructor(
                 roaming == wantOn
             }
             TriggerType.WIFI_SIGNAL_STRENGTH -> {
-                val rssi = currentWifiRssi() ?: return false
+                val rssi = currentWifiRssi() ?: return null
                 val level = wifiSignalLevel(rssi)
                 val threshold = (config["threshold"] ?: "3").toIntOrNull() ?: 3
                 if ((config["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
             }
             TriggerType.CELL_SIGNAL_STRENGTH -> {
                 val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-                    ?: return false
+                    ?: return null
                 val level = runCatching {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        telephony.signalStrength?.level ?: 0
-                    } else 0
-                }.getOrDefault(0)
+                        telephony.signalStrength?.level
+                    } else {
+                        null
+                    }
+                }.getOrNull() ?: return null
                 val threshold = (config["threshold"] ?: "3").toIntOrNull() ?: 3
                 if ((config["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
             }
@@ -479,9 +590,10 @@ class DeviceStateMonitor28 @Inject constructor(
                 // (tenths of a degree Celsius).
                 val intent = context.registerReceiver(
                     null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-                ) ?: return false
-                val celsius = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1) / 10f
-                if (celsius < 0) return false
+                ) ?: return null
+                val rawTemperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
+                if (rawTemperature == Int.MIN_VALUE) return null
+                val celsius = rawTemperature / 10f
                 val threshold = (config["threshold"] ?: "40").toFloatOrNull() ?: 40f
                 if ((config["direction"] ?: "ABOVE") == "BELOW") {
                     celsius <= threshold
@@ -490,19 +602,19 @@ class DeviceStateMonitor28 @Inject constructor(
                 }
             }
             TriggerType.USB_CONNECTED -> {
-                val plugged = pluggedType()
+                val plugged = pluggedType() ?: return null
                 (plugged == BatteryManager.BATTERY_PLUGGED_USB) == wantOn
             }
             TriggerType.HDMI_CONNECTED -> {
-                lastHdmiPlugged == wantOn
+                lastHdmiPlugged?.let { it == wantOn }
             }
             TriggerType.ETHERNET_CONNECTED -> {
-                hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == wantOn
+                hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)?.let { it == wantOn }
             }
             TriggerType.VPN_CONNECTED -> {
-                hasTransport(NetworkCapabilities.TRANSPORT_VPN) == wantOn
+                hasTransport(NetworkCapabilities.TRANSPORT_VPN)?.let { it == wantOn }
             }
-            else -> false
+            else -> null
         }
     }
 
