@@ -22,13 +22,13 @@ interface ExecutionDao {
      * id is a deterministic tie-breaker for same-millisecond rows.
      */
     @Query(
-        "SELECT current.* FROM execution_history AS current " +
-            "WHERE current.id = (" +
-            "SELECT candidate.id FROM execution_history AS candidate " +
-            "WHERE candidate.automationId = current.automationId " +
+        "SELECT e.* FROM execution_history e " +
+            "WHERE e.id = (" +
+            "SELECT candidate.id FROM execution_history candidate " +
+            "WHERE candidate.automationId = e.automationId " +
             "ORDER BY candidate.executedAt DESC, candidate.id DESC LIMIT 1" +
             ") " +
-            "ORDER BY current.executedAt DESC, current.id DESC"
+            "ORDER BY e.executedAt DESC, e.id DESC"
     )
     fun getLatestExecutions(): Flow<List<ExecutionRecordEntity>>
 
