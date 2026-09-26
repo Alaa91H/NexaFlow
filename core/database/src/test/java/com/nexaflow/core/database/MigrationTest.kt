@@ -25,6 +25,46 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 class MigrationTest {
 
+    @Test fun migrate20To21BackfillsProvenanceAndCreatesAgentLedger() {
+        helper.createDatabase(20).apply {
+            execSQL(
+                "INSERT INTO automations " +
+                    "(id,name,description,icon,iconColor,backgroundColor,category,priority,enabled," +
+                    "showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson," +
+                    "revertOnExit,cooldownSeconds,workflowVersion,maintenanceJson,deepLinkToken," +
+                    "triggerMatch,createdAt,updatedAt) VALUES " +
+                    "('legacy','Legacy Task','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]'," +
+                    "0,10,1,NULL,NULL,'ANY',100,200)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(
+            21,
+            listOf(Migrations.MIGRATION_20_21)
+        )
+        migrated.prepare(
+            "SELECT origin, creatorActorId, lastActorId, revision, definitionUpdatedAt " +
+                "FROM automation_api_metadata WHERE automationId='legacy'"
+        ).use {
+            assertTrue(it.step())
+            assertEquals("HUMAN", it.getText(0))
+            assertEquals("legacy", it.getText(1))
+            assertEquals("legacy", it.getText(2))
+            assertEquals(1L, it.getLong(3))
+            assertEquals(200L, it.getLong(4))
+        }
+        migrated.prepare("SELECT COUNT(*) FROM agent_audit").use {
+            assertTrue(it.step())
+            assertEquals(0L, it.getLong(0))
+        }
+        migrated.prepare("SELECT COUNT(*) FROM agent_idempotency").use {
+            assertTrue(it.step())
+            assertEquals(0L, it.getLong(0))
+        }
+        migrated.close()
+    }
+
     @Test fun migrate19To20DefaultsExistingTasksToAny() {
         helper.createDatabase(19).apply {
             execSQL("INSERT INTO automations (id,name,description,icon,iconColor,backgroundColor,category,priority,enabled,showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson,revertOnExit,cooldownSeconds,workflowVersion,maintenanceJson,deepLinkToken,createdAt,updatedAt) VALUES ('logic','Legacy Task','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]',0,10,1,NULL,NULL,1,2)")
@@ -51,10 +91,10 @@ class MigrationTest {
         migrated.close()
     }
 
-    @Test fun historicalChainsReach20() {
-        for (version in listOf(1, 12, 16, 18, 19)) {
+    @Test fun historicalChainsReach21() {
+        for (version in listOf(1, 12, 16, 18, 19, 20)) {
             helper.createDatabase(version).close()
-            helper.runMigrationsAndValidate(20, Migrations.ALL).close()
+            helper.runMigrationsAndValidate(21, Migrations.ALL).close()
             dbFile.delete()
         }
     }
