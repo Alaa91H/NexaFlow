@@ -63,10 +63,13 @@ dependencies {
     implementation(project(":core:automation-engine"))
     implementation(project(":core:compatibility"))
     implementation(project(":core:execution"))
+    implementation(project(":core:agent-security"))
+    implementation(project(":core:agent-api"))
     implementation(project(":core:plugin-sdk"))
     implementation(project(":core:rom-integration"))
     // In-app Shizuku permission dialog for the permission manager.
     implementation(libs.dev.rikka.shizuku.api)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     implementation(project(":core:datastore"))
     implementation(project(":core:ui-components"))
     testImplementation(libs.junit.junit)
