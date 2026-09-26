@@ -61,20 +61,35 @@ class ExitCoordinator(
      * the repository row only when this returns true.
      */
     suspend fun prepareForDeletion(automation: Automation): Boolean {
+        // An action checkpoint can represent a side effect that is still
+        // running or whose result needs recovery classification. Never remove
+        // the immutable definition while that evidence is unresolved.
         if (executionEngine.hasUnresolvedExecutionCheckpoint(automation.id)) {
             return false
         }
 
-        val lifecycleResult = requestExit(
-            automation = automation,
-            reason = ExitReason.AUTOMATION_DISABLED
-        )
-        val lifecycleResolved = when (lifecycleResult) {
-            is ExitCoordinatorResult.Executed,
-            ExitCoordinatorResult.NotActive -> true
-            ExitCoordinatorResult.StaleOccurrence,
-            ExitCoordinatorResult.AlreadyInProgress,
-            is ExitCoordinatorResult.RecoveryRequired -> false
+        val runtime = runtimeStore.current(automation.id)
+        val lifecycleResolved = if (runtime != null) {
+            when (
+                requestExit(
+                    automation = automation,
+                    reason = ExitReason.AUTOMATION_DISABLED,
+                    occurrenceId = runtime.occurrenceId
+                )
+            ) {
+                is ExitCoordinatorResult.Executed,
+                ExitCoordinatorResult.NotActive -> true
+                ExitCoordinatorResult.StaleOccurrence,
+                ExitCoordinatorResult.AlreadyInProgress,
+                is ExitCoordinatorResult.RecoveryRequired -> false
+            }
+        } else if (executionEngine.hasActiveExitMarker(automation.id)) {
+            // Compatibility path for a run created before occurrence-aware
+            // lifecycle ownership. The coordinator remains the single caller
+            // that is allowed to consume that legacy end-behavior marker.
+            executionEngine.runExit(automation).success
+        } else {
+            true
         }
         if (!lifecycleResolved) return false
 
