@@ -6,23 +6,32 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
-import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.core.datastore.ActiveTriggerStore
-import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
+import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.util.concurrent.ConcurrentHashMap
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
- * Standalone DARK_MODE trigger: fires a task when the system dark theme turns
- * on (or off, per the configured `state`), once per transition, and runs the
- * task's exit behavior when the configured side ends.
+ * Stateful DARK_MODE trigger backed by durable occurrence ownership.
+ *
+ * [AutomationRuntimeStore] is authoritative; [ActiveTriggerStore] is retained
+ * only as a compatibility mirror for upgrades from the older monitor model.
  */
 @Singleton
 class DarkModeMonitor @Inject constructor(
@@ -30,19 +39,20 @@ class DarkModeMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
     @Volatile
     private var registered = false
 
-    /** Automations currently in their triggered state (to fire exit on the opposite event). */
-    private val activeStates = ConcurrentHashMap<String, Boolean>()
+    private val evaluationMutex = Mutex()
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_CONFIGURATION_CHANGED) {
-                handleState(isDarkMode())
+                scope.launch { reconcileState(isDarkMode()) }
             }
         }
     }
@@ -50,25 +60,180 @@ class DarkModeMonitor @Inject constructor(
     fun initialize() {
         if (registered) return
         registered = true
-        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
-        scope.launch {
-            // Evaluate every enabled task against the CURRENT dark-mode state:
-            // a task whose condition already holds fires right away, a task
-            // disabled while its condition still holds runs its exit behavior,
-            // and a condition that ended while the process was down fires its
-            // missed exit now instead of waiting for the next theme change.
-            reconcileAutomations()
+        runCatching {
+            context.registerReceiver(receiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
+        }.onFailure {
+            registered = false
+            return
         }
+        reconcileAutomations()
     }
 
     fun stop() {
         if (!registered) return
         registered = false
-        try {
-            context.unregisterReceiver(receiver)
-        } catch (_: Throwable) {
-            // ignore
+        runCatching { context.unregisterReceiver(receiver) }
+    }
+
+    fun reconcileAutomations() {
+        scope.launch { reconcileState(isDarkMode()) }
+    }
+
+    /** Deterministic lifecycle boundary shared by platform callbacks and tests. */
+    internal suspend fun reconcileState(dark: Boolean) = evaluationMutex.withLock {
+        val automations = repository.getAutomations().first()
+        val byId = automations.associateBy { it.id }
+
+        rearmFromLedger(byId)
+
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = byId[state.automationId]
+                when {
+                    automation == null -> {
+                        clearLegacyState(state.automationId)
+                    }
+                    !automation.enabled ||
+                        automation.triggers.none { it.type == TriggerType.DARK_MODE } -> {
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                    else -> markLegacyActive(state)
+                }
+            }
+
+        automations
+            .filter {
+                it.enabled && it.triggers.any { trigger ->
+                    trigger.type == TriggerType.DARK_MODE
+                }
+            }
+            .forEach { automation ->
+                val trigger = automation.triggers.first {
+                    it.type == TriggerType.DARK_MODE
+                }
+                val wantDark = (trigger.config["state"] ?: "ON") == "ON"
+                val state = runtimeStore.current(automation.id)
+
+                if (dark == wantDark) {
+                    when {
+                        state?.source == SOURCE -> markLegacyActive(state)
+                        state != null -> clearLegacyState(automation.id)
+                        else -> activate(automation, wantDark)
+                    }
+                } else if (state?.source == SOURCE) {
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.TRIGGER_FALSE,
+                        occurrenceId = state.occurrenceId
+                    )
+                } else {
+                    clearLegacyState(automation.id)
+                }
+            }
+    }
+
+    private suspend fun rearmFromLedger(automations: Map<String, Automation>) {
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                if (automations[state.automationId] != null) {
+                    markLegacyActive(state)
+                } else {
+                    // Without the immutable definition there is no safe end
+                    // action to invent. Keep durable evidence visible.
+                    clearLegacyState(state.automationId)
+                }
+            }
+
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val automationId = key.substringBefore('|')
+            val automation = automations[automationId]
+            if (automation == null) {
+                clearLegacyState(automationId)
+                return@forEach
+            }
+
+            if (runtimeStore.current(automationId) == null) {
+                val wantDark = automation.triggers
+                    .firstOrNull { it.type == TriggerType.DARK_MODE }
+                    ?.config
+                    ?.get("state")
+                    ?.let { it == "ON" }
+                    ?: true
+                runtimeStore.activateStrict(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = key.takeIf { it.contains('|') }
+                            ?: "$automationId|${if (wantDark) "ON" else "OFF"}",
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            val state = runtimeStore.current(automationId)
+            if (state?.source == SOURCE) {
+                markLegacyActive(state)
+            } else {
+                clearLegacyState(automationId)
+            }
         }
+    }
+
+    private suspend fun activate(automation: Automation, wantDark: Boolean) {
+        val occurrenceId = "dark-mode:${automation.id}:${UUID.randomUUID()}"
+        val sourceKey = "${automation.id}|${if (wantDark) "ON" else "OFF"}"
+        executionEngine.runAutomation(
+            automation = automation,
+            lifecycleContext = AutomationLifecycleContext(
+                occurrenceId = occurrenceId,
+                source = SOURCE,
+                sourceKey = sourceKey
+            )
+        )
+        runtimeStore.current(automation.id)
+            ?.takeIf { it.source == SOURCE && it.occurrenceId == occurrenceId }
+            ?.let { markLegacyActive(it) }
+            ?: clearLegacyState(automation.id)
+    }
+
+    private suspend fun requestExit(
+        automation: Automation,
+        reason: ExitReason,
+        occurrenceId: String
+    ) {
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = reason,
+                occurrenceId = occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> clearLegacyState(automation.id)
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                runtimeStore.current(automation.id)
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { markLegacyActive(it) }
+            }
+        }
+    }
+
+    private suspend fun markLegacyActive(state: AutomationRuntimeState) {
+        activeStore.markActive(SOURCE, state.sourceKey)
+    }
+
+    private suspend fun clearLegacyState(automationId: String) {
+        activeStore.clearAutomation(SOURCE, automationId)
     }
 
     private fun isDarkMode(): Boolean {
@@ -76,83 +241,6 @@ class DarkModeMonitor @Inject constructor(
         return uiModeManager?.nightMode == UiModeManager.MODE_NIGHT_YES ||
             (context.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-    }
-
-    private fun handleState(dark: Boolean) {
-        scope.launch {
-            val automations = repository.getAutomations().first()
-            automations
-                .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.DARK_MODE } }
-                .forEach { automation ->
-                    val wantDark = (automation.triggers.first { it.type == TriggerType.DARK_MODE }
-                        .config["state"] ?: "ON") == "ON"
-                    if (dark == wantDark) {
-                        // Fire once per transition into the triggered state.
-                        if (activeStates.put(automation.id, dark) == null) {
-                            activeStore.markActive(SOURCE, automation.id)
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (activeStates.remove(automation.id) != null) {
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
-                    }
-                }
-        }
-    }
-
-    /**
-     * Full re-evaluation of every DARK_MODE task against the current system
-     * theme. Invoked on initialize and whenever automations change
-     * (enable/disable toggles, saves), so:
-     *  - a task enabled while the dark theme already matches fires immediately
-     *    instead of waiting for the next theme transition;
-     *  - a task disabled while its condition still holds stops being tracked
-     *    (its durable mark is pruned) instead of leaking until restart;
-     *  - a condition that ended while the process was down fires its missed
-     *    exit right away.
-     */
-    fun reconcileAutomations() {
-        scope.launch {
-            val dark = isDarkMode()
-            val automations = repository.getAutomations().first()
-            val byId = automations.associateBy { it.id }
-            // Restore durable active markers first so a task that fired before
-            // a process restart is never fired again while its condition still
-            // holds; run the end behavior of tasks disabled or deleted while
-            // the process was down.
-            // Disabling a task is an explicit abandonment of its lifecycle:
-            // the durable mark is pruned without firing a stale exit (the exit
-            // contract covers the condition ENDING while the task stays
-            // enabled, never a deliberate disable).
-            activeStore.activeKeys(SOURCE).forEach { id ->
-                val automation = byId[id]
-                when {
-                    automation?.enabled == true -> activeStates[id] = true
-                    else -> {
-                        activeStates.remove(id)
-                        activeStore.clearAutomation(SOURCE, id)
-                    }
-                }
-            }
-            automations
-                .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.DARK_MODE } }
-                .forEach { automation ->
-                    val wantDark = (automation.triggers.first { it.type == TriggerType.DARK_MODE }
-                        .config["state"] ?: "ON") == "ON"
-                    if (dark == wantDark) {
-                        // Fire now when the condition holds and the task is not
-                        // already in its triggered state (once per enablement).
-                        if (activeStates.put(automation.id, dark) == null) {
-                            activeStore.markActive(SOURCE, automation.id)
-                            executionEngine.runAutomation(automation)
-                        }
-                    } else if (activeStates.remove(automation.id) != null) {
-                        // The condition already ended: run the exit behavior.
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
-                    }
-                }
-        }
     }
 
     private companion object {
