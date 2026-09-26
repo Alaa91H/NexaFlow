@@ -9,6 +9,7 @@ import com.nexaflow.core.database.CorruptionRecoveryFactory
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.agentsecurity.AgentAccessManager
+import com.nexaflow.core.agentsecurity.AgentRequestAuthorizer
 import com.nexaflow.core.agentsecurity.AgentSecurityStore
 import com.nexaflow.core.agentsecurity.EncryptedAgentSecurityStore
 import com.nexaflow.core.database.VariableDao
@@ -132,6 +133,12 @@ object AppModule {
     @Singleton
     fun provideAgentAccessManager(agentSecurityStore: AgentSecurityStore): AgentAccessManager {
         return AgentAccessManager(agentSecurityStore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAgentRequestAuthorizer(agentAccessManager: AgentAccessManager): AgentRequestAuthorizer {
+        return AgentRequestAuthorizer(agentAccessManager)
     }
 
     @Provides
