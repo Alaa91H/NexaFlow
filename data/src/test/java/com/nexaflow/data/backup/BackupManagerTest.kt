@@ -129,10 +129,25 @@ class BackupManagerTest {
     }
 
     @Test
-    fun `multiple automations import all`() = runBlocking {
+    fun `multiple automations import all through one atomic batch`() = runBlocking {
         val result = manager.import(backupJson(validAutomation("a"), validAutomation("b")))
         assertEquals(ImportResult.Success(2, 2), result)
         assertEquals(2, repository.saved.size)
+        assertEquals(1, repository.atomicBatchCalls)
+    }
+
+    @Test
+    fun `atomic import failure leaves existing repository state unchanged`() = runBlocking {
+        repository.saveAutomation(validAutomation("local").copy(name = "Keep me"))
+        repository.failAtomicBatchAtIndex = 1
+
+        val failure = runCatching {
+            manager.import(backupJson(validAutomation("a"), validAutomation("b")))
+        }.exceptionOrNull()
+
+        assertTrue(failure is IllegalStateException)
+        assertEquals(listOf("local"), repository.saved.map { it.id })
+        assertEquals(1, repository.atomicBatchCalls)
     }
 
     @Test
@@ -552,6 +567,8 @@ class BackupManagerTest {
 
     private class FakeAutomationRepository : AutomationRepository {
         val saved = mutableListOf<Automation>()
+        var atomicBatchCalls: Int = 0
+        var failAtomicBatchAtIndex: Int? = null
 
         override fun getAutomations(): Flow<List<Automation>> = flowOf(saved.toList())
 
@@ -561,6 +578,20 @@ class BackupManagerTest {
         override suspend fun saveAutomation(automation: Automation) {
             saved.removeAll { it.id == automation.id }
             saved.add(automation)
+        }
+
+        override suspend fun saveAutomationsAtomically(automations: List<Automation>) {
+            atomicBatchCalls++
+            val next = saved.toMutableList()
+            automations.forEachIndexed { index, automation ->
+                if (failAtomicBatchAtIndex == index) {
+                    throw IllegalStateException("simulated atomic batch failure")
+                }
+                next.removeAll { it.id == automation.id }
+                next.add(automation)
+            }
+            saved.clear()
+            saved.addAll(next)
         }
 
         override suspend fun deleteAutomation(automation: Automation) {
