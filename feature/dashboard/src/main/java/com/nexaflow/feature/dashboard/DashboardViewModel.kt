@@ -144,26 +144,46 @@ class DashboardViewModel @Inject constructor(
     /** Deletes one routine after the dashboard confirmation dialog is accepted. */
     fun deleteAutomation(automation: Automation) {
         viewModelScope.launch {
+            var disabledForDelete = false
             try {
-                automationRepository.deleteAutomation(automation)
-                // The row is gone: no monitor can ever resolve this id again, so
-                // the engine ledger is unreachable. Cleanup is therefore
-                // best-effort — a storage failure must not turn a successful
-                // delete into a failure report.
+                // Preserve the definition while cleanup runs. Stateful monitors
+                // need it in order to claim the durable occurrence and execute
+                // the exact end/revert behavior before the row disappears.
+                if (automation.enabled) {
+                    automationRepository.updateAutomationStatus(automation.id, false)
+                    disabledForDelete = true
+                }
+                if (!executionEngine.prepareForDeletion(automation)) {
+                    _executionMessage.value = appContext.getString(
+                        R.string.task_delete_failed,
+                        automation.name
+                    )
+                    return@launch
+                }
+
+                try {
+                    automationRepository.deleteAutomation(automation)
+                } catch (failure: Exception) {
+                    if (disabledForDelete) {
+                        runCatching {
+                            automationRepository.updateAutomationStatus(automation.id, true)
+                            executionEngine.notifyAutomationsChanged()
+                        }
+                    }
+                    throw failure
+                }
+
                 try {
                     executionEngine.onAutomationDeleted(automation.id)
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (_: Exception) {
-                    // Best-effort; the durable marker is inert once the row is gone.
+                    // Best-effort after the authoritative row deletion.
                 }
                 _executionMessage.value = appContext.getString(R.string.task_deleted, automation.name)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                // Room rolls the delete back on failure, so the task still exists
-                // and its engine state must stay intact. Surface the failure
-                // instead of crashing the app.
                 _executionMessage.value = appContext.getString(R.string.task_delete_failed, automation.name)
             }
         }
