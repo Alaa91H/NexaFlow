@@ -57,11 +57,17 @@ class HttpRequestHandlerRetryTest {
         RomCapabilityProvider(context, IntegrationLevel.NORMAL, RomFamily.AOSP)
     )
 
-    private fun ctx(automationId: String? = "auto-http") = ActionExecutionContext(
+    private fun ctx(
+        automationId: String? = "auto-http",
+        executionId: String? = null,
+        nodeId: String? = null
+    ) = ActionExecutionContext(
         appContext = context,
         controller = controller(),
         notificationSettings = NotificationSettings(enabled = true, executionEnabled = true),
-        automationId = automationId
+        automationId = automationId,
+        executionId = executionId,
+        nodeId = nodeId
     )
 
     private fun action(
@@ -135,6 +141,40 @@ class HttpRequestHandlerRetryTest {
         val keys = transport.attempts.map { it["Idempotency-Key"] }
         assertEquals(1, keys.distinct().size)
         assertTrue(keys.first().isNullOrBlank().not())
+    }
+
+    @Test
+    fun idempotencyKeyDiffersAcrossIndependentRunsWithIdenticalInput() = runBlocking {
+        val transportA = ScriptedTransport(200)
+        val transportB = ScriptedTransport(200)
+        val handlerA = HttpRequestHandler(transport = transportA)
+        val handlerB = HttpRequestHandler(transport = transportB)
+        val request = action(url = "https://example.com/same", body = "same")
+
+        handlerA.execute(request, ctx(executionId = "run-a", nodeId = "action:0"))
+        handlerB.execute(request, ctx(executionId = "run-b", nodeId = "action:0"))
+
+        assertNotEquals(
+            transportA.attempts.first()["Idempotency-Key"],
+            transportB.attempts.first()["Idempotency-Key"]
+        )
+    }
+
+    @Test
+    fun idempotencyKeyDiffersAcrossDistinctNodesInSameRun() = runBlocking {
+        val transportA = ScriptedTransport(200)
+        val transportB = ScriptedTransport(200)
+        val handlerA = HttpRequestHandler(transport = transportA)
+        val handlerB = HttpRequestHandler(transport = transportB)
+        val request = action(url = "https://example.com/same", body = "same")
+
+        handlerA.execute(request, ctx(executionId = "run-a", nodeId = "action:0"))
+        handlerB.execute(request, ctx(executionId = "run-a", nodeId = "action:1"))
+
+        assertNotEquals(
+            transportA.attempts.first()["Idempotency-Key"],
+            transportB.attempts.first()["Idempotency-Key"]
+        )
     }
 
     @Test
