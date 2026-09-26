@@ -251,6 +251,12 @@ fun SettingsScreen(navController: NavController) {
                     alternatingIndex = 0
                 ) {
                 SettingRow(
+                    icon = Icons.Filled.Code,
+                    title = stringResource(R.string.ai_agents_title),
+                    subtitle = stringResource(R.string.ai_agents_subtitle),
+                    onClick = { navController.navigate(SettingsDestination.AI_AGENTS_ROUTE) }
+                )
+                SettingRow(
                     icon = Icons.Filled.Security,
                     title = stringResource(R.string.permission_manager),
                     subtitle = stringResource(R.string.permission_manager_sub),
