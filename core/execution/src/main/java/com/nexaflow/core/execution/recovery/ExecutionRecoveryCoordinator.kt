@@ -24,33 +24,12 @@ data class RecoveryReport(val items: List<RecoveryItem>) {
 }
 
 /**
- * Claims interrupted runs once at process start and converts them to explicit
- * recovery states. Action-started/unknown checkpoints never auto-replay: their
- * side effect may already have happened. A future workflow-aware resumer can
- * execute only [SAFE_RESUME_CANDIDATE] records after loading the immutable task
- * definition and validating its version/capabilities.
+ * Pure recovery classification shared by startup reconciliation and read-only
+ * review surfaces. Classification never claims, retries, compensates, clears,
+ * or otherwise mutates durable execution state.
  */
-class ExecutionRecoveryCoordinator(
-    private val activeExecutionStore: ActiveExecutionStore,
-    private val epochMillis: EpochMillis = EpochMillis.System
-) {
-
-    suspend fun reconcileStartup(): RecoveryReport {
-        val now = epochMillis.now()
-        val claimed = activeExecutionStore.claimRecoveryCandidates(now)
-        val items = claimed.map { checkpoint ->
-            val item = classify(checkpoint)
-            activeExecutionStore.markRecoveryRequired(
-                runId = checkpoint.runId,
-                message = item.reason,
-                updatedAt = now
-            )
-            item
-        }
-        return RecoveryReport(items)
-    }
-
-    private fun classify(checkpoint: DurableExecutionCheckpoint): RecoveryItem {
+object RecoveryClassifier {
+    fun classify(checkpoint: DurableExecutionCheckpoint): RecoveryItem {
         val source = checkpoint.recoverySourceStatus
         val (disposition, reason) = when (source) {
             DurableExecutionStatus.STARTED,
@@ -72,4 +51,33 @@ class ExecutionRecoveryCoordinator(
         }
         return RecoveryItem(checkpoint, disposition, reason)
     }
+}
+
+/**
+ * Claims interrupted runs once at process start and converts them to explicit
+ * recovery states. Action-started/unknown checkpoints never auto-replay: their
+ * side effect may already have happened. A future workflow-aware resumer can
+ * execute only [SAFE_RESUME_CANDIDATE] records after loading the immutable task
+ * definition and validating its version/capabilities.
+ */
+class ExecutionRecoveryCoordinator(
+    private val activeExecutionStore: ActiveExecutionStore,
+    private val epochMillis: EpochMillis = EpochMillis.System
+) {
+
+    suspend fun reconcileStartup(): RecoveryReport {
+        val now = epochMillis.now()
+        val claimed = activeExecutionStore.claimRecoveryCandidates(now)
+        val items = claimed.map { checkpoint ->
+            val item = RecoveryClassifier.classify(checkpoint)
+            activeExecutionStore.markRecoveryRequired(
+                runId = checkpoint.runId,
+                message = item.reason,
+                updatedAt = now
+            )
+            item
+        }
+        return RecoveryReport(items)
+    }
+
 }
