@@ -620,4 +620,47 @@ class TimeTriggerCalculatorTest {
         assertEquals(LocalDate.of(2026, 8, 3), localDateOf(third!!))
         assertNull(TimeTriggerCalculator.nextFireTime(config, millisOf(2026, 8, 3, 9, 0)))
     }
+
+    @Test
+    fun `timezone resolver preserves device-local default`() {
+        val device = ZoneId.of("UTC")
+
+        assertEquals(
+            device,
+            TimeTriggerCalculator.resolveZone(
+                config = mapOf("time" to "08:00"),
+                deviceZone = device
+            )
+        )
+    }
+
+    @Test
+    fun `timezone resolver accepts fixed IANA zone`() {
+        val resolved = TimeTriggerCalculator.resolveZone(
+            config = mapOf(
+                TimeTriggerCalculator.ZONE_POLICY_KEY to
+                    TimeTriggerCalculator.ZONE_POLICY_FIXED_IANA,
+                TimeTriggerCalculator.ZONE_ID_KEY to "Europe/Berlin"
+            ),
+            deviceZone = ZoneId.of("UTC")
+        )
+
+        assertEquals(ZoneId.of("Europe/Berlin"), resolved)
+    }
+
+    @Test
+    fun `timezone resolver fails closed for invalid fixed zone`() {
+        assertNull(
+            TimeTriggerCalculator.resolveZone(
+                config = mapOf(
+                    TimeTriggerCalculator.ZONE_POLICY_KEY to
+                        TimeTriggerCalculator.ZONE_POLICY_FIXED_IANA,
+                    TimeTriggerCalculator.ZONE_ID_KEY to "Mars/Olympus"
+                ),
+                deviceZone = ZoneId.of("UTC")
+            )
+        )
+    }
+
+
 }
