@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Ver execuções ignoradas</string>
     <string name="task_delete_failed">Não foi possível excluir a tarefa: %1$s</string>
+    <string name="task_update_failed">Não foi possível atualizar a tarefa: %1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">Tela sempre ativa e doze</string>
     <string name="action_rom_setting_batch">Lote vendor custom setting</string>

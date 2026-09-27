@@ -55,6 +55,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.ui.test.manifest)
     implementation(project(":domain"))
     implementation(project(":core:execution"))
+    implementation(project(":core:automation-control"))
     implementation(project(":core:ui-components"))
     testImplementation(libs.junit.junit)
     testImplementation(libs.org.robolectric.robolectric)

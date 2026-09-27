@@ -287,6 +287,7 @@
     <string name="remove_action">Yürütme adımını kaldır</string>
     <string name="quick_save">Hızlı kaydet</string>
     <string name="saved_successfully">Görev kaydedildi</string>
+    <string name="save_failed">Görev kaydedilemedi</string>
     <string name="next_needs_trigger">Önce en az bir koşul ekleyin</string>
     <string name="edit_task_title">Görevi düzenle</string>
     <string name="battery_trigger_title">Pil seviyesi</string>

@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Atlanan yürütmeleri görüntüle</string>
     <string name="task_delete_failed">Görev silinemedi: %1$s</string>
+    <string name="task_update_failed">Görev güncellenemedi: %1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">Her zaman açık ekran ve doze</string>
     <string name="action_rom_setting_batch">vendor custom setting toplu işlemi</string>

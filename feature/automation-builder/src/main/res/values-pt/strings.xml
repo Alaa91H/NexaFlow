@@ -287,6 +287,7 @@
     <string name="remove_action">Remover etapa de execução</string>
     <string name="quick_save">Salvar rapidamente</string>
     <string name="saved_successfully">Tarefa salva</string>
+    <string name="save_failed">Não foi possível guardar a tarefa</string>
     <string name="next_needs_trigger">Adicione pelo menos uma condição primeiro</string>
     <string name="edit_task_title">Editar tarefa</string>
     <string name="battery_trigger_title">Nível da bateria</string>

@@ -9,6 +9,9 @@ import android.content.Intent
 import android.os.Build
 import android.service.quicksettings.TileService
 import android.widget.RemoteViews
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationMutationResult
+import com.nexaflow.core.automationcontrol.HumanAutomationMutations
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
@@ -37,6 +40,7 @@ interface WidgetEntryPoint {
     fun automationDao(): AutomationDao
     fun executionDao(): ExecutionDao
     fun automationRepository(): AutomationRepository
+    fun commandService(): AutomationCommandService
     fun executionEngine(): ExecutionEngine
 }
 
@@ -76,12 +80,27 @@ class NexaFlowToggleWidgetProvider : AppWidgetProvider() {
     private suspend fun toggleAll(context: Context) {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
         val repository = entryPoint.automationRepository()
+        val commandService = entryPoint.commandService()
         val engine = entryPoint.executionEngine()
         val automations = repository.getAutomations().first()
         val enable = automations.none { it.enabled }
         automations.forEach { automation ->
             if (automation.enabled != enable) {
-                repository.updateAutomationStatus(automation.id, enable)
+                when (
+                    commandService.setEnabled(
+                        automation.id,
+                        enable,
+                        HumanAutomationMutations.context("widget-toggle-all")
+                    )
+                ) {
+                    is AutomationMutationResult.Success,
+                    is AutomationMutationResult.IdempotentReplay,
+                    is AutomationMutationResult.NotFound -> Unit
+                    else -> {
+                        android.util.Log.w("WidgetToggleAll", "Toggle rejected; skipping engine follow-up")
+                        return@forEach
+                    }
+                }
                 if (!enable && automation.enabled) {
                     engine.runDisableCleanup(automation)
                 }

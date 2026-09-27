@@ -1,5 +1,12 @@
 package com.nexaflow.data.backup
 
+import com.nexaflow.core.automationcontrol.AutomationBatchResult
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationDryRunInspector
+import com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest
+import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
+import com.nexaflow.core.automationcontrol.AutomationPersistenceResult
+import com.nexaflow.core.execution.dryrun.WorkflowDryRunReport
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -12,6 +19,7 @@ import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.workflow.WorkflowValidationCode
+import com.nexaflow.domain.workflow.WorkflowValidationResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -82,7 +90,51 @@ class BackupManagerTest {
     }
 
     private val repository = FakeAutomationRepository()
-    private val manager = BackupManager(repository)
+    private var failBatchAtIndex: Int? = null
+    private var batchCalls: Int = 0
+    private val persistence = object : AutomationMutationPersistence {
+        override suspend fun commit(
+            request: AutomationMutationCommitRequest
+        ): AutomationPersistenceResult =
+            error("import path commits through commitBatch")
+
+        /**
+         * Mirrors Room atomicity on a scratch copy: a failure discards the
+         * whole batch so the repository is unchanged.
+         */
+        override suspend fun commitBatch(
+            requests: List<AutomationMutationCommitRequest>
+        ): AutomationBatchResult {
+            batchCalls++
+            val scratch = repository.saved.toMutableList()
+            requests.forEachIndexed { index, request ->
+                if (failBatchAtIndex == index) {
+                    throw IllegalStateException("simulated atomic batch failure")
+                }
+                scratch.removeAll { it.id == request.automation.id }
+                scratch.add(request.automation)
+            }
+            repository.replaceAll(scratch)
+            return AutomationBatchResult.AllCommitted(
+                requests.map {
+                    AutomationPersistenceResult.Committed(it.automation.id, 1L)
+                }
+            )
+        }
+    }
+    private val service = AutomationCommandService(
+        repository = repository,
+        dryRunInspector = AutomationDryRunInspector {
+            WorkflowDryRunReport(
+                workflowValidation = WorkflowValidationResult(emptyList()),
+                capabilityResolutions = emptyList(),
+                executable = true,
+                summary = "ok"
+            )
+        },
+        mutationPersistence = persistence
+    )
+    private val manager = BackupManager(repository, service)
 
     private fun validAutomation(id: String = "a1") = Automation(
         id = id,
@@ -133,13 +185,13 @@ class BackupManagerTest {
         val result = manager.import(backupJson(validAutomation("a"), validAutomation("b")))
         assertEquals(ImportResult.Success(2, 2), result)
         assertEquals(2, repository.saved.size)
-        assertEquals(1, repository.atomicBatchCalls)
+        assertEquals(1, batchCalls)
     }
 
     @Test
     fun `atomic import failure leaves existing repository state unchanged`() = runBlocking {
         repository.saveAutomation(validAutomation("local").copy(name = "Keep me"))
-        repository.failAtomicBatchAtIndex = 1
+        failBatchAtIndex = 1
 
         val failure = runCatching {
             manager.import(backupJson(validAutomation("a"), validAutomation("b")))
@@ -147,7 +199,7 @@ class BackupManagerTest {
 
         assertTrue(failure is IllegalStateException)
         assertEquals(listOf("local"), repository.saved.map { it.id })
-        assertEquals(1, repository.atomicBatchCalls)
+        assertEquals(1, batchCalls)
     }
 
     @Test
@@ -567,8 +619,11 @@ class BackupManagerTest {
 
     private class FakeAutomationRepository : AutomationRepository {
         val saved = mutableListOf<Automation>()
-        var atomicBatchCalls: Int = 0
-        var failAtomicBatchAtIndex: Int? = null
+
+        fun replaceAll(automations: List<Automation>) {
+            saved.clear()
+            saved.addAll(automations)
+        }
 
         override fun getAutomations(): Flow<List<Automation>> = flowOf(saved.toList())
 
@@ -578,20 +633,6 @@ class BackupManagerTest {
         override suspend fun saveAutomation(automation: Automation) {
             saved.removeAll { it.id == automation.id }
             saved.add(automation)
-        }
-
-        override suspend fun saveAutomationsAtomically(automations: List<Automation>) {
-            atomicBatchCalls++
-            val next = saved.toMutableList()
-            automations.forEachIndexed { index, automation ->
-                if (failAtomicBatchAtIndex == index) {
-                    throw IllegalStateException("simulated atomic batch failure")
-                }
-                next.removeAll { it.id == automation.id }
-                next.add(automation)
-            }
-            saved.clear()
-            saved.addAll(next)
         }
 
         override suspend fun deleteAutomation(automation: Automation) {

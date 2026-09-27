@@ -287,6 +287,7 @@
     <string name="remove_action">実行ステップを削除</string>
     <string name="quick_save">クイック保存</string>
     <string name="saved_successfully">タスクを保存しました</string>
+    <string name="save_failed">タスクを保存できませんでした</string>
     <string name="next_needs_trigger">先に条件を1つ以上追加してください</string>
     <string name="edit_task_title">タスクを編集</string>
     <string name="battery_trigger_title">バッテリーレベル</string>

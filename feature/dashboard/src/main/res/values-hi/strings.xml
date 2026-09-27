@@ -13,6 +13,7 @@
     <string name="cancel">रद्द करें</string>
     <string name="task_deleted">हटाया गया: %1$s</string>
     <string name="task_delete_failed">हटाया नहीं जा सका: %1$s</string>
+    <string name="task_update_failed">अपडेट नहीं किया जा सका: %1$s</string>
     <string name="section_routines">निर्धारित कार्य</string>
     <string name="new_routine">नया कार्य</string>
     <string name="empty_automations_title">अभी कोई कार्य नहीं</string>

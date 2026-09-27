@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">عرض التشغيلات المتخطاة</string>
     <string name="task_delete_failed">تعذر حذف المهمة: %1$s</string>
+    <string name="task_update_failed">تعذر تحديث المهمة: %1$s</string>
     <string name="action_rom_setting_ambient_aod">الشاشة الدائمة</string>
     <string name="action_rom_setting_ambient_aod_sub">شاشة التشغيل الدائم والغفوة</string>
     <string name="action_rom_setting_batch">حزمة vendor custom setting</string>

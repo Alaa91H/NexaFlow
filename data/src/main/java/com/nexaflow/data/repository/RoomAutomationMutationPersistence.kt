@@ -55,11 +55,51 @@ class RoomAutomationMutationPersistence(
     override suspend fun commit(
         request: AutomationMutationCommitRequest
     ): AutomationPersistenceResult = database.withTransaction {
+        commitOne(request)
+    }
+
+    /**
+     * Commits the whole batch in one transaction: the first non-committed
+     * item rolls everything back and surfaces as
+     * [com.nexaflow.core.automationcontrol.AutomationBatchResult.Aborted].
+     */
+    override suspend fun commitBatch(
+        requests: List<com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest>
+    ): com.nexaflow.core.automationcontrol.AutomationBatchResult = try {
+        database.withTransaction {
+            val commits = ArrayList<AutomationPersistenceResult.Committed>(requests.size)
+            val failures = ArrayList<com.nexaflow.core.automationcontrol.AutomationBatchItemFailure>()
+            requests.forEachIndexed { index, request ->
+                when (val result = commitOne(request)) {
+                    is AutomationPersistenceResult.Committed -> commits += result
+                    else -> failures += com.nexaflow.core.automationcontrol.AutomationBatchItemFailure(
+                        index = index,
+                        automationId = request.automation.id,
+                        result = result
+                    )
+                }
+            }
+            if (failures.isNotEmpty()) {
+                throw BatchRollback(failures)
+            }
+            com.nexaflow.core.automationcontrol.AutomationBatchResult.AllCommitted(commits)
+        }
+    } catch (rollback: BatchRollback) {
+        com.nexaflow.core.automationcontrol.AutomationBatchResult.Aborted(rollback.failures)
+    }
+
+    private class BatchRollback(
+        val failures: List<com.nexaflow.core.automationcontrol.AutomationBatchItemFailure>
+    ) : RuntimeException()
+
+    private suspend fun commitOne(
+        request: AutomationMutationCommitRequest
+    ): AutomationPersistenceResult {
         validateContext(request)
         pruneRetention(request.occurredAt)
-        resolveIdempotency(request)?.let { return@withTransaction it }
+        resolveIdempotency(request)?.let { return it }
 
-        when (request.kind) {
+        return when (request.kind) {
             AutomationMutationKind.CREATE -> commitCreate(request)
             AutomationMutationKind.UPDATE,
             AutomationMutationKind.ENABLE,

@@ -287,6 +287,7 @@
     <string name="remove_action">निष्पादन चरण हटाएँ</string>
     <string name="quick_save">त्वरित सहेजें</string>
     <string name="saved_successfully">कार्य सहेजा गया</string>
+    <string name="save_failed">कार्य सहेजा नहीं जा सका</string>
     <string name="next_needs_trigger">पहले कम से कम एक शर्त जोड़ें</string>
     <string name="edit_task_title">कार्य संपादित करें</string>
     <string name="battery_trigger_title">बैटरी स्तर</string>

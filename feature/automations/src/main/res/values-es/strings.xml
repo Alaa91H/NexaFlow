@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Ver ejecuciones omitidas</string>
     <string name="task_delete_failed">No se pudo eliminar la tarea: %1$s</string>
+    <string name="task_update_failed">No se pudo actualizar la tarea: %1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">Pantalla siempre activa y doze</string>
     <string name="action_rom_setting_batch">Lote de vendor custom setting</string>

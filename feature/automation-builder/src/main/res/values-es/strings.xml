@@ -287,6 +287,7 @@
     <string name="remove_action">Quitar paso de ejecución</string>
     <string name="quick_save">Guardado rápido</string>
     <string name="saved_successfully">Tarea guardada</string>
+    <string name="save_failed">No se pudo guardar la tarea</string>
     <string name="next_needs_trigger">Añade al menos una condición primero</string>
     <string name="edit_task_title">Editar tarea</string>
     <string name="battery_trigger_title">Nivel de batería</string>

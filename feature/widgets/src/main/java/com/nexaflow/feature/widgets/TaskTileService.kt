@@ -13,6 +13,9 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.vector.VectorGroup
 import androidx.compose.ui.graphics.vector.VectorNode
 import androidx.compose.ui.graphics.vector.VectorPath
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationMutationResult
+import com.nexaflow.core.automationcontrol.HumanAutomationMutations
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Automation
@@ -38,6 +41,7 @@ import kotlinx.coroutines.withContext
 @InstallIn(SingletonComponent::class)
 interface TileEntryPoint {
     fun automationRepository(): AutomationRepository
+    fun commandService(): AutomationCommandService
     fun executionEngine(): ExecutionEngine
 }
 
@@ -83,7 +87,24 @@ abstract class TaskTileService : TileService() {
                 // Stateful disable cleanup is delegated to the monitor-owned
                 // ExitCoordinator path; legacy/stateless tasks retain their
                 // immediate configured end behavior.
-                repository.updateAutomationStatus(target.id, !target.enabled)
+                when (
+                    entryPoint().commandService().setEnabled(
+                        target.id,
+                        !target.enabled,
+                        HumanAutomationMutations.context("quick-tile")
+                    )
+                ) {
+                    is AutomationMutationResult.Success,
+                    is AutomationMutationResult.IdempotentReplay,
+                    is AutomationMutationResult.NotFound -> Unit
+                    else -> {
+                        android.util.Log.w(TAG, "Tile toggle rejected")
+                        withContext(Dispatchers.Main) {
+                            refreshTile()
+                        }
+                        return@launch
+                    }
+                }
                 try {
                     if (target.enabled) {
                         entryPoint().executionEngine().runDisableCleanup(target)
@@ -211,6 +232,7 @@ abstract class TaskTileService : TileService() {
         EntryPointAccessors.fromApplication(applicationContext, TileEntryPoint::class.java)
 
     companion object {
+        private const val TAG = "TaskTileService"
         /**
          * Mirrors [com.nexaflow.core.execution.AutomationIntents.ACTION_AUTOMATIONS_CHANGED]
          * so the widgets module can refresh home-screen widgets without taking a

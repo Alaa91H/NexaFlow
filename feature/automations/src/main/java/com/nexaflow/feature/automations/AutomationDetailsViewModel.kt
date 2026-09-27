@@ -4,6 +4,10 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationMutationResult
+import com.nexaflow.core.automationcontrol.HumanAutomationMutations
+import com.nexaflow.core.automationcontrol.api.AgentTaskMapper
 import com.nexaflow.core.execution.AutomationExecutionProgress
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockReason
@@ -35,6 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AutomationDetailsViewModel @Inject constructor(
     private val repository: AutomationRepository,
+    private val commandService: AutomationCommandService,
     private val healthRepository: HealthRepository,
     private val historyRepository: HistoryRepository,
     private val executionEngine: ExecutionEngine,
@@ -125,6 +130,11 @@ class AutomationDetailsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Deep-link capability token toggle. Like the dashboard grant/revoke
+     * flow, this writes identity plumbing rather than the automation
+     * definition, so it bypasses the command boundary deliberately.
+     */
     fun setDeepLinkAccess(enabled: Boolean) {
         viewModelScope.launch {
             val current = repository.getAutomationById(automationId) ?: return@launch
@@ -138,11 +148,28 @@ class AutomationDetailsViewModel @Inject constructor(
     fun repairWebhookTokens() {
         viewModelScope.launch {
             val current = repository.getAutomationById(automationId) ?: return@launch
-            repository.saveAutomation(current.copy(triggers = current.triggers.map {
+            val repaired = current.copy(triggers = current.triggers.map {
                 if (it.type == com.nexaflow.domain.models.TriggerType.WEBHOOK && it.config["token"].isNullOrBlank())
                     it.copy(config = it.config + ("token" to com.nexaflow.domain.security.ExternalAccessPolicy.newToken()))
                 else it
-            }))
+            })
+            when (
+                commandService.update(
+                    automationId,
+                    AgentTaskMapper.fromAutomation(repaired),
+                    HumanAutomationMutations.context("details")
+                )
+            ) {
+                is AutomationMutationResult.Success,
+                is AutomationMutationResult.IdempotentReplay -> Unit
+                else -> {
+                    _executionMessage.value = appContext.getString(
+                        R.string.task_update_failed,
+                        current.name
+                    )
+                    return@launch
+                }
+            }
             executionEngine.notifyAutomationsChanged()
         }
     }
@@ -150,7 +177,24 @@ class AutomationDetailsViewModel @Inject constructor(
     fun toggleEnabled(enabled: Boolean) {
         viewModelScope.launch {
             val wasEnabled = automation.value?.enabled == true
-            repository.updateAutomationStatus(automationId, enabled)
+            when (
+                commandService.setEnabled(
+                    automationId,
+                    enabled,
+                    HumanAutomationMutations.context("details")
+                )
+            ) {
+                is AutomationMutationResult.Success,
+                is AutomationMutationResult.IdempotentReplay -> Unit
+                is AutomationMutationResult.NotFound -> return@launch
+                else -> {
+                    _executionMessage.value = appContext.getString(
+                        R.string.task_update_failed,
+                        automation.value?.name.orEmpty()
+                    )
+                    return@launch
+                }
+            }
             if (!enabled && wasEnabled) {
                 try {
                     automation.value?.let { executionEngine.runDisableCleanup(it) }
@@ -183,8 +227,24 @@ class AutomationDetailsViewModel @Inject constructor(
                     // is being reconciled. Deleting first would make the owning
                     // monitor unable to restore state or run its configured exit.
                     if (current.enabled) {
-                        repository.updateAutomationStatus(automationId, false)
-                        disabledForDelete = true
+                        when (
+                            commandService.setEnabled(
+                                automationId,
+                                false,
+                                HumanAutomationMutations.context("details-delete")
+                            )
+                        ) {
+                            is AutomationMutationResult.Success,
+                            is AutomationMutationResult.IdempotentReplay -> disabledForDelete = true
+                            is AutomationMutationResult.NotFound -> Unit
+                            else -> {
+                                _executionMessage.value = appContext.getString(
+                                    R.string.task_delete_failed,
+                                    current.name
+                                )
+                                return@launch
+                            }
+                        }
                     }
                     val cleanupReady = executionEngine.prepareForDeletion(current)
                     if (!cleanupReady) {
@@ -194,19 +254,48 @@ class AutomationDetailsViewModel @Inject constructor(
                         )
                         return@launch
                     }
-                    try {
-                        repository.deleteAutomation(current)
+                    val deleted = try {
+                        commandService.delete(
+                            automationId,
+                            HumanAutomationMutations.context("details-delete")
+                        )
                     } catch (failure: Exception) {
                         // The delete itself failed after cleanup succeeded.
                         // Restore the user's enabled flag so a transient Room
                         // failure does not silently change the task definition.
                         if (disabledForDelete) {
                             runCatching {
-                                repository.updateAutomationStatus(automationId, true)
+                                commandService.setEnabled(
+                                    automationId,
+                                    true,
+                                    HumanAutomationMutations.context("details-delete-rollback")
+                                )
                                 executionEngine.notifyAutomationsChanged()
                             }
                         }
                         throw failure
+                    }
+                    when (deleted) {
+                        is AutomationMutationResult.Success,
+                        is AutomationMutationResult.IdempotentReplay,
+                        is AutomationMutationResult.NotFound -> Unit
+                        else -> {
+                            if (disabledForDelete) {
+                                runCatching {
+                                    commandService.setEnabled(
+                                        automationId,
+                                        true,
+                                        HumanAutomationMutations.context("details-delete-rollback")
+                                    )
+                                    executionEngine.notifyAutomationsChanged()
+                                }
+                            }
+                            _executionMessage.value = appContext.getString(
+                                R.string.task_delete_failed,
+                                current.name
+                            )
+                            return@launch
+                        }
                     }
                 }
 

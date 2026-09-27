@@ -6,9 +6,16 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationDryRunInspector
+import com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest
+import com.nexaflow.core.automationcontrol.AutomationMutationKind
+import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
+import com.nexaflow.core.automationcontrol.AutomationPersistenceResult
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.dryrun.WorkflowDryRunReport
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
@@ -23,6 +30,7 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HealthRepository
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.domain.workflow.WorkflowValidationResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -139,12 +147,63 @@ class AutomationDetailsViewModelDeleteTest {
     private fun vm(id: String, repo: AutomationRepository): AutomationDetailsViewModel =
         AutomationDetailsViewModel(
             repository = repo,
+            commandService = commandService(repo, throwOnDelete = false),
             healthRepository = FakeHealth(),
             historyRepository = FakeHistory(),
             executionEngine = engine,
             savedStateHandle = SavedStateHandle(mapOf("automationId" to id)),
             appContext = context
         )
+
+    private fun vm(
+        id: String,
+        repo: FakeRepository,
+        throwOnDelete: Boolean
+    ): AutomationDetailsViewModel =
+        AutomationDetailsViewModel(
+            repository = repo,
+            commandService = commandService(repo, throwOnDelete = throwOnDelete),
+            healthRepository = FakeHealth(),
+            historyRepository = FakeHistory(),
+            executionEngine = engine,
+            savedStateHandle = SavedStateHandle(mapOf("automationId" to id)),
+            appContext = context
+        )
+
+    /**
+     * The delete path under test crosses the command boundary, so the fake
+     * persistence below mirrors the Room semantics the production graph
+     * provides: definitions persist through the commit request, and the
+     * failure flag simulates a database write failure mid-delete.
+     */
+    private fun commandService(
+        repo: AutomationRepository,
+        throwOnDelete: Boolean
+    ): AutomationCommandService = AutomationCommandService(
+        repository = repo,
+        dryRunInspector = AutomationDryRunInspector {
+            WorkflowDryRunReport(
+                workflowValidation = WorkflowValidationResult(emptyList()),
+                capabilityResolutions = emptyList(),
+                executable = true,
+                summary = "ok"
+            )
+        },
+        mutationPersistence = object : AutomationMutationPersistence {
+            override suspend fun commit(
+                request: AutomationMutationCommitRequest
+            ): AutomationPersistenceResult {
+                if (request.kind == AutomationMutationKind.DELETE && throwOnDelete) {
+                    throw IllegalStateException("simulated database write failure")
+                }
+                when (request.kind) {
+                    AutomationMutationKind.DELETE -> repo.deleteAutomation(request.automation)
+                    else -> repo.saveAutomation(request.automation)
+                }
+                return AutomationPersistenceResult.Committed(request.automation.id, 2L)
+            }
+        }
+    )
 
     /**
      * Drives the viewModelScope coroutine (posted to the Robolectric main
@@ -187,8 +246,8 @@ class AutomationDetailsViewModelDeleteTest {
         val id = "vm-delete-b"
         arm(id)
         var navigated = 0
-        val repository = FakeRepository(automation = task(id), throwOnDelete = true)
-        val viewModel = vm(id, repository)
+        val repository = FakeRepository(automation = task(id))
+        val viewModel = vm(id, repository, throwOnDelete = true)
 
         viewModel.delete { navigated++ }
         awaitIdle { viewModel.executionMessage.value != null }

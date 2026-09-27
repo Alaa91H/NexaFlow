@@ -3,6 +3,7 @@ package com.nexaflow.app.di
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.nexaflow.app.agent.AgentAutomationEventBridge
 import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.automationcontrol.AutomationCommandService
 import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
@@ -284,8 +285,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideBackupManager(automationRepository: AutomationRepository): BackupManager {
-        return BackupManager(automationRepository)
+    fun provideBackupManager(
+        automationRepository: AutomationRepository,
+        commandService: AutomationCommandService
+    ): BackupManager {
+        return BackupManager(automationRepository, commandService)
     }
 
     @Provides
@@ -430,12 +434,14 @@ object AppModule {
         automationRepository: AutomationRepository,
         workflowDryRunService: WorkflowDryRunService,
         mutationPersistence: AutomationMutationPersistence,
-        auditSink: AutomationAuditSink
+        auditSink: AutomationAuditSink,
+        eventBridge: AgentAutomationEventBridge
     ): AutomationCommandService = AutomationCommandService(
         repository = automationRepository,
         dryRunInspector = WorkflowDryRunInspector(workflowDryRunService),
         mutationPersistence = mutationPersistence,
-        auditSink = auditSink
+        auditSink = auditSink,
+        mutationObserver = eventBridge
     )
 
     @Provides

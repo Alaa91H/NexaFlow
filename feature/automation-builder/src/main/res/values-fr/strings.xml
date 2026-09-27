@@ -287,6 +287,7 @@
     <string name="remove_action">"Retirer l\'étape d\'exécution"</string>
     <string name="quick_save">Enregistrement rapide</string>
     <string name="saved_successfully">Tâche enregistrée</string>
+    <string name="save_failed">Impossible d\'enregistrer la tâche</string>
     <string name="next_needs_trigger">"Ajoutez d\'abord au moins une condition"</string>
     <string name="edit_task_title">Modifier la tâche</string>
     <string name="battery_trigger_title">Niveau de batterie</string>

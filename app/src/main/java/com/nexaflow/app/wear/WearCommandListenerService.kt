@@ -5,6 +5,9 @@ import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationMutationResult
+import com.nexaflow.core.automationcontrol.HumanAutomationMutations
 import com.nexaflow.core.execution.WEAR_PATH_CAPABILITIES_V1
 import com.nexaflow.core.execution.WEAR_PATH_RUN_COMMAND
 import com.nexaflow.core.execution.WEAR_PATH_SYNC_REQUEST
@@ -40,6 +43,7 @@ class WearCommandListenerService : WearableListenerService() {
     interface WearBridgeEntryPoint {
         fun executionEngine(): ExecutionEngine
         fun automationRepository(): AutomationRepository
+        fun commandService(): AutomationCommandService
         fun wearSyncManager(): WearSyncManager
         fun wearDeviceRegistry(): WearDeviceRegistry
     }
@@ -119,7 +123,21 @@ class WearCommandListenerService : WearableListenerService() {
                 val automation = repository.getAutomationById(automationId)
                     ?: return@runCatching
                 val wasEnabled = automation.enabled
-                repository.updateAutomationStatus(automationId, enabled)
+                when (
+                    entryPoint.commandService().setEnabled(
+                        automationId,
+                        enabled,
+                        HumanAutomationMutations.context("wear")
+                    )
+                ) {
+                    is AutomationMutationResult.Success,
+                    is AutomationMutationResult.IdempotentReplay,
+                    is AutomationMutationResult.NotFound -> Unit
+                    else -> {
+                        Log.w(TAG, "Wear toggle rejected for automation $automationId")
+                        return@runCatching
+                    }
+                }
                 if (wasEnabled && !enabled) {
                     entryPoint.executionEngine().runDisableCleanup(automation)
                 }

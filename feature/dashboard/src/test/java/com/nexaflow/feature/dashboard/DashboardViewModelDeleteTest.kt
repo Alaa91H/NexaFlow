@@ -5,9 +5,16 @@ import android.os.Looper
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationDryRunInspector
+import com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest
+import com.nexaflow.core.automationcontrol.AutomationMutationKind
+import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
+import com.nexaflow.core.automationcontrol.AutomationPersistenceResult
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.dryrun.WorkflowDryRunReport
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthAnalyzer
@@ -18,7 +25,9 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.HealthRepository
+import com.nexaflow.domain.workflow.WorkflowValidationResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -64,17 +73,29 @@ class DashboardViewModelDeleteTest {
     }
 
     private class FakeRepository(
-        private val throwOnDelete: Boolean = false
+        initial: List<Automation> = emptyList()
     ) : AutomationRepository {
-        val statusUpdates = mutableListOf<Boolean>()
-        override fun getAutomations(): Flow<List<Automation>> = flowOf(emptyList())
-        override suspend fun getAutomationById(id: String): Automation? = null
-        override suspend fun saveAutomation(automation: Automation) = Unit
-        override suspend fun deleteAutomation(automation: Automation) {
-            if (throwOnDelete) throw IllegalStateException("simulated database write failure")
+        private val state = MutableStateFlow(initial)
+
+        fun current(): List<Automation> = state.value
+
+        override fun getAutomations(): Flow<List<Automation>> = state
+
+        override suspend fun getAutomationById(id: String): Automation? =
+            state.value.firstOrNull { it.id == id }
+
+        override suspend fun saveAutomation(automation: Automation) {
+            state.value = state.value.filterNot { it.id == automation.id } + automation
         }
+
+        override suspend fun deleteAutomation(automation: Automation) {
+            state.value = state.value.filterNot { it.id == automation.id }
+        }
+
         override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
-            statusUpdates += enabled
+            state.value = state.value.map { automation ->
+                if (automation.id == id) automation.copy(enabled = enabled) else automation
+            }
         }
     }
 
@@ -113,8 +134,36 @@ class DashboardViewModelDeleteTest {
 
     private fun arm(id: String) = runBlocking { ActiveExecutionStore(context).markStarted(id) }
 
-    private fun viewModel(repo: AutomationRepository): DashboardViewModel = DashboardViewModel(
+    private fun viewModel(
+        repo: FakeRepository,
+        throwOnDelete: Boolean = false
+    ): DashboardViewModel = DashboardViewModel(
         automationRepository = repo,
+        commandService = AutomationCommandService(
+            repository = repo,
+            dryRunInspector = AutomationDryRunInspector {
+                WorkflowDryRunReport(
+                    workflowValidation = WorkflowValidationResult(emptyList()),
+                    capabilityResolutions = emptyList(),
+                    executable = true,
+                    summary = "ok"
+                )
+            },
+            mutationPersistence = object : AutomationMutationPersistence {
+                override suspend fun commit(
+                    request: AutomationMutationCommitRequest
+                ): AutomationPersistenceResult {
+                    if (request.kind == AutomationMutationKind.DELETE && throwOnDelete) {
+                        throw IllegalStateException("simulated database write failure")
+                    }
+                    when (request.kind) {
+                        AutomationMutationKind.DELETE -> repo.deleteAutomation(request.automation)
+                        else -> repo.saveAutomation(request.automation)
+                    }
+                    return AutomationPersistenceResult.Committed(request.automation.id, 2L)
+                }
+            }
+        ),
         executionEngine = engine,
         historyRepository = FakeHistory(),
         healthRepository = FakeHealth(),
@@ -139,7 +188,7 @@ class DashboardViewModelDeleteTest {
     fun successfulDeleteDelegatesToEngineAndConfirms() {
         val id = "vm-dash-delete-a"
         arm(id)
-        val repository = FakeRepository()
+        val repository = FakeRepository(listOf(task(id)))
         val viewModel = viewModel(repository)
 
         viewModel.deleteAutomation(task(id))
@@ -153,15 +202,18 @@ class DashboardViewModelDeleteTest {
             "durable marker must be cleared",
             freshExitMessage(id).contains("task was not active")
         )
-        assertEquals(listOf(false), repository.statusUpdates)
+        assertTrue(
+            "definition row must be removed through the command boundary",
+            repository.current().none { it.id == id }
+        )
     }
 
     @Test
     fun deleteWhenRepositoryThrowsKeepsEngineStateAndReportsFailure() {
         val id = "vm-dash-delete-b"
         arm(id)
-        val repository = FakeRepository(throwOnDelete = true)
-        val viewModel = viewModel(repository)
+        val repository = FakeRepository(listOf(task(id)))
+        val viewModel = viewModel(repository, throwOnDelete = true)
 
         viewModel.deleteAutomation(task(id))
         awaitIdle { viewModel.executionMessage.value != null }
@@ -169,7 +221,10 @@ class DashboardViewModelDeleteTest {
         // Cleanup happens before the database delete. If that delete fails, the
         // prior enabled flag is restored so the task definition is not silently
         // mutated by a failed delete request.
-        assertEquals(listOf(false, true), repository.statusUpdates)
+        assertTrue(
+            "definition must be restored to enabled after delete rollback",
+            repository.current().singleOrNull { it.id == id }?.enabled == true
+        )
         assertEquals(
             context.getString(R.string.task_delete_failed, task(id).name),
             viewModel.executionMessage.value

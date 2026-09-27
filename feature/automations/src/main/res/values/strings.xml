@@ -484,6 +484,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">View skipped runs</string>
     <string name="task_delete_failed">Couldn\'t delete: %1$s</string>
+    <string name="task_update_failed">Couldn\'t update task: %1$s</string>
     <string name="call_ended">Ended</string>
     <string name="call_incoming">Incoming</string>
     <string name="call_outgoing">Outgoing</string>

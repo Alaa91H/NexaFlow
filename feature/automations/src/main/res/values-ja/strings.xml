@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">スキップされた実行を表示</string>
     <string name="task_delete_failed">タスクを削除できませんでした: %1$s</string>
+    <string name="task_update_failed">タスクを更新できませんでした: %1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">常時表示とDoze</string>
     <string name="action_rom_setting_batch">vendor custom settingバッチ</string>

@@ -3,6 +3,7 @@ package com.nexaflow.data.repository
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.automationcontrol.AutomationBatchResult
 import com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest
 import com.nexaflow.core.automationcontrol.AutomationMutationContext
 import com.nexaflow.core.automationcontrol.AutomationMutationKind
@@ -761,6 +762,84 @@ class RoomAutomationMutationPersistenceTest {
         assertTrue(result.isFailure)
         assertTrue(database.automationDao().getAutomationById("blank-key") == null)
         assertTrue(database.agentPlatformDao().latestAudit(10).isEmpty())
+    }
+
+    @Test
+    fun batchCreateCommitsEveryDefinitionInOneTransaction() = runTest {
+        val persistence = persistence()
+
+        val result = persistence.commitBatch(
+            listOf(
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = automation("batch-a", "Batch A", 100L),
+                    fingerprint = "fp-a",
+                    occurredAt = 100L
+                ),
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = automation("batch-b", "Batch B", 100L),
+                    fingerprint = "fp-b",
+                    occurredAt = 100L
+                )
+            )
+        )
+
+        assertTrue(result is AutomationBatchResult.AllCommitted)
+        assertEquals(
+            listOf("batch-a", "batch-b"),
+            (result as AutomationBatchResult.AllCommitted).commits.map { it.automationId }
+        )
+        assertEquals(
+            "Batch A",
+            database.automationDao().getAutomationById("batch-a")?.toDomain()?.name
+        )
+        assertEquals(
+            "Batch B",
+            database.automationDao().getAutomationById("batch-b")?.toDomain()?.name
+        )
+    }
+
+    @Test
+    fun batchCreateRollsBackEntirelyWhenOneItemCollides() = runTest {
+        val persistence = persistence()
+        persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = automation("existing", "Existing", 100L),
+                fingerprint = "fp-existing",
+                occurredAt = 100L
+            )
+        )
+
+        val result = persistence.commitBatch(
+            listOf(
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = automation("batch-new", "Batch New", 200L),
+                    fingerprint = "fp-new",
+                    occurredAt = 200L
+                ),
+                request(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = automation("existing", "Collision", 200L),
+                    fingerprint = "fp-collision",
+                    occurredAt = 200L
+                )
+            )
+        )
+
+        assertTrue(result is AutomationBatchResult.Aborted)
+        val failures = (result as AutomationBatchResult.Aborted).failures
+        assertEquals(listOf("existing"), failures.map { it.automationId })
+        assertTrue(
+            "rolled-back batch must not leave partial rows",
+            database.automationDao().getAutomationById("batch-new") == null
+        )
+        assertEquals(
+            "Existing",
+            database.automationDao().getAutomationById("existing")?.toDomain()?.name
+        )
     }
 
     private fun persistence(

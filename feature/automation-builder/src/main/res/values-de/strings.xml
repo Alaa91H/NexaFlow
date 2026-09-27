@@ -287,6 +287,7 @@
     <string name="remove_action">Ausführungsschritt entfernen</string>
     <string name="quick_save">Schnellspeichern</string>
     <string name="saved_successfully">Aufgabe gespeichert</string>
+    <string name="save_failed">Aufgabe konnte nicht gespeichert werden</string>
     <string name="next_needs_trigger">Füge zuerst mindestens eine Bedingung hinzu</string>
     <string name="edit_task_title">Aufgabe bearbeiten</string>
     <string name="battery_trigger_title">Akku-Ladestand</string>

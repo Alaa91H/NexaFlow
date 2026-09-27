@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">查看已跳过的执行</string>
     <string name="task_delete_failed">无法删除任务：%1$s</string>
+    <string name="task_update_failed">无法更新任务：%1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">常亮显示和休眠</string>
     <string name="action_rom_setting_batch">vendor custom setting 批量</string>

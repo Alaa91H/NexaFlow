@@ -2,10 +2,17 @@ package com.nexaflow.feature.dashboard
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationDryRunInspector
+import com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest
+import com.nexaflow.core.automationcontrol.AutomationMutationKind
+import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
+import com.nexaflow.core.automationcontrol.AutomationPersistenceResult
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockKind
+import com.nexaflow.core.execution.dryrun.WorkflowDryRunReport
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -18,6 +25,7 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.HealthRepository
+import com.nexaflow.domain.workflow.WorkflowValidationResult
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import kotlinx.coroutines.flow.Flow
@@ -105,13 +113,39 @@ class ManualAdmissionPolicyTest {
         updatedAt = 0L
     )
 
-    private fun newViewModel(): DashboardViewModel = DashboardViewModel(
-        automationRepository = FakeRepository(),
-        executionEngine = engine,
-        historyRepository = history,
-        healthRepository = FakeHealth(),
-        appContext = context
-    )
+    private fun newViewModel(): DashboardViewModel {
+        val repository = FakeRepository()
+        return DashboardViewModel(
+            automationRepository = repository,
+            commandService = AutomationCommandService(
+                repository = repository,
+                dryRunInspector = AutomationDryRunInspector {
+                    WorkflowDryRunReport(
+                        workflowValidation = WorkflowValidationResult(emptyList()),
+                        capabilityResolutions = emptyList(),
+                        executable = true,
+                        summary = "ok"
+                    )
+                },
+                mutationPersistence = object : AutomationMutationPersistence {
+                    override suspend fun commit(
+                        request: AutomationMutationCommitRequest
+                    ): AutomationPersistenceResult {
+                        when (request.kind) {
+                            AutomationMutationKind.DELETE ->
+                                repository.deleteAutomation(request.automation)
+                            else -> repository.saveAutomation(request.automation)
+                        }
+                        return AutomationPersistenceResult.Committed(request.automation.id, 2L)
+                    }
+                }
+            ),
+            executionEngine = engine,
+            historyRepository = history,
+            healthRepository = FakeHealth(),
+            appContext = context
+        )
+    }
 
     private fun awaitIdle(timeoutMs: Long = 10_000, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs

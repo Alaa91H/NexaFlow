@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Voir les exécutions ignorées</string>
     <string name="task_delete_failed">Impossible de supprimer la tâche : %1$s</string>
+    <string name="task_update_failed">Impossible de mettre à jour la tâche : %1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">Écran always-on et doze</string>
     <string name="action_rom_setting_batch">Lot vendor custom setting</string>

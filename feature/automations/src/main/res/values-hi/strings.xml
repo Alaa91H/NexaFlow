@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">छोड़े गए निष्पादन देखें</string>
     <string name="task_delete_failed">कार्य हटाया नहीं जा सका: %1$s</string>
+    <string name="task_update_failed">कार्य अपडेट नहीं किया जा सका: %1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">अलवेज़-ऑन डिस्प्ले और doze</string>
     <string name="action_rom_setting_batch">vendor custom setting बैच</string>

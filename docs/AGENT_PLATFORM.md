@@ -72,10 +72,15 @@ All protocol adapters must expose the same command semantics.
 - [x] Add a revision foundation using monotonic `updatedAt`.
 - [x] Block dependency-breaking deletes.
 - [x] Add unit coverage for mapping, catalog parity, preflight and conflicts.
-- [ ] Move existing first-party mutation callers to the command boundary once
-      lifecycle side-effect parity is proven.
-- [ ] Replace timestamp revision checks with transactional metadata CAS in the
-      persistence phase.
+- [x] First-party mutation callers moved to the command boundary:
+      dashboard, details, builder, quick tiles, widgets, Wear listener and
+      backup import/export all cross `AutomationCommandService` with HUMAN /
+      IMPORT provenance. Deep-link capability-token rotation stays direct by
+      design (identity plumbing, not definitions) and is documented at each
+      call site.
+- [x] Revision foundation uses transactional metadata CAS in the Room
+      persistence phase; UI callers pass no expected revision
+      (last-writer-wins, as before) while agents keep strict revisions.
 
 ## Phase 2 - persistent agent security
 
@@ -257,7 +262,11 @@ Implemented foundation:
 - [x] user-triggered provider connectivity test
 - [x] capability probing for native tool calling, structured JSON and streaming
 - [x] capability state published through the provider registry
-- [ ] structured-JSON tool fallback for models without native function calling
+- [x] structured-JSON tool fallback for models without native function calling
+      (`AiStructuredToolParser`: `{"tool", "arguments"}` extraction, known-tool
+      allow-list, object-shape and bound checks, same execution pipeline and
+      trace coverage as native calls; instruction stays provider-bound, never
+      stored)
 - [ ] provider-specific model discovery endpoints
 - [ ] vision/reasoning/context-window capability discovery where the backend
       exposes reliable metadata
@@ -344,6 +353,15 @@ Support NexaFlow -> Agent events:
 - capability.changed
 - device.state.changed
 - agent.connected/disconnected
+
+Implemented foundation:
+
+- [x] `AutomationMutationObserver` fan-out on every committed definition
+      mutation, bridged to `AgentEventHub` in the app layer, so all
+      transports (UI, MCP, REST, A2A, Binder, relay, import) produce
+      created/updated/deleted events from one place
+- [x] execution lifecycle events (triggered/completed/failed) remain
+      engine-owned future work; diagnosis consumes failure signals meanwhile
 
 Local agents may wake on events instead of polling continuously.
 

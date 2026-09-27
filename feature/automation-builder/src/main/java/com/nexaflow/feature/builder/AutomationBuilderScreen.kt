@@ -959,6 +959,7 @@ fun AutomationBuilderScreen(
     val stringNextNeedsTrigger = stringResource(R.string.next_needs_trigger)
     val stringNextNeedsAction = stringResource(R.string.next_needs_action)
     val stringSavedSuccessfully = stringResource(R.string.saved_successfully)
+    val stringSaveFailed = stringResource(R.string.save_failed)
     val stringDefaultTaskName = stringResource(R.string.builder_title)
     val stringLocationFixFailed = stringResource(R.string.location_fix_failed)
     val stringPermissionRequired = stringResource(R.string.permission_denied_hint)
@@ -1495,6 +1496,13 @@ fun AutomationBuilderScreen(
     fun showSnackbar(message: String) {
         scope.launch {
             snackbarHostState.showSnackbar(message)
+        }
+    }
+    val saveError by viewModel.saveError.collectAsStateWithLifecycle()
+    LaunchedEffect(saveError) {
+        if (saveError != null) {
+            showSnackbar(stringSaveFailed)
+            viewModel.consumeSaveError()
         }
     }
 

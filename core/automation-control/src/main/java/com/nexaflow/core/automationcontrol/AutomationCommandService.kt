@@ -13,6 +13,7 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.workflow.AutomationDependencyValidator
 import com.nexaflow.domain.workflow.WorkflowValidationIssue
+import com.nexaflow.domain.workflow.WorkflowValidator
 import java.util.UUID
 import kotlin.math.max
 import kotlinx.coroutines.flow.first
@@ -111,6 +112,25 @@ sealed interface AutomationMutationResult {
     ) : AutomationMutationResult
 }
 
+data class AutomationImportRejection(
+    val automationId: String,
+    val issues: List<WorkflowValidationIssue>
+)
+
+sealed interface AutomationImportResult {
+    data class Success(
+        val automations: List<Automation>
+    ) : AutomationImportResult
+
+    data class Rejected(
+        val failures: List<AutomationImportRejection>
+    ) : AutomationImportResult
+
+    data class IdempotencyConflict(
+        val automationId: String
+    ) : AutomationImportResult
+}
+
 /**
  * Single mutation boundary for future UI, MCP, REST, A2A and local-agent paths.
  *
@@ -123,6 +143,7 @@ class AutomationCommandService(
     private val dryRunInspector: AutomationDryRunInspector,
     private val mutationPersistence: AutomationMutationPersistence,
     private val auditSink: AutomationAuditSink = AutomationAuditSink.NO_OP,
+    private val mutationObserver: AutomationMutationObserver = AutomationMutationObserver.NO_OP,
     private val clockMillis: () -> Long = System::currentTimeMillis,
     private val idGenerator: () -> String = { UUID.randomUUID().toString() }
 ) {
@@ -369,6 +390,165 @@ class AutomationCommandService(
         )
     }
 
+    /**
+     * Bulk import boundary: validates every definition before persisting
+     * anything, then commits the whole batch atomically.
+     *
+     * Validation scope intentionally mirrors the backup restore contract:
+     * structural workflow rules plus dependency soundness against the
+     * prospective graph (current catalog plus the batch itself, so intra-file
+     * dependency edges validate). Node-config schemas and dry-run
+     * executability are NOT gates here — imports persist disabled for human
+     * review, and those layers re-evaluate at review/enable time. The caller
+     * must supply policy-processed definitions (re-keyed ids, stripped
+     * tokens, disabled) with an [AutomationMutationOrigin.IMPORT] context
+     * carrying a batch idempotency key.
+     */
+    suspend fun importAll(
+        automations: List<Automation>,
+        context: AutomationMutationContext
+    ): AutomationImportResult {
+        require(context.origin == AutomationMutationOrigin.IMPORT) {
+            "Bulk import requires an IMPORT mutation context"
+        }
+        val batchKey = context.idempotencyKey
+        require(!batchKey.isNullOrBlank()) {
+            "Bulk import requires an idempotency key"
+        }
+        if (automations.isEmpty()) return AutomationImportResult.Success(emptyList())
+
+        val duplicateIds = automations.groupingBy { it.id }.eachCount()
+            .filterValues { count -> count > 1 }.keys
+        if (duplicateIds.isNotEmpty()) {
+            return AutomationImportResult.Rejected(
+                duplicateIds.map { AutomationImportRejection(it, emptyList()) }
+            )
+        }
+
+        val occurredAt = clockMillis()
+        val current = repository.getAutomations().first()
+
+        // Idempotency first: a retried batch resolves already-committed rows
+        // before the collision guard below, so legitimate retries replay
+        // instead of looking like clashes with their own first attempt.
+        val replayed = ArrayList<Automation>()
+        val fresh = ArrayList<Automation>()
+        automations.forEach { automation ->
+            val draft = AgentTaskMapper.fromAutomation(automation)
+            val fingerprint = AutomationMutationFingerprint.draft(
+                AutomationMutationKind.CREATE,
+                automationId = automation.id,
+                draft = draft
+            )
+            val itemContext = context.copy(idempotencyKey = "$batchKey#${automation.id}")
+            when (
+                resolveStoredReplay(
+                    context = itemContext,
+                    kind = AutomationMutationKind.CREATE,
+                    automationId = automation.id,
+                    fingerprint = fingerprint,
+                    occurredAt = occurredAt
+                )
+            ) {
+                is AutomationMutationResult.IdempotentReplay -> {
+                    val stored = repository.getAutomationById(automation.id)
+                    if (stored != null) {
+                        replayed += stored
+                        return@forEach
+                    }
+                    fresh += automation
+                }
+                AutomationMutationResult.IdempotencyConflict ->
+                    return AutomationImportResult.IdempotencyConflict(automation.id)
+                else -> fresh += automation
+            }
+        }
+        if (fresh.isEmpty()) return AutomationImportResult.Success(replayed)
+
+        val currentIds = current.mapTo(HashSet()) { it.id }
+        val clashingIds = fresh.map { it.id }.filter { it in currentIds }.toSet()
+        if (clashingIds.isNotEmpty()) {
+            // The importer owns ID-collision re-keying; reaching the service
+            // with a collision would silently replace a local definition.
+            return AutomationImportResult.Rejected(
+                clashingIds.map { AutomationImportRejection(it, emptyList()) }
+            )
+        }
+
+        val prospective = current + fresh
+        val dependencyValidation = AutomationDependencyValidator.validate(prospective)
+        val failures = ArrayList<AutomationImportRejection>()
+        val prepared = ArrayList<Triple<Automation, AutomationMutationCommitRequest, AutomationMutationContext>>()
+        fresh.forEach { automation ->
+            val draft = AgentTaskMapper.fromAutomation(automation)
+            val fingerprint = AutomationMutationFingerprint.draft(
+                AutomationMutationKind.CREATE,
+                automationId = automation.id,
+                draft = draft
+            )
+            val itemContext = context.copy(idempotencyKey = "$batchKey#${automation.id}")
+
+            val issues = WorkflowValidator.validate(automation).issues +
+                dependencyValidation.issuesFor(automation.id)
+            if (issues.isNotEmpty()) {
+                failures += AutomationImportRejection(automation.id, issues)
+                return@forEach
+            }
+            prepared += Triple(
+                automation,
+                AutomationMutationCommitRequest(
+                    kind = AutomationMutationKind.CREATE,
+                    automation = automation,
+                    context = itemContext,
+                    requestFingerprint = fingerprint,
+                    occurredAt = occurredAt
+                ),
+                itemContext
+            )
+        }
+        if (failures.isNotEmpty()) return AutomationImportResult.Rejected(failures)
+
+        val ordered = orderByDependencies(prepared)
+        return when (
+            val batch = mutationPersistence.commitBatch(ordered.map { it.second })
+        ) {
+            is AutomationBatchResult.AllCommitted -> {
+                ordered.forEachIndexed { index, (automation, _, itemContext) ->
+                    notifyCommitted(
+                        AutomationMutationKind.CREATE,
+                        automation,
+                        batch.commits[index].revision,
+                        itemContext
+                    )
+                }
+                AutomationImportResult.Success(ordered.map { it.first } + replayed)
+            }
+            is AutomationBatchResult.Aborted -> AutomationImportResult.Rejected(
+                batch.failures.map { AutomationImportRejection(it.automationId, emptyList()) }
+            )
+        }
+    }
+
+    /**
+     * Orders batch items so intra-batch dependencies commit first; the
+     * persistence layer validates each item against the running snapshot.
+     */
+    private fun orderByDependencies(
+        prepared: List<Triple<Automation, AutomationMutationCommitRequest, AutomationMutationContext>>
+    ): List<Triple<Automation, AutomationMutationCommitRequest, AutomationMutationContext>> {
+        val byId = prepared.associateBy { it.first.id }
+        val ordered = ArrayList<Triple<Automation, AutomationMutationCommitRequest, AutomationMutationContext>>(prepared.size)
+        val visited = HashSet<String>()
+        fun visit(id: String) {
+            val item = byId[id] ?: return
+            if (!visited.add(id)) return
+            item.first.maintenanceProfile?.dependencyAutomationIds?.forEach(::visit)
+            ordered += item
+        }
+        prepared.forEach { visit(it.first.id) }
+        return ordered
+    }
+
     private suspend fun resolveStoredReplay(
         context: AutomationMutationContext,
         kind: AutomationMutationKind,
@@ -487,12 +667,25 @@ class AutomationCommandService(
         automation: Automation,
         report: AutomationPreflightReport,
         request: AutomationMutationCommitRequest
-    ): AutomationMutationResult = when (val result = mutationPersistence.commit(request)) {
-        is AutomationPersistenceResult.Committed -> AutomationMutationResult.Success(
-            automation = automation,
-            revision = result.revision,
-            dryRun = report.dryRun
-        )
+    ): AutomationMutationResult {
+        val result = mutationPersistence.commit(request)
+        return toMutationResult(result, automation, report, request)
+    }
+
+    private suspend fun toMutationResult(
+        result: AutomationPersistenceResult,
+        automation: Automation,
+        report: AutomationPreflightReport,
+        request: AutomationMutationCommitRequest
+    ): AutomationMutationResult = when (result) {
+        is AutomationPersistenceResult.Committed -> {
+            notifyCommitted(request.kind, automation, result.revision, request.context)
+            AutomationMutationResult.Success(
+                automation = automation,
+                revision = result.revision,
+                dryRun = report.dryRun
+            )
+        }
 
         is AutomationPersistenceResult.IdempotentReplay ->
             AutomationMutationResult.IdempotentReplay(
@@ -518,6 +711,19 @@ class AutomationCommandService(
 
         AutomationPersistenceResult.NotFound ->
             AutomationMutationResult.NotFound(automation.id)
+    }
+
+    private suspend fun notifyCommitted(
+        kind: AutomationMutationKind,
+        automation: Automation,
+        revision: Long,
+        context: AutomationMutationContext
+    ) {
+        try {
+            mutationObserver.onCommitted(kind, automation, revision, context)
+        } catch (_: Exception) {
+            // Observer fan-out must never fail an already-committed mutation.
+        }
     }
 
     private fun AutomationPreflightReport.canPersist(

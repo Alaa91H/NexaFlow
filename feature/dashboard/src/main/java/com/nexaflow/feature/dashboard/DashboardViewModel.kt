@@ -3,6 +3,10 @@ package com.nexaflow.feature.dashboard
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationMutationResult
+import com.nexaflow.core.automationcontrol.HumanAutomationMutations
+import com.nexaflow.core.automationcontrol.api.AgentTaskMapper
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
@@ -33,6 +37,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val automationRepository: AutomationRepository,
+    private val commandService: AutomationCommandService,
     private val executionEngine: ExecutionEngine,
     historyRepository: HistoryRepository,
     healthRepository: HealthRepository,
@@ -78,13 +83,31 @@ class DashboardViewModel @Inject constructor(
     /** Serializes one task to the single-task (.nexaflow) share format; null when unavailable. */
     suspend fun exportTaskJson(automationId: String): String? {
         val automation = automationRepository.getAutomationById(automationId) ?: return null
-        return runCatching { BackupManager(automationRepository).exportSingle(automation) }.getOrNull()
+        return runCatching {
+            BackupManager(automationRepository, commandService).exportSingle(automation)
+        }.getOrNull()
     }
 
     /** Toggles a single routine on/off — strict: enable runs immediately if triggers match, disable runs exit. */
     fun toggleAutomation(automation: Automation, enabled: Boolean) {
         viewModelScope.launch {
-            automationRepository.updateAutomationStatus(automation.id, enabled)
+            when (
+                commandService.setEnabled(
+                    automation.id,
+                    enabled,
+                    HumanAutomationMutations.context("dashboard")
+                )
+            ) {
+                is AutomationMutationResult.Success,
+                is AutomationMutationResult.IdempotentReplay -> Unit
+                else -> {
+                    _executionMessage.value = appContext.getString(
+                        R.string.task_update_failed,
+                        automation.name
+                    )
+                    return@launch
+                }
+            }
             if (!enabled) {
                 // Strict: when disabling, immediately attempt to run "when task ends"
                 try {
@@ -114,8 +137,23 @@ class DashboardViewModel @Inject constructor(
 
     fun setShowToastOnToggle(automation: Automation, showToast: Boolean) {
         viewModelScope.launch {
-            val updated = automation.copy(showToastOnToggle = showToast)
-            automationRepository.saveAutomation(updated)
+            val draft = AgentTaskMapper.fromAutomation(automation.copy(showToastOnToggle = showToast))
+            when (
+                commandService.update(
+                    automation.id,
+                    draft,
+                    HumanAutomationMutations.context("dashboard")
+                )
+            ) {
+                is AutomationMutationResult.Success,
+                is AutomationMutationResult.IdempotentReplay -> Unit
+                else -> {
+                    _executionMessage.value = appContext.getString(
+                        R.string.task_update_failed,
+                        automation.name
+                    )
+                }
+            }
         }
     }
 
@@ -124,6 +162,11 @@ class DashboardViewModel @Inject constructor(
      * for [automation] (or rotates the existing one). Callers expose the full
      * `nexaflow://run-task/{id}?token=...` link to the user — sharing it
      * grants run access, which the UI must state explicitly.
+     *
+     * Capability tokens are identity plumbing, not automation definitions:
+     * they carry no triggers, actions or constraints, so rotation bypasses
+     * the command boundary's validation/dry-run pipeline deliberately and
+     * writes the repository directly.
      */
     fun grantDeepLinkAccess(automation: Automation) {
         viewModelScope.launch {
@@ -150,8 +193,24 @@ class DashboardViewModel @Inject constructor(
                 // need it in order to claim the durable occurrence and execute
                 // the exact end/revert behavior before the row disappears.
                 if (automation.enabled) {
-                    automationRepository.updateAutomationStatus(automation.id, false)
-                    disabledForDelete = true
+                    when (
+                        commandService.setEnabled(
+                            automation.id,
+                            false,
+                            HumanAutomationMutations.context("dashboard-delete")
+                        )
+                    ) {
+                        is AutomationMutationResult.Success,
+                        is AutomationMutationResult.IdempotentReplay -> disabledForDelete = true
+                        is AutomationMutationResult.NotFound -> Unit
+                        else -> {
+                            _executionMessage.value = appContext.getString(
+                                R.string.task_delete_failed,
+                                automation.name
+                            )
+                            return@launch
+                        }
+                    }
                 }
                 if (!executionEngine.prepareForDeletion(automation)) {
                     _executionMessage.value = appContext.getString(
@@ -161,16 +220,45 @@ class DashboardViewModel @Inject constructor(
                     return@launch
                 }
 
-                try {
-                    automationRepository.deleteAutomation(automation)
+                val deleted = try {
+                    commandService.delete(
+                        automation.id,
+                        HumanAutomationMutations.context("dashboard-delete")
+                    )
                 } catch (failure: Exception) {
                     if (disabledForDelete) {
                         runCatching {
-                            automationRepository.updateAutomationStatus(automation.id, true)
+                            commandService.setEnabled(
+                                automation.id,
+                                true,
+                                HumanAutomationMutations.context("dashboard-delete-rollback")
+                            )
                             executionEngine.notifyAutomationsChanged()
                         }
                     }
                     throw failure
+                }
+                when (deleted) {
+                    is AutomationMutationResult.Success,
+                    is AutomationMutationResult.IdempotentReplay,
+                    is AutomationMutationResult.NotFound -> Unit
+                    else -> {
+                        if (disabledForDelete) {
+                            runCatching {
+                                commandService.setEnabled(
+                                    automation.id,
+                                    true,
+                                    HumanAutomationMutations.context("dashboard-delete-rollback")
+                                )
+                                executionEngine.notifyAutomationsChanged()
+                            }
+                        }
+                        _executionMessage.value = appContext.getString(
+                            R.string.task_delete_failed,
+                            automation.name
+                        )
+                        return@launch
+                    }
                 }
 
                 try {
@@ -269,8 +357,16 @@ class DashboardViewModel @Inject constructor(
                     changed = true
                 }
                 if (changed) {
-                    automationRepository.saveAutomation(
+                    val draft = AgentTaskMapper.fromAutomation(
                         automation.copy(triggers = newTriggers, updatedAt = System.currentTimeMillis())
+                    )
+                    // Best-effort per task: a rejection leaves that task on its
+                    // legacy triggers for a later retry instead of blocking the
+                    // rest of the migration.
+                    commandService.update(
+                        automation.id,
+                        draft,
+                        HumanAutomationMutations.context("dashboard-migrate")
                     )
                 }
             }

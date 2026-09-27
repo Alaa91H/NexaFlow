@@ -467,6 +467,7 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Показать пропущенные запуски</string>
     <string name="task_delete_failed">Не удалось удалить задачу: %1$s</string>
+    <string name="task_update_failed">Не удалось обновить задачу: %1$s</string>
     <string name="action_rom_setting_ambient_aod">Ambient &amp; AOD</string>
     <string name="action_rom_setting_ambient_aod_sub">Always-on дисплей и doze</string>
     <string name="action_rom_setting_batch">Пакет vendor custom setting</string>

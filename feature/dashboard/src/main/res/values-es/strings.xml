@@ -13,6 +13,7 @@
     <string name="cancel">Cancelar</string>
     <string name="task_deleted">Eliminada: %1$s</string>
     <string name="task_delete_failed">No se pudo eliminar: %1$s</string>
+    <string name="task_update_failed">No se pudo actualizar: %1$s</string>
     <string name="section_routines">Tareas programadas</string>
     <string name="new_routine">Nueva tarea</string>
     <string name="empty_automations_title">Aún no hay tareas</string>

@@ -1,9 +1,17 @@
 package com.nexaflow.app
 
 import android.net.Uri
+import com.nexaflow.core.automationcontrol.AutomationBatchResult
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationDryRunInspector
+import com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest
+import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
+import com.nexaflow.core.automationcontrol.AutomationPersistenceResult
+import com.nexaflow.core.execution.dryrun.WorkflowDryRunReport
 import com.nexaflow.data.backup.*
 import com.nexaflow.domain.models.*
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.workflow.WorkflowValidationResult
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -74,7 +82,7 @@ class ExternalIngressIntegrationTest {
     }
     @Test fun api26StreamImportIsBoundedDisabledAndDropsCapabilities() = runBlocking {
         val store = Store()
-        val manager = BackupManager(store)
+        val manager = BackupManager(store, commandService(store))
         val text = manager.toJson(BackupFile(1, 0, listOf(store.task)))
         assertFalse(text.contains("deepLinkToken"))
         assertEquals(ImportResult.Success(1, 1), manager.import(BackupLimits.read(text.byteInputStream())))
@@ -82,4 +90,37 @@ class ExternalIngressIntegrationTest {
         assertNull(store.saved.single().deepLinkToken)
         assertTrue(runCatching { BackupLimits.read(ByteArray(BackupLimits.MAX_BYTES + 1).inputStream()) }.isFailure)
     }
+
+    private fun commandService(store: Store): AutomationCommandService =
+        AutomationCommandService(
+            repository = store,
+            dryRunInspector = AutomationDryRunInspector {
+                WorkflowDryRunReport(
+                    workflowValidation = WorkflowValidationResult(emptyList()),
+                    capabilityResolutions = emptyList(),
+                    executable = true,
+                    summary = "ok"
+                )
+            },
+            mutationPersistence = object : AutomationMutationPersistence {
+                override suspend fun commit(
+                    request: AutomationMutationCommitRequest
+                ): AutomationPersistenceResult =
+                    error("import path commits through commitBatch")
+
+                override suspend fun commitBatch(
+                    requests: List<AutomationMutationCommitRequest>
+                ): AutomationBatchResult {
+                    requests.forEach { request ->
+                        store.saved.removeAll { it.id == request.automation.id }
+                        store.saved += request.automation
+                    }
+                    return AutomationBatchResult.AllCommitted(
+                        requests.map {
+                            AutomationPersistenceResult.Committed(it.automation.id, 1L)
+                        }
+                    )
+                }
+            }
+        )
 }

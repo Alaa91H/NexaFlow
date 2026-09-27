@@ -8,6 +8,11 @@ import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowExecutionPlan
 import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationMutationResult
+import com.nexaflow.core.automationcontrol.HumanAutomationMutations
+import com.nexaflow.core.automationcontrol.api.AgentTaskDraftV1
+import com.nexaflow.core.automationcontrol.api.AgentTaskMapper
 import com.nexaflow.domain.capability.operation.StrategyId
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.core.execution.compat.WorkflowPermissionRepairPlan
@@ -42,6 +47,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AutomationBuilderViewModel @Inject constructor(
     private val repository: AutomationRepository,
+    private val commandService: AutomationCommandService,
     private val variableRepository: VariableRepository,
     private val pluginRepository: PluginRepository,
     private val batteryMonitor: BatteryMonitor,
@@ -131,6 +137,14 @@ class AutomationBuilderViewModel @Inject constructor(
     private val _loaded = MutableStateFlow<Automation?>(null)
     val loaded: StateFlow<Automation?> = _loaded
 
+    /** Non-null after a save the command boundary rejected; the screen shows it once. */
+    private val _saveError = MutableStateFlow<String?>(null)
+    val saveError: StateFlow<String?> = _saveError
+
+    fun consumeSaveError() {
+        _saveError.value = null
+    }
+
     /** Loads an existing automation so the builder can pre-fill and update it. */
     fun loadAutomation(id: String) {
         if (id.isBlank()) return
@@ -216,9 +230,23 @@ class AutomationBuilderViewModel @Inject constructor(
                 )
             )
             val wasEnabled = prev?.enabled == true
-            val nowDisabled = !storedAutomation.enabled
-            existing = storedAutomation
-            repository.saveAutomation(storedAutomation)
+            // Every save crosses the command boundary: structural validation,
+            // transactional commit, provenance metadata, audit and event
+            // fan-out apply to human saves exactly as to agent mutations.
+            val draft = AgentTaskMapper.fromAutomation(storedAutomation)
+            val targetId = prev?.id ?: draftId
+            val created = if (targetId != null) {
+                updateOrCreate(targetId, draft)
+            } else {
+                createOnly(draft)
+            }
+            val persisted = created ?: run {
+                _saveError.value = SAVE_REJECTED
+                return@launch
+            }
+            val nowDisabled = !persisted.enabled
+            existing = persisted
+            draftId = persisted.id
             // Strict: if the task was enabled and now disabled, run exit immediately
             if (wasEnabled && nowDisabled) {
                 try {
@@ -226,10 +254,10 @@ class AutomationBuilderViewModel @Inject constructor(
                 } catch (_: Exception) {}
             }
             // Strict: if the task is newly enabled and triggers already match, run immediately
-            val nowEnabled = storedAutomation.enabled
+            val nowEnabled = persisted.enabled
             if (!wasEnabled && nowEnabled) {
                 try {
-                    executionEngine.runWithConditionGate(storedAutomation)
+                    executionEngine.runWithConditionGate(persisted)
                 } catch (_: Exception) {}
             }
             // Battery triggers only evaluate on ACTION_BATTERY_CHANGED broadcasts;
@@ -242,6 +270,49 @@ class AutomationBuilderViewModel @Inject constructor(
             // condition already holds runs immediately, and editing a task
             // that is currently active re-arms its end behavior.
             executionEngine.notifyAutomationsChanged()
+    }
+
+    /**
+     * Updates the known row; when it no longer exists (deleted elsewhere) the
+     * save becomes a create so the user's edit is never silently dropped.
+     * Returns null only when the command boundary rejects the definition.
+     */
+    private suspend fun updateOrCreate(
+        targetId: String,
+        draft: AgentTaskDraftV1
+    ): Automation? {
+        when (
+            val updated = commandService.update(
+                targetId,
+                draft,
+                HumanAutomationMutations.context("builder")
+            )
+        ) {
+            is AutomationMutationResult.Success -> return updated.automation
+            is AutomationMutationResult.IdempotentReplay ->
+                updated.automationId?.let { repository.getAutomationById(it) }?.let { return it }
+            is AutomationMutationResult.NotFound -> Unit
+            else -> return null
+        }
+        return createOnly(draft)
+    }
+
+    private suspend fun createOnly(
+        draft: AgentTaskDraftV1
+    ): Automation? = when (
+        val created = commandService.create(
+            draft,
+            HumanAutomationMutations.context("builder")
+        )
+    ) {
+        is AutomationMutationResult.Success -> created.automation
+        is AutomationMutationResult.IdempotentReplay ->
+            created.automationId?.let { repository.getAutomationById(it) }
+        else -> null
+    }
+
+    private companion object {
+        const val SAVE_REJECTED = "rejected"
     }
 
 }

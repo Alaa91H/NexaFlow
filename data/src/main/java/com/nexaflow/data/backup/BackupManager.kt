@@ -1,5 +1,8 @@
 package com.nexaflow.data.backup
 
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationImportResult
+import com.nexaflow.core.automationcontrol.HumanAutomationMutations
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
@@ -97,7 +100,8 @@ object ImportLimits {
  * fails the whole import instead of half-importing corrupt automations.
  */
 class BackupManager(
-    private val automationRepository: AutomationRepository
+    private val automationRepository: AutomationRepository,
+    private val commandService: AutomationCommandService
 ) {
 
     private val json: Json = Json {
@@ -161,11 +165,30 @@ class BackupManager(
             )
         }
         val disabledCount = backup.automations.count { it.enabled }
-        // Persist the validated/re-keyed graph as one storage transaction.
-        // A disk/constraint failure must never leave the installation with a
-        // half-restored dependency graph.
-        automationRepository.saveAutomationsAtomically(importedAutomations)
-        return ImportResult.Success(importedAutomations.size, disabledCount)
+        // Persist through the command boundary: every definition is
+        // structurally and dependency validated, then committed with IMPORT
+        // provenance, audit rows and event fan-out in one storage
+        // transaction. A validation failure or disk error imports nothing.
+        return when (
+            val result = commandService.importAll(
+                automations = importedAutomations,
+                context = HumanAutomationMutations.importContext(
+                    idempotencyKey = "backup-import:${backup.exportedAt}"
+                )
+            )
+        ) {
+            is AutomationImportResult.Success ->
+                ImportResult.Success(result.automations.size, disabledCount)
+            is AutomationImportResult.Rejected -> {
+                val first = result.failures.firstOrNull()
+                ImportResult.InvalidWorkflow(
+                    first?.automationId.orEmpty(),
+                    first?.issues.orEmpty()
+                )
+            }
+            is AutomationImportResult.IdempotencyConflict ->
+                ImportResult.InvalidWorkflow(result.automationId, emptyList())
+        }
     }
 
     /**
@@ -225,16 +248,31 @@ class BackupManager(
         // describe exactly what was stored, never the pre-review payload.
         // Incoming deep-link tokens are stripped (same policy as bulk import):
         // a shared file never carries another installation's run capability.
-        val saved = if (automation.id in existingIds) {
-            val rekeyed = automation.portable().copy(id = UUID.randomUUID().toString(), enabled = false, deepLinkToken = null)
-            automationRepository.saveAutomation(rekeyed)
-            rekeyed
+        val policyProcessed = if (automation.id in existingIds) {
+            automation.portable().copy(id = UUID.randomUUID().toString(), enabled = false, deepLinkToken = null)
         } else {
-            val disabled = automation.portable().copy(enabled = false, deepLinkToken = null)
-            automationRepository.saveAutomation(disabled)
-            disabled
+            automation.portable().copy(enabled = false, deepLinkToken = null)
         }
-        return SingleTaskImportResult.Success(saved)
+        return when (
+            val result = commandService.importAll(
+                automations = listOf(policyProcessed),
+                context = HumanAutomationMutations.importContext(
+                    idempotencyKey = "single-import:${policyProcessed.id}"
+                )
+            )
+        ) {
+            is AutomationImportResult.Success ->
+                SingleTaskImportResult.Success(result.automations.single())
+            is AutomationImportResult.Rejected -> {
+                val first = result.failures.firstOrNull()
+                SingleTaskImportResult.InvalidWorkflow(
+                    first?.automationId ?: policyProcessed.id,
+                    first?.issues.orEmpty()
+                )
+            }
+            is AutomationImportResult.IdempotencyConflict ->
+                SingleTaskImportResult.InvalidWorkflow(result.automationId, emptyList())
+        }
     }
 
     fun preflight(jsonText: String): BackupPreflight {

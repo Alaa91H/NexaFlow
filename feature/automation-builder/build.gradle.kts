@@ -99,6 +99,9 @@ dependencies {
     implementation(project(":core:plugin-sdk"))
     // Notification action buttons reuse the core model + PendingIntent builder.
     implementation(project(":core:execution"))
+    // Every save crosses the command boundary (validation, transactions,
+    // provenance, audit, events) exactly like agent mutations.
+    implementation(project(":core:automation-control"))
     // Real root/Shizuku detection + elevated command execution.
     implementation(project(":core:rom-integration"))
     implementation(libs.dev.rikka.shizuku.api)
