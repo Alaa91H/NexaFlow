@@ -1,5 +1,6 @@
 package com.nexaflow.core.airuntime
 
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
@@ -10,6 +11,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OpenAiCompatibleProviderTest {
@@ -31,12 +33,7 @@ class OpenAiCompatibleProviderTest {
 
     @Test
     fun requestContainsToolsAndPreservedToolHistory() = runTest {
-        val transport = FakeTransport(
-            response = OpenAiCompatibleTransportResponse(
-                200,
-                """{"choices":[{"message":{"role":"assistant","content":"done"},"finish_reason":"stop"}]}"""
-            )
-        )
+        val transport = FakeTransport()
         val provider = provider(transport)
         provider.configure(config())
 
@@ -76,6 +73,7 @@ class OpenAiCompatibleProviderTest {
 
         val body = requireNotNull(transport.lastBody)
         assertEquals("qwen3", body["model"]!!.jsonPrimitive.content)
+        assertTrue(body["stream"]!!.jsonPrimitive.content.toBoolean())
         assertEquals(1, body["tools"]!!.jsonArray.size)
         val messages = body["messages"]!!.jsonArray
         val assistant = messages[1].jsonObject
@@ -92,64 +90,37 @@ class OpenAiCompatibleProviderTest {
     }
 
     @Test
-    fun parsesTextAndMultipleToolCalls() = runTest {
+    fun parsesBufferedFallbackResponse() = runTest {
+        val provider = provider(FakeTransport())
+        provider.configure(config())
+
+        val events = provider.stream(request("inspect")).toList()
+
+        assertEquals("ok", (events[0] as AiProviderEvent.TextDelta).text)
+        assertTrue(events.last() is AiProviderEvent.Finished)
+    }
+
+    @Test
+    fun streamsTextAndReassemblesFragmentedToolCall() = runTest {
         val provider = provider(
-            FakeTransport(
-                OpenAiCompatibleTransportResponse(
-                    200,
-                    """
-                    {
-                      "choices": [{
-                        "message": {
-                          "role": "assistant",
-                          "content": "Checking",
-                          "tool_calls": [
-                            {
-                              "id": "call-a",
-                              "type": "function",
-                              "function": {
-                                "name": "nexaflow.list_tasks",
-                                "arguments": "{}"
-                              }
-                            },
-                            {
-                              "id": "call-b",
-                              "type": "function",
-                              "function": {
-                                "name": "nexaflow.get_history",
-                                "arguments": "{\"limit\":5}"
-                              }
-                            }
-                          ]
-                        },
-                        "finish_reason": "tool_calls"
-                      }]
-                    }
-                    """.trimIndent()
+            StreamingTransport(
+                listOf(
+                    """{"choices":[{"delta":{"content":"Check "},"finish_reason":null}]}""",
+                    """{"choices":[{"delta":{"content":"done","tool_calls":[{"index":0,"id":"call-1","function":{"name":"nexaflow.get_history","arguments":"{\"limit\":"}}]},"finish_reason":null}]}""",
+                    """{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"5}"}}]},"finish_reason":"tool_calls"}]}"""
                 )
             )
         )
         provider.configure(config())
 
-        val events = provider.stream(
-            AiProviderRequest(
-                conversationId = "c1",
-                messages = listOf(AiConversationMessage(AiRole.USER, "inspect")),
-                tools = emptyList(),
-                maxOutputCharacters = 1024
-            )
-        ).toList()
+        val events = provider.stream(request("inspect")).toList()
 
-        assertEquals("Checking", (events[0] as AiProviderEvent.TextDelta).text)
-        assertEquals(
-            "nexaflow.list_tasks",
-            (events[1] as AiProviderEvent.ToolCall).call.name
-        )
-        assertEquals(
-            "5",
-            (events[2] as AiProviderEvent.ToolCall)
-                .call.arguments["limit"]!!.jsonPrimitive.content
-        )
+        assertEquals("Check ", (events[0] as AiProviderEvent.TextDelta).text)
+        assertEquals("done", (events[1] as AiProviderEvent.TextDelta).text)
+        val tool = (events[2] as AiProviderEvent.ToolCall).call
+        assertEquals("call-1", tool.id)
+        assertEquals("nexaflow.get_history", tool.name)
+        assertEquals("5", tool.arguments["limit"]!!.jsonPrimitive.content)
         assertEquals(
             "tool_calls",
             (events.last() as AiProviderEvent.Finished).reason
@@ -159,32 +130,26 @@ class OpenAiCompatibleProviderTest {
     @Test(expected = IllegalArgumentException::class)
     fun rejectsNonObjectToolArguments() = runTest {
         val provider = provider(
-            FakeTransport(
-                OpenAiCompatibleTransportResponse(
-                    200,
-                    """
-                    {"choices":[{"message":{"role":"assistant","tool_calls":[{
-                      "id":"call-a","type":"function",
-                      "function":{"name":"nexaflow.list_tasks","arguments":"[]"}
-                    }]}}]}
-                    """.trimIndent()
+            StreamingTransport(
+                listOf(
+                    """{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call-a","function":{"name":"nexaflow.list_tasks","arguments":"[]"}}]},"finish_reason":"tool_calls"}]}"""
                 )
             )
         )
         provider.configure(config())
 
-        provider.stream(
-            AiProviderRequest(
-                conversationId = "c1",
-                messages = listOf(AiConversationMessage(AiRole.USER, "inspect")),
-                tools = emptyList(),
-                maxOutputCharacters = 1024
-            )
-        ).toList()
+        provider.stream(request("inspect")).toList()
     }
 
-    private fun provider(transport: FakeTransport) =
+    private fun provider(transport: OpenAiCompatibleTransport) =
         OpenAiCompatibleProvider(transport = transport)
+
+    private fun request(text: String) = AiProviderRequest(
+        conversationId = "c1",
+        messages = listOf(AiConversationMessage(AiRole.USER, text)),
+        tools = emptyList(),
+        maxOutputCharacters = 1024
+    )
 
     private fun config() = OpenAiCompatibleProviderConfig(
         enabled = true,
@@ -194,13 +159,7 @@ class OpenAiCompatibleProviderTest {
         local = true
     )
 
-    private class FakeTransport(
-        private val response: OpenAiCompatibleTransportResponse =
-            OpenAiCompatibleTransportResponse(
-                200,
-                """{"choices":[{"message":{"role":"assistant","content":"ok"}}]}"""
-            )
-    ) : OpenAiCompatibleTransport {
+    private class FakeTransport : OpenAiCompatibleTransport {
         var lastBody: JsonObject? = null
 
         override suspend fun postChatCompletions(
@@ -209,7 +168,28 @@ class OpenAiCompatibleProviderTest {
             apiKey: String?
         ): OpenAiCompatibleTransportResponse {
             lastBody = body
-            return response
+            return OpenAiCompatibleTransportResponse(
+                200,
+                """{"choices":[{"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]}"""
+            )
+        }
+    }
+
+    private class StreamingTransport(
+        private val chunks: List<String>
+    ) : OpenAiCompatibleTransport {
+        override suspend fun postChatCompletions(
+            config: OpenAiCompatibleProviderConfig,
+            body: JsonObject,
+            apiKey: String?
+        ) = OpenAiCompatibleTransportResponse(200, "{}")
+
+        override fun streamChatCompletions(
+            config: OpenAiCompatibleProviderConfig,
+            body: JsonObject,
+            apiKey: String?
+        ) = flow {
+            chunks.forEach { emit(it) }
         }
     }
 }

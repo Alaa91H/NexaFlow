@@ -3,6 +3,7 @@ package com.nexaflow.core.airuntime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
@@ -11,6 +12,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -36,12 +38,28 @@ data class OpenAiProviderProbeResult(
     val statusCode: Int? = null
 )
 
-fun interface OpenAiCompatibleTransport {
+interface OpenAiCompatibleTransport {
     suspend fun postChatCompletions(
         config: OpenAiCompatibleProviderConfig,
         body: JsonObject,
         apiKey: String?
     ): OpenAiCompatibleTransportResponse
+
+    /**
+     * Emits raw JSON completion chunks. Implementations should stream when
+     * possible; the default preserves compatibility with buffered transports.
+     */
+    fun streamChatCompletions(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?
+    ): Flow<String> = flow {
+        val response = postChatCompletions(config, body, apiKey)
+        if (response.statusCode !in 200..299) {
+            error("Provider returned HTTP ${response.statusCode}")
+        }
+        emit(response.body)
+    }
 }
 
 class OpenAiCompatibleProvider(
@@ -110,70 +128,107 @@ class OpenAiCompatibleProvider(
             "OpenAI-compatible provider is not configured"
         }
 
-        val response = transport.postChatCompletions(
+        val toolCalls = linkedMapOf<Int, ToolCallAccumulator>()
+        var finishReason: String? = null
+        transport.streamChatCompletions(
             config = snapshot,
-            body = request.toChatCompletionBody(snapshot.modelId),
+            body = request.toChatCompletionBody(snapshot.modelId, streaming = true),
             apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
-        )
-        if (response.statusCode !in 200..299) {
-            error("Provider returned HTTP ${response.statusCode}")
+        ).collect { raw ->
+            if (raw.isBlank() || raw.trim() == "[DONE]") {
+                return@collect
+            }
+
+            val root = json.parseToJsonElement(raw).jsonObject
+            val choice = root["choices"]?.jsonArray?.firstOrNull()?.jsonObject
+                ?: return@collect
+            finishReason = choice["finish_reason"]
+                ?.takeUnless { it is JsonNull }
+                ?.jsonPrimitive
+                ?.contentOrNull
+                ?: finishReason
+
+            val message = choice["message"] as? JsonObject
+            if (message != null) {
+                emitMessage(message)
+                message["tool_calls"]
+                    ?.takeUnless { it is JsonNull }
+                    ?.jsonArray
+                    ?.forEachIndexed { index, item ->
+                        toolCalls[index] = ToolCallAccumulator.fromComplete(
+                            item.jsonObject
+                        )
+                    }
+                return@collect
+            }
+
+            val delta = choice["delta"] as? JsonObject ?: return@collect
+            delta["content"]
+                ?.takeUnless { it is JsonNull }
+                ?.jsonPrimitive
+                ?.contentOrNull
+                ?.takeIf(String::isNotEmpty)
+                ?.let { emit(AiProviderEvent.TextDelta(it)) }
+
+            delta["tool_calls"]
+                ?.takeUnless { it is JsonNull }
+                ?.jsonArray
+                ?.forEachIndexed { fallbackIndex, item ->
+                    val part = item.jsonObject
+                    val index = part["index"]?.jsonPrimitive?.intOrNull
+                        ?: fallbackIndex
+                    require(index in 0 until MAX_STREAM_TOOL_CALLS) {
+                        "Tool call index exceeds limit"
+                    }
+                    toolCalls.getOrPut(index, ::ToolCallAccumulator)
+                        .append(part)
+                }
         }
 
-        val root = json.parseToJsonElement(response.body).jsonObject
-        val choice = root["choices"]?.jsonArray?.firstOrNull()?.jsonObject
-            ?: throw IllegalArgumentException("Provider response has no choices")
-        val message = choice["message"]?.jsonObject
-            ?: throw IllegalArgumentException("Provider response has no message")
+        toolCalls.toSortedMap().values.forEach { accumulator ->
+            emit(AiProviderEvent.ToolCall(accumulator.toToolCall()))
+        }
+        emit(AiProviderEvent.Finished(finishReason))
+    }
 
+    private suspend fun kotlinx.coroutines.flow.FlowCollector<AiProviderEvent>.emitMessage(
+        message: JsonObject
+    ) {
         message["content"]
             ?.takeUnless { it is JsonNull }
             ?.jsonPrimitive
             ?.contentOrNull
             ?.takeIf(String::isNotEmpty)
             ?.let { emit(AiProviderEvent.TextDelta(it)) }
-
-        message["tool_calls"]
-            ?.takeUnless { it is JsonNull }
-            ?.jsonArray
-            ?.forEach { item ->
-                emit(AiProviderEvent.ToolCall(item.jsonObject.toToolCall()))
-            }
-
-        emit(
-            AiProviderEvent.Finished(
-                choice["finish_reason"]
-                    ?.takeUnless { it is JsonNull }
-                    ?.jsonPrimitive
-                    ?.contentOrNull
-            )
-        )
     }
 
-    private fun AiProviderRequest.toChatCompletionBody(modelId: String): JsonObject =
-        buildJsonObject {
-            put("model", modelId)
-            put("stream", false)
-            put("messages", buildJsonArray {
-                messages.forEach { add(it.toOpenAiMessage()) }
-            })
-            if (tools.isNotEmpty()) {
-                putJsonArray("tools") {
-                    tools.forEach { tool ->
-                        add(
-                            buildJsonObject {
-                                put("type", "function")
-                                putJsonObject("function") {
-                                    put("name", tool.name)
-                                    put("description", tool.description)
-                                    put("parameters", tool.inputSchema)
-                                }
+    private fun AiProviderRequest.toChatCompletionBody(
+        modelId: String,
+        streaming: Boolean
+    ): JsonObject = buildJsonObject {
+        put("model", modelId)
+        put("stream", streaming)
+        put("messages", buildJsonArray {
+            messages.forEach { add(it.toOpenAiMessage()) }
+        })
+        if (tools.isNotEmpty()) {
+            putJsonArray("tools") {
+                tools.forEach { tool ->
+                    add(
+                        buildJsonObject {
+                            put("type", "function")
+                            putJsonObject("function") {
+                                put("name", tool.name)
+                                put("description", tool.description)
+                                put("parameters", tool.inputSchema)
                             }
-                        )
-                    }
+                        }
+                    )
                 }
-                put("tool_choice", "auto")
             }
+            put("tool_choice", "auto")
         }
+    }
 
     private fun AiConversationMessage.toOpenAiMessage(): JsonObject =
         buildJsonObject {
@@ -247,7 +302,7 @@ class OpenAiCompatibleProvider(
             capabilities = AiProviderCapabilities(
                 toolCalling = true,
                 structuredOutput = true,
-                streaming = false,
+                streaming = true,
                 local = value.local
             ),
             available = isConfigured(value),
@@ -266,10 +321,60 @@ class OpenAiCompatibleProvider(
                     uri.fragment == null
             }.getOrDefault(false)
 
+    private inner class ToolCallAccumulator {
+        private var id = ""
+        private var name = ""
+        private val arguments = StringBuilder()
+
+        fun append(part: JsonObject) {
+            part["id"]?.jsonPrimitive?.contentOrNull
+                ?.takeIf(String::isNotEmpty)
+                ?.let { fragment ->
+                    if (id.isEmpty()) id = fragment else if (id != fragment) id += fragment
+                }
+            val function = part["function"] as? JsonObject ?: return
+            function["name"]?.jsonPrimitive?.contentOrNull
+                ?.takeIf(String::isNotEmpty)
+                ?.let { fragment ->
+                    if (name.isEmpty()) name = fragment else if (name != fragment) name += fragment
+                }
+            function["arguments"]?.jsonPrimitive?.contentOrNull?.let { fragment ->
+                require(
+                    arguments.length + fragment.length <=
+                        AiConversationEngine.MAX_TOOL_ARGUMENT_CHARACTERS
+                ) {
+                    "Tool arguments exceed limit"
+                }
+                arguments.append(fragment)
+            }
+        }
+
+        fun toToolCall(): AiToolCall {
+            require(id.length in 1..MAX_TOOL_CALL_ID_LENGTH) {
+                "Tool call id is invalid"
+            }
+            require(name.length in 1..AiConversationEngine.MAX_TOOL_NAME_LENGTH) {
+                "Tool call name is invalid"
+            }
+            val rawArguments = arguments.toString().ifBlank { "{}" }
+            val parsed = json.parseToJsonElement(rawArguments) as? JsonObject
+                ?: throw IllegalArgumentException("Tool arguments must be an object")
+            return AiToolCall(id = id, name = name, arguments = parsed)
+        }
+
+        companion object {
+            fun fromComplete(value: JsonObject): ToolCallAccumulator =
+                this@OpenAiCompatibleProvider.ToolCallAccumulator().apply {
+                    append(value)
+                }
+        }
+    }
+
     companion object {
         const val PROVIDER_ID = "openai_compatible"
         const val MAX_BASE_URL_LENGTH = 2048
         const val MAX_TOOL_CALL_ID_LENGTH = 256
         const val API_KEY_STORAGE_KEY = "ai.provider.openai_compatible.api_key"
+        private const val MAX_STREAM_TOOL_CALLS = 16
     }
 }
