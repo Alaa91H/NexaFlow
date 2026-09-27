@@ -124,6 +124,42 @@ class AgentApiController(
         }
     }
 
+    /**
+     * Authenticated non-HTTP transport entry point used by Android Binder.
+     *
+     * The caller identity binding is derived by the transport itself and can
+     * therefore include package/signing-certificate identity that must never
+     * be accepted from forgeable HTTP headers.
+     */
+    suspend fun handleAuthenticated(
+        request: AgentHttpRequest,
+        accessToken: String,
+        presentedBinding: AgentIdentityBinding,
+        transport: String
+    ): AgentHttpResponse {
+        require(transport.isNotBlank())
+        val uri = runCatching { URI(request.target) }.getOrNull()
+            ?: return error(400, "invalid_target", "Request target is invalid")
+        val path = uri.path ?: "/"
+        val operation = operationFor(request.method, path)
+            ?: return error(404, "not_found", "API route was not found")
+        val principal = authorizeToken(
+            accessToken = accessToken,
+            operation = operation,
+            presentedBinding = presentedBinding,
+            payloadBytes = request.body.size
+        )
+        if (principal.response != null) return principal.response
+
+        return handleTrusted(
+            request = request,
+            principal = AgentTrustedPrincipal(
+                agentId = checkNotNull(principal.agentId),
+                transport = transport
+            )
+        )
+    }
+
     private suspend fun dispatch(
         request: AgentHttpRequest,
         uri: URI,
@@ -274,40 +310,104 @@ class AgentApiController(
             .orEmpty()
         if (token.isBlank()) {
             return AuthorizedRequest(
-                response = error(401, "missing_bearer_token", "Bearer access token is required")
+                response = error(
+                    401,
+                    "missing_bearer_token",
+                    "Bearer access token is required"
+                )
             )
         }
         val binding = AgentIdentityBinding(
             transportKeyFingerprint = request.header("x-nexaflow-transport-key")
                 ?.takeIf(String::isNotBlank)
         )
-        return when (
-            val result = authorizer.authorize(
-                accessToken = token,
-                operation = operation,
-                presentedBinding = binding,
-                payloadBytes = request.body.size
+        return authorizeToken(
+            accessToken = token,
+            operation = operation,
+            presentedBinding = binding,
+            payloadBytes = request.body.size
+        )
+    }
+
+    private suspend fun authorizeToken(
+        accessToken: String,
+        operation: AgentOperation,
+        presentedBinding: AgentIdentityBinding,
+        payloadBytes: Int
+    ): AuthorizedRequest = when (
+        val result = authorizer.authorize(
+            accessToken = accessToken,
+            operation = operation,
+            presentedBinding = presentedBinding,
+            payloadBytes = payloadBytes
+        )
+    ) {
+        is AgentAuthorizationResult.Authorized ->
+            AuthorizedRequest(agentId = result.agentId)
+        AgentAuthorizationResult.Disabled ->
+            AuthorizedRequest(
+                response = error(
+                    403,
+                    "agent_access_disabled",
+                    "AI Agent Access is disabled"
+                )
             )
-        ) {
-            is AgentAuthorizationResult.Authorized ->
-                AuthorizedRequest(agentId = result.agentId)
-            AgentAuthorizationResult.Disabled ->
-                AuthorizedRequest(response = error(403, "agent_access_disabled", "AI Agent Access is disabled"))
-            AgentAuthorizationResult.InvalidToken ->
-                AuthorizedRequest(response = error(401, "invalid_access_token", "Access token is invalid"))
-            AgentAuthorizationResult.Expired ->
-                AuthorizedRequest(response = error(401, "access_token_expired", "Access token expired"))
-            AgentAuthorizationResult.Revoked ->
-                AuthorizedRequest(response = error(401, "agent_revoked", "Agent grant was revoked"))
-            AgentAuthorizationResult.BindingMismatch ->
-                AuthorizedRequest(response = error(401, "binding_mismatch", "Agent transport identity does not match"))
-            AgentAuthorizationResult.ScopeDenied ->
-                AuthorizedRequest(response = error(403, "scope_denied", "Agent scope does not allow this operation"))
-            AgentAuthorizationResult.PayloadTooLarge ->
-                AuthorizedRequest(response = error(413, "payload_too_large", "Request payload is too large"))
-            AgentAuthorizationResult.RateLimited ->
-                AuthorizedRequest(response = error(429, "rate_limited", "Agent request rate limit exceeded"))
-        }
+        AgentAuthorizationResult.InvalidToken ->
+            AuthorizedRequest(
+                response = error(
+                    401,
+                    "invalid_access_token",
+                    "Access token is invalid"
+                )
+            )
+        AgentAuthorizationResult.Expired ->
+            AuthorizedRequest(
+                response = error(
+                    401,
+                    "access_token_expired",
+                    "Access token expired"
+                )
+            )
+        AgentAuthorizationResult.Revoked ->
+            AuthorizedRequest(
+                response = error(
+                    401,
+                    "agent_revoked",
+                    "Agent grant was revoked"
+                )
+            )
+        AgentAuthorizationResult.BindingMismatch ->
+            AuthorizedRequest(
+                response = error(
+                    401,
+                    "binding_mismatch",
+                    "Agent transport identity does not match"
+                )
+            )
+        AgentAuthorizationResult.ScopeDenied ->
+            AuthorizedRequest(
+                response = error(
+                    403,
+                    "scope_denied",
+                    "Agent scope does not allow this operation"
+                )
+            )
+        AgentAuthorizationResult.PayloadTooLarge ->
+            AuthorizedRequest(
+                response = error(
+                    413,
+                    "payload_too_large",
+                    "Request payload is too large"
+                )
+            )
+        AgentAuthorizationResult.RateLimited ->
+            AuthorizedRequest(
+                response = error(
+                    429,
+                    "rate_limited",
+                    "Agent request rate limit exceeded"
+                )
+            )
     }
 
     private suspend fun listTasks(): AgentHttpResponse {
