@@ -27,6 +27,7 @@ TRIGGER_ENGINE_FILES = [
     os.path.join(ROOT, "core/execution/src/main/java/com/nexaflow/core/execution/TriggerStateEvaluator.kt"),
     os.path.join(ROOT, "core/automation-engine/src/main/java/com/nexaflow/core/engine/AutomationScheduler.kt"),
     os.path.join(ROOT, "core/automation-engine/src/main/java/com/nexaflow/core/engine/SmsTriggerMatcher.kt"),
+    os.path.join(ROOT, "core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceOneShotTriggerMatcher.kt"),
 ]
 
 LOCALES = ["ar", "de", "es", "fr", "hi", "ja", "pt", "ru", "tr", "zh-rCN"]
@@ -70,18 +71,38 @@ def split_action_arms(source):
 def split_trigger_arms(source, indent=12):
     """TriggerType.X -> ... arms at a given indentation (evaluator vs editor)."""
     pad = " " * indent
-    pat = "\n" + pad + r"TriggerType\.([A-Z_]+) ->"
+    # Arms look like `\n<indent>TriggerType.X ->` (possibly multi-name arms
+    # joined with commas, e.g. `TriggerType.A, TriggerType.B ->`). The
+    # trailing `->` pins real arm heads so a bare mention inside a body
+    # (e.g. `trigger.type == TriggerType.WEAR_EVENT`) can never open an arm.
+    pat = "\\n" + pad + r"TriggerType\.([A-Z_]+(?:\s*,\s*TriggerType\.[A-Z_]+)*)\s*->"
     parts = re.split(pat, source)
     arms = {}
     for i in range(1, len(parts) - 1, 2):
-        name = parts[i]
+        head = parts[i]
+        names = [n.strip().removeprefix("TriggerType.") for n in head.split(",")]
         body = parts[i + 1]
-        # Cut at the next arm of the same shape.
-        nxt = re.search("\n" + pad + r"TriggerType\.", body)
+        # Cut at the next arm of the same shape, at the closing `else ->`
+        # fallback arm, or at the first line dedented to (or above) the
+        # arm-head indentation — whichever comes first. `else ->` belongs to
+        # no trigger, and dedented lines (closing braces of the enclosing
+        # `when`/function, doc comments, annotations) end the arm before it
+        # can swallow the rest of the file.
+        cut_candidates = []
+        nxt = re.search("\\n" + pad + r"TriggerType\.[A-Z_]+\s*(?:,\s*TriggerType\.[A-Z_]+)*\s*->", body)
         if nxt:
-            body = body[: nxt.start()]
-        arms.setdefault(name, "")
-        arms[name] += body
+            cut_candidates.append(nxt.start())
+        els = re.search("\\n" + pad + r"else\s*->", body)
+        if els:
+            cut_candidates.append(els.start())
+        dedent = re.search(r"\n( {0,%d})\S" % (indent - 1), body)
+        if dedent:
+            cut_candidates.append(dedent.start())
+        if cut_candidates:
+            body = body[: min(cut_candidates)]
+        for name in names:
+            arms.setdefault(name, "")
+            arms[name] += body
     return arms
 
 
@@ -164,13 +185,17 @@ def main():
                     action_engine_keys.setdefault(name, set()).update(file_keys)
 
     # Engine-read keys per trigger: evaluator/scheduler/matcher arms read `c["x"]`.
+    # Each file uses its own `when` indentation (8 for compact matchers, 12
+    # for the large evaluator), so probe both shapes per file.
     trigger_engine_keys = {}
     for path in TRIGGER_ENGINE_FILES:
         if os.path.exists(path):
-            for name, body in split_trigger_arms(read(path), indent=12).items():
-                keys = set(re.findall(r'\bc(?:onfig)?\["([a-zA-Z_]+)"\]', body))
-                keys |= set(re.findall(r'\bc\.get\("([a-zA-Z_]+)"\)', body))
-                trigger_engine_keys.setdefault(name, set()).update(keys)
+            source = read(path)
+            for indent in (8, 12):
+                for name, body in split_trigger_arms(source, indent=indent).items():
+                    keys = set(re.findall(r'\bc(?:onfig)?\["([a-zA-Z_]+)"\]', body))
+                    keys |= set(re.findall(r'\bc\.get\("([a-zA-Z_]+)"\)', body))
+                    trigger_engine_keys.setdefault(name, set()).update(keys)
 
     editor_arm_bodies = split_action_arms(action_editor)
 

@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### Fixed — Generated documentation drift
+
+- Regenerated `docs/CAPABILITY_CATALOG.md` from source: the catalog now records
+  the 57th trigger enum entry (`WEAR_EVENT`, 55 in the general picker) added
+  with the Wear OS automation foundation, alongside the 176 action entries.
+- Regenerated `docs/options-audit.md` from source: the report now covers the
+  `WEAR_EVENT` editor defaults (`state`, `watchInstallId`) and engine keys,
+  counts 652 editor string keys with key parity across all 11 resource sets,
+  and reads the legacy `package` alias for `APPLICATION`/`NOTIFICATION`
+  trigger labels.
+- Hardened `scripts/generate_options_audit.py`: trigger-arm splitting now pins
+  the trailing `->` (so a bare `trigger.type == TriggerType.X` mention can
+  never open an arm), stops each body at the next arm, the `else ->` fallback,
+  or the first dedented line (so a body can never swallow the rest of the
+  file), supports multi-name arms, probes both 8- and 12-space `when`
+  indentations per file, and reads the one-shot matcher (`CLIPBOARD_CHANGED`,
+  `TIMEZONE_CHANGED`, `NFC_TAG_SCANNED`, `SCREEN_TIMEOUT_CHANGED`,
+  `ALARM_SET_CHANGED`, `BOOT_COMPLETED`) alongside the evaluator.
+- Hardened `scripts/generate_capability_catalog.py`: the curated semantic
+  operations section is now preserved verbatim across regenerations instead
+  of being dropped, so the count line and the operations prose stay in sync.
+- Corrected the trigger counts in `README.md` (57 entries, 55 in the general
+  picker) and `docs/ROADMAP_2026.md` (57 entries) to match the source enums
+  and the passing `CATALOG_PARITY: OK — 57 triggers (55 exposed)` gate.
+
+### Compatibility and safety
+
+- No database schema migration is introduced by this change.
+- No runtime behavior is changed; this is a documentation/generator fix only.
 
 ## [v3.90.0] - 2026-09-26
 
