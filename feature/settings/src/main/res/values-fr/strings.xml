@@ -307,4 +307,10 @@
     <string name="ai_routing_selected">Fournisseur sélectionné</string>
     <string name="ai_routing_cloud_fallback">Autoriser le repli cloud</string>
     <string name="ai_routing_cloud_fallback_subtitle">Le mode automatique peut utiliser un fournisseur cloud uniquement si aucun fournisseur local n’est disponible.</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">Accès au réseau local privé</string>
+    <string name="agent_lan_access_on">Activé — les agents appairés peuvent se connecter depuis votre réseau privé</string>
+    <string name="agent_lan_access_off">Désactivé — USB/boucle locale uniquement</string>
+    <string name="agent_lan_access_description">Android 17 exige l’autorisation d’accès au réseau local. L’authentification et la révocation restent appliquées.</string>
 </resources>
