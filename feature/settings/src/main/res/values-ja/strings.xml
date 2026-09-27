@@ -297,4 +297,14 @@
     <string name="ai_provider_test_success">モデルは利用可能です</string>
     <string name="ai_provider_test_failed">モデルのテストに失敗しました</string>
     <string name="ai_provider_clear_key">保存済みキーを削除</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">モデルルーティング</string>
+    <string name="ai_routing_subtitle">NexaFlow がチャット用モデルを選ぶ方法を指定します。</string>
+    <string name="ai_routing_automatic">自動（ローカル優先）</string>
+    <string name="ai_routing_local_only">ローカルのみ</string>
+    <string name="ai_routing_cloud_only">クラウドのみ</string>
+    <string name="ai_routing_selected">選択したプロバイダー</string>
+    <string name="ai_routing_cloud_fallback">クラウドへのフォールバックを許可</string>
+    <string name="ai_routing_cloud_fallback_subtitle">自動モードはローカルプロバイダーが利用できない場合に限りクラウドを使用できます。</string>
 </resources>
