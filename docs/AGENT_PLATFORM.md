@@ -309,14 +309,29 @@ certificate identity plus the rotating refresh/access credential lifecycle.
 
 ## Phase 12 - NexaFlow Bridge
 
-Desktop bridge commands:
+Implemented USB/desktop foundation:
 
-- `nexaflow-agent pair`
-- `nexaflow-agent status`
-- `nexaflow-agent devices`
-- `nexaflow-agent mcp`
+- [x] zero-dependency Python desktop CLI
+- [x] `nexaflow-agent pair`
+- [x] `nexaflow-agent status`
+- [x] `nexaflow-agent devices`
+- [x] `nexaflow-agent mcp`
+- [x] MCP stdio -> phone Streamable HTTP proxy
+- [x] temporary ADB/USB TCP forwarding to the phone's loopback-only server
+- [x] automatic short-lived session exchange and rotated refresh-token storage
+- [x] retry-once session renewal after HTTP 401
+- [x] MCP 2025-11-25 and 2026-07-28 routing-header support
+- [x] bounded stdin/HTTP payloads and redirect rejection
+- [x] direct endpoint policy: public endpoints require HTTPS; HTTP is private/loopback only
+- [x] bridge unit tests in CI
+- [ ] explicit Android-side trusted-LAN listener toggle
+- [ ] QR ingestion convenience on desktop
 
-Support MCP stdio plus USB/ADB and trusted LAN transport.
+The bridge intentionally keeps Android loopback-only by default. USB mode uses
+`adb forward`, so no phone port is exposed to the LAN. Direct endpoint support
+is client-ready for an explicitly enabled trusted-LAN/VPN endpoint, but the
+Android listener will not bind beyond loopback until the user enables that
+separate transport explicitly.
 
 ## Phase 13 - event subscriptions
 
