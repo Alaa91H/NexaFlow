@@ -1,5 +1,6 @@
 package com.nexaflow.core.airuntime
 
+import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +67,9 @@ interface OpenAiCompatibleTransport {
 class OpenAiCompatibleProvider(
     private val transport: OpenAiCompatibleTransport,
     private val apiKeyProvider: suspend () -> String? = { null },
+    private val fallbackToolCallIdGenerator: () -> String = {
+        "fallback-" + UUID.randomUUID()
+    },
     private val json: Json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false
@@ -286,11 +290,36 @@ class OpenAiCompatibleProvider(
             "OpenAI-compatible provider is not configured"
         }
 
+        val capabilities = _descriptor.value.capabilities
+        if (
+            request.tools.isNotEmpty() &&
+            !capabilities.toolCalling &&
+            capabilities.structuredOutput
+        ) {
+            emitStructuredToolFallback(
+                request = request,
+                snapshot = snapshot,
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            )
+            return@flow
+        }
+
+        val effectiveRequest = if (
+            request.tools.isNotEmpty() && !capabilities.toolCalling
+        ) {
+            request.copy(tools = emptyList())
+        } else {
+            request
+        }
+
         val toolCalls = linkedMapOf<Int, ToolCallAccumulator>()
         var finishReason: String? = null
         transport.streamChatCompletions(
             config = snapshot,
-            body = request.toChatCompletionBody(snapshot.modelId, streaming = true),
+            body = effectiveRequest.toChatCompletionBody(
+                snapshot.modelId,
+                streaming = true
+            ),
             apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
         ).collect { raw ->
             if (raw.isBlank() || raw.trim() == "[DONE]") {
@@ -345,6 +374,127 @@ class OpenAiCompatibleProvider(
             emit(AiProviderEvent.ToolCall(accumulator.toToolCall()))
         }
         emit(AiProviderEvent.Finished(finishReason))
+    }
+
+    private suspend fun kotlinx.coroutines.flow.FlowCollector<AiProviderEvent>
+        .emitStructuredToolFallback(
+            request: AiProviderRequest,
+            snapshot: OpenAiCompatibleProviderConfig,
+            apiKey: String?
+        ) {
+            val response = transport.postChatCompletions(
+                config = snapshot,
+                body = request.toStructuredFallbackBody(snapshot.modelId),
+                apiKey = apiKey
+            )
+            require(response.statusCode in 200..299) {
+                "Provider returned HTTP ${response.statusCode}"
+            }
+            val message = json.parseToJsonElement(response.body)
+                .jsonObject["choices"]
+                ?.jsonArray
+                ?.firstOrNull()
+                ?.jsonObject
+                ?.get("message")
+                ?.jsonObject
+                ?: throw IllegalArgumentException("Provider response has no message")
+            val content = message["content"]
+                ?.takeUnless { it is JsonNull }
+                ?.jsonPrimitive
+                ?.contentOrNull
+                ?: throw IllegalArgumentException("Structured response is empty")
+            val envelope = json.parseToJsonElement(content) as? JsonObject
+                ?: throw IllegalArgumentException("Structured response must be an object")
+
+            val toolName = envelope["tool"]
+                ?.takeUnless { it is JsonNull }
+                ?.jsonPrimitive
+                ?.contentOrNull
+            if (!toolName.isNullOrBlank()) {
+                val definition = request.tools.firstOrNull { it.name == toolName }
+                    ?: throw IllegalArgumentException("Structured response selected an unknown tool")
+                val arguments = envelope["arguments"] as? JsonObject
+                    ?: throw IllegalArgumentException("Structured tool arguments must be an object")
+                require(
+                    arguments.toString().length <=
+                        AiConversationEngine.MAX_TOOL_ARGUMENT_CHARACTERS
+                ) {
+                    "Tool arguments exceed limit"
+                }
+                emit(
+                    AiProviderEvent.ToolCall(
+                        AiToolCall(
+                            id = fallbackToolCallIdGenerator()
+                                .take(MAX_TOOL_CALL_ID_LENGTH),
+                            name = definition.name,
+                            arguments = arguments
+                        )
+                    )
+                )
+                emit(AiProviderEvent.Finished("structured_tool_call"))
+                return
+            }
+
+            val text = envelope["message"]
+                ?.takeUnless { it is JsonNull }
+                ?.jsonPrimitive
+                ?.contentOrNull
+                ?.takeIf(String::isNotBlank)
+                ?: throw IllegalArgumentException(
+                    "Structured response must contain tool or message"
+                )
+            emit(AiProviderEvent.TextDelta(text))
+            emit(AiProviderEvent.Finished("structured_message"))
+        }
+
+    private fun AiProviderRequest.toStructuredFallbackBody(
+        modelId: String
+    ): JsonObject {
+        val instruction = structuredFallbackInstruction()
+        require(instruction.length <= MAX_FALLBACK_INSTRUCTION_CHARACTERS) {
+            "Structured fallback tool catalog exceeds limit"
+        }
+        return buildJsonObject {
+            put("model", modelId)
+            put("stream", false)
+            putJsonObject("response_format") {
+                put("type", "json_object")
+            }
+            putJsonArray("messages") {
+                add(
+                    buildJsonObject {
+                        put("role", "system")
+                        put("content", instruction)
+                    }
+                )
+                messages.forEach { add(it.toOpenAiMessage()) }
+            }
+        }
+    }
+
+    private fun AiProviderRequest.structuredFallbackInstruction(): String {
+        val catalog = buildJsonArray {
+            tools.forEach { tool ->
+                add(
+                    buildJsonObject {
+                        put("name", tool.name)
+                        put("description", tool.description)
+                        put("parameters", tool.inputSchema)
+                    }
+                )
+            }
+        }
+        return buildString {
+            append(
+                "Return exactly one JSON object. To call a tool use " +
+                    "{\"tool\":\"tool.name\",\"arguments\":{...}}. "
+            )
+            append(
+                "To answer without a tool use {\"message\":\"text\"}. " +
+                    "Never invent a tool name. Available tools: "
+            )
+            append(catalog)
+        }
     }
 
     private suspend fun kotlinx.coroutines.flow.FlowCollector<AiProviderEvent>.emitMessage(
@@ -531,6 +681,7 @@ class OpenAiCompatibleProvider(
         const val MAX_TOOL_CALL_ID_LENGTH = 256
         const val API_KEY_STORAGE_KEY = "ai.provider.openai_compatible.api_key"
         private const val MAX_STREAM_TOOL_CALLS = 16
+        private const val MAX_FALLBACK_INSTRUCTION_CHARACTERS = 65_536
         private const val PROBE_TOOL_NAME = "nexaflow_capability_probe"
     }
 }
