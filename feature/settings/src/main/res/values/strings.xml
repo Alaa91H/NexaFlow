@@ -304,4 +304,10 @@
     <string name="ai_routing_selected">Selected provider</string>
     <string name="ai_routing_cloud_fallback">Allow cloud fallback</string>
     <string name="ai_routing_cloud_fallback_subtitle">Automatic mode may use a cloud provider only when no local provider is available.</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">Private LAN access</string>
+    <string name="agent_lan_access_on">Enabled — paired agents can connect from your private network</string>
+    <string name="agent_lan_access_off">Off — USB/loopback only</string>
+    <string name="agent_lan_access_description">Android 17 requires local-network permission. Authentication and revocation still apply.</string>
 </resources>
