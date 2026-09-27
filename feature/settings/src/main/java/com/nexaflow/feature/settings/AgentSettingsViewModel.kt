@@ -88,6 +88,9 @@ class AgentSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val success = runCatching {
                 accessManager.setAccessEnabled(enabled)
+                if (!enabled) {
+                    agentNetworkPreferences.setLanAccessEnabled(false)
+                }
             }.isSuccess
             reload(operationFailed = !success)
         }
