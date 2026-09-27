@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
 
 class NexaFlowAiToolExecutor(
     controller: com.nexaflow.core.agentapi.AgentApiController,
@@ -58,7 +59,7 @@ class NexaFlowAiToolExecutor(
         val payload = runCatching {
             json.parseToJsonElement(
                 response.body.toString(StandardCharsets.UTF_8)
-            )
+            ).jsonObject
         }.getOrElse {
             buildJsonObject {
                 put("error", "invalid_tool_response")
