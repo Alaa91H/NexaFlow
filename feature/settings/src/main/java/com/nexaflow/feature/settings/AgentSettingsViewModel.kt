@@ -217,6 +217,7 @@ class AgentSettingsViewModel @Inject constructor(
         )
         viewModelScope.launch {
             val result = provider.probe()
+            providerRegistry.refreshDescriptors()
             reload(
                 providerProbeState = if (result.success) {
                     AiProviderProbeState.SUCCESS

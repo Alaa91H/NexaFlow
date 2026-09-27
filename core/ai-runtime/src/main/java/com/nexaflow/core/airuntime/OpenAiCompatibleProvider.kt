@@ -35,7 +35,8 @@ data class OpenAiCompatibleTransportResponse(
 
 data class OpenAiProviderProbeResult(
     val success: Boolean,
-    val statusCode: Int? = null
+    val statusCode: Int? = null,
+    val capabilities: AiProviderCapabilities = AiProviderCapabilities()
 )
 
 interface OpenAiCompatibleTransport {
@@ -88,39 +89,196 @@ class OpenAiCompatibleProvider(
         if (!isConfigured(snapshot)) {
             return OpenAiProviderProbeResult(success = false)
         }
-        return runCatching {
-            val response = transport.postChatCompletions(
+
+        val apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+        val basic = runCatching {
+            transport.postChatCompletions(
                 config = snapshot,
-                body = buildJsonObject {
-                    put("model", snapshot.modelId)
-                    put("stream", false)
-                    put("max_tokens", 8)
-                    putJsonArray("messages") {
-                        add(
-                            buildJsonObject {
-                                put("role", "user")
-                                put("content", "Reply with OK.")
-                            }
-                        )
-                    }
-                },
-                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
-            )
-            val validBody = response.statusCode in 200..299 &&
-                runCatching {
-                    json.parseToJsonElement(response.body)
-                        .jsonObject["choices"]
-                        ?.jsonArray
-                        ?.isNotEmpty() == true
-                }.getOrDefault(false)
-            OpenAiProviderProbeResult(
-                success = validBody,
-                statusCode = response.statusCode
+                body = basicProbeBody(snapshot.modelId),
+                apiKey = apiKey
             )
         }.getOrElse {
-            OpenAiProviderProbeResult(success = false)
+            return OpenAiProviderProbeResult(success = false)
+        }
+        val validBody = basic.statusCode in 200..299 &&
+            runCatching {
+                json.parseToJsonElement(basic.body)
+                    .jsonObject["choices"]
+                    ?.jsonArray
+                    ?.isNotEmpty() == true
+            }.getOrDefault(false)
+        if (!validBody) {
+            return OpenAiProviderProbeResult(
+                success = false,
+                statusCode = basic.statusCode
+            )
+        }
+
+        val capabilities = AiProviderCapabilities(
+            toolCalling = probeToolCalling(snapshot, apiKey),
+            structuredOutput = probeStructuredOutput(snapshot, apiKey),
+            streaming = probeStreaming(snapshot, apiKey),
+            local = snapshot.local
+        )
+        _descriptor.value = descriptorFor(snapshot, capabilities)
+        return OpenAiProviderProbeResult(
+            success = true,
+            statusCode = basic.statusCode,
+            capabilities = capabilities
+        )
+    }
+
+    private fun basicProbeBody(modelId: String) = buildJsonObject {
+        put("model", modelId)
+        put("stream", false)
+        put("max_tokens", 8)
+        putJsonArray("messages") {
+            add(
+                buildJsonObject {
+                    put("role", "user")
+                    put("content", "Reply with OK.")
+                }
+            )
         }
     }
+
+    private suspend fun probeToolCalling(
+        snapshot: OpenAiCompatibleProviderConfig,
+        apiKey: String?
+    ): Boolean = runCatching {
+        val response = transport.postChatCompletions(
+            config = snapshot,
+            body = buildJsonObject {
+                put("model", snapshot.modelId)
+                put("stream", false)
+                put("max_tokens", 16)
+                putJsonArray("messages") {
+                    add(
+                        buildJsonObject {
+                            put("role", "user")
+                            put("content", "Call the supplied probe function.")
+                        }
+                    )
+                }
+                putJsonArray("tools") {
+                    add(
+                        buildJsonObject {
+                            put("type", "function")
+                            putJsonObject("function") {
+                                put("name", PROBE_TOOL_NAME)
+                                put("description", "Capability probe")
+                                putJsonObject("parameters") {
+                                    put("type", "object")
+                                    putJsonObject("properties") {}
+                                    put("additionalProperties", false)
+                                }
+                            }
+                        }
+                    )
+                }
+                putJsonObject("tool_choice") {
+                    put("type", "function")
+                    putJsonObject("function") {
+                        put("name", PROBE_TOOL_NAME)
+                    }
+                }
+            },
+            apiKey = apiKey
+        )
+        if (response.statusCode !in 200..299) return@runCatching false
+        val message = json.parseToJsonElement(response.body)
+            .jsonObject["choices"]
+            ?.jsonArray
+            ?.firstOrNull()
+            ?.jsonObject
+            ?.get("message")
+            as? JsonObject
+            ?: return@runCatching false
+        message["tool_calls"]
+            ?.takeUnless { it is JsonNull }
+            ?.jsonArray
+            ?.any { item ->
+                item.jsonObject["function"]
+                    ?.jsonObject
+                    ?.get("name")
+                    ?.jsonPrimitive
+                    ?.contentOrNull == PROBE_TOOL_NAME
+            } == true
+    }.getOrDefault(false)
+
+    private suspend fun probeStructuredOutput(
+        snapshot: OpenAiCompatibleProviderConfig,
+        apiKey: String?
+    ): Boolean = runCatching {
+        val response = transport.postChatCompletions(
+            config = snapshot,
+            body = buildJsonObject {
+                put("model", snapshot.modelId)
+                put("stream", false)
+                put("max_tokens", 16)
+                putJsonObject("response_format") {
+                    put("type", "json_object")
+                }
+                putJsonArray("messages") {
+                    add(
+                        buildJsonObject {
+                            put("role", "user")
+                            put("content", "Return a JSON object with ok=true.")
+                        }
+                    )
+                }
+            },
+            apiKey = apiKey
+        )
+        if (response.statusCode !in 200..299) return@runCatching false
+        val content = json.parseToJsonElement(response.body)
+            .jsonObject["choices"]
+            ?.jsonArray
+            ?.firstOrNull()
+            ?.jsonObject
+            ?.get("message")
+            ?.jsonObject
+            ?.get("content")
+            ?.jsonPrimitive
+            ?.contentOrNull
+            ?: return@runCatching false
+        json.parseToJsonElement(content) is JsonObject
+    }.getOrDefault(false)
+
+    private suspend fun probeStreaming(
+        snapshot: OpenAiCompatibleProviderConfig,
+        apiKey: String?
+    ): Boolean = runCatching {
+        var sawDelta = false
+        transport.streamChatCompletions(
+            config = snapshot,
+            body = buildJsonObject {
+                put("model", snapshot.modelId)
+                put("stream", true)
+                put("max_tokens", 8)
+                putJsonArray("messages") {
+                    add(
+                        buildJsonObject {
+                            put("role", "user")
+                            put("content", "Reply with OK.")
+                        }
+                    )
+                }
+            },
+            apiKey = apiKey
+        ).collect { raw ->
+            if (raw.isBlank() || raw.trim() == "[DONE]") return@collect
+            val choice = json.parseToJsonElement(raw)
+                .jsonObject["choices"]
+                ?.jsonArray
+                ?.firstOrNull()
+                ?.jsonObject
+            if (choice?.get("delta") is JsonObject) {
+                sawDelta = true
+            }
+        }
+        sawDelta
+    }.getOrDefault(false)
 
     override fun stream(request: AiProviderRequest): Flow<AiProviderEvent> = flow {
         val snapshot = config
@@ -292,17 +450,19 @@ class OpenAiCompatibleProvider(
         modelId = modelId.trim()
     )
 
-    private fun descriptorFor(value: OpenAiCompatibleProviderConfig) =
-        AiProviderDescriptor(
+    private fun descriptorFor(
+        value: OpenAiCompatibleProviderConfig,
+        capabilities: AiProviderCapabilities = AiProviderCapabilities(
+            toolCalling = true,
+            structuredOutput = true,
+            streaming = true,
+            local = value.local
+        )
+    ) = AiProviderDescriptor(
             id = PROVIDER_ID,
             displayName = value.displayName.ifBlank { "OpenAI-compatible" },
             modelId = value.modelId.takeIf(String::isNotBlank),
-            capabilities = AiProviderCapabilities(
-                toolCalling = true,
-                structuredOutput = true,
-                streaming = true,
-                local = value.local
-            ),
+            capabilities = capabilities,
             available = isConfigured(value),
             detail = value.baseUrl.takeIf(String::isNotBlank)
         )
@@ -371,5 +531,6 @@ class OpenAiCompatibleProvider(
         const val MAX_TOOL_CALL_ID_LENGTH = 256
         const val API_KEY_STORAGE_KEY = "ai.provider.openai_compatible.api_key"
         private const val MAX_STREAM_TOOL_CALLS = 16
+        private const val PROBE_TOOL_NAME = "nexaflow_capability_probe"
     }
 }
