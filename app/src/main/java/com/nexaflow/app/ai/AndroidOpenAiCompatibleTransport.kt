@@ -20,6 +20,26 @@ import kotlinx.serialization.json.JsonObject
 
 class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
 
+    override suspend fun getModels(
+        config: OpenAiCompatibleProviderConfig,
+        apiKey: String?
+    ): OpenAiCompatibleTransportResponse = withContext(Dispatchers.IO) {
+        val endpoint = OpenAiEndpointPolicy.modelsUri(
+            config = config,
+            hasApiKey = !apiKey.isNullOrBlank()
+        )
+        val addresses = InetAddress.getAllByName(endpoint.host).toList()
+        if (config.local) {
+            OpenAiEndpointPolicy.requireLocalAddresses(addresses)
+        }
+
+        when (endpoint.scheme) {
+            "https" -> getHttps(endpoint, apiKey)
+            "http" -> getPrivateHttp(endpoint, addresses.first())
+            else -> error("Unsupported provider URL scheme")
+        }
+    }
+
     override fun streamChatCompletions(
         config: OpenAiCompatibleProviderConfig,
         body: JsonObject,
@@ -53,6 +73,85 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             "https" -> postHttps(endpoint, payload, apiKey)
             "http" -> postPrivateHttp(endpoint, addresses.first(), payload)
             else -> error("Unsupported provider URL scheme")
+        }
+    }
+
+    private fun getHttps(
+        endpoint: URI,
+        apiKey: String?
+    ): OpenAiCompatibleTransportResponse {
+        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        try {
+            connection.instanceFollowRedirects = false
+            connection.requestMethod = "GET"
+            connection.connectTimeout = CONNECT_TIMEOUT_MS
+            connection.readTimeout = READ_TIMEOUT_MS
+            connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("Accept-Encoding", "identity")
+            apiKey?.takeIf(String::isNotBlank)?.let {
+                connection.setRequestProperty("Authorization", "Bearer $it")
+            }
+
+            val status = connection.responseCode
+            if (status in 300..399) {
+                return OpenAiCompatibleTransportResponse(
+                    statusCode = status,
+                    body = """{"error":"redirect_rejected"}"""
+                )
+            }
+            val stream = if (status in 200..299) {
+                connection.inputStream
+            } else {
+                connection.errorStream ?: connection.inputStream
+            }
+            val contentLength = connection.contentLengthLong
+            if (contentLength > MAX_RESPONSE_BYTES) {
+                throw IllegalArgumentException(
+                    "Provider response exceeds maximum size"
+                )
+            }
+            return OpenAiCompatibleTransportResponse(
+                statusCode = status,
+                body = stream.use {
+                    readBounded(it, MAX_RESPONSE_BYTES)
+                }.toString(Charsets.UTF_8)
+            )
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun getPrivateHttp(
+        endpoint: URI,
+        address: InetAddress
+    ): OpenAiCompatibleTransportResponse {
+        val port = endpoint.port.takeIf { it > 0 } ?: DEFAULT_HTTP_PORT
+        val socket = Socket()
+        try {
+            socket.soTimeout = READ_TIMEOUT_MS
+            socket.connect(InetSocketAddress(address, port), CONNECT_TIMEOUT_MS)
+            val hostHeader = buildHostHeader(endpoint.host, port)
+            val target = buildString {
+                append(endpoint.rawPath.takeIf { it.isNotBlank() } ?: "/")
+                endpoint.rawQuery?.let { append('?').append(it) }
+            }
+            val header = buildString {
+                append("GET ").append(target).append(" HTTP/1.1\r\n")
+                append("Host: ").append(hostHeader).append("\r\n")
+                append("Accept: application/json\r\n")
+                append("Accept-Encoding: identity\r\n")
+                append("Connection: close\r\n\r\n")
+            }.toByteArray(Charsets.ISO_8859_1)
+
+            socket.getOutputStream().apply {
+                write(header)
+                flush()
+            }
+            return parseHttpResponse(
+                BufferedInputStream(socket.getInputStream())
+            )
+        } finally {
+            runCatching { socket.close() }
         }
     }
 
