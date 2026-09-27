@@ -297,4 +297,14 @@
     <string name="ai_provider_test_success">Модель готова</string>
     <string name="ai_provider_test_failed">Проверка модели не удалась</string>
     <string name="ai_provider_clear_key">Удалить сохранённый ключ</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">Маршрутизация моделей</string>
+    <string name="ai_routing_subtitle">Выберите, как NexaFlow выбирает модель для чата.</string>
+    <string name="ai_routing_automatic">Автоматически (приоритет локальной)</string>
+    <string name="ai_routing_local_only">Только локально</string>
+    <string name="ai_routing_cloud_only">Только облако</string>
+    <string name="ai_routing_selected">Выбранный провайдер</string>
+    <string name="ai_routing_cloud_fallback">Разрешить переход в облако</string>
+    <string name="ai_routing_cloud_fallback_subtitle">Автоматический режим может использовать облачный провайдер только при отсутствии доступного локального.</string>
 </resources>
