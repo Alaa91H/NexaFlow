@@ -89,5 +89,20 @@ class OpenAiEndpointPolicyTest {
                 InetAddress.getByName("8.8.8.8")
             )
         )
+    }    @Test
+    fun buildsModelsUriFromVersionedBase() {
+        val uri = OpenAiEndpointPolicy.modelsUri(
+            OpenAiCompatibleProviderConfig(
+                enabled = true,
+                baseUrl = "http://127.0.0.1:11434/v1",
+                modelId = "qwen3",
+                local = true
+            ),
+            hasApiKey = false
+        )
+
+        assertEquals("http://127.0.0.1:11434/v1/models", uri.toString())
     }
+
+
 }
