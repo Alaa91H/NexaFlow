@@ -307,4 +307,10 @@
     <string name="ai_routing_selected">选定的提供商</string>
     <string name="ai_routing_cloud_fallback">允许回退到云端</string>
     <string name="ai_routing_cloud_fallback_subtitle">自动模式仅在没有可用本地提供商时才可使用云端提供商。</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">私有 LAN 访问</string>
+    <string name="agent_lan_access_on">已启用 — 已配对的代理可以从你的私有网络连接</string>
+    <string name="agent_lan_access_off">已关闭 — 仅 USB/环回访问</string>
+    <string name="agent_lan_access_description">Android 17 需要本地网络权限。身份验证和撤销机制仍然生效。</string>
 </resources>
