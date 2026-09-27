@@ -295,4 +295,14 @@
     <string name="ai_provider_test_success">النموذج جاهز</string>
     <string name="ai_provider_test_failed">فشل اختبار النموذج</string>
     <string name="ai_provider_clear_key">حذف المفتاح المخزّن</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">توجيه النماذج</string>
+    <string name="ai_routing_subtitle">اختر كيف يحدد NexaFlow النموذج المستخدم في الدردشة.</string>
+    <string name="ai_routing_automatic">تلقائي (تفضيل المحلي)</string>
+    <string name="ai_routing_local_only">محلي فقط</string>
+    <string name="ai_routing_cloud_only">سحابي فقط</string>
+    <string name="ai_routing_selected">مزود محدد</string>
+    <string name="ai_routing_cloud_fallback">السماح بالرجوع للسحابة</string>
+    <string name="ai_routing_cloud_fallback_subtitle">يمكن للوضع التلقائي استخدام مزود سحابي فقط عند عدم توفر مزود محلي.</string>
 </resources>
