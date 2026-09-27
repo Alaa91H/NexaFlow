@@ -155,9 +155,7 @@ class OpenAiCompatibleProvider(
                     ?.takeUnless { it is JsonNull }
                     ?.jsonArray
                     ?.forEachIndexed { index, item ->
-                        toolCalls[index] = ToolCallAccumulator.fromComplete(
-                            item.jsonObject
-                        )
+                        toolCalls[index] = completeAccumulator(item.jsonObject)
                     }
                 return@collect
             }
@@ -321,6 +319,9 @@ class OpenAiCompatibleProvider(
                     uri.fragment == null
             }.getOrDefault(false)
 
+    private fun completeAccumulator(value: JsonObject): ToolCallAccumulator =
+        ToolCallAccumulator().apply { append(value) }
+
     private inner class ToolCallAccumulator {
         private var id = ""
         private var name = ""
@@ -362,12 +363,6 @@ class OpenAiCompatibleProvider(
             return AiToolCall(id = id, name = name, arguments = parsed)
         }
 
-        companion object {
-            fun fromComplete(value: JsonObject): ToolCallAccumulator =
-                this@OpenAiCompatibleProvider.ToolCallAccumulator().apply {
-                    append(value)
-                }
-        }
     }
 
     companion object {
