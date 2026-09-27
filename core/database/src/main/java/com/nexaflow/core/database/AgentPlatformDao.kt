@@ -54,19 +54,21 @@ interface AgentPlatformDao {
     @Query("DELETE FROM agent_audit WHERE createdAt < :cutoffMillis")
     suspend fun pruneAuditBefore(cutoffMillis: Long): Int
 
+    // UUID audit ids are intentionally opaque, so rowid preserves insertion
+    // order when multiple audit events share the same millisecond timestamp.
     @Query(
         "DELETE FROM agent_audit WHERE id NOT IN (" +
-            "SELECT id FROM agent_audit ORDER BY createdAt DESC, id DESC LIMIT :keepCount" +
+            "SELECT id FROM agent_audit ORDER BY createdAt DESC, rowid DESC LIMIT :keepCount" +
             ")"
     )
     suspend fun pruneAuditToNewest(keepCount: Int): Int
 
-    @Query("SELECT * FROM agent_audit ORDER BY createdAt DESC, id DESC LIMIT :limit")
+    @Query("SELECT * FROM agent_audit ORDER BY createdAt DESC, rowid DESC LIMIT :limit")
     suspend fun latestAudit(limit: Int): List<AgentAuditEntity>
 
     @Query(
         "SELECT * FROM agent_audit WHERE automationId = :automationId " +
-            "ORDER BY createdAt DESC, id DESC LIMIT :limit"
+            "ORDER BY createdAt DESC, rowid DESC LIMIT :limit"
     )
     suspend fun auditForAutomation(
         automationId: String,
