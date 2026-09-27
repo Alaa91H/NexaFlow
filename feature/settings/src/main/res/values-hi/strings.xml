@@ -297,4 +297,14 @@
     <string name="ai_provider_test_success">मॉडल तैयार है</string>
     <string name="ai_provider_test_failed">मॉडल जाँच विफल रही</string>
     <string name="ai_provider_clear_key">सहेजी गई कुंजी हटाएँ</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">मॉडल रूटिंग</string>
+    <string name="ai_routing_subtitle">चुनें कि NexaFlow चैट के लिए मॉडल कैसे चुनता है।</string>
+    <string name="ai_routing_automatic">स्वचालित (स्थानीय प्राथमिक)</string>
+    <string name="ai_routing_local_only">केवल स्थानीय</string>
+    <string name="ai_routing_cloud_only">केवल क्लाउड</string>
+    <string name="ai_routing_selected">चयनित प्रदाता</string>
+    <string name="ai_routing_cloud_fallback">क्लाउड फ़ॉलबैक की अनुमति दें</string>
+    <string name="ai_routing_cloud_fallback_subtitle">स्वचालित मोड क्लाउड प्रदाता का उपयोग तभी कर सकता है जब कोई स्थानीय प्रदाता उपलब्ध न हो।</string>
 </resources>
