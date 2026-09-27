@@ -14,6 +14,7 @@ import com.nexaflow.app.work.UpdateNotification
 import com.nexaflow.app.wear.WearDeviceRegistry
 import com.nexaflow.app.wear.WearSyncManager
 import com.nexaflow.core.agentapi.AgentApiServer
+import com.nexaflow.core.datastore.AgentNetworkPreferences
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.UpdatePreferences
@@ -76,9 +77,12 @@ class NexaFlowApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var wearDeviceRegistry: WearDeviceRegistry
 
-    /** Loopback-only authenticated REST control plane for paired AI agents. */
+    /** Authenticated REST/MCP control plane; loopback-only unless explicitly enabled. */
     @Inject
     lateinit var agentApiServer: AgentApiServer
+
+    @Inject
+    lateinit var agentNetworkPreferences: AgentNetworkPreferences
 
     /**
      * WorkManager must construct MaintenanceWorker through Hilt (it has an
@@ -110,6 +114,17 @@ class NexaFlowApplication : Application(), Configuration.Provider {
             .onFailure { Log.e(TAG, "Wear registry start failed", it) }
         runCatching { agentApiServer.initialize() }
             .onFailure { Log.e(TAG, "Agent API start failed", it) }
+        appScope.launch {
+            agentNetworkPreferences.settings
+                .distinctUntilChanged()
+                .collect { settings ->
+                    runCatching {
+                        agentApiServer.setLanAccessEnabled(settings.lanAccessEnabled)
+                    }.onFailure { error ->
+                        Log.e(TAG, "Agent API network rebind failed", error)
+                    }
+                }
+        }
         runCatching { MaintenanceWorker.schedule(this) }
             .onFailure { Log.e(TAG, "Maintenance worker schedule failed", it) }
         // Periodic location re-check (Settings > Location): schedule at the
