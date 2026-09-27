@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 class AgentApiServer(
     private val controller: AgentApiController,
     private val mcpController: AgentMcpController,
+    private val a2aController: AgentA2AController? = null,
     private val hostPolicy: AgentApiHostPolicy,
     private val scope: CoroutineScope,
     private val preferredPort: Int = DEFAULT_PORT
@@ -110,10 +111,14 @@ class AgentApiServer(
         try {
             client.soTimeout = SOCKET_TIMEOUT_MS
             val request = AgentHttpRequestParser.read(client.getInputStream())
-            val response = if (request.target.substringBefore('?') == MCP_PATH) {
-                mcpController.handle(request)
-            } else {
-                controller.handle(request)
+            val target = request.target.substringBefore('?')
+            val response = when (target) {
+                MCP_PATH -> mcpController.handle(request)
+                A2A_PATH -> a2aController?.handle(request)
+                    ?: controller.handle(request)
+                CARD_PATH -> a2aController?.card("http://127.0.0.1:$currentPort")
+                    ?: controller.handle(request)
+                else -> controller.handle(request)
             }
             respond(client, response)
         } catch (error: AgentHttpProtocolException) {
@@ -201,6 +206,8 @@ class AgentApiServer(
     companion object {
         const val DEFAULT_PORT = 8766
         const val MCP_PATH = "/mcp"
+        const val A2A_PATH = "/a2a"
+        const val CARD_PATH = "/.well-known/agent-card.json"
         private const val LOOPBACK = "127.0.0.1"
         private const val ALL_INTERFACES = "0.0.0.0"
         private const val SOCKET_BACKLOG = 8

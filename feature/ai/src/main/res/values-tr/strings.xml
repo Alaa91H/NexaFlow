@@ -16,4 +16,5 @@
     <string name="ai_chat_output_limit">Model yanıtı güvenli çıktı sınırını aştı.</string>
     <string name="ai_chat_tool_limit">Araç döngüsü güvenlik sınırına ulaştı.</string>
     <string name="ai_chat_provider_failure">Model sağlayıcısı yanıtı tamamlayamadı.</string>
+    <string name="ai_chat_voice_input">Sesli giriş</string>
 </resources>

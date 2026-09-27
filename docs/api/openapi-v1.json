@@ -58,6 +58,8 @@
     "/schedules/preview": {"post": {"summary": "Preview next schedule occurrences"}},
     "/history": {"get": {"summary": "Read bounded execution history"}},
     "/audit": {"get": {"summary": "Read bounded redacted agent audit history"}},
+    "/a2a": {"post": {"summary": "A2A JSON-RPC: message/send and tasks/get over the same command service"}},
+    "/.well-known/agent-card.json": {"get": {"security": [], "summary": "A2A agent card with skill inventory"}},
     "/openapi.json": {"get": {"security": [], "summary": "OpenAPI 3.1 document"}},
     "/schemas/task-v1.json": {"get": {"security": [], "summary": "Agent task JSON Schema"}}
   }

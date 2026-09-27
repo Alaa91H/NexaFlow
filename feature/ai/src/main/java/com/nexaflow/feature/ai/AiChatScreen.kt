@@ -1,5 +1,11 @@
 package com.nexaflow.feature.ai
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,8 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -212,6 +222,24 @@ private fun ChatComposer(
     onSend: () -> Unit,
     onCancel: () -> Unit
 ) {
+    // System speech recognizer: transcription runs in the system UI, so no
+    // RECORD_AUDIO permission is needed here; the transcript only fills the
+    // composer and still goes through the normal send path.
+    val voiceLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spoken = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+                ?.trim()
+                .orEmpty()
+            if (spoken.isNotEmpty()) {
+                val prefix = if (value.isBlank()) "" else value.trimEnd() + " "
+                onValueChange((prefix + spoken).take(MAX_COMPOSER_CHARS))
+            }
+        }
+    }
     Surface(tonalElevation = 3.dp) {
         Row(
             modifier = Modifier
@@ -223,7 +251,7 @@ private fun ChatComposer(
             OutlinedTextField(
                 value = value,
                 onValueChange = {
-                    if (it.length <= 32_768) onValueChange(it)
+                    if (it.length <= MAX_COMPOSER_CHARS) onValueChange(it)
                 },
                 modifier = Modifier.weight(1f),
                 placeholder = {
@@ -238,6 +266,26 @@ private fun ChatComposer(
                     Text(stringResource(R.string.ai_chat_cancel))
                 }
             } else {
+                IconButton(
+                    onClick = {
+                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                            putExtra(
+                                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                            )
+                        }
+                        try {
+                            voiceLauncher.launch(intent)
+                        } catch (_: ActivityNotFoundException) {
+                            // No system recognizer installed; the typed path remains.
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Mic,
+                        contentDescription = stringResource(R.string.ai_chat_voice_input)
+                    )
+                }
                 Button(
                     onClick = onSend,
                     enabled = value.isNotBlank()
@@ -248,6 +296,8 @@ private fun ChatComposer(
         }
     }
 }
+
+private const val MAX_COMPOSER_CHARS = 32_768
 
 @Composable
 private fun errorMessage(code: String): String = when (code) {

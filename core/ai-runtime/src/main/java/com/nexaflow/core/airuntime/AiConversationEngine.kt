@@ -11,7 +11,8 @@ class AiConversationEngine(
     private val registry: AiProviderRegistry,
     private val toolExecutor: AiToolExecutor = EmptyAiToolExecutor,
     private val turnTimeoutMillis: Long = DEFAULT_TURN_TIMEOUT_MS,
-    private val maxToolIterations: Int = DEFAULT_MAX_TOOL_ITERATIONS
+    private val maxToolIterations: Int = DEFAULT_MAX_TOOL_ITERATIONS,
+    private val traceSink: AiAgentTraceSink? = null
 ) {
     fun stream(
         conversationId: String,
@@ -19,6 +20,7 @@ class AiConversationEngine(
     ): Flow<AiConversationEvent> = flow {
         if (!validConversationId(conversationId) || !validMessages(messages)) {
             emit(AiConversationEvent.Failed("invalid_conversation"))
+            traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "invalid_conversation")
             return@flow
         }
 
@@ -27,6 +29,7 @@ class AiConversationEngine(
         )
         if (provider == null || !provider.descriptor.value.available) {
             emit(AiConversationEvent.Unavailable("no_provider"))
+            traceSink?.onTerminal(AiAgentTraceOutcome.UNAVAILABLE, "no_provider")
             return@flow
         }
 
@@ -56,6 +59,7 @@ class AiConversationEngine(
                                 }
                                 assistantText.append(event.text)
                                 emit(AiConversationEvent.AssistantDelta(event.text))
+                                traceSink?.onAssistantDelta(event.text)
                             }
                             is AiProviderEvent.ToolCall -> {
                                 if (
@@ -76,12 +80,15 @@ class AiConversationEngine(
                 throw cancelled
             } catch (_: OutputLimitException) {
                 emit(AiConversationEvent.Failed("output_limit"))
+                traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "output_limit")
                 return@flow
             } catch (_: ToolLimitException) {
                 emit(AiConversationEvent.Failed("tool_limit"))
+                traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "tool_limit")
                 return@flow
             } catch (_: Exception) {
                 emit(AiConversationEvent.Failed("provider_failure"))
+                traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "provider_failure")
                 return@flow
             }
 
@@ -94,6 +101,7 @@ class AiConversationEngine(
 
             if (pendingCalls.isEmpty()) {
                 emit(AiConversationEvent.Completed(transcript.toList()))
+                traceSink?.onTerminal(AiAgentTraceOutcome.COMPLETED)
                 return@flow
             }
 
@@ -105,6 +113,7 @@ class AiConversationEngine(
 
             for (call in pendingCalls) {
                 emit(AiConversationEvent.ToolStarted(call))
+                traceSink?.onToolCall(call)
                 val result = try {
                     toolExecutor.execute(call)
                 } catch (cancelled: CancellationException) {
@@ -120,6 +129,7 @@ class AiConversationEngine(
                     )
                 }
                 emit(AiConversationEvent.ToolFinished(result))
+                traceSink?.onToolResult(result)
                 transcript += AiConversationMessage(
                     role = AiRole.TOOL,
                     text = result.output.toString(),
@@ -131,6 +141,7 @@ class AiConversationEngine(
         }
 
         emit(AiConversationEvent.Failed("tool_iteration_limit"))
+        traceSink?.onTerminal(AiAgentTraceOutcome.TOOL_ITERATION_LIMIT, "tool_iteration_limit")
     }
 
     private fun validConversationId(value: String): Boolean =

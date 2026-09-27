@@ -16,4 +16,5 @@
     <string name="ai_chat_output_limit">تجاوز رد النموذج حد الإخراج الآمن.</string>
     <string name="ai_chat_tool_limit">بلغت حلقة الأدوات حد الأمان.</string>
     <string name="ai_chat_provider_failure">تعذر على مزود النموذج إكمال الرد.</string>
+    <string name="ai_chat_voice_input">إدخال صوتي</string>
 </resources>

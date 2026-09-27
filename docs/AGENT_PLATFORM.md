@@ -349,29 +349,71 @@ Local agents may wake on events instead of polling continuously.
 
 ## Phase 14 - A2A
 
-Publish an agent card and expose automation-management skills through A2A.
-Support task delegation and results/events while retaining the command service
-as the only mutation authority.
+Implemented foundation:
+
+- [x] public `/.well-known/agent-card.json` with provider-neutral capabilities
+- [x] loopback-only `/a2a` JSON-RPC adapter (`message/send`, `tasks/get`)
+- [x] skill ids exactly equal MCP tool names (REST/MCP/A2A parity by construction)
+- [x] skill execution reuses `AgentMcpToolExecutor` -> `AgentApiController` ->
+      `AutomationCommandService`; no direct Room/AlarmManager/privileged access
+- [x] permanent-agent Bearer auth with union-of-skills scopes plus shared
+      payload/rate-limit gates
+- [x] explicit rejection of `message/stream`, `tasks/cancel` and JSON-RPC batches
+- [x] unit coverage for card parity, skill execution, unknown-skill fail-closed,
+      auth boundary and unsupported methods
+
+Task delegation and results/events flow through the command service as the only
+mutation authority. See `docs/AGENT_A2A.md`.
 
 ## Phase 15 - remote relay
 
-Use an outbound authenticated encrypted device connection.
+Implemented device-side foundation (`:core:agent-relay`, `docs/AGENT_RELAY.md`):
 
-Every remote request carries bounded identity/replay fields such as device,
-agent, request, timestamp and nonce. Do not expose a public unauthenticated
-phone port.
+- [x] outbound-only client: the phone dials out, never a public listener
+- [x] versioned JSON frames (`hello`/`request`/`response`/`ping`/`pong`, 256 KB bound)
+- [x] HMAC-SHA256 link-key request signatures over canonical bytes
+- [x] bounded identity/replay fields: device, agent, request, timestamp, nonce
+- [x] timestamp skew window (5 min) + bounded 4096-nonce replay guard
+- [x] route allow-list (`/api/v1/*`, `/mcp`, `/a2a`, public JSON docs)
+- [x] SecureStorage link-key provisioning/rotation/import/deprovisioning
+- [x] heartbeat + bounded exponential backoff reconnect until stopped
+- [x] validated requests forward into the unchanged local agent API pipeline
+      (bearer/scope/rate-limit/idempotency/revision semantics preserved)
+- [x] unit coverage for signing, replay, validation order, framing and the
+      serve/reconnect loop
+
+The relay server itself is out of scope; it must speak the documented wire
+contract. Deprovisioning or the global kill switch stops remote access
+without touching grants or automations.
 
 ## Phase 16 - advanced agent behavior
 
-After the control/security layers are proven:
+Implemented foundation:
 
-- voice-first commands
-- replayable redacted traces
-- multi-agent delegation
-- event-driven diagnosis
-- bounded self-healing automation repair
+- [x] replayable redacted traces (`AiAgentTraceRecorder` in `:core:ai-runtime`):
+      per-turn shape only (tool names, redacted argument/output previews,
+      char counts, outcome); raw prompt/assistant text and secrets never stored
+- [x] opt-in engine tracing (`AiConversationEngine(traceSink=...)`, default
+      off, zero behavior change without a sink)
+- [x] side-effect-free re-analysis (`AiTraceReplayAnalyzer`: findings +
+      suggested next step, never re-executes tools)
+- [x] event-driven diagnosis (`AgentFailureDiagnoser` in
+      `:core:automation-control`): classifies AUTOMATION_FAILED signals
+      (validation drift / non-executable / capability change / unknown) with
+      bounded evidence
+- [x] bounded self-healing proposals: at most an `enabled=false` draft for
+      validation/dry-run failures on enabled tasks; applying it always goes
+      through `AutomationCommandService` with optimistic concurrency
+- [x] voice-first commands: system speech recognizer fills the AI chat
+      composer (no RECORD_AUDIO permission; transcript uses the normal send
+      path with validation/dry-run policy unchanged)
+- [x] unit coverage for redaction, trace lifecycle/eviction, replay analysis
+      and diagnosis branches
 
-Self-healing must never bypass validation, dry-run or command policy.
+Remaining future work: persisted conversation/trace history, multi-agent
+delegation beyond A2A task delegation, and richer self-healing beyond
+safe-disable proposals. Self-healing never bypasses validation, dry-run or
+command policy.
 
 ## Security invariants
 

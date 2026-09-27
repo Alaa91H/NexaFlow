@@ -2,6 +2,7 @@ package com.nexaflow.app.di
 
 import android.content.Context
 import com.nexaflow.app.agent.AndroidAgentApiRuntime
+import com.nexaflow.core.agentapi.AgentA2AController
 import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.agentapi.AgentApiHostPolicy
 import com.nexaflow.core.agentapi.AgentEventHub
@@ -10,6 +11,10 @@ import com.nexaflow.core.agentapi.AgentApiServer
 import com.nexaflow.core.agentapi.AgentMcpController
 import com.nexaflow.core.agentapi.AgentMcpRestToolExecutor
 import com.nexaflow.core.agentapi.AgentMcpToolExecutor
+import com.nexaflow.core.agentrelay.AgentRelayClient
+import com.nexaflow.core.agentrelay.AgentRelayLinkStore
+import com.nexaflow.core.agentrelay.AgentRelayReplayGuard
+import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentRequestAuthorizer
 import com.nexaflow.core.automationcontrol.AutomationCommandService
@@ -106,14 +111,48 @@ object AgentApiModule {
 
     @Provides
     @Singleton
+    fun provideAgentA2AController(
+        accessManager: AgentAccessManager,
+        authorizer: AgentRequestAuthorizer,
+        toolExecutor: AgentMcpToolExecutor,
+        hostPolicy: AgentApiHostPolicy
+    ): AgentA2AController = AgentA2AController(
+        accessManager = accessManager,
+        authorizer = authorizer,
+        skillExecutor = toolExecutor,
+        hostPolicy = hostPolicy
+    )
+
+    @Provides
+    @Singleton
+    fun provideAgentRelayLinkStore(
+        secureStorage: SecureStorage
+    ): AgentRelayLinkStore = AgentRelayLinkStore(secureStorage)
+
+    @Provides
+    @Singleton
+    fun provideAgentRelayClient(
+        linkStore: AgentRelayLinkStore
+    ): AgentRelayClient = AgentRelayClient(
+        linkStore = linkStore,
+        replayGuard = AgentRelayReplayGuard(),
+        // A WebSocket transport plugs in here; until then the client stays
+        // idle because nothing starts it without a transport.
+        transportFactory = { throw IllegalStateException("Relay transport is not installed") }
+    )
+
+    @Provides
+    @Singleton
     fun provideAgentApiServer(
         controller: AgentApiController,
         mcpController: AgentMcpController,
+        a2aController: AgentA2AController,
         hostPolicy: AgentApiHostPolicy,
         @ApplicationScope scope: CoroutineScope
     ): AgentApiServer = AgentApiServer(
         controller = controller,
         mcpController = mcpController,
+        a2aController = a2aController,
         hostPolicy = hostPolicy,
         scope = scope
     )
