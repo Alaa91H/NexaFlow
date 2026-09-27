@@ -97,7 +97,8 @@ class AgentAccessManager(
 
     suspend fun completePairing(
         challengeId: String,
-        challengeSecret: String
+        challengeSecret: String,
+        presentedBinding: AgentIdentityBinding? = null
     ): AgentPairingCompletionResult {
         if (challengeId.isBlank() || challengeSecret.isBlank()) {
             return AgentPairingCompletionResult.InvalidChallenge
@@ -138,7 +139,19 @@ class AgentAccessManager(
                 }
             }
 
-            if (!canGrantAgent(state, challenge.request.agentId)) {
+            val storedBinding = challenge.request.binding
+            if (
+                presentedBinding != null &&
+                !storedBinding.matches(presentedBinding)
+            ) {
+                return@mutate state to AgentPairingCompletionResult.InvalidChallenge
+            }
+            val effectiveRequest = challenge.request.copy(
+                binding = presentedBinding?.let(storedBinding::mergeMissing)
+                    ?: storedBinding
+            )
+
+            if (!canGrantAgent(state, effectiveRequest.agentId)) {
                 val next = state.replaceChallenge(challenge.copy(consumedAt = now))
                 return@mutate next to AgentPairingCompletionResult.CapacityExceeded
             }
@@ -148,7 +161,7 @@ class AgentAccessManager(
             )
             val (next, credential) = applyPermanentGrant(
                 consumedState,
-                challenge.request,
+                effectiveRequest,
                 now
             )
             next to AgentPairingCompletionResult.Granted(credential)
@@ -427,6 +440,17 @@ class AgentAccessManager(
     private fun nextId(): String = idGenerator().also {
         require(it.isNotBlank()) { "Generated agent identifier must not be blank" }
     }
+
+    private fun AgentIdentityBinding.mergeMissing(
+        presented: AgentIdentityBinding
+    ): AgentIdentityBinding = AgentIdentityBinding(
+        packageName = packageName ?: presented.packageName,
+        signingCertificateSha256 =
+            signingCertificateSha256 ?: presented.signingCertificateSha256,
+        transportKeyFingerprint =
+            transportKeyFingerprint ?: presented.transportKeyFingerprint
+    )
+
 
     private companion object {
         const val DEFAULT_SESSION_DURATION_MS = 15 * 60 * 1000L
