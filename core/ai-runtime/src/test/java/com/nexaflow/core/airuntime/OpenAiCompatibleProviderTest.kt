@@ -9,6 +9,8 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -127,6 +129,92 @@ class OpenAiCompatibleProviderTest {
         )
     }
 
+    @Test
+    fun structuredFallbackUsesOnlyKnownToolAfterCapabilityProbe() = runTest {
+        val transport = FallbackCapabilityTransport(
+            fallbackContent =
+                """{"tool":"nexaflow.list_tasks","arguments":{}}"""
+        )
+        val provider = OpenAiCompatibleProvider(
+            transport = transport,
+            fallbackToolCallIdGenerator = { "fallback-test" }
+        )
+        provider.configure(config())
+
+        val probe = provider.probe()
+
+        assertTrue(probe.success)
+        assertFalse(probe.capabilities.toolCalling)
+        assertTrue(probe.capabilities.structuredOutput)
+        assertFalse(probe.capabilities.streaming)
+
+        val events = provider.stream(
+            requestWithTool("list tasks")
+        ).toList()
+
+        val tool = (events.first() as AiProviderEvent.ToolCall).call
+        assertEquals("fallback-test", tool.id)
+        assertEquals("nexaflow.list_tasks", tool.name)
+        assertTrue(tool.arguments.isEmpty())
+        assertEquals(
+            "structured_tool_call",
+            (events.last() as AiProviderEvent.Finished).reason
+        )
+
+        val fallbackBody = transport.postBodies.last()
+        assertEquals(
+            "json_object",
+            fallbackBody["response_format"]!!
+                .jsonObject["type"]!!.jsonPrimitive.content
+        )
+        assertFalse("Native tools must not be sent in fallback mode", "tools" in fallbackBody)
+    }
+
+    @Test
+    fun structuredFallbackCanReturnAssistantMessage() = runTest {
+        val transport = FallbackCapabilityTransport(
+            fallbackContent = """{"message":"No tool is needed."}"""
+        )
+        val provider = OpenAiCompatibleProvider(
+            transport = transport,
+            fallbackToolCallIdGenerator = { "fallback-test" }
+        )
+        provider.configure(config())
+        provider.probe()
+
+        val events = provider.stream(
+            requestWithTool("explain status")
+        ).toList()
+
+        assertEquals(
+            "No tool is needed.",
+            (events.first() as AiProviderEvent.TextDelta).text
+        )
+        assertEquals(
+            "structured_message",
+            (events.last() as AiProviderEvent.Finished).reason
+        )
+    }
+
+    @Test
+    fun structuredFallbackRejectsUnknownTool() = runTest {
+        val transport = FallbackCapabilityTransport(
+            fallbackContent = """{"tool":"nexaflow.unknown","arguments":{}}"""
+        )
+        val provider = OpenAiCompatibleProvider(
+            transport = transport,
+            fallbackToolCallIdGenerator = { "fallback-test" }
+        )
+        provider.configure(config())
+        provider.probe()
+
+        val failure = runCatching {
+            provider.stream(requestWithTool("do it")).toList()
+        }
+
+        assertTrue(failure.isFailure)
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun rejectsNonObjectToolArguments() = runTest {
         val provider = provider(
@@ -143,6 +231,22 @@ class OpenAiCompatibleProviderTest {
 
     private fun provider(transport: OpenAiCompatibleTransport) =
         OpenAiCompatibleProvider(transport = transport)
+
+    private fun requestWithTool(text: String) = AiProviderRequest(
+        conversationId = "c1",
+        messages = listOf(AiConversationMessage(AiRole.USER, text)),
+        tools = listOf(
+            AiToolDefinition(
+                name = "nexaflow.list_tasks",
+                description = "List tasks",
+                inputSchema = buildJsonObject {
+                    put("type", "object")
+                    put("additionalProperties", false)
+                }
+            )
+        ),
+        maxOutputCharacters = 1024
+    )
 
     private fun request(text: String) = AiProviderRequest(
         conversationId = "c1",
@@ -173,6 +277,55 @@ class OpenAiCompatibleProviderTest {
                 """{"choices":[{"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]}"""
             )
         }
+    }
+
+    private class FallbackCapabilityTransport(
+        private val fallbackContent: String
+    ) : OpenAiCompatibleTransport {
+        val postBodies = mutableListOf<JsonObject>()
+        private var postCount = 0
+
+        override suspend fun postChatCompletions(
+            config: OpenAiCompatibleProviderConfig,
+            body: JsonObject,
+            apiKey: String?
+        ): OpenAiCompatibleTransportResponse {
+            postBodies += body
+            postCount += 1
+            val content = when (postCount) {
+                1 -> "OK"
+                2 -> "Native tools unavailable"
+                3 -> """{"ok":true}"""
+                else -> fallbackContent
+            }
+            return OpenAiCompatibleTransportResponse(
+                200,
+                buildResponse(content)
+            )
+        }
+
+        override fun streamChatCompletions(
+            config: OpenAiCompatibleProviderConfig,
+            body: JsonObject,
+            apiKey: String?
+        ) = flow {
+            emit(buildResponse("OK"))
+        }
+
+        private fun buildResponse(content: String): String =
+            buildJsonObject {
+                putJsonArray("choices") {
+                    add(
+                        buildJsonObject {
+                            putJsonObject("message") {
+                                put("role", "assistant")
+                                put("content", content)
+                            }
+                            put("finish_reason", "stop")
+                        }
+                    )
+                }
+            }.toString()
     }
 
     private class StreamingTransport(
