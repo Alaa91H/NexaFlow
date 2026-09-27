@@ -164,6 +164,27 @@ class AutomationNodeCatalogTest {
             AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY).configuration
         assertTrue("timeoutSeconds" in discoverability.knownKeys)
 
+        val tap = AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_INPUT_TAP).configuration
+        assertTrue(requireNotNull(tap.field("x")).required)
+        assertTrue(requireNotNull(tap.field("y")).required)
+
+        val swipe = AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_INPUT_SWIPE).configuration
+        listOf("x1", "y1", "x2", "y2").forEach { key ->
+            assertTrue("$key must be required", requireNotNull(swipe.field(key)).required)
+        }
+        assertEquals("300", requireNotNull(swipe.field("durationMs")).defaultValue)
+
+        assertEquals(
+            "GLOBAL",
+            AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_SET_SETTING)
+                .configuration.field("namespace")?.defaultValue
+        )
+        assertEquals(
+            "SECURE",
+            AutomationNodeCatalog.definitionFor(ActionType.ROM_CUSTOM_SETTING)
+                .configuration.field("namespace")?.defaultValue
+        )
+
         val sensor = AutomationNodeCatalog.definitionFor(TriggerType.SENSOR).configuration
         assertTrue("upperThreshold" in sensor.knownKeys)
         assertTrue("GYROSCOPE" in requireNotNull(sensor.field("sensor")).allowedValues)
