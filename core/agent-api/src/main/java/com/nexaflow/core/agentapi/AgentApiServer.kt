@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 class AgentApiServer(
     private val controller: AgentApiController,
     private val mcpController: AgentMcpController,
+    private val hostPolicy: AgentApiHostPolicy,
     private val scope: CoroutineScope,
     private val preferredPort: Int = DEFAULT_PORT
 ) {
@@ -21,16 +22,40 @@ class AgentApiServer(
 
     @Volatile
     private var running = false
+
+    @Volatile
+    private var lanAccessEnabled = false
+
     private var job: Job? = null
     private var socket: ServerSocket? = null
 
+    @Synchronized
     fun initialize() {
         if (running) return
+        hostPolicy.setLanAccessEnabled(lanAccessEnabled)
         running = true
         job = scope.launch(Dispatchers.IO) { acceptLoop() }
     }
 
+    @Synchronized
+    fun setLanAccessEnabled(enabled: Boolean) {
+        if (lanAccessEnabled == enabled && running) return
+        lanAccessEnabled = enabled
+        hostPolicy.setLanAccessEnabled(enabled)
+        if (running) {
+            stopLocked()
+            initialize()
+        }
+    }
+
+    fun isLanAccessEnabled(): Boolean = lanAccessEnabled
+
+    @Synchronized
     fun stop() {
+        stopLocked()
+    }
+
+    private fun stopLocked() {
         running = false
         job?.cancel()
         job = null
@@ -40,10 +65,12 @@ class AgentApiServer(
     }
 
     private suspend fun acceptLoop() {
+        val bindAddress = if (lanAccessEnabled) ALL_INTERFACES else LOOPBACK
+        val address = InetAddress.getByName(bindAddress)
         val server = runCatching {
-            ServerSocket(preferredPort, SOCKET_BACKLOG, InetAddress.getByName(LOOPBACK))
+            ServerSocket(preferredPort, SOCKET_BACKLOG, address)
         }.getOrNull() ?: runCatching {
-            ServerSocket(0, SOCKET_BACKLOG, InetAddress.getByName(LOOPBACK))
+            ServerSocket(0, SOCKET_BACKLOG, address)
         }.getOrNull() ?: return
 
         socket = server
@@ -175,6 +202,7 @@ class AgentApiServer(
         const val DEFAULT_PORT = 8766
         const val MCP_PATH = "/mcp"
         private const val LOOPBACK = "127.0.0.1"
+        private const val ALL_INTERFACES = "0.0.0.0"
         private const val SOCKET_BACKLOG = 8
         private const val SOCKET_TIMEOUT_MS = 5_000
         private const val MAX_CONCURRENT_CLIENTS = 8
