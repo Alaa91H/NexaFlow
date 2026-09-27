@@ -307,4 +307,10 @@
     <string name="ai_routing_selected">चयनित प्रदाता</string>
     <string name="ai_routing_cloud_fallback">क्लाउड फ़ॉलबैक की अनुमति दें</string>
     <string name="ai_routing_cloud_fallback_subtitle">स्वचालित मोड क्लाउड प्रदाता का उपयोग तभी कर सकता है जब कोई स्थानीय प्रदाता उपलब्ध न हो।</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">निजी LAN पहुँच</string>
+    <string name="agent_lan_access_on">चालू — पेयर किए गए एजेंट आपके निजी नेटवर्क से जुड़ सकते हैं</string>
+    <string name="agent_lan_access_off">बंद — केवल USB/लूपबैक</string>
+    <string name="agent_lan_access_description">Android 17 पर स्थानीय नेटवर्क की अनुमति आवश्यक है। प्रमाणीकरण और पहुँच रद्द करना लागू रहते हैं।</string>
 </resources>
