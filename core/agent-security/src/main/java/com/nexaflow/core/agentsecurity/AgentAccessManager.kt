@@ -147,7 +147,8 @@ class AgentAccessManager(
                 return@mutate state to AgentPairingCompletionResult.InvalidChallenge
             }
             val effectiveRequest = challenge.request.copy(
-                binding = presentedBinding?.let(storedBinding::mergeMissing)
+                binding = presentedBinding
+                    ?.let { presented -> storedBinding.mergeMissing(presented) }
                     ?: storedBinding
             )
 
