@@ -1275,16 +1275,25 @@ private fun triggerSummary(draft: TriggerDraft): String {
             }
             "$direction ${c["threshold"] ?: "40"}°C"
         }
-        TriggerType.CLIPBOARD_CHANGED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.SCREEN_TIMEOUT_CHANGED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.TIMEZONE_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.CLIPBOARD_CHANGED ->
+            c["contains"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.SCREEN_TIMEOUT_CHANGED ->
+            c["seconds"]?.toIntOrNull()?.let { stringResource(R.string.timeout_label, it) }
+                ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.TIMEZONE_CHANGED ->
+            c["zone"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
         TriggerType.BOOT_COMPLETED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.NFC_TAG_SCANNED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.ALARM_SET_CHANGED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.WEAR_EVENT -> if ((c["state"] ?: "CONNECTED") == "CONNECTED") {
-            stringResource(R.string.state_connected)
-        } else {
-            stringResource(R.string.state_disconnected)
+        TriggerType.NFC_TAG_SCANNED ->
+            c["contains"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.ALARM_SET_CHANGED ->
+            c["event"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.WEAR_EVENT -> {
+            val state = if ((c["state"] ?: "CONNECTED") == "CONNECTED") {
+                stringResource(R.string.state_connected)
+            } else {
+                stringResource(R.string.state_disconnected)
+            }
+            c["watchInstallId"]?.takeIf { it.isNotBlank() }?.let { "$state · $it" } ?: state
         }
         TriggerType.PLUGIN_EVENT -> stringResource(R.string.action_plugin)
     }
