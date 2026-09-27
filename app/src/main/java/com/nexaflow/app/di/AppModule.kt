@@ -26,6 +26,7 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.PrivacyPreferences
+import com.nexaflow.core.datastore.SmsDeliveryStore
 import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.UpdatePreferences
@@ -189,6 +190,12 @@ object AppModule {
     @Singleton
     fun provideSmsPreferences(@ApplicationContext context: Context): SmsPreferences {
         return SmsPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSmsDeliveryStore(@ApplicationContext context: Context): SmsDeliveryStore {
+        return SmsDeliveryStore(context)
     }
 
     @Provides
