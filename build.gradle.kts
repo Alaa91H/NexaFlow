@@ -121,7 +121,15 @@ fun Project.configureCoverage() {
     val androidExtension = extensions.getByType(com.android.build.api.dsl.CommonExtension::class.java)
     androidExtension.testOptions.apply {
         unitTests.all { test ->
-            test.extensions.getByType(JacocoTaskExtension::class.java).isIncludeNoLocationClasses = false
+            test.extensions.getByType(JacocoTaskExtension::class.java).apply {
+                // Robolectric executes application classes through its SandboxClassLoader.
+                // Those transformed classes may have no code-source location, so excluding
+                // no-location classes makes JaCoCo report real Robolectric coverage as 0%.
+                isIncludeNoLocationClasses = true
+                // Keep JDK internals out of agent instrumentation when no-location classes
+                // are enabled; they are not production code and can break newer JVMs.
+                excludes = listOf("jdk.internal.*")
+            }
             // Gradle 9.6 + AGP 9: the JaCoCo agent configuration is not yet
             // serializable into the configuration cache; tests + coverage run
             // with configuration-cache disabled for these tasks.
