@@ -22,7 +22,9 @@ class AiConversationEngine(
             return@flow
         }
 
-        val provider = registry.selectedProvider()
+        val provider = registry.routeProvider(
+            requireTools = toolExecutor.tools.value.isNotEmpty()
+        )
         if (provider == null || !provider.descriptor.value.available) {
             emit(AiConversationEvent.Unavailable("no_provider"))
             return@flow
