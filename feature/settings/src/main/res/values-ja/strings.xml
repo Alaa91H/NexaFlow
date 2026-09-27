@@ -307,4 +307,10 @@
     <string name="ai_routing_selected">選択したプロバイダー</string>
     <string name="ai_routing_cloud_fallback">クラウドへのフォールバックを許可</string>
     <string name="ai_routing_cloud_fallback_subtitle">自動モードはローカルプロバイダーが利用できない場合に限りクラウドを使用できます。</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">プライベート LAN アクセス</string>
+    <string name="agent_lan_access_on">有効 — ペアリング済みエージェントがプライベートネットワークから接続できます</string>
+    <string name="agent_lan_access_off">無効 — USB/ループバックのみ</string>
+    <string name="agent_lan_access_description">Android 17 ではローカルネットワーク権限が必要です。認証とアクセス取り消しは引き続き適用されます。</string>
 </resources>
