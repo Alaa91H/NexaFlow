@@ -3197,7 +3197,6 @@ fun TriggerEditorCard(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(stringResource(R.string.action_screen_timeout)) },
-                            supportingText = { Text(stringResource(R.string.sms_contains_hint)) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
