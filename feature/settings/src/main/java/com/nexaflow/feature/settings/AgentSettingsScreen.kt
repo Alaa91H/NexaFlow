@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -46,6 +47,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.nexaflow.core.agentapi.AgentApiAuditEventV1
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
+import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.domain.security.HttpAccessPolicy
@@ -69,6 +71,11 @@ fun AgentSettingsScreen(
     var providerModel by rememberSaveable { mutableStateOf("") }
     var providerLocal by rememberSaveable { mutableStateOf(true) }
     var providerApiKey by rememberSaveable { mutableStateOf("") }
+    var routingMode by rememberSaveable {
+        mutableStateOf(AiRoutingMode.AUTOMATIC)
+    }
+    var selectedProviderId by rememberSaveable { mutableStateOf<String?>(null) }
+    var allowCloudFallback by rememberSaveable { mutableStateOf(false) }
     val dateFormat = remember {
         DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
     }
@@ -93,6 +100,11 @@ fun AgentSettingsScreen(
         providerModel = state.providerSettings.modelId
         providerLocal = state.providerSettings.local
         providerApiKey = ""
+        routingMode = runCatching {
+            AiRoutingMode.valueOf(state.providerSettings.routingMode)
+        }.getOrDefault(AiRoutingMode.AUTOMATIC)
+        selectedProviderId = state.providerSettings.selectedProviderId
+        allowCloudFallback = state.providerSettings.allowCloudFallback
     }
 
     if (showRevokeAll) {
@@ -352,6 +364,92 @@ fun AgentSettingsScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+                    HorizontalDivider()
+                    Text(
+                        text = stringResource(R.string.ai_routing_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = stringResource(R.string.ai_routing_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    AiRoutingMode.entries.forEach { mode ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = routingMode == mode,
+                                onClick = {
+                                    routingMode = mode
+                                    if (
+                                        mode == AiRoutingMode.SELECTED_PROVIDER &&
+                                        selectedProviderId == null
+                                    ) {
+                                        selectedProviderId =
+                                            state.providerDescriptors.firstOrNull()?.id
+                                    }
+                                }
+                            )
+                            Text(
+                                text = stringResource(
+                                    when (mode) {
+                                        AiRoutingMode.AUTOMATIC ->
+                                            R.string.ai_routing_automatic
+                                        AiRoutingMode.LOCAL_ONLY ->
+                                            R.string.ai_routing_local_only
+                                        AiRoutingMode.CLOUD_ONLY ->
+                                            R.string.ai_routing_cloud_only
+                                        AiRoutingMode.SELECTED_PROVIDER ->
+                                            R.string.ai_routing_selected
+                                    }
+                                )
+                            )
+                        }
+                    }
+                    if (routingMode == AiRoutingMode.SELECTED_PROVIDER) {
+                        state.providerDescriptors.forEach { descriptor ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = selectedProviderId == descriptor.id,
+                                    onClick = { selectedProviderId = descriptor.id }
+                                )
+                                Text(
+                                    text = descriptor.displayName,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                    if (routingMode == AiRoutingMode.AUTOMATIC) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(stringResource(R.string.ai_routing_cloud_fallback))
+                                Text(
+                                    text = stringResource(
+                                        R.string.ai_routing_cloud_fallback_subtitle
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = allowCloudFallback,
+                                onCheckedChange = { allowCloudFallback = it }
+                            )
+                        }
+                    }
                     Text(
                         text = stringResource(R.string.ai_provider_compatibility),
                         style = MaterialTheme.typography.bodySmall,
@@ -366,7 +464,10 @@ fun AgentSettingsScreen(
                                     baseUrl = providerUrl,
                                     modelId = providerModel,
                                     local = providerLocal,
-                                    apiKey = providerApiKey
+                                    apiKey = providerApiKey,
+                                    routingMode = routingMode,
+                                    selectedProviderId = selectedProviderId,
+                                    allowCloudFallback = allowCloudFallback
                                 )
                                 providerApiKey = ""
                             }
