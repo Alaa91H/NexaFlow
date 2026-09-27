@@ -12,23 +12,31 @@ internal object TriggerNodeSchemas {
             timeField("rangeEnd"),
             stringField("repeat"),
             integerField("interval", min = 1.0, max = 99.0),
-            enumField("intervalUnit", "DAY", "WEEK", "MONTH", "YEAR"),
+            enumField("intervalUnit", "DAY", "WEEK", "MONTH", "YEAR", default = "DAY"),
             stringField("days"),
+            dateField("date"),
             dateField("startDate"),
             dateField("endDate"),
             stringField("endMode"),
             integerField("endCount", min = 1.0, max = 999.0),
+            enumField("monthlyDayMode", "DAY_OF_MONTH", "FIRST_DAY", "LAST_DAY", default = "DAY_OF_MONTH"),
+            integerField("monthDay", min = 1.0, max = 31.0),
+            integerField("weekday", min = 1.0, max = 7.0),
+            enumField("weekOfMonth", "1", "2", "3", "4", "5", "LAST", default = "1"),
             enumField("zonePolicy", "DEVICE_LOCAL", "FIXED_IANA", default = "DEVICE_LOCAL"),
             stringField("zoneId")
         )
         TriggerType.BATTERY -> schema(
             enumField("direction", "ABOVE", "BELOW", default = "ABOVE"),
+            integerField("threshold", min = 0.0, max = 100.0),
             integerField("above", default = "80", min = 0.0, max = 100.0),
             integerField("below", min = 0.0, max = 100.0),
-            stringField("chargerType", default = "ANY")
+            enumField("chargerType", "ANY", "AC", "USB", "WIRELESS", default = "ANY"),
+            enumField("chargingState", "ANY", "CHARGING", "NOT_CHARGING", default = "ANY")
         )
         TriggerType.APPLICATION -> schema(
-            stringField("packages", expressionCapable = true)
+            stringField("packages", expressionCapable = true),
+            packageField("package")
         )
         TriggerType.DEVICE -> schema(
             stringField("event", default = "SCREEN_ON"),
@@ -69,7 +77,8 @@ internal object TriggerNodeSchemas {
         )
         TriggerType.SMS -> schema(
             stringField("from", expressionCapable = true),
-            stringField("contains", expressionCapable = true)
+            stringField("contains", expressionCapable = true),
+            enumField("matchMode", "CONTAINS", "EXACT", "ANY", default = "CONTAINS")
         )
         TriggerType.BLUETOOTH_DEVICE -> schema(
             stringField("deviceName"),
@@ -94,14 +103,21 @@ internal object TriggerNodeSchemas {
             integerField("beforeMinutes", default = "0", min = 0.0)
         )
         TriggerType.SENSOR -> schema(
-            enumField("sensor", "PROXIMITY", "SHAKE", "LIGHT", "STEP", default = "PROXIMITY"),
+            enumField(
+                "sensor",
+                "PROXIMITY", "SHAKE", "LIGHT", "STEP",
+                "PRESSURE", "TEMPERATURE", "HUMIDITY", "MAGNETIC",
+                "ACCELERATION", "GYROSCOPE", "GRAVITY", "HINGE",
+                default = "PROXIMITY"
+            ),
             stringField("event", default = "COVERED"),
             decimalField("threshold", default = "200"),
+            decimalField("upperThreshold"),
             decimalField("sensitivity", default = "14", min = 0.0)
         )
         TriggerType.WEBHOOK -> schema(
             stringField("path", required = true, default = "/nexaflow"),
-            enumField("method", "GET", "POST", "PUT", "PATCH", "DELETE", default = "POST"),
+            enumField("method", "ANY", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", default = "POST"),
             secretField("token", required = true)
         )
         TriggerType.ROM_SETTING -> schema(
@@ -122,8 +138,8 @@ internal object TriggerNodeSchemas {
         )
         TriggerType.INCOMING_CALL -> schema(
             stringField("from"),
-            enumField("matchMode", "CONTAINS", "EXACT", "ANY"),
-            enumField("category", "ANY", "UNKNOWN", "PRIVATE")
+            enumField("matchMode", "CONTAINS", "EXACT", "ANY", default = "ANY"),
+            enumField("category", "ANY", "UNKNOWN", "PRIVATE", "CONTACT", default = "ANY")
         )
         TriggerType.APP_INSTALLED -> schema(
             enumField("event", "INSTALLED", "REMOVED", "UPDATED", default = "INSTALLED"),
