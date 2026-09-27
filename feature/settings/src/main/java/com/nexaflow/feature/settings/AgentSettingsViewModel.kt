@@ -13,6 +13,7 @@ import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiEndpointPolicy
+import com.nexaflow.core.airuntime.OpenAiModelInfo
 import com.nexaflow.core.datastore.AiProviderPreferences
 import com.nexaflow.core.datastore.AiProviderSettings
 import com.nexaflow.core.security.SecureStorage
@@ -51,6 +52,7 @@ data class AgentSettingsUiState(
     val providerSettings: AiProviderSettings = AiProviderSettings(),
     val providerApiKeyConfigured: Boolean = false,
     val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
+    val discoveredModels: List<OpenAiModelInfo> = emptyList(),
     val operationFailed: Boolean = false
 )
 
@@ -193,6 +195,7 @@ class AgentSettingsViewModel @Inject constructor(
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
+                discoveredModels = emptyList(),
                 operationFailed = !success
             )
         }
@@ -206,6 +209,16 @@ class AgentSettingsViewModel @Inject constructor(
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 operationFailed = !success
+            )
+        }
+    }
+
+    fun discoverModels() {
+        viewModelScope.launch {
+            val result = provider.discoverModels()
+            reload(
+                discoveredModels = result.models,
+                operationFailed = !result.success
             )
         }
     }
@@ -235,6 +248,7 @@ class AgentSettingsViewModel @Inject constructor(
     private suspend fun reload(
         pairing: AgentPairingUi? = _state.value.pairing,
         providerProbeState: AiProviderProbeState = _state.value.providerProbeState,
+        discoveredModels: List<OpenAiModelInfo> = _state.value.discoveredModels,
         operationFailed: Boolean = false
     ) {
         val security = runCatching { accessManager.status() }.getOrNull()
@@ -264,6 +278,7 @@ class AgentSettingsViewModel @Inject constructor(
             providerSettings = providerSettings,
             providerApiKeyConfigured = providerApiKeyConfigured,
             providerProbeState = providerProbeState,
+            discoveredModels = discoveredModels,
             operationFailed = operationFailed || security == null
         )
     }
