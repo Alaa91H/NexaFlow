@@ -28,6 +28,24 @@ class ExportAuditTest(unittest.TestCase):
         self.assertTrue(self.check('<receiver android:name="Unknown"><intent-filter/></receiver>'))
         self.assertTrue(self.check('<activity-alias android:name=".MainActivity" android:exported="true"/>'))
 
+    def test_agent_binder_service_requires_exact_custom_gate(self):
+        service = (
+            '<service android:name="com.nexaflow.app.agent.NexaFlowAgentService" '
+            'android:exported="true" android:permission="{}"/>'
+        )
+        self.assertFalse(
+            self.check(service.format("com.nexaflow.app.permission.BIND_AGENT_SERVICE"))
+        )
+        self.assertTrue(
+            self.check(service.format("android.permission.INTERNET"))
+        )
+        self.assertTrue(
+            self.check(
+                '<service android:name="com.nexaflow.app.agent.NexaFlowAgentService" '
+                'android:exported="true"/>'
+            )
+        )
+
     def test_reviewed_wear_listener_requires_no_permission(self):
         self.assertFalse(self.check(
             '<service android:name="com.nexaflow.app.wear.WearCommandListenerService" android:exported="true">'
