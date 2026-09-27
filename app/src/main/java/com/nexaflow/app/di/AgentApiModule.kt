@@ -2,6 +2,7 @@ package com.nexaflow.app.di
 
 import com.nexaflow.app.agent.AndroidAgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiController
+import com.nexaflow.core.agentapi.AgentApiHostPolicy
 import com.nexaflow.core.agentapi.AgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiServer
 import com.nexaflow.core.agentapi.AgentMcpController
@@ -39,6 +40,11 @@ object AgentApiModule {
 
     @Provides
     @Singleton
+    fun provideAgentApiHostPolicy(): AgentApiHostPolicy =
+        AgentApiHostPolicy()
+
+    @Provides
+    @Singleton
     fun provideAgentApiController(
         repository: AutomationRepository,
         commandService: AutomationCommandService,
@@ -47,7 +53,8 @@ object AgentApiModule {
         schemaRegistry: AutomationSchemaRegistry,
         accessManager: AgentAccessManager,
         authorizer: AgentRequestAuthorizer,
-        runtime: AgentApiRuntime
+        runtime: AgentApiRuntime,
+        hostPolicy: AgentApiHostPolicy
     ): AgentApiController = AgentApiController(
         repository = repository,
         commandService = commandService,
@@ -56,7 +63,8 @@ object AgentApiModule {
         schemaRegistry = schemaRegistry,
         accessManager = accessManager,
         authorizer = authorizer,
-        runtime = runtime
+        runtime = runtime,
+        hostPolicy = hostPolicy
     )
 
     @Provides
@@ -70,11 +78,13 @@ object AgentApiModule {
     fun provideAgentMcpController(
         accessManager: AgentAccessManager,
         authorizer: AgentRequestAuthorizer,
-        toolExecutor: AgentMcpToolExecutor
+        toolExecutor: AgentMcpToolExecutor,
+        hostPolicy: AgentApiHostPolicy
     ): AgentMcpController = AgentMcpController(
         accessManager = accessManager,
         authorizer = authorizer,
-        toolExecutor = toolExecutor
+        toolExecutor = toolExecutor,
+        hostPolicy = hostPolicy
     )
 
     @Provides
@@ -82,10 +92,12 @@ object AgentApiModule {
     fun provideAgentApiServer(
         controller: AgentApiController,
         mcpController: AgentMcpController,
+        hostPolicy: AgentApiHostPolicy,
         @ApplicationScope scope: CoroutineScope
     ): AgentApiServer = AgentApiServer(
         controller = controller,
         mcpController = mcpController,
+        hostPolicy = hostPolicy,
         scope = scope
     )
 }
