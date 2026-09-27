@@ -300,7 +300,7 @@
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Model yönlendirme</string>
-    <string name="ai_routing_subtitle">NexaFlow'un sohbet için modeli nasıl seçeceğini belirleyin.</string>
+    <string name="ai_routing_subtitle">NexaFlow’un sohbet için modeli nasıl seçeceğini belirleyin.</string>
     <string name="ai_routing_automatic">Otomatik (yerel öncelikli)</string>
     <string name="ai_routing_local_only">Yalnızca yerel</string>
     <string name="ai_routing_cloud_only">Yalnızca bulut</string>
