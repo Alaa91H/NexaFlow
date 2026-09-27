@@ -307,4 +307,10 @@
     <string name="ai_routing_selected">Fornecedor selecionado</string>
     <string name="ai_routing_cloud_fallback">Permitir fallback para a nuvem</string>
     <string name="ai_routing_cloud_fallback_subtitle">O modo automático só pode usar um fornecedor na nuvem quando nenhum fornecedor local estiver disponível.</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">Acesso à LAN privada</string>
+    <string name="agent_lan_access_on">Ativado — os agentes emparelhados podem ligar-se a partir da sua rede privada</string>
+    <string name="agent_lan_access_off">Desativado — apenas USB/loopback</string>
+    <string name="agent_lan_access_description">O Android 17 exige permissão de rede local. A autenticação e a revogação continuam ativas.</string>
 </resources>
