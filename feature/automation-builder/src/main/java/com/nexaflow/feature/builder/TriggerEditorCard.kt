@@ -2666,7 +2666,7 @@ fun TriggerEditorCard(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            val methods = listOf("POST", "GET", "ANY")
+                            val methods = listOf("ANY", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                             methods.forEach { value ->
                                 SelectChip(
                                     selected = method == value,
@@ -3129,8 +3129,15 @@ fun TriggerEditorCard(
                         onValueChange = { input ->
                             // Temperature is a decimal number (°C): keep digits
                             // and a single decimal separator only.
-                            val cleaned = input.filter { it.isDigit() || it == '.' }
-                                .let { if (it.count { c -> c == '.' } > 1) it.substringBeforeLast(".") + "." + it.substringAfterLast(".") else it }
+                            val cleaned = buildString {
+                                input.forEachIndexed { index, char ->
+                                    when {
+                                        char.isDigit() -> append(char)
+                                        char == '-' && index == 0 && isEmpty() -> append(char)
+                                        char == '.' && '.' !in this -> append(char)
+                                    }
+                                }
+                            }
                             onConfigChange(draft.copy(config = draft.config + ("threshold" to cleaned)))
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -3165,18 +3172,75 @@ fun TriggerEditorCard(
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
                     )
                 }
-                TriggerType.CLIPBOARD_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_clipboard), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.SCREEN_TIMEOUT_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_screen_timeout), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.TIMEZONE_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_timezone), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.CLIPBOARD_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_clipboard), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["contains"].orEmpty(),
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.notification_contains)) },
+                            placeholder = { Text(stringResource(R.string.sms_contains_hint)) },
+                            singleLine = true
+                        )
+                    }
+                }
+                TriggerType.SCREEN_TIMEOUT_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_screen_timeout), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["seconds"].orEmpty(),
+                            onValueChange = { value ->
+                                onConfigChange(
+                                    draft.copy(config = draft.config + ("seconds" to value.filter { it.isDigit() }))
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.action_screen_timeout)) },
+                            supportingText = { Text(stringResource(R.string.sms_contains_hint)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
+                }
+                TriggerType.TIMEZONE_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_timezone), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["zone"].orEmpty(),
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("zone" to it.trim()))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.timezone_label)) },
+                            singleLine = true
+                        )
+                    }
+                }
                 TriggerType.BOOT_COMPLETED ->
                     Text(text = stringResource(R.string.trigger_desc_boot), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.NFC_TAG_SCANNED ->
-                    Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.ALARM_SET_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.NFC_TAG_SCANNED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["contains"].orEmpty(),
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.notification_contains)) },
+                            placeholder = { Text(stringResource(R.string.sms_contains_hint)) },
+                            singleLine = true
+                        )
+                    }
+                }
+                TriggerType.ALARM_SET_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                        OptionChips(
+                            options = listOf("SET", "CLEARED"),
+                            selected = draft.config["event"] ?: "SET",
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                        )
+                    }
+                }
                 TriggerType.WEAR_EVENT -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
