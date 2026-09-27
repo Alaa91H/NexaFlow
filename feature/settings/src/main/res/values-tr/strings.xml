@@ -307,4 +307,10 @@
     <string name="ai_routing_selected">Seçilen sağlayıcı</string>
     <string name="ai_routing_cloud_fallback">Bulut geri dönüşüne izin ver</string>
     <string name="ai_routing_cloud_fallback_subtitle">Otomatik mod, yalnızca yerel bir sağlayıcı yoksa bulut sağlayıcısı kullanabilir.</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">Özel LAN erişimi</string>
+    <string name="agent_lan_access_on">Etkin — eşleştirilmiş aracılar özel ağınızdan bağlanabilir</string>
+    <string name="agent_lan_access_off">Kapalı — yalnızca USB/loopback</string>
+    <string name="agent_lan_access_description">Android 17 yerel ağ izni gerektirir. Kimlik doğrulama ve erişim iptali uygulanmaya devam eder.</string>
 </resources>
