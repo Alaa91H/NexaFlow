@@ -1,7 +1,10 @@
 """Release gate: audit every source manifest and the merged release manifest.
 
-Only the two reviewed UI entry points are public. Every other exported component
-must have its exact known platform signature permission, never an arbitrary string.
+Only reviewed entry points are public. Every other exported component must have
+its exact reviewed permission contract, never an arbitrary permission string.
+Some contracts use platform signature permissions; the NexaFlow agent Binder
+surface uses a custom normal discovery gate plus runtime credential/caller
+identity authentication inside the service.
 """
 import argparse
 import re
@@ -20,6 +23,7 @@ GATES = {
     "com.nexaflow.core.engine.SmsReceiver": "android.permission.BROADCAST_SMS",
     "com.nexaflow.core.engine.SmsConsentReceiver": "android.permission.BROADCAST_SMS",
     "com.nexaflow.core.engine.NexaCallScreeningService": "android.permission.BIND_SCREENING_SERVICE",
+    "com.nexaflow.app.agent.NexaFlowAgentService": "com.nexaflow.app.permission.BIND_AGENT_SERVICE",
     "com.nexaflow.core.engine.AppTriggerAccessibilityService": "android.permission.BIND_ACCESSIBILITY_SERVICE",
     "com.nexaflow.core.engine.NotificationListener": "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE",
     "rikka.shizuku.ShizukuProvider": "android.permission.INTERACT_ACROSS_USERS_FULL",
