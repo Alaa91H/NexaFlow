@@ -39,6 +39,7 @@ class AgentApiController(
     private val accessManager: AgentAccessManager,
     private val authorizer: AgentRequestAuthorizer,
     private val runtime: AgentApiRuntime,
+    private val hostPolicy: AgentApiHostPolicy = AgentApiHostPolicy(),
     private val json: Json = Json {
         ignoreUnknownKeys = false
         explicitNulls = false
@@ -53,8 +54,8 @@ class AgentApiController(
         if (request.header("origin") != null) {
             return error(403, "browser_origin_rejected", "Browser-originated requests are not accepted")
         }
-        if (!validHost(request.header("host"))) {
-            return error(400, "invalid_host", "Host must be loopback")
+        if (!hostPolicy.isAllowed(request.header("host"))) {
+            return error(400, "invalid_host", "Host is not allowed by the agent network policy")
         }
 
         if (request.method == "GET" && path == "/api/v1/openapi.json") {
@@ -174,6 +175,7 @@ class AgentApiController(
                 respond(
                     200,
                     AgentApiStatusV1(
+                        loopbackOnly = !hostPolicy.lanAccessEnabled,
                         accessEnabled = status.accessEnabled,
                         activeAgentCount = status.activeAgentCount,
                         activeSessionCount = status.activeSessionCount,
@@ -884,12 +886,6 @@ class AgentApiController(
             .firstOrNull { it.substringBefore('=') == "limit" }
             ?.substringAfter('=', "")
         return raw?.toIntOrNull()?.coerceIn(1, MAX_READ_LIMIT) ?: DEFAULT_READ_LIMIT
-    }
-
-    private fun validHost(host: String?): Boolean {
-        if (host.isNullOrBlank()) return false
-        val normalized = host.substringBefore(':').lowercase()
-        return normalized == "127.0.0.1" || normalized == "localhost"
     }
 
     private fun derivedIdempotencyKey(base: String, phase: String): String {
