@@ -27,4 +27,7 @@ The bridge preserves legacy MCP 2025-11-25 traffic. For MCP 2026-07-28 it derive
 
 USB is the default desktop path and does not expose any Android listener to the network. The CLI contains a direct-endpoint client for an explicitly trusted future LAN/VPN listener. Public direct URLs require HTTPS and private HTTP targets are revalidated before each request.
 
-An Android-side LAN listener remains a separate opt-in feature and must never replace the loopback default.
+The Android-side LAN listener is an explicit opt-in under Settings > AI & Agents.
+It is off by default, requires the platform local-network permission on Android
+17 when applicable, accepts only numeric private/link-local Host values, and is
+collapsed back to loopback when the global Agent Access kill switch is disabled.
