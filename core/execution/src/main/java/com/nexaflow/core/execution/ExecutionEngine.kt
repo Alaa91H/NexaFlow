@@ -125,7 +125,9 @@ class ExecutionEngine(
         com.nexaflow.core.logging.TraceRecorder(logStore),
     /** In-process per-action status for an open task-details screen. */
     private val executionProgressTracker: ExecutionProgressTracker =
-        ExecutionProgressTracker()
+        ExecutionProgressTracker(),
+    /** Run lifecycle fan-out; failures never affect execution. */
+    private val runListener: AutomationRunListener = AutomationRunListener.NO_OP
 ) {
     private val diagnostics = ExecutionDiagnostics(
         context = context,
@@ -139,6 +141,29 @@ class ExecutionEngine(
         capabilityExecutionService = capabilityExecutionService,
         constraintStateProvider = constraintStateProvider
     )
+
+    /**
+     * Single choke point for durable history writes: persists the record,
+     * then fans out to the run listener. Listener failures are swallowed so
+     * telemetry can never break execution or history.
+     */
+    private suspend fun recordHistory(record: ExecutionRecord) {
+        try {
+            historyRepository.recordExecution(record)
+        } finally {
+            try {
+                runListener.onRecord(record)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private suspend fun notifyTriggered(automationId: String, runId: String) {
+        try {
+            runListener.onTriggered(automationId, runId)
+        } catch (_: Exception) {
+        }
+    }
     private val workflowAdmissionGate = WorkflowAdmissionGate(
         capabilitySnapshotProvider = capabilitySnapshotProvider,
         privilegeSnapshotProvider = privilegeSnapshotProvider,
@@ -259,7 +284,7 @@ class ExecutionEngine(
                     now = startedAt
                 )
             ) {
-                historyRepository.recordExecution(record)
+                recordHistory(record)
                 diagnostics.recordTimeline(
                     automation = automation,
                     kind = "CONCURRENT_RUN_SKIPPED",
@@ -296,7 +321,7 @@ class ExecutionEngine(
                     now = startedAt
                 )
             ) {
-                historyRepository.recordExecution(record)
+                recordHistory(record)
                 diagnostics.recordTimeline(
                     automation = automation,
                     kind = "DUPLICATE_OCCURRENCE_SKIPPED",
@@ -367,7 +392,7 @@ class ExecutionEngine(
                 channel = channel?.type?.name
             )
             if (skipReportThrottle.shouldReport(automation.id, "MAINTENANCE_DUPLICATE", startedAt)) {
-                historyRepository.recordExecution(record)
+                recordHistory(record)
             }
             diagnostics.recordTimeline(
                 automation = automation,
@@ -410,7 +435,7 @@ class ExecutionEngine(
                 )
                 if (skipReportThrottle.shouldReport(
                         automation.id, "CONSTRAINT:" + constraintResult.toGateMessage(), startedAt
-                    )) historyRepository.recordExecution(record)
+                    )) recordHistory(record)
                 diagnostics.recordTimeline(automation, "BLOCKED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
@@ -465,7 +490,7 @@ class ExecutionEngine(
                 )
                 if (skipReportThrottle.shouldReport(
                         automation.id, "TRIGGER_ALL:" + skipDetail, startedAt
-                    )) historyRepository.recordExecution(record)
+                    )) recordHistory(record)
                 diagnostics.recordTimeline(
                     automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId
                 )
@@ -507,7 +532,7 @@ class ExecutionEngine(
             )
             if (skipReportThrottle.shouldReport(
                     automation.id, "MAINTENANCE_WAITING:" + maintenanceReadiness.reason.name, startedAt
-                )) historyRepository.recordExecution(record)
+                )) recordHistory(record)
             diagnostics.recordTimeline(
                 automation = automation,
                 kind = "MAINTENANCE_WAITING",
@@ -564,7 +589,7 @@ class ExecutionEngine(
                     now = startedAt
                 )
             ) {
-                historyRepository.recordExecution(record)
+                recordHistory(record)
                 diagnostics.recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordBlockedRun(
                     payloadContext.runId, automation.id, TraceReasons.ADMISSION_REJECTED,
@@ -617,7 +642,7 @@ class ExecutionEngine(
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
-                historyRepository.recordExecution(record)
+                recordHistory(record)
                 diagnostics.recordTimeline(automation, "LIFECYCLE_CONFLICT", record, startedAt, payloadContext.runId)
                 traceRecorder.recordBlockedRun(
                     payloadContext.runId, automation.id, TraceReasons.ADMISSION_REJECTED,
@@ -631,6 +656,7 @@ class ExecutionEngine(
         // lifecycle claim, so reaching this point is the admission boundary.
         activeExecutions.add(automation.id)
         activeExecutionStore.markStarted(automation.id)
+        notifyTriggered(automation.id, payloadContext.runId)
 
         // The durable admission succeeded (or this is a legacy/stateless run),
         // so this invocation may now own the in-memory restore snapshot too.
@@ -849,7 +875,7 @@ class ExecutionEngine(
             channel = channel?.type?.name,
             actionResults = results
         )
-        historyRepository.recordExecution(record)
+        recordHistory(record)
         // History is the durable commit point for a known main-action chain.
         // Never remove the checkpoint before this succeeds: a process death in
         // that window would otherwise lose both the run evidence and recovery
@@ -933,7 +959,7 @@ class ExecutionEngine(
             message = "Skipped: manual conditions not satisfied",
             executedAt = startedAt
         )
-        historyRepository.recordExecution(record)
+        recordHistory(record)
         diagnostics.recordTimeline(
             automation = automation,
             kind = "MANUAL_CONDITION_BLOCKED",
@@ -1072,7 +1098,7 @@ class ExecutionEngine(
                 executedAt = startedAt
             )
             if (skipReportThrottle.shouldReport(automation.id, "EXIT_NOT_ACTIVE", startedAt)) {
-                historyRepository.recordExecution(record)
+                recordHistory(record)
             }
             diagnostics.recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
             return record
@@ -1099,7 +1125,7 @@ class ExecutionEngine(
                 },
                 executedAt = startedAt
             )
-            historyRepository.recordExecution(record)
+            recordHistory(record)
             diagnostics.recordTimeline(
                 automation,
                 if (manualConditionRejected) "MANUAL_CONDITION_NOT_MET" else "EXIT",
@@ -1232,7 +1258,7 @@ class ExecutionEngine(
         // retryable execution failure: replaying the end behavior could duplicate
         // an external side effect. Keep the returned action outcome authoritative
         // and surface the history failure through diagnostics instead.
-        val historyFailure = runCatching { historyRepository.recordExecution(record) }.exceptionOrNull()
+        val historyFailure = runCatching { recordHistory(record) }.exceptionOrNull()
         diagnostics.recordTimeline(
             automation,
             if (historyFailure != null) {

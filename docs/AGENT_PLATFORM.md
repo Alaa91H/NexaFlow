@@ -360,8 +360,10 @@ Implemented foundation:
       mutation, bridged to `AgentEventHub` in the app layer, so all
       transports (UI, MCP, REST, A2A, Binder, relay, import) produce
       created/updated/deleted events from one place
-- [x] execution lifecycle events (triggered/completed/failed) remain
-      engine-owned future work; diagnosis consumes failure signals meanwhile
+- [x] execution lifecycle events via `AutomationRunListener` in
+      `:core:execution`: admitted runs publish triggered, every persisted
+      history record publishes completed/failed, bridged to `AgentEventHub`
+      with redacted reasons; listener failures never affect execution
 
 Local agents may wake on events instead of polling continuously.
 
@@ -446,6 +448,9 @@ command policy.
 - Audit data is redacted.
 - A global kill switch immediately blocks all agent sessions without deleting
   automations they created.
+- Every committed definition carries a system-computed risk level
+  (`AgentRiskEvaluator`, LOW–CRITICAL) for audit/telemetry/debugging; it
+  never gates mutations and never trusts caller-supplied hints.
 
 ## Required CI coverage
 

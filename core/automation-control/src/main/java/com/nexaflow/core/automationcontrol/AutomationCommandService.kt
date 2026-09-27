@@ -4,6 +4,7 @@ import com.nexaflow.core.automationcontrol.api.AgentTaskDraftV1
 import com.nexaflow.core.automationcontrol.api.AgentTaskMapper
 import com.nexaflow.core.automationcontrol.api.AgentTaskMappingError
 import com.nexaflow.core.automationcontrol.api.AgentTaskMappingException
+import com.nexaflow.core.automationcontrol.risk.AgentRiskEvaluator
 import com.nexaflow.core.automationcontrol.validation.AgentWorkflowValidationReport
 import com.nexaflow.core.automationcontrol.validation.AgentWorkflowValidator
 import com.nexaflow.core.execution.dryrun.WorkflowDryRunInput
@@ -494,16 +495,19 @@ class AutomationCommandService(
                 failures += AutomationImportRejection(automation.id, issues)
                 return@forEach
             }
+            val effectiveContext = itemContext.copy(
+                riskLevel = AgentRiskEvaluator.evaluate(automation).level.name
+            )
             prepared += Triple(
                 automation,
                 AutomationMutationCommitRequest(
                     kind = AutomationMutationKind.CREATE,
                     automation = automation,
-                    context = itemContext,
+                    context = effectiveContext,
                     requestFingerprint = fingerprint,
                     occurredAt = occurredAt
                 ),
-                itemContext
+                effectiveContext
             )
         }
         if (failures.isNotEmpty()) return AutomationImportResult.Rejected(failures)
@@ -668,8 +672,15 @@ class AutomationCommandService(
         report: AutomationPreflightReport,
         request: AutomationMutationCommitRequest
     ): AutomationMutationResult {
-        val result = mutationPersistence.commit(request)
-        return toMutationResult(result, automation, report, request)
+        // Plan §18: the persisted risk level is always system-computed from
+        // the definition being written, never a caller-supplied hint.
+        val effectiveRequest = request.copy(
+            context = request.context.copy(
+                riskLevel = AgentRiskEvaluator.evaluate(automation).level.name
+            )
+        )
+        val result = mutationPersistence.commit(effectiveRequest)
+        return toMutationResult(result, automation, report, effectiveRequest)
     }
 
     private suspend fun toMutationResult(

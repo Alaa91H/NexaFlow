@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.nexaflow.app.agent.AgentAutomationEventBridge
+import com.nexaflow.app.agent.AgentRunEventBridge
 import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.automationcontrol.AutomationCommandService
 import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
@@ -472,7 +473,8 @@ object AppModule {
         privilegeStateStore: PrivilegeStateStore,
         semanticWorkflowPlanner: com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner,
         automationRuntimeStore: AutomationRuntimeStore,
-        semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
+        semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter,
+        runEventBridge: AgentRunEventBridge
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
@@ -487,7 +489,8 @@ object AppModule {
             privilegeSnapshotProvider = { privilegeStateStore.snapshot.value },
             capabilitySnapshotInvalidator = { capabilityStateStore.refresh() },
             privilegeSnapshotInvalidator = { privilegeStateStore.refresh() },
-            semanticWorkflowPlanner = semanticWorkflowPlanner
+            semanticWorkflowPlanner = semanticWorkflowPlanner,
+            runListener = runEventBridge
         )
     }
 
