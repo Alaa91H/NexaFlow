@@ -160,6 +160,13 @@ class AgentA2AControllerTest {
         )
 
         assertEquals(401, response.status)
+        val body = parse(response)
+        assertEquals("2.0", body["jsonrpc"]!!.jsonPrimitive.content)
+        assertEquals("a2a-5", body["id"]!!.jsonPrimitive.content)
+        assertEquals(
+            "missing_bearer_token",
+            body["error"]!!.jsonObject["code"]!!.jsonPrimitive.content
+        )
     }
 
     private suspend fun fixture(): Fixture {

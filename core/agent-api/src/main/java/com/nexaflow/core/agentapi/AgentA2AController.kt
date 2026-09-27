@@ -420,6 +420,8 @@ class AgentA2AController(
         fun toRpc(id: JsonElement): AgentHttpResponse = AgentHttpResponse(
             httpStatus,
             buildJsonObject {
+                put("jsonrpc", JSON_RPC)
+                put("id", id)
                 putJsonObject("error") {
                     put("code", code)
                     put("message", code)
