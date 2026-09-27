@@ -307,4 +307,10 @@
     <string name="ai_routing_selected">Выбранный провайдер</string>
     <string name="ai_routing_cloud_fallback">Разрешить переход в облако</string>
     <string name="ai_routing_cloud_fallback_subtitle">Автоматический режим может использовать облачный провайдер только при отсутствии доступного локального.</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">Доступ из частной LAN</string>
+    <string name="agent_lan_access_on">Включено — сопряжённые агенты могут подключаться из вашей частной сети</string>
+    <string name="agent_lan_access_off">Выключено — только USB/loopback</string>
+    <string name="agent_lan_access_description">В Android 17 требуется разрешение локальной сети. Аутентификация и отзыв доступа продолжают действовать.</string>
 </resources>
