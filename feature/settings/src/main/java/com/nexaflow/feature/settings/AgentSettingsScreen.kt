@@ -2,6 +2,10 @@ package com.nexaflow.feature.settings
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,11 +42,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.nexaflow.core.agentapi.AgentApiAuditEventV1
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
+import com.nexaflow.domain.security.HttpAccessPolicy
+import java.net.URI
 import java.text.DateFormat
 import java.util.Date
 
@@ -64,6 +71,11 @@ fun AgentSettingsScreen(
     var providerApiKey by rememberSaveable { mutableStateOf("") }
     val dateFormat = remember {
         DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+    }
+    val localNetworkPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        viewModel.testProvider()
     }
 
     LaunchedEffect(Unit) {
@@ -325,7 +337,21 @@ fun AgentSettingsScreen(
                             Text(stringResource(R.string.ai_provider_save))
                         }
                         TextButton(
-                            onClick = viewModel::testProvider,
+                            onClick = {
+                                if (
+                                    needsLocalNetworkPermission(
+                                        context = context,
+                                        baseUrl = state.providerSettings.baseUrl,
+                                        local = state.providerSettings.local
+                                    )
+                                ) {
+                                    localNetworkPermissionLauncher.launch(
+                                        HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
+                                    )
+                                } else {
+                                    viewModel.testProvider()
+                                }
+                            },
                             enabled = state.providerSettings.enabled &&
                                 state.providerProbeState != AiProviderProbeState.TESTING
                         ) {
@@ -599,4 +625,22 @@ private fun AgentActivityRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+
+private fun needsLocalNetworkPermission(
+    context: android.content.Context,
+    baseUrl: String,
+    local: Boolean
+): Boolean {
+    if (!local || Build.VERSION.SDK_INT < 37) return false
+    val host = runCatching { URI(baseUrl).host }
+        .getOrNull()
+        ?.lowercase()
+        ?: return false
+    if (host in setOf("localhost", "127.0.0.1", "::1")) return false
+    return ContextCompat.checkSelfPermission(
+        context,
+        HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
+    ) != PackageManager.PERMISSION_GRANTED
 }
