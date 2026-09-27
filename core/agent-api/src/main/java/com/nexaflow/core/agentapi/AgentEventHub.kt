@@ -78,7 +78,10 @@ class AgentEventHub(
                 latestSequence = latest,
                 reset = reset,
                 truncated = available.size > limit ||
-                    (!reset && effectiveAfter > 0L && effectiveAfter < oldest - 1L)
+                    // The caller asked from the beginning (or a reset forced
+                    // the cursor there) but the ring already evicted older
+                    // events: the snapshot is a truncated view of history.
+                    (!reset && effectiveAfter < oldest - 1L)
             )
         }
 
