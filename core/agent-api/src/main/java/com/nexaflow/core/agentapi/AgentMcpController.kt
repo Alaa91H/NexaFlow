@@ -26,6 +26,7 @@ class AgentMcpController(
     private val accessManager: AgentAccessManager,
     private val authorizer: AgentRequestAuthorizer,
     private val toolExecutor: AgentMcpToolExecutor,
+    private val hostPolicy: AgentApiHostPolicy = AgentApiHostPolicy(),
     private val json: Json = Json {
         ignoreUnknownKeys = false
         explicitNulls = false
@@ -36,7 +37,7 @@ class AgentMcpController(
         if (request.method != "POST") {
             return httpProtocolError(405, null, -32600, "MCP only accepts HTTP POST")
         }
-        if (!validHost(request.header("host")) || request.header("origin") != null) {
+        if (!hostPolicy.isAllowed(request.header("host")) || request.header("origin") != null) {
             return httpProtocolError(403, null, -32600, "MCP request origin is not allowed")
         }
         if (!request.header("content-type").orEmpty().startsWith("application/json")) {
@@ -426,12 +427,6 @@ class AgentMcpController(
 
     private fun modernHeaders() =
         mapOf("MCP-Protocol-Version" to MODERN_VERSION)
-
-    private fun validHost(host: String?): Boolean {
-        if (host.isNullOrBlank()) return false
-        val normalized = host.substringBefore(':').lowercase()
-        return normalized == "127.0.0.1" || normalized == "localhost"
-    }
 
     companion object {
         const val MODERN_VERSION = "2026-07-28"
