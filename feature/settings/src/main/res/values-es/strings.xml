@@ -295,4 +295,14 @@
     <string name="ai_provider_test_success">El modelo está listo</string>
     <string name="ai_provider_test_failed">Falló la prueba del modelo</string>
     <string name="ai_provider_clear_key">Eliminar clave guardada</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">Enrutamiento de modelos</string>
+    <string name="ai_routing_subtitle">Elige cómo NexaFlow selecciona un modelo para el chat.</string>
+    <string name="ai_routing_automatic">Automático (prioriza local)</string>
+    <string name="ai_routing_local_only">Solo local</string>
+    <string name="ai_routing_cloud_only">Solo nube</string>
+    <string name="ai_routing_selected">Proveedor seleccionado</string>
+    <string name="ai_routing_cloud_fallback">Permitir respaldo en la nube</string>
+    <string name="ai_routing_cloud_fallback_subtitle">El modo automático puede usar un proveedor en la nube solo si no hay uno local disponible.</string>
 </resources>
