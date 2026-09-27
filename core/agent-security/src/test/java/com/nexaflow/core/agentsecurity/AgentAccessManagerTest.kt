@@ -147,6 +147,43 @@ class AgentAccessManagerTest {
     }
 
     @Test
+    fun pairingCompletionCanBindPermanentGrantToTransportIdentity() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val started = fixture.manager.beginPairing(identity())
+            as AgentPairingStartResult.Started
+        val binderIdentity = AgentIdentityBinding(
+            packageName = "com.example.agent",
+            signingCertificateSha256 = "binder-cert-sha256"
+        )
+
+        val completed = fixture.manager.completePairing(
+            started.offer.challengeId,
+            started.offer.challengeSecret,
+            binderIdentity
+        ) as AgentPairingCompletionResult.Granted
+        val grant = fixture.manager.listActiveGrants().single()
+
+        assertEquals(binderIdentity, grant.binding)
+        assertEquals(
+            AgentSessionIssueResult.BindingMismatch,
+            fixture.manager.exchangeRefreshToken(
+                completed.credential.refreshToken,
+                AgentIdentityBinding(
+                    packageName = "com.example.other",
+                    signingCertificateSha256 = "binder-cert-sha256"
+                )
+            )
+        )
+        assertTrue(
+            fixture.manager.exchangeRefreshToken(
+                completed.credential.refreshToken,
+                binderIdentity
+            ) is AgentSessionIssueResult.Issued
+        )
+    }
+
+    @Test
     fun pairingLocksAfterBoundedFailures() = runTest {
         val fixture = fixture()
         fixture.manager.setAccessEnabled(true)
