@@ -73,7 +73,8 @@ internal object TriggerNodeSchemas {
             coordinateField("lat", required = true),
             coordinateField("lng", required = true),
             integerField("radius", default = "100", min = 50.0, max = 2000.0),
-            enumField("event", "ENTER", "EXIT", default = "ENTER")
+            enumField("event", "ENTER", "EXIT", default = "ENTER"),
+            enumField("source", "current", "selected", default = "current")
         )
         TriggerType.SMS -> schema(
             stringField("from", expressionCapable = true),
@@ -93,6 +94,7 @@ internal object TriggerNodeSchemas {
         )
         TriggerType.NOTIFICATION -> schema(
             stringField("packages"),
+            packageField("package"),
             stringField("contains", expressionCapable = true),
             enumField("event", "POSTED", "REMOVED", default = "POSTED")
         )
