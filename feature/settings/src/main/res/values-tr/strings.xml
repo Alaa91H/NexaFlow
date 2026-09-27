@@ -297,4 +297,14 @@
     <string name="ai_provider_test_success">Model hazır</string>
     <string name="ai_provider_test_failed">Model testi başarısız</string>
     <string name="ai_provider_clear_key">Kayıtlı anahtarı kaldır</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">Model yönlendirme</string>
+    <string name="ai_routing_subtitle">NexaFlow'un sohbet için modeli nasıl seçeceğini belirleyin.</string>
+    <string name="ai_routing_automatic">Otomatik (yerel öncelikli)</string>
+    <string name="ai_routing_local_only">Yalnızca yerel</string>
+    <string name="ai_routing_cloud_only">Yalnızca bulut</string>
+    <string name="ai_routing_selected">Seçilen sağlayıcı</string>
+    <string name="ai_routing_cloud_fallback">Bulut geri dönüşüne izin ver</string>
+    <string name="ai_routing_cloud_fallback_subtitle">Otomatik mod, yalnızca yerel bir sağlayıcı yoksa bulut sağlayıcısı kullanabilir.</string>
 </resources>
