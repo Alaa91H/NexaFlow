@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -77,6 +78,11 @@ class AgentMcpRestToolExecutor(
             "nexaflow.get_history" -> forward(
                 "GET",
                 "/api/v1/history?limit=${limit(arguments)}",
+                sourceRequest
+            )
+            "nexaflow.wait_events" -> forward(
+                "GET",
+                "/api/v1/events?${eventQuery(arguments)}",
                 sourceRequest
             )
             "nexaflow.get_audit" -> forward(
@@ -238,6 +244,26 @@ class AgentMcpRestToolExecutor(
             ?.let { put("x-request-id", it) }
     }
 
+    private fun eventQuery(arguments: JsonObject): String {
+        val streamId = arguments["streamId"]?.jsonPrimitive?.contentOrNull
+            ?.takeIf { EVENT_STREAM_ID.matches(it) }
+        val after = arguments["after"]?.jsonPrimitive?.longOrNull
+            ?.coerceAtLeast(0L)
+            ?: 0L
+        val limit = arguments["limit"]?.jsonPrimitive?.intOrNull
+            ?.coerceIn(1, AgentEventHub.MAX_BATCH_SIZE)
+            ?: 50
+        val waitMs = arguments["waitMs"]?.jsonPrimitive?.longOrNull
+            ?.coerceIn(0L, AgentEventHub.MAX_WAIT_MS)
+            ?: 0L
+        return buildList {
+            streamId?.let { add("streamId=$it") }
+            add("after=$after")
+            add("limit=$limit")
+            add("waitMs=$waitMs")
+        }.joinToString("&")
+    }
+
     private fun taskId(arguments: JsonObject): String {
         val id = requiredString(arguments, "id")
         if (!TASK_ID.matches(id)) throw ToolInputException()
@@ -301,6 +327,7 @@ class AgentMcpRestToolExecutor(
 
     private companion object {
         val TASK_ID = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}")
+        val EVENT_STREAM_ID = Regex("[A-Za-z0-9._:-]{1,128}")
         val CONTROL_KEYS = setOf("idempotencyKey", "id", "revision")
         val OPTIONAL_MUTATION_FIELDS = listOf(
             "providerId",
