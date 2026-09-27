@@ -89,6 +89,13 @@ fun AgentSettingsScreen(
     ) {
         viewModel.discoverModels()
     }
+    val agentLanPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.setLanAccessEnabled(true)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
@@ -239,6 +246,57 @@ fun AgentSettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace
                     )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.agent_lan_access_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = stringResource(
+                                    if (state.lanAccessEnabled) {
+                                        R.string.agent_lan_access_on
+                                    } else {
+                                        R.string.agent_lan_access_off
+                                    }
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = stringResource(R.string.agent_lan_access_description),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = state.lanAccessEnabled,
+                            enabled = state.accessEnabled,
+                            onCheckedChange = { enabled ->
+                                when {
+                                    !enabled -> viewModel.setLanAccessEnabled(false)
+                                    Build.VERSION.SDK_INT >= 37 &&
+                                        ContextCompat.checkSelfPermission(
+                                            context,
+                                            HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
+                                        ) != PackageManager.PERMISSION_GRANTED -> {
+                                        agentLanPermissionLauncher.launch(
+                                            HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
+                                        )
+                                    }
+                                    else -> viewModel.setLanAccessEnabled(true)
+                                }
+                            }
+                        )
+                    }
                 }
             }
 
