@@ -1,5 +1,6 @@
 package com.nexaflow.app.di
 
+import android.content.Context
 import com.nexaflow.app.agent.AndroidAgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.agentapi.AgentApiHostPolicy
@@ -14,11 +15,13 @@ import com.nexaflow.core.automationcontrol.AutomationCommandService
 import com.nexaflow.core.automationcontrol.schedule.AgentSchedulePreviewService
 import com.nexaflow.core.automationcontrol.schema.AutomationSchemaRegistry
 import com.nexaflow.core.automationcontrol.simulation.AgentSimulationService
+import com.nexaflow.core.datastore.AgentNetworkPreferences
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +29,12 @@ import kotlinx.coroutines.CoroutineScope
 @Module
 @InstallIn(SingletonComponent::class)
 object AgentApiModule {
+
+    @Provides
+    @Singleton
+    fun provideAgentNetworkPreferences(
+        @ApplicationContext context: Context
+    ): AgentNetworkPreferences = AgentNetworkPreferences(context)
 
     @Provides
     @Singleton
