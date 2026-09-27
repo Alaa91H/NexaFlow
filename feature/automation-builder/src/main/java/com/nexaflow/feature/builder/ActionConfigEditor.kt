@@ -1102,7 +1102,7 @@ fun ActionConfigEditor(
                 )
                 VariableInsertChips(
                     availableVariables = availableVariables,
-                    currentValue = config["message"] ?: "",
+                    currentValue = config["message"] ?: "Battery alert triggered",
                     onValueChange = { onConfigChange(config + ("message" to it)) }
                 )
                 Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
@@ -1139,7 +1139,7 @@ fun ActionConfigEditor(
                 )
                 VariableInsertChips(
                     availableVariables = availableVariables,
-                    currentValue = config["message"] ?: "",
+                    currentValue = config["message"] ?: "Battery alert triggered",
                     onValueChange = { onConfigChange(config + ("message" to it)) }
                 )
                 Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
