@@ -4,6 +4,7 @@ import android.content.Context
 import com.nexaflow.app.agent.AndroidAgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.agentapi.AgentApiHostPolicy
+import com.nexaflow.core.agentapi.AgentEventHub
 import com.nexaflow.core.agentapi.AgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiServer
 import com.nexaflow.core.agentapi.AgentMcpController
@@ -54,6 +55,11 @@ object AgentApiModule {
 
     @Provides
     @Singleton
+    fun provideAgentEventHub(): AgentEventHub =
+        AgentEventHub()
+
+    @Provides
+    @Singleton
     fun provideAgentApiController(
         repository: AutomationRepository,
         commandService: AutomationCommandService,
@@ -63,6 +69,7 @@ object AgentApiModule {
         accessManager: AgentAccessManager,
         authorizer: AgentRequestAuthorizer,
         runtime: AgentApiRuntime,
+        eventHub: AgentEventHub,
         hostPolicy: AgentApiHostPolicy
     ): AgentApiController = AgentApiController(
         repository = repository,
@@ -73,6 +80,7 @@ object AgentApiModule {
         accessManager = accessManager,
         authorizer = authorizer,
         runtime = runtime,
+        eventHub = eventHub,
         hostPolicy = hostPolicy
     )
 
