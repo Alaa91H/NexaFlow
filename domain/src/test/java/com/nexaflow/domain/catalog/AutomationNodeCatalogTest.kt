@@ -115,14 +115,14 @@ class AutomationNodeCatalogTest {
             mapOf(
                 "url" to "https://example.test/%host",
                 "method" to "POST",
-                "timeoutSeconds" to "%timeout"
+                "timeoutMs" to "%timeout"
             )
         )
 
-        // URL is expression-capable, while timeout currently is deliberately
-        // literal-only until retry/timeout policy moves into the node runtime contract.
+        // URL accepts runtime expressions; transport policy values are deliberately
+        // literal-only so retry/timeout semantics remain bounded and auditable.
         assertFalse(dynamic.any { it.key == "url" })
-        assertTrue(dynamic.any { it.key == "timeoutSeconds" })
+        assertTrue(dynamic.any { it.key == "timeoutMs" })
     }
 
     @Test
