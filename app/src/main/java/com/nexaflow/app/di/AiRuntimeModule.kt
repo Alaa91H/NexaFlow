@@ -6,6 +6,8 @@ import com.nexaflow.app.ai.AndroidOpenAiCompatibleTransport
 import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.airuntime.AiConversationEngine
 import com.nexaflow.core.airuntime.AiProviderRegistry
+import com.nexaflow.core.airuntime.AiRoutingMode
+import com.nexaflow.core.airuntime.AiRoutingPolicy
 import com.nexaflow.core.airuntime.AiToolExecutor
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
@@ -67,6 +69,15 @@ object AiRuntimeModule {
                         baseUrl = settings.baseUrl,
                         modelId = settings.modelId,
                         local = settings.local
+                    )
+                )
+                registry.updateRoutingPolicy(
+                    AiRoutingPolicy(
+                        mode = runCatching {
+                            AiRoutingMode.valueOf(settings.routingMode)
+                        }.getOrDefault(AiRoutingMode.AUTOMATIC),
+                        selectedProviderId = settings.selectedProviderId,
+                        allowCloudFallback = settings.allowCloudFallback
                     )
                 )
                 registry.refreshDescriptors()
