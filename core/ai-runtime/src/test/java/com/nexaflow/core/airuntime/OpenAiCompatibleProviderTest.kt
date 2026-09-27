@@ -92,6 +92,62 @@ class OpenAiCompatibleProviderTest {
     }
 
     @Test
+    fun discoversAndNormalizesOpenAiCompatibleModels() = runTest {
+        val transport = object : OpenAiCompatibleTransport {
+            override suspend fun postChatCompletions(
+                config: OpenAiCompatibleProviderConfig,
+                body: JsonObject,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(200, "{}")
+
+            override suspend fun getModels(
+                config: OpenAiCompatibleProviderConfig,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(
+                200,
+                """{
+                  "object":"list",
+                  "data":[
+                    {"id":"model-b","owned_by":"local"},
+                    {"id":"model-a","meta":{"n_ctx_train":32768}},
+                    {"id":"model-a","meta":{"n_ctx_train":32768}},
+                    {"id":""},
+                    {"object":"model"}
+                  ]
+                }""".trimIndent()
+            )
+        }
+        val provider = provider(transport)
+        provider.configure(config())
+
+        val result = provider.discoverModels()
+
+        assertTrue(result.success)
+        assertEquals(listOf("model-a", "model-b"), result.models.map { it.id })
+        assertEquals(32768, result.models.first().contextTokens)
+        assertEquals("local", result.models.last().ownedBy)
+    }
+
+    @Test
+    fun unsupportedModelDiscoveryDoesNotDisableProvider() = runTest {
+        val transport = object : OpenAiCompatibleTransport {
+            override suspend fun postChatCompletions(
+                config: OpenAiCompatibleProviderConfig,
+                body: JsonObject,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(200, "{}")
+        }
+        val provider = provider(transport)
+        provider.configure(config())
+
+        val result = provider.discoverModels()
+
+        assertFalse(result.success)
+        assertEquals(501, result.statusCode)
+        assertTrue(provider.descriptor.value.available)
+    }
+
+    @Test
     fun parsesBufferedFallbackResponse() = runTest {
         val provider = provider(FakeTransport())
         provider.configure(config())
