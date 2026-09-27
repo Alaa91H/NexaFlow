@@ -297,4 +297,14 @@
     <string name="ai_provider_test_success">模型已就绪</string>
     <string name="ai_provider_test_failed">模型测试失败</string>
     <string name="ai_provider_clear_key">删除已存储的密钥</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">模型路由</string>
+    <string name="ai_routing_subtitle">选择 NexaFlow 如何为聊天选择模型。</string>
+    <string name="ai_routing_automatic">自动（优先本地）</string>
+    <string name="ai_routing_local_only">仅本地</string>
+    <string name="ai_routing_cloud_only">仅云端</string>
+    <string name="ai_routing_selected">选定的提供商</string>
+    <string name="ai_routing_cloud_fallback">允许回退到云端</string>
+    <string name="ai_routing_cloud_fallback_subtitle">自动模式仅在没有可用本地提供商时才可使用云端提供商。</string>
 </resources>
