@@ -305,4 +305,10 @@
     <string name="ai_routing_selected">Proveedor seleccionado</string>
     <string name="ai_routing_cloud_fallback">Permitir respaldo en la nube</string>
     <string name="ai_routing_cloud_fallback_subtitle">El modo automático puede usar un proveedor en la nube solo si no hay uno local disponible.</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">Acceso por LAN privada</string>
+    <string name="agent_lan_access_on">Activado — los agentes emparejados pueden conectarse desde tu red privada</string>
+    <string name="agent_lan_access_off">Desactivado — solo USB/bucle local</string>
+    <string name="agent_lan_access_description">Android 17 requiere permiso de red local. La autenticación y la revocación siguen aplicándose.</string>
 </resources>
