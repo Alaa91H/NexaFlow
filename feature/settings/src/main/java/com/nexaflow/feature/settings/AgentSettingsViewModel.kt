@@ -9,7 +9,10 @@ import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
+import com.nexaflow.core.airuntime.AiProviderDescriptor
 import com.nexaflow.core.airuntime.AiProviderRegistry
+import com.nexaflow.core.airuntime.AiRoutingMode
+import com.nexaflow.core.airuntime.AiRoutingPolicy
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiEndpointPolicy
@@ -53,6 +56,7 @@ data class AgentSettingsUiState(
     val providerApiKeyConfigured: Boolean = false,
     val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
     val discoveredModels: List<OpenAiModelInfo> = emptyList(),
+    val providerDescriptors: List<AiProviderDescriptor> = emptyList(),
     val operationFailed: Boolean = false
 )
 
@@ -162,7 +166,10 @@ class AgentSettingsViewModel @Inject constructor(
         baseUrl: String,
         modelId: String,
         local: Boolean,
-        apiKey: String
+        apiKey: String,
+        routingMode: AiRoutingMode,
+        selectedProviderId: String?,
+        allowCloudFallback: Boolean
     ) {
         viewModelScope.launch {
             val candidate = AiProviderSettings(
@@ -170,7 +177,10 @@ class AgentSettingsViewModel @Inject constructor(
                 displayName = displayName.trim(),
                 baseUrl = baseUrl.trim().trimEnd('/'),
                 modelId = modelId.trim(),
-                local = local
+                local = local,
+                routingMode = routingMode.name,
+                selectedProviderId = selectedProviderId,
+                allowCloudFallback = allowCloudFallback
             )
             val success = runCatching {
                 val existingKey = secureStorage.get(
@@ -191,6 +201,7 @@ class AgentSettingsViewModel @Inject constructor(
                     )
                 }
                 provider.configure(candidate.toProviderConfig())
+                providerRegistry.updateRoutingPolicy(candidate.toRoutingPolicy())
                 providerRegistry.refreshDescriptors()
             }.isSuccess
             reload(
@@ -279,9 +290,19 @@ class AgentSettingsViewModel @Inject constructor(
             providerApiKeyConfigured = providerApiKeyConfigured,
             providerProbeState = providerProbeState,
             discoveredModels = discoveredModels,
+            providerDescriptors = providerRegistry.state.value.providers,
             operationFailed = operationFailed || security == null
         )
     }
+
+    private fun AiProviderSettings.toRoutingPolicy() =
+        AiRoutingPolicy(
+            mode = runCatching {
+                AiRoutingMode.valueOf(routingMode)
+            }.getOrDefault(AiRoutingMode.AUTOMATIC),
+            selectedProviderId = selectedProviderId,
+            allowCloudFallback = allowCloudFallback
+        )
 
     private fun AiProviderSettings.toProviderConfig() =
         OpenAiCompatibleProviderConfig(
