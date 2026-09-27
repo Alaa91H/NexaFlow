@@ -125,6 +125,64 @@ class AutomationNodeCatalogTest {
         assertTrue(dynamic.any { it.key == "timeoutMs" })
     }
 
+
+    @Test
+    fun everyStaticCatalogDefault_isValidAgainstItsOwnSchema() {
+        AutomationNodeCatalog.all.forEach { definition ->
+            val defaults = definition.configuration.fields
+                .mapNotNull { field -> field.defaultValue?.let { field.key to it } }
+                .toMap()
+
+            val issues = NodeConfigurationValidator.validate(definition.configuration, defaults)
+            assertTrue(
+                "Invalid defaults for ${definition.id}: $issues",
+                issues.isEmpty()
+            )
+        }
+    }
+
+    @Test
+    fun specializedRuntimeContracts_exposeTheirRealPersistedKeys() {
+        val http = AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_HTTP_REQUEST).configuration
+        assertTrue(
+            http.knownKeys.containsAll(
+                setOf(
+                    "url", "method", "body", "headers", "allowPrivateNetwork",
+                    "timeoutMs", "retryAttempts", "retryBaseDelayMs", "retryCapMs", "outputPath"
+                )
+            )
+        )
+        assertFalse("timeoutSeconds" in http.knownKeys)
+
+        val density = AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_DISPLAY_DENSITY).configuration
+        assertTrue("dpi" in density.knownKeys)
+
+        val saver = AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD).configuration
+        assertTrue("percent" in saver.knownKeys)
+
+        val discoverability =
+            AutomationNodeCatalog.definitionFor(ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY).configuration
+        assertTrue("timeoutSeconds" in discoverability.knownKeys)
+
+        val sensor = AutomationNodeCatalog.definitionFor(TriggerType.SENSOR).configuration
+        assertTrue("upperThreshold" in sensor.knownKeys)
+        assertTrue("GYROSCOPE" in requireNotNull(sensor.field("sensor")).allowedValues)
+
+        val oneShotTriggers = mapOf(
+            TriggerType.CLIPBOARD_CHANGED to "contains",
+            TriggerType.SCREEN_TIMEOUT_CHANGED to "seconds",
+            TriggerType.TIMEZONE_CHANGED to "zone",
+            TriggerType.NFC_TAG_SCANNED to "contains",
+            TriggerType.ALARM_SET_CHANGED to "event"
+        )
+        oneShotTriggers.forEach { (type, key) ->
+            assertTrue(
+                "${type.name} must expose $key",
+                key in AutomationNodeCatalog.definitionFor(type).configuration.knownKeys
+            )
+        }
+    }
+
     @Test
     fun definitionLookup_usesStableNamespacedIds() {
         val trigger = AutomationNodeCatalog.definitionFor(TriggerType.TIME)
