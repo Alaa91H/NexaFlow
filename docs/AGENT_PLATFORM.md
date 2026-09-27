@@ -218,50 +218,53 @@ Add Settings -> AI & Agents with:
 
 ## Phase 8 - in-app AI chat
 
-Add a primary AI tab:
+Implemented foundation:
 
-```text
-Home | Tasks | AI | History | Settings
-```
+- [x] dedicated NexaFlow AI chat destination
+- [x] home-screen "Ask NexaFlow..." quick command surface
+- [x] provider-neutral conversation engine
+- [x] streaming assistant deltas
+- [x] cancellation through the ViewModel/coroutine lifecycle
+- [x] bounded transcript, output, tool-call and tool-iteration limits
+- [x] isolated conversation IDs and per-chat transcript state
+- [x] tool progress surfaced in the chat UI
+- [x] in-process trusted tool adapter that reuses the MCP/REST/control pipeline
+- [x] create/update/enable/disable/delete/run tools retain revision and idempotency rules
+- [x] tool results are preserved in assistant history for subsequent model turns
+- [ ] persisted conversation history
+- [ ] optional voice input
 
-AI contains:
-
-- Chat
-- Conversations
-- Agents
-- Models
-- Activity
-- Settings
-
-The chat is operational, not informational: it can inspect, create, edit,
-enable, disable, run and diagnose automations through the same tools.
-
-Also add:
-
-- home-screen "Ask NexaFlow..." quick command bar
-- streaming responses
-- cancellation
-- bounded tool-loop iterations
-- conversation isolation
-- optional voice input
+NexaFlow intentionally keeps the existing single-dashboard navigation model
+instead of introducing a permanent bottom bar solely for AI. The dashboard
+opens the dedicated chat surface directly, while agent/model management remains
+under Settings -> AI & Agents.
 
 ## Phase 9 - local model providers
 
-Create a provider abstraction supporting:
+Implemented foundation:
 
-- Ollama
-- LM Studio
-- vLLM
-- llama.cpp-compatible servers
-- LocalAI
-- generic OpenAI-compatible endpoints
-- cloud providers through separate adapters where needed
+- [x] generic OpenAI-compatible provider abstraction
+- [x] Ollama-compatible `/v1/chat/completions` configuration
+- [x] LM Studio, vLLM, llama.cpp-compatible and LocalAI-compatible endpoints
+- [x] local/private HTTP endpoints without enabling app-wide cleartext traffic
+- [x] HTTPS endpoints for remote/cloud-compatible servers
+- [x] DNS/private-address validation for local endpoints
+- [x] redirect rejection and bounded request/response parsing
+- [x] API keys stored through SecureStorage and never echoed into model context
+- [x] real SSE/NDJSON streaming with incremental tool-call reconstruction
+- [x] buffered JSON fallback for servers that ignore streaming
+- [x] Android 17 local-network runtime permission wiring for LAN model servers
+- [x] user-triggered provider connectivity test
+- [x] capability probing for native tool calling, structured JSON and streaming
+- [x] capability state published through the provider registry
+- [ ] structured-JSON tool fallback for models without native function calling
+- [ ] provider-specific model discovery endpoints
+- [ ] vision/reasoning/context-window capability discovery where the backend
+      exposes reliable metadata
 
-Capability probing records tool calling, structured output, streaming, vision,
-reasoning, context size and local/remote status.
-
-A structured-JSON fallback allows weaker local models to request tools without
-native function calling.
+The implementation deliberately avoids separate Ollama/LM Studio/vLLM classes.
+They share `OpenAiCompatibleProvider`; provider-specific convenience discovery
+can be layered on top without forking the conversation or tool execution path.
 
 ## Phase 10 - model routing
 
