@@ -268,16 +268,23 @@ can be layered on top without forking the conversation or tool execution path.
 
 ## Phase 10 - model routing
 
-Modes:
+Implemented foundation:
 
-- Automatic
-- Local only
-- Cloud only
-- Selected provider
+- [x] Automatic, Local only, Cloud only and Selected provider modes
+- [x] persisted routing policy in DataStore
+- [x] deterministic provider ordering
+- [x] capability-aware preference for tool/structured-output capable models
+- [x] Automatic mode prefers local providers
+- [x] cloud fallback in Automatic mode is explicit and disabled by default
+- [x] Local only never routes to cloud providers
+- [x] Cloud only never routes to local providers
+- [x] Selected provider never silently falls back to another provider
+- [x] routing policy is applied live to NexaFlow Chat
+- [x] settings UI exposes routing policy and explicit cloud fallback
 
-Routing may consider availability, offline state, privacy policy, capabilities,
-task complexity, user preference and cost policy. Local/cloud fallback must be
-explicit and deterministic.
+Future routing can additionally consider connectivity, task complexity, model
+cost, latency and richer privacy policy. Those signals must refine the same
+deterministic router rather than create provider-specific selection paths.
 
 ## Phase 11 - Android IPC
 
