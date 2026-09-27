@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--
+        Coarse discovery/binding gate for the exported same-device agent IPC.
+        This normal permission is NOT the trust boundary: every Binder call is
+        authenticated with a paired credential and bound to caller UID/package/
+        signing-certificate identity before reaching the Agent API.
+    -->
+    <permission
+        android:name="com.nexaflow.app.permission.BIND_AGENT_SERVICE"
+        android:protectionLevel="normal" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!--
@@ -103,6 +113,15 @@
         android:theme="@style/Theme.NexaFlow">
         <!-- AppCompat persists the in-app language choice below Android 13;
              Android 13+ automatically synchronizes it with App language. -->
+        <service
+            android:name=".agent.NexaFlowAgentService"
+            android:exported="true"
+            android:permission="com.nexaflow.app.permission.BIND_AGENT_SERVICE">
+            <intent-filter>
+                <action android:name="com.nexaflow.agent.BIND" />
+            </intent-filter>
+        </service>
+
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
