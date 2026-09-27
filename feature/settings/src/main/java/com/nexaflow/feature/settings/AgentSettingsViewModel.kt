@@ -17,6 +17,7 @@ import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiEndpointPolicy
 import com.nexaflow.core.airuntime.OpenAiModelInfo
+import com.nexaflow.core.datastore.AgentNetworkPreferences
 import com.nexaflow.core.datastore.AiProviderPreferences
 import com.nexaflow.core.datastore.AiProviderSettings
 import com.nexaflow.core.security.SecureStorage
@@ -47,6 +48,7 @@ data class AgentSettingsUiState(
     val loading: Boolean = true,
     val accessEnabled: Boolean = false,
     val serverPort: Int = 0,
+    val lanAccessEnabled: Boolean = false,
     val activeSessionCount: Int = 0,
     val pendingPairingCount: Int = 0,
     val agents: List<AgentGrantRecord> = emptyList(),
@@ -64,6 +66,7 @@ data class AgentSettingsUiState(
 class AgentSettingsViewModel @Inject constructor(
     private val accessManager: AgentAccessManager,
     private val runtime: AgentApiRuntime,
+    private val agentNetworkPreferences: AgentNetworkPreferences,
     private val providerPreferences: AiProviderPreferences,
     private val provider: OpenAiCompatibleProvider,
     private val providerRegistry: AiProviderRegistry,
@@ -85,6 +88,15 @@ class AgentSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val success = runCatching {
                 accessManager.setAccessEnabled(enabled)
+            }.isSuccess
+            reload(operationFailed = !success)
+        }
+    }
+
+    fun setLanAccessEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            val success = runCatching {
+                agentNetworkPreferences.setLanAccessEnabled(enabled)
             }.isSuccess
             reload(operationFailed = !success)
         }
@@ -270,6 +282,9 @@ class AgentSettingsViewModel @Inject constructor(
         val activity = runCatching {
             runtime.latestAudit(MAX_ACTIVITY_ROWS)
         }.getOrElse { emptyList() }
+        val networkSettings = runCatching {
+            agentNetworkPreferences.current()
+        }.getOrDefault(com.nexaflow.core.datastore.AgentNetworkSettings())
         val providerSettings = runCatching {
             providerPreferences.current()
         }.getOrDefault(AiProviderSettings())
@@ -281,6 +296,7 @@ class AgentSettingsViewModel @Inject constructor(
             loading = false,
             accessEnabled = security?.accessEnabled ?: false,
             serverPort = AgentApiServer.currentPort,
+            lanAccessEnabled = networkSettings.lanAccessEnabled,
             activeSessionCount = security?.activeSessionCount ?: 0,
             pendingPairingCount = security?.pendingPairingCount ?: 0,
             agents = agents,
