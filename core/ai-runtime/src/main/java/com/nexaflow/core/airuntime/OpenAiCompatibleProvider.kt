@@ -40,12 +40,33 @@ data class OpenAiProviderProbeResult(
     val capabilities: AiProviderCapabilities = AiProviderCapabilities()
 )
 
+data class OpenAiModelInfo(
+    val id: String,
+    val ownedBy: String? = null,
+    val contextTokens: Int? = null
+)
+
+data class OpenAiModelDiscoveryResult(
+    val success: Boolean,
+    val models: List<OpenAiModelInfo> = emptyList(),
+    val statusCode: Int? = null
+)
+
 interface OpenAiCompatibleTransport {
     suspend fun postChatCompletions(
         config: OpenAiCompatibleProviderConfig,
         body: JsonObject,
         apiKey: String?
     ): OpenAiCompatibleTransportResponse
+
+    suspend fun getModels(
+        config: OpenAiCompatibleProviderConfig,
+        apiKey: String?
+    ): OpenAiCompatibleTransportResponse =
+        OpenAiCompatibleTransportResponse(
+            statusCode = 501,
+            body = """{"error":"models_not_supported"}"""
+        )
 
     /**
      * Emits raw JSON completion chunks. Implementations should stream when
@@ -86,6 +107,76 @@ class OpenAiCompatibleProvider(
     fun configure(value: OpenAiCompatibleProviderConfig) {
         config = value.normalized()
         _descriptor.value = descriptorFor(config)
+    }
+
+    suspend fun discoverModels(): OpenAiModelDiscoveryResult {
+        val snapshot = config
+        if (!isConfigured(snapshot)) {
+            return OpenAiModelDiscoveryResult(success = false)
+        }
+        val response = runCatching {
+            transport.getModels(
+                config = snapshot,
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            )
+        }.getOrElse {
+            return OpenAiModelDiscoveryResult(success = false)
+        }
+        if (response.statusCode !in 200..299) {
+            return OpenAiModelDiscoveryResult(
+                success = false,
+                statusCode = response.statusCode
+            )
+        }
+
+        val models = runCatching {
+            json.parseToJsonElement(response.body)
+                .jsonObject["data"]
+                ?.jsonArray
+                .orEmpty()
+                .mapNotNull(::parseModelInfo)
+                .distinctBy(OpenAiModelInfo::id)
+                .sortedBy { it.id.lowercase() }
+                .take(MAX_DISCOVERED_MODELS)
+        }.getOrElse {
+            return OpenAiModelDiscoveryResult(
+                success = false,
+                statusCode = response.statusCode
+            )
+        }
+        return OpenAiModelDiscoveryResult(
+            success = true,
+            models = models,
+            statusCode = response.statusCode
+        )
+    }
+
+    private fun parseModelInfo(element: kotlinx.serialization.json.JsonElement): OpenAiModelInfo? {
+        val value = element as? JsonObject ?: return null
+        val id = value["id"]?.jsonPrimitive?.contentOrNull
+            ?.trim()
+            ?.takeIf { it.length in 1..MAX_MODEL_ID_LENGTH }
+            ?: return null
+        val ownedBy = value["owned_by"]?.jsonPrimitive?.contentOrNull
+            ?.trim()
+            ?.takeIf { it.length in 1..MAX_MODEL_OWNER_LENGTH }
+        val context = listOfNotNull(
+            value["max_context_length"]?.jsonPrimitive?.intOrNull,
+            value["context_length"]?.jsonPrimitive?.intOrNull,
+            (value["meta"] as? JsonObject)
+                ?.get("n_ctx_train")
+                ?.jsonPrimitive
+                ?.intOrNull,
+            (value["meta"] as? JsonObject)
+                ?.get("context_length")
+                ?.jsonPrimitive
+                ?.intOrNull
+        ).firstOrNull { it > 0 }
+        return OpenAiModelInfo(
+            id = id,
+            ownedBy = ownedBy,
+            contextTokens = context
+        )
     }
 
     suspend fun probe(): OpenAiProviderProbeResult {
@@ -686,6 +777,9 @@ class OpenAiCompatibleProvider(
         const val MAX_TOOL_CALL_ID_LENGTH = 256
         const val API_KEY_STORAGE_KEY = "ai.provider.openai_compatible.api_key"
         private const val MAX_STREAM_TOOL_CALLS = 16
+        private const val MAX_DISCOVERED_MODELS = 256
+        private const val MAX_MODEL_ID_LENGTH = 256
+        private const val MAX_MODEL_OWNER_LENGTH = 256
         private const val MAX_FALLBACK_INSTRUCTION_CHARACTERS = 65_536
         private const val PROBE_TOOL_NAME = "nexaflow_capability_probe"
     }
