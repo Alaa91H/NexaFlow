@@ -77,6 +77,11 @@ fun AgentSettingsScreen(
     ) {
         viewModel.testProvider()
     }
+    val localNetworkDiscoveryPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        viewModel.discoverModels()
+    }
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
@@ -278,7 +283,21 @@ fun AgentSettingsScreen(
                         singleLine = true
                     )
                     TextButton(
-                        onClick = viewModel::discoverModels,
+                        onClick = {
+                            if (
+                                needsLocalNetworkPermission(
+                                    context = context,
+                                    baseUrl = state.providerSettings.baseUrl,
+                                    local = state.providerSettings.local
+                                )
+                            ) {
+                                localNetworkDiscoveryPermissionLauncher.launch(
+                                    HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
+                                )
+                            } else {
+                                viewModel.discoverModels()
+                            }
+                        },
                         enabled = state.providerSettings.enabled
                     ) {
                         Text(stringResource(R.string.agent_refresh))
