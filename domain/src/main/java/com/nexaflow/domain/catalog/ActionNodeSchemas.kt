@@ -142,9 +142,13 @@ internal object ActionNodeSchemas {
         ActionType.SYSTEM_TOAST -> schema(
             stringField("text", required = true, expressionCapable = true)
         )
-        ActionType.SYSTEM_SET_SETTING,
+        ActionType.SYSTEM_SET_SETTING -> schema(
+            enumField("namespace", "SYSTEM", "SECURE", "GLOBAL", default = "GLOBAL"),
+            stringField("key", required = true),
+            stringField("value", expressionCapable = true)
+        )
         ActionType.ROM_CUSTOM_SETTING -> schema(
-            enumField("namespace", "SYSTEM", "SECURE", "GLOBAL", default = "SYSTEM"),
+            enumField("namespace", "SYSTEM", "SECURE", "GLOBAL", default = "SECURE"),
             stringField("key", required = true),
             stringField("value", expressionCapable = true)
         )
@@ -224,7 +228,7 @@ internal object ActionNodeSchemas {
             stringField("ssid", required = true, expressionCapable = true)
         )
         ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> schema(
-            integerField("minutes", min = 0.0, expressionCapable = true)
+            integerField("minutes", default = "10", min = 0.0, expressionCapable = true)
         )
         ActionType.SYSTEM_POINTER_SPEED -> schema(
             integerField("speed", min = -7.0, max = 7.0, expressionCapable = true)
