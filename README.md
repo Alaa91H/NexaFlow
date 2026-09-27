@@ -4,7 +4,7 @@ NexaFlow is an Android automation application built with Kotlin and Jetpack Comp
 
 ## Current implementation
 
-The source catalog contains **56 trigger enum entries (54 in the general picker)** and **176 action enum entries**. `CONNECTIVITY` is retained for older tasks and `PLUGIN_EVENT` uses a separate plugin flow. The sensor trigger offers **12 modes**; these are configurations of one trigger, not 12 additional enum entries. Counts describe implemented catalog coverage, not certification that every function works on every phone.
+The source catalog contains **57 trigger enum entries (55 in the general picker)** and **176 action enum entries**. `CONNECTIVITY` is retained for older tasks and `PLUGIN_EVENT` uses a separate plugin flow. The sensor trigger offers **12 modes**; these are configurations of one trigger, not 12 additional enum entries. Counts describe implemented catalog coverage, not certification that every function works on every phone.
 
 - Schedules, app/device events, connectivity, location, notifications, messages and hardware sensor conditions.
 - Ordered actions, workflow context, constraints, execution history, cooldowns and exit/revert behavior.

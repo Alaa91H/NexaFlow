@@ -5,14 +5,29 @@ import xml.etree.ElementTree as ET
 from audit_catalog_and_releases import enum_values
 
 ROOT = Path(__file__).resolve().parents[1]
+CATALOG = ROOT / "docs/CAPABILITY_CATALOG.md"
 model = (ROOT / "domain/src/main/java/com/nexaflow/domain/models/Automation.kt").read_text(encoding="utf-8")
 builder = ROOT / "feature/automation-builder/src/main"
 strings = {n.attrib["name"]: "".join(n.itertext()) for n in ET.parse(builder / "res/values/strings.xml").getroot() if n.tag == "string"}
 actions = (builder / "java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt").read_text(encoding="utf-8")
 labels = {kind: strings.get(label, label) for label, kind in re.findall(r"ActionOption\(R.string.(\w+),.*?ActionType.(\w+)", actions)}
+# A curated (hand-reviewed) section documents the semantic operations layer.
+# It is preserved verbatim across regenerations: the inventory above it is
+# generated from source, the section below it is reviewed prose.
+SEMANTIC_HEADING = "## Semantic operations (Capability-Adaptive Execution)"
+previous_semantic = ""
+if CATALOG.is_file():
+    previous = CATALOG.read_text(encoding="utf-8")
+    start = previous.find(SEMANTIC_HEADING)
+    if start >= 0:
+        end = previous.find("\n## Triggers", start)
+        previous_semantic = previous[start:end].strip() if end > start else previous[start:].strip()
 triggers = enum_values(model, "TriggerType")
 action_types = enum_values(model, "ActionType")
-lines = ["# Capability catalog", "", "Generated from source by `python scripts/generate_capability_catalog.py`. This inventory counts enum entries, not equivalent competitor blocks or device-certified capabilities.", "", f"**{len(triggers)} trigger entries; {len(action_types)} action entries.** Two triggers have restricted creation paths. The SENSOR entry has 12 configuration modes; the eight DATA actions each offer several operations. See [configuration](CONFIGURATION.md) and [validation](VALIDATION.md).", "", "## Triggers", "", "| Enum | Creation path |", "| --- | --- |"]
+header = ["# Capability catalog", "", "Generated from source by `python scripts/generate_capability_catalog.py`. This inventory counts enum entries, not equivalent competitor blocks or device-certified capabilities.", "", f"**{len(triggers)} trigger entries; {len(action_types)} action entries.** Two triggers have restricted creation paths. The SENSOR entry has 12 configuration modes; the eight DATA actions each offer several operations. See [configuration](CONFIGURATION.md) and [validation](VALIDATION.md).", ""]
+if previous_semantic:
+    header += [previous_semantic, ""]
+lines = header + ["## Triggers", "", "| Enum | Creation path |", "| --- | --- |"]
 for kind in triggers:
     path = "Legacy saved-task compatibility" if kind == "CONNECTIVITY" else "Plugin configuration flow" if kind == "PLUGIN_EVENT" else "General builder picker"
     lines.append(f"| `{kind}` | {path} |")

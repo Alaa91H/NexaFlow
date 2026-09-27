@@ -2,7 +2,7 @@
 
 Generated from source by `python scripts/generate_capability_catalog.py`. This inventory counts enum entries, not equivalent competitor blocks or device-certified capabilities.
 
-**56 trigger entries; 176 action entries.** Two triggers have restricted creation paths. The SENSOR entry has 12 configuration modes; the eight DATA actions each offer several operations. See [configuration](CONFIGURATION.md) and [validation](VALIDATION.md).
+**57 trigger entries; 176 action entries.** Two triggers have restricted creation paths. The SENSOR entry has 12 configuration modes; the eight DATA actions each offer several operations. See [configuration](CONFIGURATION.md) and [validation](VALIDATION.md).
 
 ## Semantic operations (Capability-Adaptive Execution)
 
@@ -67,6 +67,7 @@ Twelve device-state action types are additionally expressed as 24 paired semanti
 | `BOOT_COMPLETED` | General builder picker |
 | `NFC_TAG_SCANNED` | General builder picker |
 | `ALARM_SET_CHANGED` | General builder picker |
+| `WEAR_EVENT` | General builder picker |
 | `PLUGIN_EVENT` | Plugin configuration flow |
 
 ## Actions
@@ -118,7 +119,7 @@ Availability depends on permissions, capabilities, Android version and hardware.
 | `SYSTEM_LOCATION` | Location (GPS) |
 | `SYSTEM_UPDATE_GOOGLE_PLAY_APPS` | Google Play app update check |
 | `SYSTEM_OPEN_PLAY_UPDATES` | Play Store updates |
-| `SYSTEM_OPEN_DEVICE_STORE` | Device app store |
+| `SYSTEM_OPEN_DEVICE_STORE` | App store |
 | `SYSTEM_SEND_SMS` | Send SMS |
 | `SYSTEM_SEND_REMINDER` | Reminder |
 | `SYSTEM_OPEN_SETTINGS` | Open settings |
@@ -234,7 +235,7 @@ Availability depends on permissions, capabilities, Android version and hardware.
 | `SYSTEM_SET_TIMEZONE` | Set timezone |
 | `CALL_BLOCK` | Block call |
 | `CALL_SILENCE` | Silence call |
-| `ROM_CUSTOM_SETTING` | Custom ROM setting |
+| `ROM_CUSTOM_SETTING` | Custom Setting |
 | `ROM_QS_TILES` | QS Tiles |
 | `ROM_STATUS_BAR` | Status bar |
 | `ROM_LOCKSCREEN` | Lockscreen |
@@ -242,7 +243,7 @@ Availability depends on permissions, capabilities, Android version and hardware.
 | `ROM_THEME` | Theme & Monet |
 | `ROM_AMBIENT_AOD` | Ambient & AOD |
 | `ROM_NOTIFICATIONS` | Heads-up |
-| `ROM_BATCH` | Batch custom settings |
+| `ROM_BATCH` | vendor custom setting batch |
 | `DATA_TEXT` | Text transform |
 | `DATA_ENCODING` | Text encoding |
 | `DATA_HASH` | Cryptographic hash |

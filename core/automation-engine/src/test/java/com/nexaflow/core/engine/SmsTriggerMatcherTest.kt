@@ -137,6 +137,34 @@ class SmsTriggerMatcherTest {
     }
 
     @Test
+    fun deliveryFingerprint_isStableAndContainsNoPlaintext() {
+        val first = SmsTriggerMatcher.deliveryFingerprint(
+            sender = "+15551234567",
+            body = "Your OTP is 1234",
+            messageTimestamp = 123456789L
+        )
+        val second = SmsTriggerMatcher.deliveryFingerprint(
+            sender = " +15551234567 ",
+            body = "  Your OTP is 1234  ",
+            messageTimestamp = 123456789L
+        )
+
+        assertEquals(first, second)
+        assertEquals(64, first.length)
+        assertTrue(first.matches(Regex("^[0-9a-f]{64}$")))
+        assertFalse(first.contains("1234"))
+        assertFalse(first.contains("1555"))
+    }
+
+    @Test
+    fun deliveryFingerprint_changesForARepeatedMessageAtANewTimestamp() {
+        val first = SmsTriggerMatcher.deliveryFingerprint("BANK", "OTP 42", 1000L)
+        val second = SmsTriggerMatcher.deliveryFingerprint("BANK", "OTP 42", 2000L)
+
+        assertFalse(first == second)
+    }
+
+    @Test
     fun matchingTriggerIndices_returnsEverySmsFilterMatchedBySameMessage() {
         val task = automation().copy(
             triggers = listOf(
