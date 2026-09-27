@@ -25,27 +25,40 @@ class AndroidAgentCallerIdentityResolver @Inject constructor(
             .orEmpty()
         if (packageName !in ownedPackages) return null
 
-        val packageInfo = runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                packageManager.getPackageInfo(
-                    packageName,
-                    PackageManager.PackageInfoFlags.of(
-                        PackageManager.GET_SIGNING_CERTIFICATES.toLong()
-                    )
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                packageManager.getPackageInfo(
-                    packageName,
-                    PackageManager.GET_SIGNING_CERTIFICATES
-                )
+        val signatures = runCatching {
+            when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                    packageManager.getPackageInfo(
+                        packageName,
+                        PackageManager.PackageInfoFlags.of(
+                            PackageManager.GET_SIGNING_CERTIFICATES.toLong()
+                        )
+                    ).signingInfo
+                        ?.apkContentsSigners
+                        ?.map { it.toByteArray() }
+                        .orEmpty()
+                }
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.P -> {
+                    @Suppress("DEPRECATION")
+                    packageManager.getPackageInfo(
+                        packageName,
+                        PackageManager.GET_SIGNING_CERTIFICATES
+                    ).signingInfo
+                        ?.apkContentsSigners
+                        ?.map { it.toByteArray() }
+                        .orEmpty()
+                }
+                else -> {
+                    @Suppress("DEPRECATION")
+                    packageManager.getPackageInfo(
+                        packageName,
+                        PackageManager.GET_SIGNATURES
+                    ).signatures
+                        ?.map { it.toByteArray() }
+                        .orEmpty()
+                }
             }
         }.getOrNull() ?: return null
-
-        val signingInfo = packageInfo.signingInfo ?: return null
-        val signatures = signingInfo.apkContentsSigners
-            ?.map { it.toByteArray() }
-            .orEmpty()
         if (signatures.isEmpty() || signatures.size > MAX_SIGNERS) return null
 
         return AgentIdentityBinding(
