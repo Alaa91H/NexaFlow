@@ -3256,6 +3256,20 @@ fun TriggerEditorCard(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
+                        OutlinedTextField(
+                            value = draft.config["watchInstallId"].orEmpty(),
+                            onValueChange = {
+                                onConfigChange(
+                                    draft.copy(
+                                        config = draft.config + ("watchInstallId" to it.trim())
+                                    )
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.trigger_wear_event)) },
+                            placeholder = { Text(stringResource(R.string.any_device)) },
+                            singleLine = true
+                        )
                         Text(
                             text = stringResource(R.string.state),
                             style = MaterialTheme.typography.titleSmall
