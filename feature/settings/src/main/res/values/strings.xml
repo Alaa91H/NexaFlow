@@ -294,4 +294,14 @@
     <string name="ai_provider_test_success">Model is ready</string>
     <string name="ai_provider_test_failed">Model test failed</string>
     <string name="ai_provider_clear_key">Remove stored key</string>
+
+    <!-- AI model routing -->
+    <string name="ai_routing_title">Model routing</string>
+    <string name="ai_routing_subtitle">Choose how NexaFlow selects a model for Chat.</string>
+    <string name="ai_routing_automatic">Automatic (local preferred)</string>
+    <string name="ai_routing_local_only">Local only</string>
+    <string name="ai_routing_cloud_only">Cloud only</string>
+    <string name="ai_routing_selected">Selected provider</string>
+    <string name="ai_routing_cloud_fallback">Allow cloud fallback</string>
+    <string name="ai_routing_cloud_fallback_subtitle">Automatic mode may use a cloud provider only when no local provider is available.</string>
 </resources>
