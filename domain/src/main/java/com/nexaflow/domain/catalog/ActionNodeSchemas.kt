@@ -42,8 +42,15 @@ internal object ActionNodeSchemas {
             stringField("sound"),
             jsonField("action_buttons")
         )
-        ActionType.SYSTEM_BLOCK_NOTIFICATION,
-        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS,
+        ActionType.SYSTEM_BLOCK_NOTIFICATION -> schema(
+            stringField("packages"),
+            packageField("package"),
+            booleanField("enabled", default = "true")
+        )
+        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> schema(
+            stringField("packages"),
+            packageField("package")
+        )
         ActionType.APPLICATION_OPEN_APP_SETTINGS,
         ActionType.APPLICATION_CLOSE_APP,
         ActionType.SYSTEM_FORCE_STOP_APP,
@@ -246,21 +253,21 @@ internal object ActionNodeSchemas {
         ActionType.ROM_QS_TILES -> schema(
             stringField("tiles"),
             integerField("columns", default = "4", min = 3.0, max = 5.0),
-            booleanField("brightness_slider", default = "true"),
+            enumField("brightness_slider", "0", "1", default = "1"),
             stringField("footer_text")
         )
         ActionType.ROM_STATUS_BAR -> schema(
             enumField("clock_position", "left", "center", "right", default = "right"),
             enumField("battery_style", "0", "1", "2", "3", default = "0"),
-            booleanField("battery_percent", default = "false"),
-            booleanField("clock_seconds", default = "false"),
+            enumField("battery_percent", "0", "1", default = "0"),
+            enumField("clock_seconds", "0", "1", default = "0"),
             jsonField("config_json")
         )
         ActionType.ROM_LOCKSCREEN -> schema(
             enumField("clock_style", "0", "1", "2", "3", default = "0"),
-            booleanField("weather", default = "false"),
-            booleanField("shortcuts", default = "false"),
-            booleanField("media_art", default = "true"),
+            enumField("weather", "0", "1", default = "0"),
+            enumField("shortcuts", "0", "1", default = "0"),
+            enumField("media_art", "0", "1", default = "1"),
             jsonField("config_json")
         )
         ActionType.ROM_NAVIGATION -> schema(
@@ -268,19 +275,19 @@ internal object ActionNodeSchemas {
             integerField("back_height", min = 0.0, max = 200.0)
         )
         ActionType.ROM_THEME -> schema(
-            booleanField("monet", default = "true"),
+            enumField("monet", "0", "1", default = "1"),
             stringField("accent", default = "#FF4081"),
-            booleanField("themed_icons", default = "false"),
+            enumField("themed_icons", "0", "1", default = "0"),
             jsonField("config_json")
         )
         ActionType.ROM_AMBIENT_AOD -> schema(
-            booleanField("enabled", default = "false"),
+            enumField("enabled", "0", "1", default = "0"),
             enumField("schedule", "0", "1", "2", default = "0")
         )
         ActionType.ROM_NOTIFICATIONS -> schema(
-            booleanField("heads_up", default = "true"),
+            enumField("heads_up", "0", "1", default = "1"),
             integerField("timeout", default = "5", min = 1.0, max = 30.0),
-            booleanField("less_boring", default = "false")
+            enumField("less_boring", "0", "1", default = "0")
         )
         ActionType.DATA_TEXT,
         ActionType.DATA_ENCODING,
