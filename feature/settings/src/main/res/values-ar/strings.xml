@@ -305,4 +305,10 @@
     <string name="ai_routing_selected">مزود محدد</string>
     <string name="ai_routing_cloud_fallback">السماح بالرجوع للسحابة</string>
     <string name="ai_routing_cloud_fallback_subtitle">يمكن للوضع التلقائي استخدام مزود سحابي فقط عند عدم توفر مزود محلي.</string>
+
+    <!-- Agent LAN exposure -->
+    <string name="agent_lan_access_title">الوصول عبر الشبكة المحلية الخاصة</string>
+    <string name="agent_lan_access_on">مفعّل — يمكن للوكلاء المقترنين الاتصال من شبكتك الخاصة</string>
+    <string name="agent_lan_access_off">متوقف — USB أو الاتصال المحلي فقط</string>
+    <string name="agent_lan_access_description">يتطلب Android 17 إذن الشبكة المحلية. تبقى المصادقة وإلغاء الصلاحية مطبّقتين.</string>
 </resources>
