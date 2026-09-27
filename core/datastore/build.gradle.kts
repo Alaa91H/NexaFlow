@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     testImplementation(libs.junit.junit)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.robolectric.robolectric)
 }

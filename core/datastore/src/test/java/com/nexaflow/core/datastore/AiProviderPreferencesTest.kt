@@ -61,7 +61,7 @@ class AiProviderPreferencesTest {
 
     @Test
     fun routingPolicyPersistsWithProviderSettings() = runTest {
-        val preferences = createPreferences()
+        val preferences = preferences()
         val expected = AiProviderSettings(
             enabled = true,
             displayName = "Cloud model",

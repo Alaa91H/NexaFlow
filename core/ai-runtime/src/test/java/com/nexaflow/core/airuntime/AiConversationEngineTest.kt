@@ -77,6 +77,7 @@ class AiConversationEngineTest {
             AiProviderDescriptor(
                 id = "fake",
                 displayName = "Fake",
+                capabilities = AiProviderCapabilities(local = true),
                 available = true
             )
         )
@@ -91,7 +92,10 @@ class AiConversationEngineTest {
             AiProviderDescriptor(
                 id = "fake",
                 displayName = "Fake",
-                capabilities = AiProviderCapabilities(toolCalling = true),
+                capabilities = AiProviderCapabilities(
+                    toolCalling = true,
+                    local = true
+                ),
                 available = true
             )
         )

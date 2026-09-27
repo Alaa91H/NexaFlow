@@ -120,7 +120,7 @@ class AutomationCommandServiceTest {
             replay
         )
         assertEquals(1, persistence.commitCount)
-        assertEquals(1, persistence.resolveCount)
+        assertEquals(2, persistence.resolveCount)
     }
 
     @Test

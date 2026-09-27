@@ -23,7 +23,9 @@ class AgentApiDocumentParityTest {
     }
 
     private fun repositoryRoot(): File {
-        var current = File(System.getProperty("user.dir")).absoluteFile
+        val userDir = System.getProperty("user.dir")
+            ?: error("user.dir system property is unavailable")
+        var current = File(userDir).absoluteFile
         repeat(MAX_PARENT_SEARCH) {
             if (File(current, "settings.gradle.kts").isFile) return current
             current = current.parentFile
