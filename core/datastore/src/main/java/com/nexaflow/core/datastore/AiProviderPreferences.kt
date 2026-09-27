@@ -21,7 +21,10 @@ data class AiProviderSettings(
     val displayName: String = "Local model",
     val baseUrl: String = "",
     val modelId: String = "",
-    val local: Boolean = true
+    val local: Boolean = true,
+    val routingMode: String = "AUTOMATIC",
+    val selectedProviderId: String? = null,
+    val allowCloudFallback: Boolean = false
 )
 
 class AiProviderPreferences internal constructor(
@@ -38,12 +41,19 @@ class AiProviderPreferences internal constructor(
         require(value.displayName.length <= MAX_DISPLAY_NAME_LENGTH)
         require(value.baseUrl.length <= MAX_BASE_URL_LENGTH)
         require(value.modelId.length <= MAX_MODEL_ID_LENGTH)
+        require(value.routingMode.length <= MAX_ROUTING_MODE_LENGTH)
+        require(value.selectedProviderId.orEmpty().length <= MAX_PROVIDER_ID_LENGTH)
         dataStore.edit { preferences ->
             preferences[KEY_ENABLED] = value.enabled
             preferences[KEY_DISPLAY_NAME] = value.displayName.trim()
             preferences[KEY_BASE_URL] = value.baseUrl.trim()
             preferences[KEY_MODEL_ID] = value.modelId.trim()
             preferences[KEY_LOCAL] = value.local
+            preferences[KEY_ROUTING_MODE] = value.routingMode
+            value.selectedProviderId?.takeIf(String::isNotBlank)?.let {
+                preferences[KEY_SELECTED_PROVIDER_ID] = it
+            } ?: preferences.remove(KEY_SELECTED_PROVIDER_ID)
+            preferences[KEY_ALLOW_CLOUD_FALLBACK] = value.allowCloudFallback
         }
     }
 
@@ -54,18 +64,27 @@ class AiProviderPreferences internal constructor(
         displayName = preferences[KEY_DISPLAY_NAME] ?: "Local model",
         baseUrl = preferences[KEY_BASE_URL].orEmpty(),
         modelId = preferences[KEY_MODEL_ID].orEmpty(),
-        local = preferences[KEY_LOCAL] ?: true
+        local = preferences[KEY_LOCAL] ?: true,
+        routingMode = preferences[KEY_ROUTING_MODE] ?: "AUTOMATIC",
+        selectedProviderId = preferences[KEY_SELECTED_PROVIDER_ID],
+        allowCloudFallback = preferences[KEY_ALLOW_CLOUD_FALLBACK] ?: false
     )
 
     companion object {
         const val MAX_DISPLAY_NAME_LENGTH = 128
         const val MAX_BASE_URL_LENGTH = 2048
         const val MAX_MODEL_ID_LENGTH = 256
+        const val MAX_ROUTING_MODE_LENGTH = 64
+        const val MAX_PROVIDER_ID_LENGTH = 128
 
         private val KEY_ENABLED = booleanPreferencesKey("enabled")
         private val KEY_DISPLAY_NAME = stringPreferencesKey("display_name")
         private val KEY_BASE_URL = stringPreferencesKey("base_url")
         private val KEY_MODEL_ID = stringPreferencesKey("model_id")
         private val KEY_LOCAL = booleanPreferencesKey("local")
+        private val KEY_ROUTING_MODE = stringPreferencesKey("routing_mode")
+        private val KEY_SELECTED_PROVIDER_ID = stringPreferencesKey("selected_provider_id")
+        private val KEY_ALLOW_CLOUD_FALLBACK =
+            booleanPreferencesKey("allow_cloud_fallback")
     }
 }
