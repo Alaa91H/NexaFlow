@@ -53,6 +53,29 @@ class ActionDraftTest {
     }
 
     @Test
+    fun specializedActions_startFromCatalogDefaults() {
+        val http = defaultActionConfig(ActionType.SYSTEM_HTTP_REQUEST)
+        assertEquals("GET", http["method"])
+        assertEquals("10000", http["timeoutMs"])
+        assertEquals("0", http["retryAttempts"])
+        assertEquals("false", http["allowPrivateNetwork"])
+        assertEquals(null, http["timeoutSeconds"])
+
+        val density = defaultActionConfig(ActionType.SYSTEM_DISPLAY_DENSITY)
+        assertEquals("440", density["dpi"])
+
+        val batterySaver = defaultActionConfig(ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD)
+        assertEquals("20", batterySaver["percent"])
+
+        val bluetooth = defaultActionConfig(ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY)
+        assertEquals("300", bluetooth["timeoutSeconds"])
+
+        val romStatus = defaultActionConfig(ActionType.ROM_STATUS_BAR)
+        assertEquals("0", romStatus["battery_percent"])
+        assertEquals("0", romStatus["clock_seconds"])
+    }
+
+    @Test
     fun cardAccent_cycleDistinguishesAdjacentCards_andRepeatsOnlyAfterPalette() {
         assertNotEquals(builderCardAccent(0), builderCardAccent(1))
         assertNotEquals(builderCardAccent(1), builderCardAccent(2))
