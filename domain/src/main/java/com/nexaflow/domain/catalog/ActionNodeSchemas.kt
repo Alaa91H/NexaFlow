@@ -22,6 +22,15 @@ internal object ActionNodeSchemas {
         ActionType.SYSTEM_SCREEN_ROTATION -> schema(
             booleanField("autoRotate", default = "true")
         )
+        ActionType.SYSTEM_SCREEN_TIMEOUT -> schema(
+            durationField("seconds", default = "60", min = 10.0, max = 1_800.0)
+        )
+        ActionType.SYSTEM_RINGER_MODE -> schema(
+            enumField("mode", "NORMAL", "VIBRATE", "SILENT", default = "NORMAL")
+        )
+        ActionType.SYSTEM_OPEN_URL -> schema(
+            urlField("url", required = true, expressionCapable = true)
+        )
         ActionType.SYSTEM_OPEN_APP,
         ActionType.APPLICATION_LAUNCH_APP -> schema(
             stringField("packages"),
@@ -84,7 +93,13 @@ internal object ActionNodeSchemas {
             durationField("seconds", default = "5", min = 0.0, expressionCapable = true)
         )
         ActionType.BATTERY_ALERTS -> schema(
-            integerField("below", default = "20", min = 0.0, max = 100.0)
+            integerField("below", default = "20", min = 5.0, max = 100.0),
+            stringField("message", expressionCapable = true),
+            enumField("sound", "DEFAULT", "RINGTONE", "NOTIFICATION", "BEEP", "SILENT", default = "DEFAULT")
+        )
+        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> schema(
+            stringField("message", expressionCapable = true),
+            enumField("sound", "DEFAULT", "RINGTONE", "NOTIFICATION", "BEEP", "SILENT", default = "DEFAULT")
         )
         ActionType.ADVANCED_SHIZUKU,
         ActionType.ADVANCED_ROOT -> schema(
@@ -92,14 +107,23 @@ internal object ActionNodeSchemas {
         )
         ActionType.SYSTEM_HTTP_REQUEST -> schema(
             urlField("url", required = true, expressionCapable = true),
-            enumField("method", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", default = "GET"),
+            enumField("method", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", default = "GET"),
             stringField("body", expressionCapable = true),
             stringField("headers", expressionCapable = true),
-            integerField("timeoutSeconds", min = 1.0)
+            booleanField("allowPrivateNetwork", default = "false"),
+            integerField("timeoutMs", default = "10000", min = 1_000.0, max = 60_000.0),
+            integerField("retryAttempts", default = "0", min = 0.0, max = 5.0),
+            integerField("retryBaseDelayMs", default = "1000", min = 0.0, max = 60_000.0),
+            integerField("retryCapMs", default = "60000", min = 0.0, max = 60_000.0),
+            stringField("outputPath")
         )
         ActionType.PLUGIN_FIRE -> schema(
             packageField("package", required = true),
             stringField("receiver", required = true),
+            stringField("pluginInstance"),
+            enumField("pluginApproval", "approved"),
+            enumField("pluginHighRiskApproval", "approved"),
+            stringField("editActivity"),
             jsonField("bundleJson"),
             stringField("blurb")
         )
@@ -134,13 +158,20 @@ internal object ActionNodeSchemas {
             integerField("y2", required = true, min = 0.0, expressionCapable = true),
             integerField("durationMs", min = 0.0)
         )
+        ActionType.SYSTEM_LOCATION_MODE -> schema(
+            enumField("mode", "OFF", "SENSORS", "BATTERY", "HIGH", default = "HIGH")
+        )
         ActionType.SYSTEM_FONT_SCALE -> schema(
-            decimalField("scale", min = 0.5, max = 2.0, expressionCapable = true)
+            decimalField("scale", default = "1.0", min = 0.5, max = 2.0, expressionCapable = true)
         )
         ActionType.SYSTEM_DISPLAY_DENSITY -> schema(
+            integerField("dpi", default = "440", min = 72.0, expressionCapable = true),
+            // Import compatibility for older agents/schemas; the runtime prefers dpi.
             integerField("density", min = 72.0, expressionCapable = true)
         )
         ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> schema(
+            integerField("percent", default = "20", min = 0.0, max = 100.0, expressionCapable = true),
+            // Legacy alias still read by ActionStateReader.
             integerField("level", min = 0.0, max = 100.0, expressionCapable = true)
         )
         ActionType.SYSTEM_CHARGING_LIMIT -> schema(
@@ -151,10 +182,10 @@ internal object ActionNodeSchemas {
             booleanField("vibration")
         )
         ActionType.SYSTEM_WIFI_SLEEP_POLICY -> schema(
-            integerField("policy", min = 0.0, max = 2.0)
+            enumField("policy", "ALWAYS", "PLUGGED", "NEVER", default = "ALWAYS")
         )
         ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY -> schema(
-            integerField("mode", min = 0.0, max = 2.0)
+            integerField("timeoutSeconds", default = "300", min = 0.0, max = 3_600.0)
         )
         ActionType.SYSTEM_HAPTIC_INTENSITY -> schema(
             integerField("level", min = 0.0, max = 255.0, expressionCapable = true)
@@ -206,13 +237,80 @@ internal object ActionNodeSchemas {
             stringField("subject", expressionCapable = true),
             stringField("body", expressionCapable = true)
         )
+        ActionType.SYSTEM_SET_NOTIFICATION_TONE -> schema(
+            stringField("tone")
+        )
         ActionType.SYSTEM_SET_TIMEZONE -> schema(
             stringField("zone", required = true, expressionCapable = true)
         )
+        ActionType.ROM_QS_TILES -> schema(
+            stringField("tiles"),
+            integerField("columns", default = "4", min = 3.0, max = 5.0),
+            booleanField("brightness_slider", default = "true"),
+            stringField("footer_text")
+        )
+        ActionType.ROM_STATUS_BAR -> schema(
+            enumField("clock_position", "left", "center", "right", default = "right"),
+            enumField("battery_style", "0", "1", "2", "3", default = "0"),
+            booleanField("battery_percent", default = "false"),
+            booleanField("clock_seconds", default = "false"),
+            jsonField("config_json")
+        )
+        ActionType.ROM_LOCKSCREEN -> schema(
+            enumField("clock_style", "0", "1", "2", "3", default = "0"),
+            booleanField("weather", default = "false"),
+            booleanField("shortcuts", default = "false"),
+            booleanField("media_art", default = "true"),
+            jsonField("config_json")
+        )
+        ActionType.ROM_NAVIGATION -> schema(
+            enumField("mode", "0", "1", "2", default = "2"),
+            integerField("back_height", min = 0.0, max = 200.0)
+        )
+        ActionType.ROM_THEME -> schema(
+            booleanField("monet", default = "true"),
+            stringField("accent", default = "#FF4081"),
+            booleanField("themed_icons", default = "false"),
+            jsonField("config_json")
+        )
+        ActionType.ROM_AMBIENT_AOD -> schema(
+            booleanField("enabled", default = "false"),
+            enumField("schedule", "0", "1", "2", default = "0")
+        )
+        ActionType.ROM_NOTIFICATIONS -> schema(
+            booleanField("heads_up", default = "true"),
+            integerField("timeout", default = "5", min = 1.0, max = 30.0),
+            booleanField("less_boring", default = "false")
+        )
+        ActionType.DATA_TEXT,
+        ActionType.DATA_ENCODING,
+        ActionType.DATA_HASH,
+        ActionType.DATA_RANDOM,
+        ActionType.DATA_MATH,
+        ActionType.DATA_DATE_TIME,
+        ActionType.DATA_JSON,
+        ActionType.DATA_ARRAY -> dataActionSchema(type)
         ActionType.ROM_BATCH -> schema(
             jsonField("batch_json", required = true)
         )
         else -> NodeConfigurationSchema()
+    }
+
+    private fun dataActionSchema(type: ActionType): NodeConfigurationSchema {
+        val operations = com.nexaflow.domain.workflow.DataTransforms.operations.getValue(type)
+        return schema(
+            enumField("operation", *operations.toTypedArray(), default = operations.first()),
+            stringField("input", expressionCapable = true),
+            stringField("inputPath"),
+            stringField("outputPath", default = "$.data.result"),
+            stringField("argument", expressionCapable = true),
+            stringField("replacement", expressionCapable = true),
+            integerField("start", min = 0.0, expressionCapable = true),
+            integerField("end", min = 0.0, expressionCapable = true),
+            integerField("min", expressionCapable = true),
+            integerField("max", expressionCapable = true),
+            stringField("zone", default = "UTC")
+        )
     }
 
     private val toggleActions: Set<ActionType> by lazy { setOf(
