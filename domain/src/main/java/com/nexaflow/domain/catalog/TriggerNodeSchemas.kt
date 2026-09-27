@@ -31,7 +31,9 @@ internal object TriggerNodeSchemas {
             stringField("packages", expressionCapable = true)
         )
         TriggerType.DEVICE -> schema(
-            stringField("event", default = "SCREEN_ON")
+            stringField("event", default = "SCREEN_ON"),
+            stringField("deviceName"),
+            stringField("deviceAddress")
         )
         TriggerType.CONNECTIVITY -> schema(
             enumField("network", "WIFI", "MOBILE", default = "WIFI"),
@@ -147,7 +149,7 @@ internal object TriggerNodeSchemas {
             enumField("state", "PORTRAIT", "LANDSCAPE", default = "PORTRAIT")
         )
         TriggerType.WIFI_SIGNAL_STRENGTH,
-        TriggerType.CELL_SIGNAL_STRENGTH -> thresholdSchema(default = "3", min = 0.0, max = 100.0)
+        TriggerType.CELL_SIGNAL_STRENGTH -> thresholdSchema(default = "3", min = 0.0, max = 4.0)
         TriggerType.BATTERY_TEMPERATURE -> thresholdSchema(default = "40", min = -50.0, max = 100.0)
         TriggerType.CLIPBOARD_CHANGED -> schema(
             stringField("contains", expressionCapable = true)
@@ -162,7 +164,7 @@ internal object TriggerNodeSchemas {
             stringField("contains")
         )
         TriggerType.ALARM_SET_CHANGED -> schema(
-            enumField("event", "SET", "CLEARED")
+            enumField("event", "SET", "CLEARED", default = "SET")
         )
         TriggerType.WEAR_EVENT -> schema(
             stringField("watchInstallId"),
