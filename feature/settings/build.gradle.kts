@@ -45,6 +45,7 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.core.ktx)
+    implementation(libs.androidx.activity.activity.compose)
     implementation(platform(libs.androidx.compose.compose.bom))
     implementation(libs.androidx.compose.ui.ui)
     implementation(libs.androidx.compose.ui.ui.graphics)
