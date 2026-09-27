@@ -37,9 +37,9 @@ internal object ActionNodeSchemas {
             packageField("package")
         )
         ActionType.SYSTEM_SEND_NOTIFICATION -> schema(
-            stringField("title", expressionCapable = true),
-            stringField("text", expressionCapable = true),
-            stringField("sound"),
+            stringField("title", default = "NexaFlow", expressionCapable = true),
+            stringField("text", default = "Automation executed", expressionCapable = true),
+            enumField("sound", "DEFAULT", "RINGTONE", "NOTIFICATION", "BEEP", "SILENT", default = "DEFAULT"),
             jsonField("action_buttons")
         )
         ActionType.SYSTEM_BLOCK_NOTIFICATION -> schema(
@@ -76,8 +76,8 @@ internal object ActionNodeSchemas {
             integerField("minute", default = "0", min = 0.0, max = 59.0)
         )
         ActionType.SYSTEM_SET_TIMER -> schema(
-            durationField("seconds", default = "300", min = 1.0, expressionCapable = true),
-            stringField("message", expressionCapable = true),
+            durationField("seconds", default = "300", min = 1.0, max = 86_400.0, expressionCapable = true),
+            stringField("message", default = "NexaFlow timer", expressionCapable = true),
             booleanField("skipUi", default = "false")
         )
         ActionType.SYSTEM_SET_RINGTONE -> schema(
@@ -88,24 +88,24 @@ internal object ActionNodeSchemas {
             stringField("text", required = true, expressionCapable = true)
         )
         ActionType.SYSTEM_SEND_REMINDER -> schema(
-            stringField("title", expressionCapable = true),
+            stringField("title", default = "Reminder", expressionCapable = true),
             stringField("text", expressionCapable = true),
-            integerField("hour", min = 0.0, max = 23.0),
-            integerField("minute", min = 0.0, max = 59.0)
+            integerField("hour", default = "9", min = 0.0, max = 23.0),
+            integerField("minute", default = "0", min = 0.0, max = 59.0)
         )
         ActionType.SYSTEM_OPEN_SETTINGS -> schema(
-            stringField("page")
+            enumField("page", "WIFI", "BLUETOOTH", "LOCATION", "SOUND", "DISPLAY", "BATTERY", "NOTIFICATION", default = "WIFI")
         )
         ActionType.SYSTEM_WAIT -> schema(
             durationField("seconds", default = "5", min = 0.0, expressionCapable = true)
         )
         ActionType.BATTERY_ALERTS -> schema(
             integerField("below", default = "20", min = 5.0, max = 100.0),
-            stringField("message", expressionCapable = true),
+            stringField("message", default = "Battery alert triggered", expressionCapable = true),
             enumField("sound", "DEFAULT", "RINGTONE", "NOTIFICATION", "BEEP", "SILENT", default = "DEFAULT")
         )
         ActionType.BATTERY_CHARGING_NOTIFICATIONS -> schema(
-            stringField("message", expressionCapable = true),
+            stringField("message", default = "Battery alert triggered", expressionCapable = true),
             enumField("sound", "DEFAULT", "RINGTONE", "NOTIFICATION", "BEEP", "SILENT", default = "DEFAULT")
         )
         ActionType.ADVANCED_SHIZUKU,
@@ -167,7 +167,7 @@ internal object ActionNodeSchemas {
             integerField("y1", required = true, min = 0.0, expressionCapable = true),
             integerField("x2", required = true, min = 0.0, expressionCapable = true),
             integerField("y2", required = true, min = 0.0, expressionCapable = true),
-            integerField("durationMs", min = 0.0)
+            integerField("durationMs", default = "300", min = 0.0, max = 60_000.0)
         )
         ActionType.SYSTEM_LOCATION_MODE -> schema(
             enumField("mode", "OFF", "SENSORS", "BATTERY", "HIGH", default = "HIGH")
@@ -186,11 +186,11 @@ internal object ActionNodeSchemas {
             integerField("level", min = 0.0, max = 100.0, expressionCapable = true)
         )
         ActionType.SYSTEM_CHARGING_LIMIT -> schema(
-            integerField("percent", min = 50.0, max = 100.0, expressionCapable = true)
+            integerField("percent", default = "80", min = 50.0, max = 100.0, expressionCapable = true)
         )
         ActionType.SYSTEM_CHARGING_FEEDBACK -> schema(
-            booleanField("sound"),
-            booleanField("vibration")
+            booleanField("sound", default = "true"),
+            booleanField("vibration", default = "true")
         )
         ActionType.SYSTEM_WIFI_SLEEP_POLICY -> schema(
             enumField("policy", "ALWAYS", "PLUGGED", "NEVER", default = "ALWAYS")
@@ -199,7 +199,7 @@ internal object ActionNodeSchemas {
             integerField("timeoutSeconds", default = "300", min = 0.0, max = 3_600.0)
         )
         ActionType.SYSTEM_HAPTIC_INTENSITY -> schema(
-            integerField("level", min = 0.0, max = 255.0, expressionCapable = true)
+            integerField("level", default = "255", min = 0.0, max = 255.0, expressionCapable = true)
         )
         ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH -> schema(
             stringField("query", required = true, expressionCapable = true),
@@ -213,7 +213,7 @@ internal object ActionNodeSchemas {
             stringField("text", required = true, expressionCapable = true)
         )
         ActionType.SYSTEM_VIBRATE_PATTERN -> schema(
-            stringField("pattern", required = true, expressionCapable = true)
+            stringField("pattern", required = true, default = "0,200,100,200", expressionCapable = true)
         )
         ActionType.SYSTEM_WIFI_CONNECT -> schema(
             stringField("ssid", required = true, expressionCapable = true),
@@ -231,7 +231,7 @@ internal object ActionNodeSchemas {
             integerField("minutes", default = "10", min = 0.0, expressionCapable = true)
         )
         ActionType.SYSTEM_POINTER_SPEED -> schema(
-            integerField("speed", min = -7.0, max = 7.0, expressionCapable = true)
+            integerField("speed", default = "0", min = -7.0, max = 7.0, expressionCapable = true)
         )
         ActionType.SYSTEM_INSTALL_APK -> schema(
             stringField("path", required = true, expressionCapable = true)
@@ -252,7 +252,7 @@ internal object ActionNodeSchemas {
             stringField("tone")
         )
         ActionType.SYSTEM_SET_TIMEZONE -> schema(
-            stringField("zone", required = true, expressionCapable = true)
+            stringField("zone", required = true, default = "GMT", expressionCapable = true)
         )
         ActionType.ROM_QS_TILES -> schema(
             stringField("tiles"),
