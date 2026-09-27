@@ -324,14 +324,16 @@ Implemented USB/desktop foundation:
 - [x] bounded stdin/HTTP payloads and redirect rejection
 - [x] direct endpoint policy: public endpoints require HTTPS; HTTP is private/loopback only
 - [x] bridge unit tests in CI
-- [ ] explicit Android-side trusted-LAN listener toggle
+- [x] explicit Android-side trusted-LAN listener toggle with Android 17 permission gate
+- [x] private numeric Host policy; DNS/public Host headers remain rejected
+- [x] global Agent Access kill switch collapses LAN exposure back to loopback
 - [ ] QR ingestion convenience on desktop
 
 The bridge intentionally keeps Android loopback-only by default. USB mode uses
-`adb forward`, so no phone port is exposed to the LAN. Direct endpoint support
-is client-ready for an explicitly enabled trusted-LAN/VPN endpoint, but the
-Android listener will not bind beyond loopback until the user enables that
-separate transport explicitly.
+`adb forward`, so no phone port is exposed to the LAN. Settings -> AI & Agents
+contains the separate private-LAN switch; enabling it requires the Android 17
+local-network permission when applicable and rebinds the authenticated server.
+Disabling Agent Access also disables persisted LAN exposure.
 
 ## Phase 13 - event subscriptions
 
