@@ -1972,7 +1972,7 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> {
             OutlinedTextField(
-                value = config["minutes"] ?: "30",
+                value = config["minutes"] ?: "10",
                 onValueChange = { onConfigChange(config + ("minutes" to it.filter { it2 -> it2.isDigit() })) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.screensaver_timeout_label)) },
