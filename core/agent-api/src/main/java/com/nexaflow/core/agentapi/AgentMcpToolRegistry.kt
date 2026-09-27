@@ -70,6 +70,7 @@ object AgentMcpToolRegistry {
         ),
         mutate("nexaflow.run_task", "Run a task once for an idempotency key and revision.", AgentOperation.TASK_RUN, stateSchema()),
         read("nexaflow.get_history", "Read bounded automation execution history.", AgentOperation.HISTORY_READ, limitSchema()),
+        read("nexaflow.wait_events", "Wait for bounded NexaFlow events after a stream cursor.", AgentOperation.HISTORY_READ, eventWaitSchema()),
         read("nexaflow.get_audit", "Read bounded redacted agent audit history.", AgentOperation.HISTORY_READ, limitSchema())
     ).sortedBy { it.name }
 
@@ -118,6 +119,15 @@ object AgentMcpToolRegistry {
                 put("maximum", 200)
                 put("default", 50)
             }
+        )
+    )
+
+    private fun eventWaitSchema() = objectSchema(
+        mapOf(
+            "streamId" to stringSchema("^[A-Za-z0-9._:-]{1,128}$"),
+            "after" to integerSchema(0),
+            "limit" to integerSchema(1, AgentEventHub.MAX_BATCH_SIZE),
+            "waitMs" to integerSchema(0, AgentEventHub.MAX_WAIT_MS.toInt())
         )
     )
 
