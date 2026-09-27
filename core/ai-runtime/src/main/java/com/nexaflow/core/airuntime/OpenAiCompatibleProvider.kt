@@ -421,11 +421,16 @@ class OpenAiCompatibleProvider(
                 ) {
                     "Tool arguments exceed limit"
                 }
+                val callId = fallbackToolCallIdGenerator()
+                    .take(MAX_TOOL_CALL_ID_LENGTH)
+                    .takeIf(String::isNotBlank)
+                    ?: throw IllegalArgumentException(
+                        "Structured fallback tool-call id is invalid"
+                    )
                 emit(
                     AiProviderEvent.ToolCall(
                         AiToolCall(
-                            id = fallbackToolCallIdGenerator()
-                                .take(MAX_TOOL_CALL_ID_LENGTH),
+                            id = callId,
                             name = definition.name,
                             arguments = arguments
                         )
