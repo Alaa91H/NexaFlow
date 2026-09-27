@@ -39,12 +39,17 @@ class AiConversationEngine(
             iteration += 1
             val pendingCalls = mutableListOf<AiToolCall>()
             val assistantText = StringBuilder()
+            val structuredMode = isStructuredFallback(provider)
             try {
                 withTimeout(turnTimeoutMillis) {
                     provider.stream(
                         AiProviderRequest(
                             conversationId = conversationId,
-                            messages = transcript.toList(),
+                            messages = if (structuredMode) {
+                                transcript.toList() + structuredInstruction()
+                            } else {
+                                transcript.toList()
+                            },
                             tools = toolExecutor.tools.value,
                             maxOutputCharacters = MAX_OUTPUT_CHARACTERS
                         )
@@ -100,6 +105,15 @@ class AiConversationEngine(
             }
 
             if (pendingCalls.isEmpty()) {
+                if (structuredMode && assistantText.isNotEmpty()) {
+                    pendingCalls += AiStructuredToolParser.parse(
+                        assistantText.toString(),
+                        toolExecutor.tools.value.mapTo(LinkedHashSet()) { it.name }
+                    ).take(MAX_TOOL_CALLS_PER_TURN)
+                }
+            }
+
+            if (pendingCalls.isEmpty()) {
                 emit(AiConversationEvent.Completed(transcript.toList()))
                 traceSink?.onTerminal(AiAgentTraceOutcome.COMPLETED)
                 return@flow
@@ -144,6 +158,28 @@ class AiConversationEngine(
         traceSink?.onTerminal(AiAgentTraceOutcome.TOOL_ITERATION_LIMIT, "tool_iteration_limit")
     }
 
+    private fun isStructuredFallback(provider: AiModelProvider): Boolean {
+        val capabilities = provider.descriptor.value.capabilities
+        return !capabilities.toolCalling &&
+            capabilities.structuredOutput &&
+            toolExecutor.tools.value.isNotEmpty()
+    }
+
+    private fun structuredInstruction(): AiConversationMessage {
+        val names = toolExecutor.tools.value
+            .map { it.name }
+            .sorted()
+            .joinToString(", ")
+            .take(MAX_STRUCTURED_INSTRUCTION_CHARS)
+        return AiConversationMessage(
+            role = AiRole.SYSTEM,
+            text = "You cannot call functions directly. To use a NexaFlow tool, " +
+                "output exactly one JSON object per call shaped " +
+                "{\"tool\": \"<name>\", \"arguments\": {...}}. " +
+                "Available tools: $names. Anything else is treated as plain text."
+        )
+    }
+
     private fun validConversationId(value: String): Boolean =
         value.isNotBlank() && value.length <= MAX_CONVERSATION_ID_LENGTH
 
@@ -164,6 +200,7 @@ class AiConversationEngine(
     companion object {
         const val DEFAULT_MAX_TOOL_ITERATIONS = 8
         const val DEFAULT_TURN_TIMEOUT_MS = 45_000L
+        const val MAX_STRUCTURED_INSTRUCTION_CHARS = 2048
         const val MAX_MESSAGES = 128
         const val MAX_MESSAGE_CHARACTERS = 32_768
         const val MAX_TRANSCRIPT_CHARACTERS = 131_072
