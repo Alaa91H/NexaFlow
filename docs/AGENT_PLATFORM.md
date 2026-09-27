@@ -288,10 +288,24 @@ deterministic router rather than create provider-specific selection paths.
 
 ## Phase 11 - Android IPC
 
-Add `NexaFlowAgentService` using Binder/AIDL for same-device agents.
+Implemented foundation:
 
-Authenticate with calling UID, package, signing certificate, pairing identity
-and the persisted grant.
+- [x] exported `NexaFlowAgentService` with explicit reviewed permission gate
+- [x] async AIDL callback contract; Binder threads are not held during execution
+- [x] caller UID -> claimed package ownership verification
+- [x] SHA-256 signing-certificate binding for permanent agent grants
+- [x] one-time pairing can bind an initially unbound challenge to Android caller identity
+- [x] refresh/session issuance requires the same package/certificate binding
+- [x] all authenticated Binder requests reuse `AgentRequestAuthorizer`
+- [x] all Binder operations reuse `AgentApiController` route semantics
+- [x] REST/MCP/Binder share scopes, rate limits, idempotency, revisions and lifecycle behavior
+- [x] bounded request/response payloads below Binder transaction limits
+- [x] exported-component CI gate requires the exact Binder service permission
+- [x] identity-binding and signer-fingerprint unit coverage
+
+The custom Android permission is only a coarse discovery/binding gate. Trust is
+established by the persisted NexaFlow grant and enforced with UID/package/signing
+certificate identity plus the rotating refresh/access credential lifecycle.
 
 ## Phase 12 - NexaFlow Bridge
 
