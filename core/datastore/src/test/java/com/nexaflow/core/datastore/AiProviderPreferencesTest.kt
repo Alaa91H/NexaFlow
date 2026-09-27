@@ -58,4 +58,24 @@ class AiProviderPreferencesTest {
         val store = PreferenceDataStoreFactory.create { file }
         return AiProviderPreferences(store)
     }
+
+    @Test
+    fun routingPolicyPersistsWithProviderSettings() = runTest {
+        val preferences = createPreferences()
+        val expected = AiProviderSettings(
+            enabled = true,
+            displayName = "Cloud model",
+            baseUrl = "https://example.com/v1",
+            modelId = "model-x",
+            local = false,
+            routingMode = "SELECTED_PROVIDER",
+            selectedProviderId = "openai_compatible",
+            allowCloudFallback = true
+        )
+
+        preferences.update(expected)
+
+        assertEquals(expected, preferences.current())
+    }
+
 }
