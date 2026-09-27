@@ -277,6 +277,24 @@ fun AgentSettingsScreen(
                         },
                         singleLine = true
                     )
+                    TextButton(
+                        onClick = viewModel::discoverModels,
+                        enabled = state.providerSettings.enabled
+                    ) {
+                        Text(stringResource(R.string.agent_refresh))
+                    }
+                    state.discoveredModels.take(MAX_VISIBLE_DISCOVERED_MODELS).forEach { model ->
+                        TextButton(
+                            onClick = { providerModel = model.id },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = model.id,
+                                modifier = Modifier.fillMaxWidth(),
+                                maxLines = 1
+                            )
+                        }
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -627,6 +645,8 @@ private fun AgentActivityRow(
     }
 }
 
+
+private const val MAX_VISIBLE_DISCOVERED_MODELS = 12
 
 private fun needsLocalNetworkPermission(
     context: android.content.Context,
