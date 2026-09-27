@@ -39,6 +39,7 @@ class AgentApiController(
     private val accessManager: AgentAccessManager,
     private val authorizer: AgentRequestAuthorizer,
     private val runtime: AgentApiRuntime,
+    private val eventHub: AgentEventHub = AgentEventHub(),
     private val hostPolicy: AgentApiHostPolicy = AgentApiHostPolicy(),
     private val json: Json = Json {
         ignoreUnknownKeys = false
@@ -216,6 +217,8 @@ class AgentApiController(
                 previewSchedule(request)
             request.method == "GET" && path == "/api/v1/history" ->
                 respond(200, runtime.latestHistory(limitFrom(uri)).map { it.toAgentApiModel() })
+            request.method == "GET" && path == "/api/v1/events" ->
+                respond(200, eventHub.await(eventQuery(uri)))
             request.method == "GET" && path == "/api/v1/audit" ->
                 respond(200, runtime.latestAudit(limitFrom(uri)))
             else -> error(404, "not_found", "API route was not found")
@@ -868,6 +871,7 @@ class AgentApiController(
             method == "POST" && path == "/api/v1/simulate" -> AgentOperation.TASK_CREATE
             method == "POST" && path == "/api/v1/schedules/preview" -> AgentOperation.CATALOG_READ
             method == "GET" && path == "/api/v1/history" -> AgentOperation.HISTORY_READ
+            method == "GET" && path == "/api/v1/events" -> AgentOperation.HISTORY_READ
             method == "GET" && path == "/api/v1/audit" -> AgentOperation.HISTORY_READ
             else -> null
         }
@@ -879,6 +883,30 @@ class AgentApiController(
             segments[2] != "tasks"
         ) return null
         return segments[3].takeIf { it.isNotBlank() && it.length <= 128 }
+    }
+
+    private fun eventQuery(uri: URI): AgentEventQuery {
+        val values = uri.rawQuery.orEmpty()
+            .split('&')
+            .mapNotNull { part ->
+                val key = part.substringBefore('=', missingDelimiterValue = "")
+                if (key.isBlank()) null
+                else key to part.substringAfter('=', missingDelimiterValue = "")
+            }
+            .toMap()
+        val streamId = values["streamId"]
+            ?.takeIf { it.length <= MAX_EVENT_STREAM_ID_LENGTH }
+            ?.takeIf { EVENT_STREAM_ID.matches(it) }
+        return AgentEventQuery(
+            streamId = streamId,
+            afterSequence = values["after"]?.toLongOrNull()?.coerceAtLeast(0L) ?: 0L,
+            limit = values["limit"]?.toIntOrNull()
+                ?.coerceIn(1, AgentEventHub.MAX_BATCH_SIZE)
+                ?: DEFAULT_READ_LIMIT,
+            waitMs = values["waitMs"]?.toLongOrNull()
+                ?.coerceIn(0L, AgentEventHub.MAX_WAIT_MS)
+                ?: 0L
+        )
     }
 
     private fun limitFrom(uri: URI): Int {
@@ -973,5 +1001,7 @@ class AgentApiController(
         const val DEFAULT_READ_LIMIT = 50
         const val MAX_READ_LIMIT = 200
         const val MAX_PAIRING_FIELD_LENGTH = 512
+        const val MAX_EVENT_STREAM_ID_LENGTH = 128
+        val EVENT_STREAM_ID = Regex("[A-Za-z0-9._:-]+")
     }
 }
