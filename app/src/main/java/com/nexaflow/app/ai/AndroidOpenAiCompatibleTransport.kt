@@ -14,10 +14,21 @@ import java.net.Socket
 import java.net.URI
 import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 
 class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
+
+    override fun streamChatCompletions(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?
+    ): Flow<String> = AndroidOpenAiStreamingTransport.stream(
+        config = config,
+        body = body,
+        apiKey = apiKey
+    )
 
     override suspend fun postChatCompletions(
         config: OpenAiCompatibleProviderConfig,
