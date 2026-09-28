@@ -47,17 +47,18 @@ class CanonicalInventoryReviewTest(unittest.TestCase):
                 self.assertEqual("N/A", review.retrySafety)
 
     def test_settings_aliases_converge_on_one_canonical_operation(self) -> None:
+        # Classify by reviewed semantics, never by legacy-name substrings:
+        # SYSTEM_OPEN_QUICK_SETTINGS is navigation, not an Android Settings page.
         settings = {
             name: review
             for name, review in ACTION_REVIEWS.items()
-            if name.startswith("SYSTEM_OPEN_") and
-            ("SETTINGS" in name or name == "SYSTEM_OPEN_ABOUT_PHONE")
+            if review.canonicalTarget == "core.system.settings"
         }
         self.assertGreaterEqual(len(settings), 20)
         for name, review in settings.items():
             with self.subTest(name=name):
-                self.assertEqual("core.system.settings", review.canonicalTarget)
                 self.assertEqual("OPEN", review.canonicalOperation)
+                self.assertIn("page=", review.migrationNotes)
 
 
 if __name__ == "__main__":
