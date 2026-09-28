@@ -407,7 +407,8 @@ fun validateNodeValues(
     return violations
 }
 
-private fun conditionsHold(
+/** Internal: shared by the schema validator and the T12 configurator state. */
+internal fun conditionsHold(
     conditions: List<NodeFieldCondition>,
     byId: Map<CanonicalFieldId, NodeFieldValue>,
 ): Boolean = conditions.all { condition ->

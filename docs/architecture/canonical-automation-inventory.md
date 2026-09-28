@@ -145,6 +145,16 @@ and reviewed before T01 may close:
   safe by construction: secret-looking metadata keys/values or messages are
   rejected at construction (Gate I groundwork). Covered by 11 unit tests and
   CI gate `scripts/check_canonical_execution_journal.py`.
+- T12: **implemented (infrastructure core)** — the schema-driven
+  configurator state machine in `domain/.../canonical/NodeConfiguratorState.kt`:
+  dynamic tabs derived from the NodeSchema, progressive disclosure
+  (Basic/Advanced/Expert), declared-default seeding, live T08 validation,
+  missing-required surfacing, bounded multi-select state with deterministic
+  search/filter/sort/count for large lists, and shared summary rendering.
+  Pure and UI-independent: any Compose/platform shell renders it; per-family
+  configurator UIs become unnecessary. Covered by 15 unit tests and CI gate
+  `scripts/check_canonical_configurator.py`. The Compose sheet host (render
+  wiring) is a UI follow-up on top of this contract.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
