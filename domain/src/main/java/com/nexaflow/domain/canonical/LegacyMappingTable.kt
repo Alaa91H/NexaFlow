@@ -1,0 +1,1475 @@
+package com.nexaflow.domain.canonical
+
+/**
+ * T15 — generated legacy mapping table: 57 triggers + 176
+ * actions = 233 rules.
+ *
+ * Source of truth: scripts/canonical_inventory_review.py (T01 semantic
+ * review, 233/233 REVIEWED). Regenerate with:
+ *
+ *     python3 scripts/generate_legacy_mapping_table.py
+ *
+ * Do not edit by hand. Mapping semantics change through the reviewed T01
+ * inventory only, then regenerate; CI fails on drift between the two.
+ *
+ * Every rule consumes no config keys: legacy payloads are carried through
+ * verbatim in [LegacyAdapterOutcome.Canonicalized.preservedConfig] until a
+ * family phase upgrades values with schema type information. This is what
+ * keeps the migration lossless and idempotent.
+ */
+object LegacyMappingTable {
+
+    private data class Entry(
+        val observe: Boolean,
+        val target: TargetId,
+        val operation: OperationId?,
+        val predicate: PredicateId?,
+    )
+
+    private val entries: Map<Pair<LegacyNodeKind, String>, Entry> = mapOf(
+        Pair(LegacyNodeKind.TRIGGER, "AIRPLANE_MODE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.airplane_mode"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "ALARM_SET_CHANGED") to Entry(
+            observe = true,
+            target = TargetId("core.schedule.alarm"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_change_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "APPLICATION") to Entry(
+            observe = true,
+            target = TargetId("core.application.foreground"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_or_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "APP_INSTALLED") to Entry(
+            observe = true,
+            target = TargetId("core.application.lifecycle"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "AUTO_BRIGHTNESS_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.display.auto_brightness"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "AUTO_ROTATE") to Entry(
+            observe = true,
+            target = TargetId("core.display.auto_rotate"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "BATTERY") to Entry(
+            observe = true,
+            target = TargetId("core.power.battery"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_threshold_with_filters"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "BATTERY_TEMPERATURE") to Entry(
+            observe = true,
+            target = TargetId("core.power.battery_temperature"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_threshold"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "BLUETOOTH_DEVICE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.bluetooth_device"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state_or_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "BLUETOOTH_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.bluetooth"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "BOOT_COMPLETED") to Entry(
+            observe = true,
+            target = TargetId("core.device.boot"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "BRIGHTNESS_LEVEL") to Entry(
+            observe = true,
+            target = TargetId("core.display.brightness"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_threshold"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "CALENDAR") to Entry(
+            observe = true,
+            target = TargetId("core.calendar.event"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "CALL_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.communication.call"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state_or_transition"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "CELL_SIGNAL_STRENGTH") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.cell_signal"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_threshold"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "CHARGER") to Entry(
+            observe = true,
+            target = TargetId("core.power.charging"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "CLIPBOARD_CHANGED") to Entry(
+            observe = true,
+            target = TargetId("core.data.clipboard"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_filter"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "CONNECTIVITY") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.default_network"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "DARK_MODE") to Entry(
+            observe = true,
+            target = TargetId("core.display.dark_mode"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "DATA_ROAMING_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.data_roaming"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "DATA_SAVER_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.data_saver"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "DEVICE") to Entry(
+            observe = true,
+            target = TargetId("core.device.lifecycle"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "DEVICE_LOCKED") to Entry(
+            observe = true,
+            target = TargetId("core.device.lock_state"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "DND_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.audio.dnd"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "ETHERNET_CONNECTED") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.ethernet"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "HDMI_CONNECTED") to Entry(
+            observe = true,
+            target = TargetId("core.peripheral.hdmi"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state_or_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "HEADPHONE") to Entry(
+            observe = true,
+            target = TargetId("core.audio.headphone"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "HOTSPOT") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.hotspot"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "INCOMING_CALL") to Entry(
+            observe = true,
+            target = TargetId("core.communication.call.incoming"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_filter"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "LOCATION") to Entry(
+            observe = true,
+            target = TargetId("core.location.geofence"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_transition"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "LOCATION_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.location.service"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "MEDIA_PLAYING") to Entry(
+            observe = true,
+            target = TargetId("core.media.playback"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "MOBILE_DATA_CONNECTED") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.mobile_data"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "NETWORK_MODE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.network_mode"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "NFC_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.nfc"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "NFC_TAG_SCANNED") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.nfc_tag"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_filter"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "NOTIFICATION") to Entry(
+            observe = true,
+            target = TargetId("core.notification.event"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_filter"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "PLUGIN_EVENT") to Entry(
+            observe = true,
+            target = TargetId("plugin.event"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_filter"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "POWER_SAVER") to Entry(
+            observe = true,
+            target = TargetId("core.power.saver"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "RINGER_MODE") to Entry(
+            observe = true,
+            target = TargetId("core.audio.ringer_mode"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "ROM_SETTING") to Entry(
+            observe = true,
+            target = TargetId("core.rom.setting"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "SCREEN_ROTATION_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.display.orientation"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "SCREEN_TIMEOUT_CHANGED") to Entry(
+            observe = true,
+            target = TargetId("core.display.screen_timeout"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_change_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "SENSOR") to Entry(
+            observe = true,
+            target = TargetId("core.sensor.reading"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_reading"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "SMS") to Entry(
+            observe = true,
+            target = TargetId("core.communication.sms.incoming"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_filter"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "STAY_AWAKE_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.display.stay_awake"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "STORAGE_LOW") to Entry(
+            observe = true,
+            target = TargetId("core.storage.free_space"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_threshold"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "TIME") to Entry(
+            observe = true,
+            target = TargetId("core.schedule.clock"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_schedule"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "TIMEZONE_CHANGED") to Entry(
+            observe = true,
+            target = TargetId("core.system.timezone"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_change_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "USB_CONNECTED") to Entry(
+            observe = true,
+            target = TargetId("core.peripheral.usb"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state_or_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "VOLUME_CHANGED") to Entry(
+            observe = true,
+            target = TargetId("core.audio.volume"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_threshold"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "VPN_CONNECTED") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.vpn"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "WEAR_EVENT") to Entry(
+            observe = true,
+            target = TargetId("core.wear.connection"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state_or_event"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "WEBHOOK") to Entry(
+            observe = true,
+            target = TargetId("core.external.webhook"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_event_filter"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "WIFI_CONNECTED") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.wifi_network"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "WIFI_SIGNAL_STRENGTH") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.wifi_signal"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_threshold"),
+        ),
+        Pair(LegacyNodeKind.TRIGGER, "WIFI_STATE") to Entry(
+            observe = true,
+            target = TargetId("core.connectivity.wifi"),
+            operation = null,
+            predicate = PredicateId("core.predicate.match_state"),
+        ),
+        Pair(LegacyNodeKind.ACTION, "ADVANCED_ROOT") to Entry(
+            observe = false,
+            target = TargetId("core.advanced.command"),
+            operation = OperationId("core.operation.execute"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ADVANCED_SHIZUKU") to Entry(
+            observe = false,
+            target = TargetId("core.advanced.command"),
+            operation = OperationId("core.operation.execute"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "APPLICATION_CLOSE_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.force_stop"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "APPLICATION_LAUNCH_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "APPLICATION_OPEN_APP_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.application.package_settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "BATTERY_ALERTS") to Entry(
+            observe = false,
+            target = TargetId("core.notification.battery_alert"),
+            operation = OperationId("core.operation.send"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "BATTERY_CHARGING_NOTIFICATIONS") to Entry(
+            observe = false,
+            target = TargetId("core.notification.charging"),
+            operation = OperationId("core.operation.send"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "CALL_BLOCK") to Entry(
+            observe = false,
+            target = TargetId("core.communication.call"),
+            operation = OperationId("core.operation.reject"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "CALL_SILENCE") to Entry(
+            observe = false,
+            target = TargetId("core.communication.call"),
+            operation = OperationId("core.operation.silence"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_ARRAY") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.transform"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_DATE_TIME") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.date_time"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_ENCODING") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.transform"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_HASH") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.transform"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_JSON") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.transform"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_MATH") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.transform"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_RANDOM") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.generate_random"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "DATA_TEXT") to Entry(
+            observe = false,
+            target = TargetId("core.data.transform"),
+            operation = OperationId("core.operation.transform"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "PLUGIN_FIRE") to Entry(
+            observe = false,
+            target = TargetId("plugin.action"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_AMBIENT_AOD") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_BATCH") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.batch_write"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_CUSTOM_SETTING") to Entry(
+            observe = false,
+            target = TargetId("core.rom.setting"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_LOCKSCREEN") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_NAVIGATION") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_NOTIFICATIONS") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_QS_TILES") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_STATUS_BAR") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "ROM_THEME") to Entry(
+            observe = false,
+            target = TargetId("core.rom.customization"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_ADAPTIVE_BATTERY") to Entry(
+            observe = false,
+            target = TargetId("core.power.adaptive_battery"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_AIRPLANE_MODE") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.airplane_mode"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_ALERT") to Entry(
+            observe = false,
+            target = TargetId("core.notification.alert"),
+            operation = OperationId("core.operation.show"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_ALWAYS_ON_DISPLAY") to Entry(
+            observe = false,
+            target = TargetId("core.display.always_on_display"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_ANIMATIONS") to Entry(
+            observe = false,
+            target = TargetId("core.display.animations"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_AUTO_BRIGHTNESS") to Entry(
+            observe = false,
+            target = TargetId("core.display.auto_brightness"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_AUTO_TIME") to Entry(
+            observe = false,
+            target = TargetId("core.system.auto_time"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_AUTO_TIMEZONE") to Entry(
+            observe = false,
+            target = TargetId("core.system.auto_timezone"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_BATTERY_SAVER_THRESHOLD") to Entry(
+            observe = false,
+            target = TargetId("core.power.saver_threshold"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_BLOCK_NOTIFICATION") to Entry(
+            observe = false,
+            target = TargetId("core.notification.app_policy"),
+            operation = OperationId("core.operation.set_blocked"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_BLUETOOTH") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.bluetooth"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_BLUETOOTH_DISCOVERABILITY") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.bluetooth_discoverability"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_BLUETOOTH_SCAN") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.bluetooth"),
+            operation = OperationId("core.operation.scan"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_BRIGHTNESS") to Entry(
+            observe = false,
+            target = TargetId("core.display.brightness"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CALL_VIBRATION") to Entry(
+            observe = false,
+            target = TargetId("core.haptics.call_vibration"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CAMERA_SHUTTER_SOUND") to Entry(
+            observe = false,
+            target = TargetId("core.audio.camera_shutter"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CHARGING_FEEDBACK") to Entry(
+            observe = false,
+            target = TargetId("core.power.charging_feedback"),
+            operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CHARGING_LIMIT") to Entry(
+            observe = false,
+            target = TargetId("core.power.charging_limit"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CLEAR_APP_DATA") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.clear_data"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CLEAR_APP_NOTIFICATIONS") to Entry(
+            observe = false,
+            target = TargetId("core.notification.app"),
+            operation = OperationId("core.operation.clear"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CLEAR_NOTIFICATIONS") to Entry(
+            observe = false,
+            target = TargetId("core.notification.all"),
+            operation = OperationId("core.operation.clear"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_CLIPBOARD_SET") to Entry(
+            observe = false,
+            target = TargetId("core.data.clipboard"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_COLLAPSE_STATUS_BAR") to Entry(
+            observe = false,
+            target = TargetId("core.system.navigation"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_COLOR_INVERSION") to Entry(
+            observe = false,
+            target = TargetId("core.display.color_inversion"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_DARK_MODE") to Entry(
+            observe = false,
+            target = TargetId("core.display.dark_mode"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_DATA_ROAMING") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.data_roaming"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_DATA_SAVER") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.data_saver"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_DIAL_NUMBER") to Entry(
+            observe = false,
+            target = TargetId("core.communication.phone"),
+            operation = OperationId("core.operation.dial"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_DISABLE_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.set_enabled"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_DISPLAY_DENSITY") to Entry(
+            observe = false,
+            target = TargetId("core.display.density"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_DND") to Entry(
+            observe = false,
+            target = TargetId("core.audio.dnd"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_ENABLE_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.set_enabled"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_EXPAND_STATUS_BAR") to Entry(
+            observe = false,
+            target = TargetId("core.system.navigation"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_EXTRA_DIM") to Entry(
+            observe = false,
+            target = TargetId("core.display.extra_dim"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_FLASHLIGHT") to Entry(
+            observe = false,
+            target = TargetId("core.device.flashlight"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_FONT_SCALE") to Entry(
+            observe = false,
+            target = TargetId("core.display.font_scale"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_FORCE_STOP_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.force_stop"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_GO_HOME") to Entry(
+            observe = false,
+            target = TargetId("core.system.navigation"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_GRAYSCALE") to Entry(
+            observe = false,
+            target = TargetId("core.display.grayscale"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_HAPTIC_FEEDBACK") to Entry(
+            observe = false,
+            target = TargetId("core.haptics.feedback"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_HAPTIC_INTENSITY") to Entry(
+            observe = false,
+            target = TargetId("core.haptics.intensity"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_HOTSPOT") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.hotspot"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_HTTP_REQUEST") to Entry(
+            observe = false,
+            target = TargetId("core.external.http"),
+            operation = OperationId("core.operation.send"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_INPUT_SWIPE") to Entry(
+            observe = false,
+            target = TargetId("core.input.pointer"),
+            operation = OperationId("core.operation.swipe"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_INPUT_TAP") to Entry(
+            observe = false,
+            target = TargetId("core.input.pointer"),
+            operation = OperationId("core.operation.tap"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_INPUT_TEXT") to Entry(
+            observe = false,
+            target = TargetId("core.input.text"),
+            operation = OperationId("core.operation.input"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_INSTALL_APK") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.install"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_KEY_EVENT") to Entry(
+            observe = false,
+            target = TargetId("core.input.key"),
+            operation = OperationId("core.operation.input"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_LOCATION") to Entry(
+            observe = false,
+            target = TargetId("core.location.service"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_LOCATION_MODE") to Entry(
+            observe = false,
+            target = TargetId("core.location.mode"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_LOCK_SCREEN") to Entry(
+            observe = false,
+            target = TargetId("core.device.lock"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MEDIA_FAST_FORWARD") to Entry(
+            observe = false,
+            target = TargetId("core.media.active_session"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MEDIA_NEXT") to Entry(
+            observe = false,
+            target = TargetId("core.media.active_session"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MEDIA_PLAY_FROM_SEARCH") to Entry(
+            observe = false,
+            target = TargetId("core.media.active_session"),
+            operation = OperationId("core.operation.search_and_play"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MEDIA_PLAY_PAUSE") to Entry(
+            observe = false,
+            target = TargetId("core.media.active_session"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MEDIA_PREVIOUS") to Entry(
+            observe = false,
+            target = TargetId("core.media.active_session"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MEDIA_REWIND") to Entry(
+            observe = false,
+            target = TargetId("core.media.active_session"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MEDIA_STOP") to Entry(
+            observe = false,
+            target = TargetId("core.media.active_session"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_MOBILE_DATA") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.mobile_data"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_NETWORK_MODE") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.network_mode"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_NFC") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.nfc"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_NIGHT_LIGHT") to Entry(
+            observe = false,
+            target = TargetId("core.display.night_light"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_ABOUT_PHONE") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_ACCESSIBILITY_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_APP_DRAWER") to Entry(
+            observe = false,
+            target = TargetId("core.system.navigation"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_APP_SETTINGS_LIST") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_BATTERY_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_BLUETOOTH_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_CAMERA") to Entry(
+            observe = false,
+            target = TargetId("core.application.camera"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_CAST_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_CONTACTS") to Entry(
+            observe = false,
+            target = TargetId("core.application.contacts"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DATA_SAVER_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DATA_USAGE_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DATE_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DEFAULT_APPS_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DEVELOPER_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DEVICE_STORE") to Entry(
+            observe = false,
+            target = TargetId("core.application.store"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_DISPLAY_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_INPUT_METHOD_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_LOCATION_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_MAPS") to Entry(
+            observe = false,
+            target = TargetId("core.location.maps"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_NETWORK_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_NFC_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_NOTIFICATIONS") to Entry(
+            observe = false,
+            target = TargetId("core.system.navigation"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_NOTIFICATION_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_PLAY_STORE_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.store"),
+            operation = OperationId("core.operation.open_app_page"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_PLAY_UPDATES") to Entry(
+            observe = false,
+            target = TargetId("core.application.store_updates"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_PRINT_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_PRIVACY_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_QUICK_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.navigation"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_RECENTS") to Entry(
+            observe = false,
+            target = TargetId("core.system.navigation"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_SECURITY_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_SOUND_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_STORAGE_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_URL") to Entry(
+            observe = false,
+            target = TargetId("core.external.url"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_USAGE_ACCESS_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_VPN_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_OPEN_WIFI_SETTINGS") to Entry(
+            observe = false,
+            target = TargetId("core.system.settings"),
+            operation = OperationId("core.operation.open"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_PASTE") to Entry(
+            observe = false,
+            target = TargetId("core.input.paste"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_POINTER_LOCATION") to Entry(
+            observe = false,
+            target = TargetId("core.display.pointer_location"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_POINTER_SPEED") to Entry(
+            observe = false,
+            target = TargetId("core.input.pointer_speed"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_POWER_SAVER") to Entry(
+            observe = false,
+            target = TargetId("core.power.saver"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_PRIVATE_DNS") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.private_dns"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_REBOOT") to Entry(
+            observe = false,
+            target = TargetId("core.device.power"),
+            operation = OperationId("core.operation.reboot"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_RESTART_SYSTEM_UI") to Entry(
+            observe = false,
+            target = TargetId("core.system.ui"),
+            operation = OperationId("core.operation.restart"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_RINGER_MODE") to Entry(
+            observe = false,
+            target = TargetId("core.audio.ringer_mode"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_RING_VOLUME") to Entry(
+            observe = false,
+            target = TargetId("core.audio.volume.ring"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SCREENSAVER") to Entry(
+            observe = false,
+            target = TargetId("core.display.screensaver"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SCREENSAVER_TIMEOUT") to Entry(
+            observe = false,
+            target = TargetId("core.display.screensaver_timeout"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SCREENSHOT") to Entry(
+            observe = false,
+            target = TargetId("core.device.screenshot"),
+            operation = OperationId("core.operation.capture"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SCREEN_ROTATION") to Entry(
+            observe = false,
+            target = TargetId("core.display.auto_rotate"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SCREEN_TIMEOUT") to Entry(
+            observe = false,
+            target = TargetId("core.display.screen_timeout"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SEND_EMAIL") to Entry(
+            observe = false,
+            target = TargetId("core.communication.email"),
+            operation = OperationId("core.operation.compose_or_send"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SEND_NOTIFICATION") to Entry(
+            observe = false,
+            target = TargetId("core.notification"),
+            operation = OperationId("core.operation.send"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SEND_REMINDER") to Entry(
+            observe = false,
+            target = TargetId("core.notification.reminder"),
+            operation = OperationId("core.operation.schedule"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SEND_SMS") to Entry(
+            observe = false,
+            target = TargetId("core.communication.sms"),
+            operation = OperationId("core.operation.send"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SET_ALARM") to Entry(
+            observe = false,
+            target = TargetId("core.schedule.alarm"),
+            operation = OperationId("core.operation.create"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SET_NOTIFICATION_TONE") to Entry(
+            observe = false,
+            target = TargetId("core.audio.notification_tone"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SET_RINGTONE") to Entry(
+            observe = false,
+            target = TargetId("core.audio.ringtone"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SET_SETTING") to Entry(
+            observe = false,
+            target = TargetId("core.system.setting"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SET_TIMER") to Entry(
+            observe = false,
+            target = TargetId("core.schedule.timer"),
+            operation = OperationId("core.operation.create"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SET_TIMEZONE") to Entry(
+            observe = false,
+            target = TargetId("core.system.timezone"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SHOW_TAPS") to Entry(
+            observe = false,
+            target = TargetId("core.display.show_taps"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SHUTDOWN") to Entry(
+            observe = false,
+            target = TargetId("core.device.power"),
+            operation = OperationId("core.operation.shutdown"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SOFT_RESTART") to Entry(
+            observe = false,
+            target = TargetId("core.device.power"),
+            operation = OperationId("core.operation.soft_restart"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_SOUND_EFFECTS") to Entry(
+            observe = false,
+            target = TargetId("core.audio.sound_effects"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_STATUS_BAR_TOGGLE") to Entry(
+            observe = false,
+            target = TargetId("core.system.status_bar"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_STAY_AWAKE") to Entry(
+            observe = false,
+            target = TargetId("core.display.stay_awake"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_STREAM_VOLUME") to Entry(
+            observe = false,
+            target = TargetId("core.audio.volume"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_TOAST") to Entry(
+            observe = false,
+            target = TargetId("core.notification.transient_message"),
+            operation = OperationId("core.operation.show"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_TOGGLE_PIP") to Entry(
+            observe = false,
+            target = TargetId("core.application.picture_in_picture"),
+            operation = OperationId("core.operation.invoke_toggle"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_UNINSTALL_APP") to Entry(
+            observe = false,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.uninstall"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_UPDATE_GOOGLE_PLAY_APPS") to Entry(
+            observe = false,
+            target = TargetId("core.application.store_updates"),
+            operation = OperationId("core.operation.update_apps"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_VIBRATE") to Entry(
+            observe = false,
+            target = TargetId("core.haptics.vibration"),
+            operation = OperationId("core.operation.invoke"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_VIBRATE_PATTERN") to Entry(
+            observe = false,
+            target = TargetId("core.haptics.vibration"),
+            operation = OperationId("core.operation.invoke_pattern"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_VOLUME") to Entry(
+            observe = false,
+            target = TargetId("core.audio.volume.music"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WAIT") to Entry(
+            observe = false,
+            target = TargetId("core.flow.delay"),
+            operation = OperationId("core.operation.wait"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WAKE_SCREEN") to Entry(
+            observe = false,
+            target = TargetId("core.display.screen"),
+            operation = OperationId("core.operation.wake"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WIFI") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.wifi"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WIFI_CONNECT") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.wifi_network"),
+            operation = OperationId("core.operation.connect"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WIFI_FORGET") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.wifi_network"),
+            operation = OperationId("core.operation.forget"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WIFI_SCANNING") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.wifi_scanning"),
+            operation = OperationId("core.operation.set_state"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WIFI_SCAN_NOW") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.wifi"),
+            operation = OperationId("core.operation.scan"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SYSTEM_WIFI_SLEEP_POLICY") to Entry(
+            observe = false,
+            target = TargetId("core.connectivity.wifi_sleep_policy"),
+            operation = OperationId("core.operation.set_value"),
+            predicate = null,
+        ),
+    )
+
+    /** All 233 rules in deterministic (kind, legacyType) order. */
+    fun all(): List<LegacyMappingRule> = entries.map { (key, entry) ->
+        GeneratedLegacyMappingRule(
+            legacyType = key.second,
+            kind = key.first,
+            entry = entry,
+        )
+    }.sortedWith(compareBy({ it.kind }, { it.legacyType }))
+
+    fun ruleCount(): Int = entries.size
+
+    fun triggerCount(): Int = entries.keys.count { it.first == LegacyNodeKind.TRIGGER }
+
+    fun actionCount(): Int = entries.keys.count { it.first == LegacyNodeKind.ACTION }
+
+    /**
+     * The generated rule: builds the node skeleton (observe or invoke) with
+     * the reviewed stable identities and no fabricated configuration.
+     */
+    private class GeneratedLegacyMappingRule(
+        override val legacyType: String,
+        override val kind: LegacyNodeKind,
+        private val entry: Entry,
+    ) : LegacyMappingRule {
+        override val consumedKeys: Set<String> = emptySet()
+
+        override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
+            val nodeId = CanonicalNodeId("legacy." + legacyType.lowercase())
+            return if (entry.observe) {
+                ObserveNode(
+                    id = nodeId,
+                    target = entry.target,
+                    predicate = entry.predicate
+                        ?: error("trigger mapping $legacyType has no predicate"),
+                )
+            } else {
+                InvokeNode(
+                    id = nodeId,
+                    target = entry.target,
+                    operation = entry.operation
+                        ?: error("action mapping $legacyType has no operation"),
+                )
+            }
+        }
+    }
+}

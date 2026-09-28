@@ -172,6 +172,16 @@ and reviewed before T01 may close:
   supplied by T15 mapping data; the framework itself is legacy-agnostic.
   Covered by 11 unit tests and CI gate
   `scripts/check_canonical_legacy_adapter.py`.
+- T15: **implemented** — 233/233 legacy mapping rules generated into
+  `domain/.../canonical/LegacyMappingTable.kt` from the reviewed T01
+  inventory via `scripts/generate_legacy_mapping_table.py` (single source of
+  truth; CI fails on drift): 57/57 triggers → ObserveNode skeletons over
+  registered predicates, 176/176 actions → InvokeNode skeletons over
+  registered operations. Generated rules consume no config keys (payloads
+  ride along losslessly until family phases add typed upgrades). Every rule
+  is validated against the T03 identity registry and pinned idempotent.
+  Gate B closed in CI: 57/57 + 176/176 = 233/233. Covered by 7 unit tests
+  and CI gate `scripts/check_canonical_legacy_mappings.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
