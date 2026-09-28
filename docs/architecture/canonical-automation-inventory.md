@@ -218,6 +218,15 @@ and reviewed before T01 may close:
   provider fallback (public API → Shizuku → Root) resolved through the T07
   resolver. Covered by 12 unit tests and CI gate
   `scripts/check_canonical_family_connectivity.py`.
+- T20: **implemented** — Display/Sound/Haptics family in
+  `domain/.../canonical/FamilyPhase20DisplaySound.kt`: 33 actions (13
+  display booleans, 5 display scalars, 5 sound booleans, 9 sound
+  scalars/enums; WAKE_SCREEN keeps its reviewed skeleton) and 11 triggers
+  upgraded with typed values. Batch profiles are adjacent typed writes in
+  one atomic scope — contradictions rejected by T06, parallel safety proven
+  per scope by T10; ringer mode is an enum-token allowlist and brightness a
+  bounded percentage. Covered by 14 unit tests and CI gate
+  `scripts/check_canonical_family_display_sound.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

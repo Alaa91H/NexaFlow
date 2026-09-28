@@ -146,6 +146,10 @@ jobs:
       run: python3 scripts/check_canonical_family_connectivity.py
     - name: Test connectivity family gate
       run: python3 -m unittest scripts.tests.test_check_canonical_family_connectivity
+    - name: Display & Sound family (T20)
+      run: python3 scripts/check_canonical_family_display_sound.py
+    - name: Test display sound family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_display_sound
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
