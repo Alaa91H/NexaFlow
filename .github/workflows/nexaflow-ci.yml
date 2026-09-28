@@ -122,6 +122,10 @@ jobs:
       run: python3 scripts/check_canonical_summary_engine.py
     - name: Test central summary engine gate
       run: python3 -m unittest scripts.tests.test_check_canonical_summary_engine
+    - name: Legacy canonical adapter framework (T14 / ADR-004)
+      run: python3 scripts/check_canonical_legacy_adapter.py
+    - name: Test legacy canonical adapter gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_legacy_adapter
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

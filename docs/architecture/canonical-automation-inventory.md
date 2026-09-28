@@ -163,6 +163,15 @@ and reviewed before T01 may close:
   formatter and locale-neutral tokens keep user copy in the resource layer.
   Covered by 7 unit tests and CI gate
   `scripts/check_canonical_summary_engine.py`.
+- T14: **implemented** — Legacy Adapter Framework per plan §26 / ADR-004 in
+  `domain/.../canonical/LegacyCanonicalAdapter.kt`: explicit rule table
+  (kind+legacyType keyed, duplicates rejected), strict typed value parsers
+  (no silent coercion), lossless preservation of unconsumed config keys,
+  fail-closed rejections (unknown type / missing config / unparsable value /
+  invalid output), and idempotent deterministic canonicalization. Rules are
+  supplied by T15 mapping data; the framework itself is legacy-agnostic.
+  Covered by 11 unit tests and CI gate
+  `scripts/check_canonical_legacy_adapter.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
