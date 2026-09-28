@@ -166,6 +166,10 @@ jobs:
       run: python3 scripts/check_canonical_family_time_location.py
     - name: Test time location family gate
       run: python3 -m unittest scripts.tests.test_check_canonical_family_time_location
+    - name: Data/ROM/Advanced/External family (T25)
+      run: python3 scripts/check_canonical_family_advanced_external.py
+    - name: Test advanced external family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_advanced_external
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

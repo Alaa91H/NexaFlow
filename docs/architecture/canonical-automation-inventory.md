@@ -260,6 +260,16 @@ and reviewed before T01 may close:
   bounded 1..100km with optional enter/exit tokens; timezone-changed stays
   a pure change event. Covered by 14 unit tests and CI gate
   `scripts/check_canonical_family_time_location.py`.
+- T25: **implemented** — Data/ROM/Advanced/External family in
+  `domain/.../canonical/FamilyPhase25AdvancedExternal.kt`: 28 actions + 1
+  plugin trigger upgraded. Privileged root/shizuku commands upgrade their
+  raw command text to SECRET_REFERENCE values (never in the AST); HTTP
+  auth tokens likewise; data transforms carry typed ExpressionValue
+  payloads; wait requires a typed duration. Privileged/destructive
+  operations declare CONDITIONALLY_IDEMPOTENT command semantics and the
+  HTTP schema is SENSITIVE with a secret-typed token field. Covered by 13
+  unit tests and CI gate
+  `scripts/check_canonical_family_advanced_external.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
