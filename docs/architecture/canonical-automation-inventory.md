@@ -72,3 +72,33 @@ and reviewed before T01 may close:
 - T00: **closed**
 - T01: **in progress**
 - Full mapping coverage: pending source-derived inventory generation/review.
+
+
+## Semantic migration already present at baseline
+
+The existing `SemanticActionMapper` already routes **17 legacy ActionType values**
+through the typed semantic capability layer:
+
+- SYSTEM_WIFI
+- SYSTEM_BLUETOOTH
+- SYSTEM_LOCATION
+- SYSTEM_AIRPLANE_MODE
+- SYSTEM_SCREEN_ROTATION
+- SYSTEM_BRIGHTNESS
+- SYSTEM_SCREEN_TIMEOUT
+- SYSTEM_DND
+- SYSTEM_NFC
+- SYSTEM_HOTSPOT
+- SYSTEM_MOBILE_DATA
+- SYSTEM_DATA_SAVER
+- APPLICATION_CLOSE_APP
+- SYSTEM_FORCE_STOP_APP
+- SYSTEM_CLEAR_APP_DATA
+- SYSTEM_DISABLE_APP
+- SYSTEM_ENABLE_APP
+
+These mappings are not treated as final canonical-family design automatically;
+T01 still verifies aliases, defaults, capability semantics, side effects and
+migration parity for each legacy type. They do, however, establish that the
+new architecture should evolve the existing semantic operation layer rather
+than replace it.
