@@ -182,6 +182,13 @@ and reviewed before T01 may close:
   is validated against the T03 identity registry and pinned idempotent.
   Gate B closed in CI: 57/57 + 176/176 = 233/233. Covered by 7 unit tests
   and CI gate `scripts/check_canonical_legacy_mappings.py`.
+- T16: **implemented** — Golden Migration Suite in
+  `domain/src/test/.../GoldenMigrationSuiteTest.kt`: a pinned golden
+  contract (kind, target, identity) for each of the 233 mappings, payload
+  parity (config re-emerges verbatim), whole-table idempotency, the 57/176
+  baseline split, serialization round-trips, and a no-unregistered-identity
+  sweep. Gate E closed in CI. Covered by 6 unit tests and CI gate
+  `scripts/check_canonical_golden_migration.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

@@ -130,6 +130,10 @@ jobs:
       run: python3 scripts/check_canonical_legacy_mappings.py
     - name: Test legacy mappings gate
       run: python3 -m unittest scripts.tests.test_check_canonical_legacy_mappings
+    - name: Golden migration suite (T16 / Gate E)
+      run: python3 scripts/check_canonical_golden_migration.py
+    - name: Test golden migration gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_golden_migration
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
