@@ -138,6 +138,10 @@ jobs:
       run: python3 scripts/check_canonical_pilot_open_family.py
     - name: Test pilot open family gate
       run: python3 -m unittest scripts.tests.test_check_canonical_pilot_open_family
+    - name: Media & Navigation family (T18)
+      run: python3 scripts/check_canonical_family_media_navigation.py
+    - name: Test media navigation family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_media_navigation
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

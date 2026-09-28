@@ -1,0 +1,183 @@
+package com.nexaflow.domain.canonical
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class FamilyPhase18MediaNavigationTest {
+
+    private val baseAdapter = LegacyCanonicalAdapter(LegacyMappingTable.all())
+    private val familyAdapter = FamilyPhase18MediaNavigation.adapterWithFamily()
+
+    @Test
+    fun familyOverridesCoverOnlyTableMembers() {
+        val overrides = FamilyPhase18MediaNavigation.ruleOverrides()
+        assertTrue("expected media+navigation overrides", overrides.size >= 10)
+
+        val generatedNames = LegacyMappingTable.all().map { it.legacyType }.toSet()
+        assertTrue(overrides.all { it.legacyType in generatedNames })
+    }
+
+    @Test
+    fun familyAdapterKeepsTheFullTable() {
+        assertEquals(233, familyAdapter.declaredRules)
+    }
+
+    @Test
+    fun mediaTargetsPreserveParityWithTheSkeletonTable() {
+        // PLAY_FROM_SEARCH needs its required query; parity for it is covered
+        // by searchRequiresQueryButPackageStaysOptional.
+        val requiredPayload = setOf("SYSTEM_MEDIA_PLAY_FROM_SEARCH")
+        for (rule in FamilyPhase18MediaNavigation.ruleOverrides()) {
+            val config = if (rule.legacyType in requiredPayload) {
+                listOf(LegacyConfigEntry("query", "jazz"))
+            } else {
+                emptyList()
+            }
+            val input = LegacyNodeInput(rule.legacyType, LegacyNodeKind.ACTION, config)
+            val skeleton = baseAdapter.canonicalize(input) as LegacyAdapterOutcome.Canonicalized
+            val family = familyAdapter.canonicalize(input) as LegacyAdapterOutcome.Canonicalized
+
+            val skeletonNode = skeleton.node as InvokeNode
+            val familyNode = family.node as InvokeNode
+            assertEquals(rule.legacyType, skeletonNode.target, familyNode.target)
+            assertEquals(rule.legacyType, skeletonNode.operation, familyNode.operation)
+        }
+    }
+
+    @Test
+    fun mediaSessionFilterUpgradesToTypedPackage() {
+        val outcome = familyAdapter.canonicalize(
+            LegacyNodeInput(
+                legacyType = "SYSTEM_MEDIA_NEXT",
+                kind = LegacyNodeKind.ACTION,
+                config = listOf(LegacyConfigEntry("package", "com.example.player")),
+            ),
+        )
+        val node = (outcome as LegacyAdapterOutcome.Canonicalized).node as InvokeNode
+        assertEquals(
+            PackageIdValue("com.example.player"),
+            node.arguments[CanonicalFieldId("sessionPackage")],
+        )
+    }
+
+    @Test
+    fun bogusSessionPackageIsRejectedNotCoerced() {
+        val outcome = familyAdapter.canonicalize(
+            LegacyNodeInput(
+                legacyType = "SYSTEM_MEDIA_PLAY_FROM_SEARCH",
+                kind = LegacyNodeKind.ACTION,
+                config = listOf(
+                    LegacyConfigEntry("query", "jazz playlist"),
+                    LegacyConfigEntry("package", "player app"),
+                ),
+            ),
+        )
+        assertEquals(
+            LegacyAdapterRejection.UNPARSABLE_CONFIG_VALUE,
+            (outcome as LegacyAdapterOutcome.Rejected).reason,
+        )
+    }
+
+    @Test
+    fun searchRequiresQueryButPackageStaysOptional() {
+        // PLAY_FROM_SEARCH declares query as required, package optional.
+        val missing = familyAdapter.canonicalize(
+            LegacyNodeInput("SYSTEM_MEDIA_PLAY_FROM_SEARCH", LegacyNodeKind.ACTION, emptyList()),
+        )
+        assertEquals(
+            LegacyAdapterRejection.MISSING_REQUIRED_CONFIG,
+            (missing as LegacyAdapterOutcome.Rejected).reason,
+        )
+
+        val ok = familyAdapter.canonicalize(
+            LegacyNodeInput(
+                "SYSTEM_MEDIA_PLAY_FROM_SEARCH",
+                LegacyNodeKind.ACTION,
+                listOf(LegacyConfigEntry("query", "jazz")),
+            ),
+        )
+        val node = (ok as LegacyAdapterOutcome.Canonicalized).node as InvokeNode
+        assertEquals(TextValue("jazz"), node.arguments[CanonicalFieldId("query")])
+    }
+
+    @Test
+    fun mediaMultiTargetSemanticsAreExecutable() {
+        val errors = validateSelectionSemantics(
+            semantics = FamilyPhase18MediaNavigation.mediaSemantics,
+            selectedTargetCount = 3,
+            cardinality = FamilyPhase18MediaNavigation.mediaCardinality,
+            plannedWrites = emptyList(),
+        )
+        assertTrue("expected no violations, got $errors", errors.isEmpty())
+    }
+
+    @Test
+    fun mediaCardinalityRejectsBeyondFourTargets() {
+        val errors = validateSelectionSemantics(
+            semantics = FamilyPhase18MediaNavigation.mediaSemantics,
+            selectedTargetCount = 5,
+            cardinality = FamilyPhase18MediaNavigation.mediaCardinality,
+        )
+        assertTrue(errors.any { it is CardinalityViolation })
+    }
+
+    @Test
+    fun navigationSemanticsAreSingleTarget() {
+        val errors = validateSelectionSemantics(
+            semantics = FamilyPhase18MediaNavigation.navigationSemantics,
+            selectedTargetCount = 1,
+            cardinality = OperationCardinality.SINGLE_TARGET,
+        )
+        assertTrue(errors.isEmpty())
+    }
+
+    @Test
+    fun mediaSchemaValidatesAndRejectsBogusSessionFilter() {
+        val schema = FamilyPhase18MediaNavigation.mediaSchema()
+
+        val valid = validateNodeValues(
+            schema,
+            listOf(
+                NodeFieldValue(
+                    CanonicalFieldId("sessionPackage"),
+                    PackageIdValue("com.example.player"),
+                ),
+            ),
+        )
+        assertTrue(valid.isEmpty())
+
+        val wrongKind = validateNodeValues(
+            schema,
+            listOf(
+                NodeFieldValue(
+                    CanonicalFieldId("sessionPackage"),
+                    TextValue("com.example.player"),
+                ),
+            ),
+        )
+        assertTrue(wrongKind.any { it is FieldTypeMismatch })
+    }
+
+    @Test
+    fun navigationSchemaHasNoPayloadFields() {
+        val schema = FamilyPhase18MediaNavigation.navigationSchema()
+        assertTrue(schema.fields.isEmpty())
+        assertTrue(validateNodeValues(schema, emptyList()).isEmpty())
+    }
+
+    @Test
+    fun canonicalizationRemainsIdempotent() {
+        for (rule in FamilyPhase18MediaNavigation.ruleOverrides()) {
+            val input = LegacyNodeInput(
+                rule.legacyType,
+                LegacyNodeKind.ACTION,
+                listOf(LegacyConfigEntry("package", "com.example.player")),
+            )
+            assertEquals(
+                familyAdapter.canonicalize(input),
+                familyAdapter.canonicalize(input),
+            )
+        }
+    }
+}

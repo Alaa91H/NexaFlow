@@ -198,6 +198,16 @@ and reviewed before T01 may close:
   Drifted tables fail closed; unconsumed keys still ride along losslessly.
   Covered by 11 unit tests and CI gate
   `scripts/check_canonical_pilot_open_family.py`.
+- T18: **implemented** — Media & Navigation family in
+  `domain/.../canonical/FamilyPhase18MediaNavigation.kt`: typed upgrades for
+  the 6 media transport actions + search (optional typed session-package
+  filter, required query for PLAY_FROM_SEARCH) and 8 navigation actions
+  (optional typed app-package filter), parity-pinned against the T15
+  skeletons. Media declares MULTI/ORDERED with max-4 cardinality and
+  CONTINUE_ON_ERROR; navigation is SINGLE. The framework gained optional
+  consumed keys (`requiredKeys` ⊆ `consumedKeys`) while staying
+  fail-closed on required ones. Covered by 11 unit tests and CI gate
+  `scripts/check_canonical_family_media_navigation.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

@@ -78,6 +78,13 @@ interface LegacyMappingRule {
     val consumedKeys: Set<String>
 
     /**
+     * Keys that MUST be present. Defaults to all [consumedKeys]; rules with
+     * optional filters (e.g. a media-session package) narrow this set.
+     */
+    val requiredKeys: Set<String>
+        get() = consumedKeys
+
+    /**
      * Builds the canonical node. Config has already been checked for
      * [consumedKeys]; use the strict [LegacyValueParsers] helpers so unparsable
      * values fail the rule instead of silently coercing.
@@ -150,7 +157,7 @@ class LegacyCanonicalAdapter(rules: List<LegacyMappingRule>) {
                 "no declared mapping for ${input.kind} ${input.legacyType}",
             )
 
-        for (key in rule.consumedKeys) {
+        for (key in rule.requiredKeys) {
             if (input.entry(key) == null) {
                 return LegacyAdapterOutcome.Rejected(
                     LegacyAdapterRejection.MISSING_REQUIRED_CONFIG,
