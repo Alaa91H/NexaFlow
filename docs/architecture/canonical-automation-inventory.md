@@ -187,8 +187,17 @@ and reviewed before T01 may close:
   contract (kind, target, identity) for each of the 233 mappings, payload
   parity (config re-emerges verbatim), whole-table idempotency, the 57/176
   baseline split, serialization round-trips, and a no-unregistered-identity
-  sweep. Gate E closed in CI. Covered by 6 unit tests and CI gate
+  sweep.  Gate E closed in CI. Covered by 6 unit tests and CI gate
   `scripts/check_canonical_golden_migration.py`.
+- T17: **implemented (pilot family)** — Open Settings per plan §T17 in
+  `domain/.../canonical/PilotOpenFamily.kt`: typed value upgrades for all
+  41 SYSTEM_OPEN_* actions over the reviewed mappings (strict package/URL
+  parsing; page identity stays the reviewed target), parity-pinned against
+  the T15 skeletons, single-target cardinality and semantics declared, and
+  the family schema (enum-token page allowlist) wired into the T08 engine.
+  Drifted tables fail closed; unconsumed keys still ride along losslessly.
+  Covered by 11 unit tests and CI gate
+  `scripts/check_canonical_pilot_open_family.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

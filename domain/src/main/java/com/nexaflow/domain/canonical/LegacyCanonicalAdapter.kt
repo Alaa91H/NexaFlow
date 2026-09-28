@@ -115,6 +115,9 @@ object LegacyValueParsers {
 
     fun parsePackage(entry: LegacyConfigEntry): PackageIdValue =
         PackageIdValue(entry.rawValue)
+
+    fun parseUri(entry: LegacyConfigEntry): UriValue =
+        UriValue(entry.rawValue)
 }
 
 /** The adapter. Holds the declared rule table; nothing is inferred. */
