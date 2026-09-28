@@ -70,8 +70,16 @@ and reviewed before T01 may close:
 ## Status
 
 - T00: **closed**
-- T01: **in progress**
-- Full mapping coverage: pending source-derived inventory generation/review.
+- T01: **closed**
+- Source-derived inventory coverage: **233/233**
+- Semantic review coverage: **233/233 REVIEWED**
+- Trigger coverage: **57/57**
+- Action coverage: **176/176**
+- Existing semantic-router parity pinned: **17/17**
+- CI evidence: workflow run **#735** (`36395436428`) — lint, semantic-review invariants, runtime-contract audit, coverage, and build all passed.
+
+T01 is closed. No T02 implementation may redefine these legacy meanings without
+an explicit reviewed change to the semantic inventory contract.
 
 
 ## Semantic migration already present at baseline
