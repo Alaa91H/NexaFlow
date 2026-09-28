@@ -106,6 +106,10 @@ jobs:
       run: python3 scripts/check_canonical_validation_pipeline.py
     - name: Test canonical validation pipeline gate
       run: python3 -m unittest scripts.tests.test_check_canonical_validation_pipeline
+    - name: Canonical execution planner (T10 / ADR-008)
+      run: python3 scripts/check_canonical_execution_planner.py
+    - name: Test canonical execution planner gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_execution_planner
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

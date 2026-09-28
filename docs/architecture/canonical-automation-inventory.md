@@ -125,6 +125,17 @@ and reviewed before T01 may close:
   for HIGH_RISK/DESTRUCTIVE classes and keeps secret references inside
   secret-typed fields only. Covered by 9 unit tests and CI gate
   `scripts/check_canonical_validation_pipeline.py`.
+- T10: **implemented** — Execution Planner per plan §17 / ADR-008 in
+  `domain/.../canonical/ExecutionPlanner.kt`: compiles validated canonical
+  ASTs into deterministic atomic commands with declared semantics
+  (idempotency/reversibility; undeclared operations abort planning), groups
+  adjacent actions per the §29 adjacency, marks a group parallel only when
+  the T06 rules prove it conflict-free, enforces policy gates
+  (BEST_EFFORT⇒CONTINUE_ON_ERROR, TRANSACTIONAL⇒ROLLBACK_WHEN_SUPPORTED +
+  all-side-effecting-commands-reversible), and produces reverse-rank
+  compensations. `planValidated` refuses invalid T09 verdicts, materializing
+  the closure rule. Covered by 12 unit tests and CI gate
+  `scripts/check_canonical_execution_planner.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
