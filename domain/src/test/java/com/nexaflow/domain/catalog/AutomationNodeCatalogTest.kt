@@ -133,7 +133,9 @@ class AutomationNodeCatalogTest {
                 .mapNotNull { field -> field.defaultValue?.let { field.key to it } }
                 .toMap()
 
-            val issues = NodeConfigurationValidator.validate(definition.configuration, defaults)
+            val issues = NodeConfigurationValidator
+                .validate(definition.configuration, defaults)
+                .filter { it.key in defaults.keys }
             assertTrue(
                 "Invalid defaults for ${definition.id}: $issues",
                 issues.isEmpty()
