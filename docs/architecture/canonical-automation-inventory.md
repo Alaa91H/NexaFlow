@@ -105,6 +105,17 @@ and reviewed before T01 may close:
   stay `UNSUPPORTED`/`PENDING_USER_ACTION` with per-provider exclusion
   reasons — never a silent intent substitution. Covered by 17 unit tests and
   CI gate `scripts/check_canonical_capability_resolver.py`.
+- T08: **implemented** — Dynamic Schema Engine per plan §11 / ADR-005 in
+  `domain/.../canonical/NodeSchema.kt`: typed `NodeSchemaField` descriptors
+  (14 field kinds mapped 1:1 onto canonical value kinds), declared defaults
+  through the only default-producing factory/`defaultsOf` pair (no hidden
+  runtime defaults), conditional visibility/requirement, declared conflicts,
+  capability linkage, security classes, bounded summary templates with
+  optional groups and secret masking, and a uniqueness-enforcing
+  `NodeSchemaRegistry` keyed by target+operation/predicate. Fail-closed
+  validation covers unknown fields, invisible supplied fields, type
+  mismatches, bounds, enum allowlists, and missing required fields. Covered
+  by 17 unit tests and CI gate `scripts/check_canonical_schema_engine.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
