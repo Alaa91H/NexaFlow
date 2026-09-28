@@ -227,6 +227,16 @@ and reviewed before T01 may close:
   per scope by T10; ringer mode is an enum-token allowlist and brightness a
   bounded percentage. Covered by 14 unit tests and CI gate
   `scripts/check_canonical_family_display_sound.py`.
+- T21: **implemented** — Applications family in
+  `domain/.../canonical/FamilyPhase21Applications.kt`: 17 actions + 2
+  triggers upgraded with typed package/package-list values. The §9.3
+  cardinality table is executable per operation (open=SINGLE;
+  force-stop/enable bounded MULTI ≤20 with CONTINUE_ON_ERROR; destructive
+  capped MULTI ≤5 with FAIL_FAST). Destructive operations declare
+  CONDITIONALLY_IDEMPOTENT command semantics (no blind retry, rule 46.14)
+  and a DESTRUCTIVE-class schema requiring a capability declaration (T09
+  security stage). Covered by 15 unit tests and CI gate
+  `scripts/check_canonical_family_applications.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
