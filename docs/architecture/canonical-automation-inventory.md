@@ -155,6 +155,14 @@ and reviewed before T01 may close:
   configurator UIs become unnecessary. Covered by 15 unit tests and CI gate
   `scripts/check_canonical_configurator.py`. The Compose sheet host (render
   wiring) is a UI follow-up on top of this contract.
+- T13: **implemented** — Central Summary Engine at workflow level in
+  `domain/.../canonical/WorkflowSummaryEngine.kt`: one deterministic
+  summary (trigger + conditions with declared logic + action lines +
+  semantics line, plan §13 shape) reused identically by builder, templates,
+  history, import preview and diagnostics; per-node lines come from the T08
+  formatter and locale-neutral tokens keep user copy in the resource layer.
+  Covered by 7 unit tests and CI gate
+  `scripts/check_canonical_summary_engine.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
