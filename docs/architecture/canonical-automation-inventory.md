@@ -102,3 +102,56 @@ T01 still verifies aliases, defaults, capability semantics, side effects and
 migration parity for each legacy type. They do, however, establish that the
 new architecture should evolve the existing semantic operation layer rather
 than replace it.
+
+
+## Current family distribution
+
+This is the source-of-truth distribution from `AutomationNodeCatalog` at the
+T00 baseline. Large families are the first duplication hot-spots for later
+canonicalization.
+
+### Triggers
+
+| Family | Legacy types |
+|---|---:|
+| CONNECTIVITY | 17 |
+| DEVICE | 15 |
+| BATTERY | 4 |
+| SCHEDULE | 4 |
+| SOUND | 4 |
+| COMMUNICATION | 3 |
+| APPLICATIONS | 2 |
+| LOCATION | 2 |
+| DATA | 1 |
+| MEDIA | 1 |
+| NETWORK | 1 |
+| NOTIFICATIONS | 1 |
+| PLUGINS | 1 |
+| ROM | 1 |
+
+### Actions
+
+| Family | Legacy types |
+|---|---:|
+| CONNECTIVITY | 25 |
+| DISPLAY | 22 |
+| APPLICATIONS | 21 |
+| SOUND | 15 |
+| SYSTEM | 15 |
+| NOTIFICATIONS | 12 |
+| DATA | 10 |
+| ROM | 9 |
+| BATTERY | 8 |
+| DEVELOPER | 8 |
+| MEDIA | 7 |
+| SCHEDULE | 6 |
+| COMMUNICATION | 5 |
+| LOCATION | 4 |
+| DEVICE | 3 |
+| NETWORK | 3 |
+| FILES | 1 |
+| FLOW | 1 |
+| PLUGINS | 1 |
+
+These counts are descriptive only. They do not authorize merging entries until
+their semantics and migration parity have been reviewed.
