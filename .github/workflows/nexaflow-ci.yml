@@ -82,6 +82,8 @@ jobs:
       run: python3 scripts/check_canonical_adrs.py
     - name: Canonical stable identity registry
       run: python3 scripts/check_canonical_identity_registry.py
+    - name: Test canonical typed-model gate
+      run: python3 -m unittest scripts.tests.test_canonical_typed_model_gate
     - name: Canonical typed model boundary
       run: python3 scripts/check_canonical_typed_model.py
     - name: Runtime configuration contract audit
