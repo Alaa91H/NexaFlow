@@ -234,9 +234,17 @@ and reviewed before T01 may close:
   force-stop/enable bounded MULTI ≤20 with CONTINUE_ON_ERROR; destructive
   capped MULTI ≤5 with FAIL_FAST). Destructive operations declare
   CONDITIONALLY_IDEMPOTENT command semantics (no blind retry, rule 46.14)
-  and a DESTRUCTIVE-class schema requiring a capability declaration (T09
-  security stage). Covered by 15 unit tests and CI gate
+  and a DESTRUCTIVE-class schema requiring a capability  declaration (T09 security stage). Covered by 15 unit tests and CI gate
   `scripts/check_canonical_family_applications.py`.
+- T22: **implemented** — Notifications/Calls/Communication family in
+  `domain/.../canonical/FamilyPhase22Communication.kt`: 14 actions + 4
+  triggers upgraded with typed message/number/app-filter values. SEND and
+  DIAL declare NON_IDEMPOTENT command semantics (an SMS re-send is a
+  duplicate message, never a safe retry — rule 46.14); the SMS schema is
+  SENSITIVE-class so message bodies stay out of the journal (T11 sweep);
+  sender filters are optional typed package lists (absent = any sender).
+  Covered by 13 unit tests and CI gate
+  `scripts/check_canonical_family_communication.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
