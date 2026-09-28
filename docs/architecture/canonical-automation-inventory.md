@@ -70,8 +70,20 @@ and reviewed before T01 may close:
 ## Status
 
 - T00: **closed**
-- T01: **in progress**
-- Full mapping coverage: pending source-derived inventory generation/review.
+- T01: **closed**
+- Full mapping coverage: **233/233 REVIEWED**
+- Closure CI: **run #735 / 36395436428 — success**
+- Merged to main: **8b593353f8dda7974f007d0db79a4ed5c51a6961**
+
+### T01 closure evidence
+
+- 57/57 TriggerType rows are present and semantically reviewed.
+- 176/176 ActionType rows are present and semantically reviewed.
+- Every legacy node has a discovered runtime behavior owner.
+- Runtime configuration keys are a subset of declared schema keys.
+- Multi-selection/retry/side-effect review vocabulary is CI-validated.
+- Existing 17 SemanticActionMapper routes are pinned to compatible canonical intent.
+- Lint, Detekt, Android Lint, coverage, unit tests, Gradle build and package validation passed.
 
 
 ## Semantic migration already present at baseline
