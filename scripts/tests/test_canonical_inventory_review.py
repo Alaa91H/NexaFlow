@@ -1,0 +1,64 @@
+from __future__ import annotations
+
+import pathlib
+import sys
+import unittest
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from canonical_inventory_review import ACTION_REVIEWS, TRIGGER_REVIEWS  # noqa: E402
+
+
+class CanonicalInventoryReviewTest(unittest.TestCase):
+    def test_frozen_legacy_counts_are_fully_reviewed(self) -> None:
+        self.assertEqual(57, len(TRIGGER_REVIEWS))
+        self.assertEqual(176, len(ACTION_REVIEWS))
+
+    def test_review_vocabulary_is_closed(self) -> None:
+        selections = {"SINGLE", "MULTI"}
+        combinations = {"N/A", "ANY", "ALL", "ANY_OF", "BATCH", "ORDERED"}
+        side_effects = {"NONE", "REVERSIBLE", "IRREVERSIBLE", "EXTERNAL"}
+        idempotency = {"N/A", "IDEMPOTENT", "NON_IDEMPOTENT", "CONDITIONAL"}
+        retry = {"N/A", "SAFE", "UNSAFE", "CONDITIONAL"}
+
+        for name, review in {**TRIGGER_REVIEWS, **ACTION_REVIEWS}.items():
+            with self.subTest(name=name):
+                self.assertIn(review.selectionMode, selections)
+                self.assertIn(review.combinationMode, combinations)
+                self.assertIn(review.sideEffect, side_effects)
+                self.assertIn(review.idempotency, idempotency)
+                self.assertIn(review.retrySafety, retry)
+                self.assertTrue(review.canonicalTarget.startswith(("core.", "plugin.")))
+                self.assertTrue(review.canonicalOperation)
+                self.assertEqual("REVIEWED", review.reviewStatus)
+
+    def test_multi_selection_always_has_explicit_combination_semantics(self) -> None:
+        for name, review in {**TRIGGER_REVIEWS, **ACTION_REVIEWS}.items():
+            if review.selectionMode == "MULTI":
+                with self.subTest(name=name):
+                    self.assertNotEqual("N/A", review.combinationMode)
+
+    def test_triggers_never_claim_execution_side_effects(self) -> None:
+        for name, review in TRIGGER_REVIEWS.items():
+            with self.subTest(name=name):
+                self.assertEqual("NONE", review.sideEffect)
+                self.assertEqual("N/A", review.idempotency)
+                self.assertEqual("N/A", review.retrySafety)
+
+    def test_settings_aliases_converge_on_one_canonical_operation(self) -> None:
+        settings = {
+            name: review
+            for name, review in ACTION_REVIEWS.items()
+            if name.startswith("SYSTEM_OPEN_") and
+            ("SETTINGS" in name or name == "SYSTEM_OPEN_ABOUT_PHONE")
+        }
+        self.assertGreaterEqual(len(settings), 20)
+        for name, review in settings.items():
+            with self.subTest(name=name):
+                self.assertEqual("core.system.settings", review.canonicalTarget)
+                self.assertEqual("OPEN", review.canonicalOperation)
+
+
+if __name__ == "__main__":
+    unittest.main()
