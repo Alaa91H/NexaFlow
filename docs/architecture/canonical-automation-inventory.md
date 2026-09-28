@@ -252,6 +252,14 @@ and reviewed before T01 may close:
   optional typed state; USB/HDMI/Wear stay state-or-event filterable).
   Threshold schema is bounded 0..100 at the schema layer. Covered by 12
   unit tests and CI gate `scripts/check_canonical_family_power_sensors.py`.
+- T24: **implemented** — Time/Calendar/Location family in
+  `domain/.../canonical/FamilyPhase24TimeLocation.kt`: 5 actions + 6
+  triggers upgraded. DST safety is structural: schedules carry wall-clock
+  [TimeOfDayValue] plus an explicit [TimezoneValue] (no frozen offsets);
+  timers are monotonic [DurationValue]; geofence radii are typed and
+  bounded 1..100km with optional enter/exit tokens; timezone-changed stays
+  a pure change event. Covered by 14 unit tests and CI gate
+  `scripts/check_canonical_family_time_location.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

@@ -162,6 +162,10 @@ jobs:
       run: python3 scripts/check_canonical_family_power_sensors.py
     - name: Test power sensors family gate
       run: python3 -m unittest scripts.tests.test_check_canonical_family_power_sensors
+    - name: Time & Location family (T24)
+      run: python3 scripts/check_canonical_family_time_location.py
+    - name: Test time location family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_time_location
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
