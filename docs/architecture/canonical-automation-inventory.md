@@ -208,6 +208,16 @@ and reviewed before T01 may close:
   consumed keys (`requiredKeys` ⊆ `consumedKeys`) while staying
   fail-closed on required ones. Covered by 11 unit tests and CI gate
   `scripts/check_canonical_family_media_navigation.py`.
+- T19: **implemented** — Connectivity family in
+  `domain/.../canonical/FamilyPhase19Connectivity.kt`: 17 actions upgraded
+  (9 desired-state writes to typed SetState with required boolean, 4 value
+  writes, 4 wifi/bluetooth sessions with typed SSID and a SECRET_REFERENCE
+  password — raw passwords never enter the AST) and 16 triggers upgraded
+  with conditional typed state conditions. MULTI/ORDERED enable semantics
+  with CONTINUE_ON_ERROR; contradictory batches rejected by T06. Declared
+  provider fallback (public API → Shizuku → Root) resolved through the T07
+  resolver. Covered by 12 unit tests and CI gate
+  `scripts/check_canonical_family_connectivity.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
