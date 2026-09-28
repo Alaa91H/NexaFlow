@@ -209,8 +209,8 @@ def validate(rows: list[dict[str, object]]) -> list[str]:
             problems.append(
                 f"{label} runtime keys outside schema: {sorted(runtime - schema)}"
             )
-        if row["kind"] == "ACTION" and not row["runtimeOwners"]:
-            problems.append(f"{label} has no discovered ActionHandler owner")
+        if not row["runtimeOwners"]:
+            problems.append(f"{label} has no discovered runtime behavior owner")
         if row["reviewStatus"] != "REVIEWED":
             problems.append(f"{label} semantic review is not closed")
         for required in ("canonicalTarget", "canonicalOperation", "selectionMode",
