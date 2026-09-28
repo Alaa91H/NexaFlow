@@ -176,6 +176,16 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
+    - name: Set up Android SDK command-line tools
+      uses: android-actions/setup-android@v4.0.4
+    - name: Verify Android SDK tooling
+      shell: bash
+      run: |
+        set -euo pipefail
+        command -v sdkmanager
+        command -v avdmanager
+        command -v adb
+        sdkmanager --version
     - name: Grant Gradle execute permission
       run: chmod +x gradlew
     - name: Provision Android 15 emulator
