@@ -53,6 +53,45 @@ class ActionDraftTest {
     }
 
     @Test
+    fun specializedActions_startFromCatalogDefaults() {
+        val http = defaultActionConfig(ActionType.SYSTEM_HTTP_REQUEST)
+        assertEquals("GET", http["method"])
+        assertEquals("10000", http["timeoutMs"])
+        assertEquals("0", http["retryAttempts"])
+        assertEquals("false", http["allowPrivateNetwork"])
+        assertEquals(null, http["timeoutSeconds"])
+
+        val density = defaultActionConfig(ActionType.SYSTEM_DISPLAY_DENSITY)
+        assertEquals("440", density["dpi"])
+
+        val batterySaver = defaultActionConfig(ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD)
+        assertEquals("20", batterySaver["percent"])
+
+        val bluetooth = defaultActionConfig(ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY)
+        assertEquals("300", bluetooth["timeoutSeconds"])
+
+        val romStatus = defaultActionConfig(ActionType.ROM_STATUS_BAR)
+        assertEquals("0", romStatus["battery_percent"])
+        assertEquals("0", romStatus["clock_seconds"])
+
+        assertEquals("GLOBAL", defaultActionConfig(ActionType.SYSTEM_SET_SETTING)["namespace"])
+        assertEquals("SECURE", defaultActionConfig(ActionType.ROM_CUSTOM_SETTING)["namespace"])
+        assertEquals("10", defaultActionConfig(ActionType.SYSTEM_SCREENSAVER_TIMEOUT)["minutes"])
+        assertEquals("WIFI", defaultActionConfig(ActionType.SYSTEM_OPEN_SETTINGS)["page"])
+        assertEquals("GMT", defaultActionConfig(ActionType.SYSTEM_SET_TIMEZONE)["zone"])
+        assertEquals(
+            "0,200,100,200",
+            defaultActionConfig(ActionType.SYSTEM_VIBRATE_PATTERN)["pattern"]
+        )
+        assertEquals("NexaFlow timer", defaultActionConfig(ActionType.SYSTEM_SET_TIMER)["message"])
+        assertEquals("NexaFlow", defaultActionConfig(ActionType.SYSTEM_SEND_NOTIFICATION)["title"])
+        assertEquals(
+            "Automation executed",
+            defaultActionConfig(ActionType.SYSTEM_SEND_NOTIFICATION)["text"]
+        )
+    }
+
+    @Test
     fun cardAccent_cycleDistinguishesAdjacentCards_andRepeatsOnlyAfterPalette() {
         assertNotEquals(builderCardAccent(0), builderCardAccent(1))
         assertNotEquals(builderCardAccent(1), builderCardAccent(2))

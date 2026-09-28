@@ -32,11 +32,13 @@ class ConnectivityActionsHandler : ActionHandler {
         semanticRouter?.let { router ->
             router.routeIfSupported(action, ctx.automationId, ctx.runContext?.runId)?.let { return it }
         }
-        val enabled = action.config["enabled"]?.toBoolean() ?: true
         return when (action.type) {
-            ActionType.SYSTEM_WIFI -> ctx.controller.setWifi(enabled)
-            ActionType.SYSTEM_BLUETOOTH -> ctx.controller.setBluetooth(enabled)
-            ActionType.SYSTEM_MOBILE_DATA -> ctx.controller.setMobileData(enabled)
+            ActionType.SYSTEM_WIFI ->
+                ctx.controller.setWifi(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_BLUETOOTH ->
+                ctx.controller.setBluetooth(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_MOBILE_DATA ->
+                ctx.controller.setMobileData(action.config["enabled"]?.toBoolean() ?: true)
             // Root/Shizuku paths can wait for a process and framework calls can
             // block on a remote telephony binder. Keep this explicit at the
             // handler boundary because workflow executors are intentionally
@@ -61,10 +63,14 @@ class ConnectivityActionsHandler : ActionHandler {
                     )
                 }
             }
-            ActionType.SYSTEM_HOTSPOT -> ctx.controller.setHotspot(enabled)
-            ActionType.SYSTEM_NFC -> ctx.controller.setNfc(enabled)
-            ActionType.SYSTEM_AIRPLANE_MODE -> ctx.controller.setAirplaneMode(enabled)
-            ActionType.SYSTEM_LOCATION -> ctx.controller.setLocationEnabled(enabled)
+            ActionType.SYSTEM_HOTSPOT ->
+                ctx.controller.setHotspot(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_NFC ->
+                ctx.controller.setNfc(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_AIRPLANE_MODE ->
+                ctx.controller.setAirplaneMode(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_LOCATION ->
+                ctx.controller.setLocationEnabled(action.config["enabled"]?.toBoolean() ?: true)
             else -> SystemControlResult.fail("Unsupported action ${action.type}")
         }
     }

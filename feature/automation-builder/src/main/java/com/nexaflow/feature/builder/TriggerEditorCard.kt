@@ -289,65 +289,82 @@ internal val weekdayOptions = listOf(
 )
 
 /** Sensible default config for a freshly added trigger of the given type. */
-internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when (type) {
-    TriggerType.TIME -> mapOf("time" to "08:00")
-    TriggerType.BATTERY -> mapOf("direction" to "ABOVE", "above" to "80", "chargerType" to "ANY")
-    TriggerType.APPLICATION -> mapOf("packages" to "")
-    TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
-    TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
-    TriggerType.WIFI_CONNECTED -> mapOf("state" to "CONNECTED")
-    TriggerType.MOBILE_DATA_CONNECTED -> mapOf("state" to "CONNECTED")
-    TriggerType.HOTSPOT -> mapOf("state" to "ON")
-    TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
-    TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
-    TriggerType.SMS -> mapOf("from" to "", "contains" to "")
-    TriggerType.INCOMING_CALL -> mapOf("from" to "")
-    TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
-    TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
-    TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
-    TriggerType.CALENDAR -> mapOf("calendar" to "", "contains" to "", "event" to "EVENT_START", "beforeMinutes" to "0")
-    TriggerType.SENSOR -> mapOf("sensor" to "PROXIMITY", "event" to "COVERED", "threshold" to "200", "sensitivity" to "14")
-    TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to com.nexaflow.domain.security.ExternalAccessPolicy.newToken())
-    TriggerType.ROM_SETTING -> mapOf("namespace" to "SYSTEM", "key" to "", "operator" to "EQUALS", "value" to "")
-    TriggerType.HEADPHONE -> mapOf("event" to "CONNECTED")
-    TriggerType.CHARGER -> mapOf("event" to "CONNECTED")
-    TriggerType.AIRPLANE_MODE -> mapOf("state" to "ON")
-    TriggerType.DARK_MODE -> mapOf("state" to "ON")
-    TriggerType.CALL_STATE -> mapOf("event" to "INCOMING")
-    TriggerType.APP_INSTALLED -> mapOf("event" to "INSTALLED", "package" to "")
-    TriggerType.MEDIA_PLAYING -> mapOf("event" to "STARTED")
-    TriggerType.VOLUME_CHANGED -> mapOf("stream" to "MUSIC", "threshold" to "50", "direction" to "ABOVE")
-    TriggerType.POWER_SAVER -> mapOf("state" to "ON")
-    TriggerType.BLUETOOTH_STATE -> mapOf("state" to "ON")
-    TriggerType.BRIGHTNESS_LEVEL -> mapOf("threshold" to "128", "direction" to "ABOVE")
-    TriggerType.STORAGE_LOW -> mapOf("threshold" to "1024", "direction" to "BELOW")
-    TriggerType.AUTO_ROTATE -> mapOf("state" to "ON")
-    TriggerType.DATA_SAVER_STATE -> mapOf("state" to "ON")
-    TriggerType.DEVICE_LOCKED -> mapOf("state" to "LOCKED")
-    TriggerType.WIFI_STATE -> mapOf("state" to "ON")
-    TriggerType.NFC_STATE -> mapOf("state" to "ON")
-    TriggerType.LOCATION_STATE -> mapOf("mode" to "ON")
-    TriggerType.SCREEN_ROTATION_STATE -> mapOf("state" to "PORTRAIT")
-    TriggerType.WIFI_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
-    TriggerType.CELL_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
-    TriggerType.BATTERY_TEMPERATURE -> mapOf("threshold" to "40", "direction" to "ABOVE")
-    TriggerType.USB_CONNECTED -> mapOf("state" to "ON")
-    TriggerType.HDMI_CONNECTED -> mapOf("state" to "ON")
-    TriggerType.ETHERNET_CONNECTED -> mapOf("state" to "ON")
-    TriggerType.VPN_CONNECTED -> mapOf("state" to "ON")
-    TriggerType.CLIPBOARD_CHANGED -> mapOf()
-    TriggerType.DND_STATE -> mapOf("state" to "ON")
-    TriggerType.STAY_AWAKE_STATE -> mapOf("state" to "ON")
-    TriggerType.AUTO_BRIGHTNESS_STATE -> mapOf("state" to "ON")
-    TriggerType.SCREEN_TIMEOUT_CHANGED -> mapOf()
-    TriggerType.DATA_ROAMING_STATE -> mapOf("state" to "ON")
-    TriggerType.TIMEZONE_CHANGED -> mapOf()
-    TriggerType.BOOT_COMPLETED -> mapOf()
-    TriggerType.NFC_TAG_SCANNED -> mapOf()
-    TriggerType.ALARM_SET_CHANGED -> mapOf()
-    TriggerType.WEAR_EVENT -> mapOf("watchInstallId" to "", "state" to "CONNECTED")
-    // Created only by the verified plugin configuration path, never the generic picker.
-    TriggerType.PLUGIN_EVENT -> emptyMap()
+internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> {
+    // Start from the canonical domain contract so new schema defaults are
+    // automatically reflected in the builder instead of drifting into a
+    // second, UI-only source of truth.
+    val schemaDefaults = AutomationNodeCatalog.definitionFor(type)
+        .configuration
+        .fields
+        .mapNotNull { field -> field.defaultValue?.let { field.key to it } }
+        .toMap()
+
+    val editorDefaults = when (type) {
+        TriggerType.TIME -> mapOf("time" to "08:00")
+        TriggerType.BATTERY -> mapOf("direction" to "ABOVE", "above" to "80", "chargerType" to "ANY", "chargingState" to "ANY")
+        TriggerType.APPLICATION -> mapOf("packages" to "")
+        TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
+        TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
+        TriggerType.WIFI_CONNECTED -> mapOf("state" to "CONNECTED")
+        TriggerType.MOBILE_DATA_CONNECTED -> mapOf("state" to "CONNECTED")
+        TriggerType.HOTSPOT -> mapOf("state" to "ON")
+        TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
+        TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER", "source" to "current")
+        TriggerType.SMS -> mapOf("from" to "", "contains" to "", "matchMode" to "CONTAINS")
+        TriggerType.INCOMING_CALL -> mapOf("from" to "", "matchMode" to "ANY", "category" to "ANY")
+        TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
+        TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
+        TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
+        TriggerType.CALENDAR -> mapOf("calendar" to "", "contains" to "", "event" to "EVENT_START", "beforeMinutes" to "0")
+        TriggerType.SENSOR -> mapOf("sensor" to "PROXIMITY", "event" to "COVERED", "threshold" to "200", "sensitivity" to "14")
+        TriggerType.WEBHOOK -> mapOf(
+            "path" to "/nexaflow",
+            "method" to "POST",
+            // Tokens are per-trigger secrets and can never be static schema defaults.
+            "token" to com.nexaflow.domain.security.ExternalAccessPolicy.newToken()
+        )
+        TriggerType.ROM_SETTING -> mapOf("namespace" to "SYSTEM", "key" to "", "operator" to "EQUALS", "value" to "")
+        TriggerType.HEADPHONE -> mapOf("event" to "CONNECTED")
+        TriggerType.CHARGER -> mapOf("event" to "CONNECTED")
+        TriggerType.AIRPLANE_MODE -> mapOf("state" to "ON")
+        TriggerType.DARK_MODE -> mapOf("state" to "ON")
+        TriggerType.CALL_STATE -> mapOf("event" to "INCOMING")
+        TriggerType.APP_INSTALLED -> mapOf("event" to "INSTALLED", "package" to "")
+        TriggerType.MEDIA_PLAYING -> mapOf("event" to "STARTED")
+        TriggerType.VOLUME_CHANGED -> mapOf("stream" to "MUSIC", "threshold" to "50", "direction" to "ABOVE")
+        TriggerType.POWER_SAVER -> mapOf("state" to "ON")
+        TriggerType.BLUETOOTH_STATE -> mapOf("state" to "ON")
+        TriggerType.BRIGHTNESS_LEVEL -> mapOf("threshold" to "128", "direction" to "ABOVE")
+        TriggerType.STORAGE_LOW -> mapOf("threshold" to "1024", "direction" to "BELOW")
+        TriggerType.AUTO_ROTATE -> mapOf("state" to "ON")
+        TriggerType.DATA_SAVER_STATE -> mapOf("state" to "ON")
+        TriggerType.DEVICE_LOCKED -> mapOf("state" to "LOCKED")
+        TriggerType.WIFI_STATE -> mapOf("state" to "ON")
+        TriggerType.NFC_STATE -> mapOf("state" to "ON")
+        TriggerType.LOCATION_STATE -> mapOf("mode" to "ON")
+        TriggerType.SCREEN_ROTATION_STATE -> mapOf("state" to "PORTRAIT")
+        TriggerType.WIFI_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
+        TriggerType.CELL_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
+        TriggerType.BATTERY_TEMPERATURE -> mapOf("threshold" to "40", "direction" to "ABOVE")
+        TriggerType.USB_CONNECTED -> mapOf("state" to "ON")
+        TriggerType.HDMI_CONNECTED -> mapOf("state" to "ON")
+        TriggerType.ETHERNET_CONNECTED -> mapOf("state" to "ON")
+        TriggerType.VPN_CONNECTED -> mapOf("state" to "ON")
+        TriggerType.CLIPBOARD_CHANGED -> mapOf("contains" to "")
+        TriggerType.DND_STATE -> mapOf("state" to "ON")
+        TriggerType.STAY_AWAKE_STATE -> mapOf("state" to "ON")
+        TriggerType.AUTO_BRIGHTNESS_STATE -> mapOf("state" to "ON")
+        TriggerType.SCREEN_TIMEOUT_CHANGED -> mapOf("seconds" to "")
+        TriggerType.DATA_ROAMING_STATE -> mapOf("state" to "ON")
+        TriggerType.TIMEZONE_CHANGED -> mapOf("zone" to "")
+        TriggerType.BOOT_COMPLETED -> emptyMap()
+        TriggerType.NFC_TAG_SCANNED -> mapOf("contains" to "")
+        TriggerType.ALARM_SET_CHANGED -> mapOf("event" to "SET")
+        TriggerType.WEAR_EVENT -> mapOf("watchInstallId" to "", "state" to "CONNECTED")
+        // Created only by the verified plugin configuration path, never the generic picker.
+        TriggerType.PLUGIN_EVENT -> emptyMap()
+    }
+    return schemaDefaults + editorDefaults
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -1258,16 +1275,25 @@ private fun triggerSummary(draft: TriggerDraft): String {
             }
             "$direction ${c["threshold"] ?: "40"}°C"
         }
-        TriggerType.CLIPBOARD_CHANGED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.SCREEN_TIMEOUT_CHANGED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.TIMEZONE_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.CLIPBOARD_CHANGED ->
+            c["contains"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.SCREEN_TIMEOUT_CHANGED ->
+            c["seconds"]?.toIntOrNull()?.let { stringResource(R.string.timeout_label, it) }
+                ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.TIMEZONE_CHANGED ->
+            c["zone"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
         TriggerType.BOOT_COMPLETED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.NFC_TAG_SCANNED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.ALARM_SET_CHANGED -> stringResource(R.string.trigger_events_on_change)
-        TriggerType.WEAR_EVENT -> if ((c["state"] ?: "CONNECTED") == "CONNECTED") {
-            stringResource(R.string.state_connected)
-        } else {
-            stringResource(R.string.state_disconnected)
+        TriggerType.NFC_TAG_SCANNED ->
+            c["contains"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.ALARM_SET_CHANGED ->
+            c["event"]?.takeIf { it.isNotBlank() } ?: stringResource(R.string.trigger_events_on_change)
+        TriggerType.WEAR_EVENT -> {
+            val state = if ((c["state"] ?: "CONNECTED") == "CONNECTED") {
+                stringResource(R.string.state_connected)
+            } else {
+                stringResource(R.string.state_disconnected)
+            }
+            c["watchInstallId"]?.takeIf { it.isNotBlank() }?.let { "$state · $it" } ?: state
         }
         TriggerType.PLUGIN_EVENT -> stringResource(R.string.action_plugin)
     }
@@ -2649,7 +2675,7 @@ fun TriggerEditorCard(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            val methods = listOf("POST", "GET", "ANY")
+                            val methods = listOf("ANY", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                             methods.forEach { value ->
                                 SelectChip(
                                     selected = method == value,
@@ -3112,8 +3138,15 @@ fun TriggerEditorCard(
                         onValueChange = { input ->
                             // Temperature is a decimal number (°C): keep digits
                             // and a single decimal separator only.
-                            val cleaned = input.filter { it.isDigit() || it == '.' }
-                                .let { if (it.count { c -> c == '.' } > 1) it.substringBeforeLast(".") + "." + it.substringAfterLast(".") else it }
+                            val cleaned = buildString {
+                                input.forEachIndexed { index, char ->
+                                    when {
+                                        char.isDigit() -> append(char)
+                                        char == '-' && index == 0 && isEmpty() -> append(char)
+                                        char == '.' && '.' !in this -> append(char)
+                                    }
+                                }
+                            }
                             onConfigChange(draft.copy(config = draft.config + ("threshold" to cleaned)))
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -3148,24 +3181,94 @@ fun TriggerEditorCard(
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
                     )
                 }
-                TriggerType.CLIPBOARD_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_clipboard), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.SCREEN_TIMEOUT_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_screen_timeout), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.TIMEZONE_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_timezone), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.CLIPBOARD_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_clipboard), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["contains"].orEmpty(),
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.notification_contains)) },
+                            placeholder = { Text(stringResource(R.string.sms_contains_hint)) },
+                            singleLine = true
+                        )
+                    }
+                }
+                TriggerType.SCREEN_TIMEOUT_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_screen_timeout), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["seconds"].orEmpty(),
+                            onValueChange = { value ->
+                                onConfigChange(
+                                    draft.copy(config = draft.config + ("seconds" to value.filter { it.isDigit() }))
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.action_screen_timeout)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
+                }
+                TriggerType.TIMEZONE_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_timezone), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["zone"].orEmpty(),
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("zone" to it.trim()))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.timezone_label)) },
+                            singleLine = true
+                        )
+                    }
+                }
                 TriggerType.BOOT_COMPLETED ->
                     Text(text = stringResource(R.string.trigger_desc_boot), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.NFC_TAG_SCANNED ->
-                    Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
-                TriggerType.ALARM_SET_CHANGED ->
-                    Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.NFC_TAG_SCANNED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(
+                            value = draft.config["contains"].orEmpty(),
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.notification_contains)) },
+                            placeholder = { Text(stringResource(R.string.sms_contains_hint)) },
+                            singleLine = true
+                        )
+                    }
+                }
+                TriggerType.ALARM_SET_CHANGED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                        OptionChips(
+                            options = listOf("SET", "CLEARED"),
+                            selected = draft.config["event"] ?: "SET",
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                        )
+                    }
+                }
                 TriggerType.WEAR_EVENT -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             text = stringResource(R.string.trigger_wear_event_sub),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
+                        )
+                        OutlinedTextField(
+                            value = draft.config["watchInstallId"].orEmpty(),
+                            onValueChange = {
+                                onConfigChange(
+                                    draft.copy(
+                                        config = draft.config + ("watchInstallId" to it.trim())
+                                    )
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.trigger_wear_event)) },
+                            placeholder = { Text(stringResource(R.string.any_device)) },
+                            singleLine = true
                         )
                         Text(
                             text = stringResource(R.string.state),

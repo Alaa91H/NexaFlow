@@ -23,7 +23,10 @@ class TriggerDefaultsTest {
     fun smsTrigger_defaultConfig_containsOnlyMatchingFilters() {
         val config = defaultTriggerConfig(TriggerType.SMS)
 
-        assertEquals(mapOf("from" to "", "contains" to ""), config)
+        assertEquals(
+            mapOf("from" to "", "contains" to "", "matchMode" to "CONTAINS"),
+            config
+        )
         assertFalse(config.containsKey("reply"))
     }
 }

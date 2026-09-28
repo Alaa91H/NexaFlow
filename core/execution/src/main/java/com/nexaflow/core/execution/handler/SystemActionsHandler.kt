@@ -177,7 +177,7 @@ class SystemActionsHandler : ActionHandler {
             ActionType.SYSTEM_OPEN_DEVICE_STORE ->
                 ctx.controller.openDeviceStore()
             ActionType.SYSTEM_OPEN_SETTINGS ->
-                ctx.controller.openSystemSettings(action.config["page"] ?: "")
+                ctx.controller.openSystemSettings(action.config["page"] ?: "WIFI")
             ActionType.SYSTEM_SEND_SMS ->
                 ctx.controller.sendSms(action.config["number"] ?: "", action.config["text"] ?: "")
             ActionType.SYSTEM_WAIT -> {
@@ -218,19 +218,25 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.inputText(action.config["text"] ?: "")
             ActionType.SYSTEM_KEY_EVENT ->
                 ctx.controller.keyEvent(action.config["key"] ?: "")
-            ActionType.SYSTEM_INPUT_TAP ->
-                ctx.controller.inputTap(
-                    action.config["x"]?.toIntOrNull() ?: 0,
-                    action.config["y"]?.toIntOrNull() ?: 0
-                )
-            ActionType.SYSTEM_INPUT_SWIPE ->
-                ctx.controller.inputSwipe(
-                    action.config["x1"]?.toIntOrNull() ?: 0,
-                    action.config["y1"]?.toIntOrNull() ?: 0,
-                    action.config["x2"]?.toIntOrNull() ?: 0,
-                    action.config["y2"]?.toIntOrNull() ?: 0,
-                    action.config["durationMs"]?.toIntOrNull() ?: 300
-                )
+            ActionType.SYSTEM_INPUT_TAP -> {
+                val x = action.config["x"]?.toIntOrNull()
+                    ?: return SystemControlResult.fail("Tap X coordinate is required")
+                val y = action.config["y"]?.toIntOrNull()
+                    ?: return SystemControlResult.fail("Tap Y coordinate is required")
+                ctx.controller.inputTap(x, y)
+            }
+            ActionType.SYSTEM_INPUT_SWIPE -> {
+                val x1 = action.config["x1"]?.toIntOrNull()
+                    ?: return SystemControlResult.fail("Swipe start X coordinate is required")
+                val y1 = action.config["y1"]?.toIntOrNull()
+                    ?: return SystemControlResult.fail("Swipe start Y coordinate is required")
+                val x2 = action.config["x2"]?.toIntOrNull()
+                    ?: return SystemControlResult.fail("Swipe end X coordinate is required")
+                val y2 = action.config["y2"]?.toIntOrNull()
+                    ?: return SystemControlResult.fail("Swipe end Y coordinate is required")
+                val durationMs = action.config["durationMs"]?.toIntOrNull()?.coerceIn(0, 60_000) ?: 300
+                ctx.controller.inputSwipe(x1, y1, x2, y2, durationMs)
+            }
             ActionType.SYSTEM_COLOR_INVERSION ->
                 ctx.controller.writeSetting(
                     "SECURE", "accessibility_display_inversion_enabled",
@@ -360,7 +366,7 @@ class SystemActionsHandler : ActionHandler {
             ActionType.SYSTEM_ALERT ->
                 ctx.controller.showAlert(action.config["title"] ?: "", action.config["text"] ?: "")
             ActionType.SYSTEM_VIBRATE_PATTERN ->
-                ctx.controller.vibratePattern(action.config["pattern"] ?: "...")
+                ctx.controller.vibratePattern(action.config["pattern"] ?: "0,200,100,200")
             ActionType.SYSTEM_PASTE ->
                 ctx.controller.pasteClipboard()
             ActionType.SYSTEM_OPEN_APP_DRAWER ->
@@ -438,7 +444,7 @@ class SystemActionsHandler : ActionHandler {
             ActionType.SYSTEM_WIFI_SCAN_NOW ->
                 ctx.controller.wifiScanNow()
             ActionType.SYSTEM_SET_TIMEZONE ->
-                ctx.controller.setTimezone(action.config["zone"] ?: "")
+                ctx.controller.setTimezone(action.config["zone"] ?: "GMT")
             else -> SystemControlResult.fail("Unsupported action ${action.type}")
         }
     }

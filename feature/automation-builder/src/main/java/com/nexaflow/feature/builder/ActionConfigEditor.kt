@@ -561,7 +561,7 @@ fun ActionConfigEditor(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                 )
                 OutlinedTextField(
-                    value = config["text"] ?: "",
+                    value = config["text"] ?: "Automation executed",
                     onValueChange = { onConfigChange(config + ("text" to it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.text)) },
@@ -587,7 +587,7 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_SEND_REMINDER -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = config["title"] ?: "",
+                    value = config["title"] ?: "Reminder",
                     onValueChange = { onConfigChange(config + ("title" to it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.reminder_title)) },
@@ -749,7 +749,7 @@ fun ActionConfigEditor(
                     label = stringResource(R.string.timer_duration_seconds)
                 )
                 OutlinedTextField(
-                    value = config["message"] ?: "",
+                    value = config["message"] ?: "NexaFlow timer",
                     onValueChange = { onConfigChange(config + ("message" to it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.message_optional)) },
@@ -801,7 +801,7 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_SEND_NOTIFICATION -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = config["title"] ?: "",
+                    value = config["title"] ?: "NexaFlow",
                     onValueChange = { onConfigChange(config + ("title" to it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.title)) },
@@ -816,7 +816,7 @@ fun ActionConfigEditor(
                 )
                 VariableInsertChips(
                     availableVariables = availableVariables,
-                    currentValue = config["text"] ?: "",
+                    currentValue = config["text"] ?: "Automation executed",
                     onValueChange = { onConfigChange(config + ("text" to it)) }
                 )
                 Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
@@ -1094,7 +1094,7 @@ fun ActionConfigEditor(
                     valueRange = 5f..100f
                 )
                 OutlinedTextField(
-                    value = config["message"] ?: "",
+                    value = config["message"] ?: "Battery alert triggered",
                     onValueChange = { onConfigChange(config + ("message" to it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.message_optional)) },
@@ -1102,7 +1102,7 @@ fun ActionConfigEditor(
                 )
                 VariableInsertChips(
                     availableVariables = availableVariables,
-                    currentValue = config["message"] ?: "",
+                    currentValue = config["message"] ?: "Battery alert triggered",
                     onValueChange = { onConfigChange(config + ("message" to it)) }
                 )
                 Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
@@ -1131,7 +1131,7 @@ fun ActionConfigEditor(
         ActionType.BATTERY_CHARGING_NOTIFICATIONS -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = config["message"] ?: "",
+                    value = config["message"] ?: "Battery alert triggered",
                     onValueChange = { onConfigChange(config + ("message" to it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.message_optional)) },
@@ -1139,7 +1139,7 @@ fun ActionConfigEditor(
                 )
                 VariableInsertChips(
                     availableVariables = availableVariables,
-                    currentValue = config["message"] ?: "",
+                    currentValue = config["message"] ?: "Battery alert triggered",
                     onValueChange = { onConfigChange(config + ("message" to it)) }
                 )
                 Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
@@ -1972,7 +1972,7 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> {
             OutlinedTextField(
-                value = config["minutes"] ?: "30",
+                value = config["minutes"] ?: "10",
                 onValueChange = { onConfigChange(config + ("minutes" to it.filter { it2 -> it2.isDigit() })) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.screensaver_timeout_label)) },

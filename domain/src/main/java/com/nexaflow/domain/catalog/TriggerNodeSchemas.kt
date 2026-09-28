@@ -12,26 +12,36 @@ internal object TriggerNodeSchemas {
             timeField("rangeEnd"),
             stringField("repeat"),
             integerField("interval", min = 1.0, max = 99.0),
-            enumField("intervalUnit", "DAY", "WEEK", "MONTH", "YEAR"),
+            enumField("intervalUnit", "DAY", "WEEK", "MONTH", "YEAR", default = "DAY"),
             stringField("days"),
+            dateField("date"),
             dateField("startDate"),
             dateField("endDate"),
             stringField("endMode"),
             integerField("endCount", min = 1.0, max = 999.0),
+            enumField("monthlyDayMode", "DAY_OF_MONTH", "FIRST_DAY", "LAST_DAY", default = "DAY_OF_MONTH"),
+            integerField("monthDay", min = 1.0, max = 31.0),
+            integerField("weekday", min = 1.0, max = 7.0),
+            enumField("weekOfMonth", "1", "2", "3", "4", "5", "LAST", default = "1"),
             enumField("zonePolicy", "DEVICE_LOCAL", "FIXED_IANA", default = "DEVICE_LOCAL"),
             stringField("zoneId")
         )
         TriggerType.BATTERY -> schema(
             enumField("direction", "ABOVE", "BELOW", default = "ABOVE"),
+            integerField("threshold", min = 0.0, max = 100.0),
             integerField("above", default = "80", min = 0.0, max = 100.0),
             integerField("below", min = 0.0, max = 100.0),
-            stringField("chargerType", default = "ANY")
+            enumField("chargerType", "ANY", "AC", "USB", "WIRELESS", default = "ANY"),
+            enumField("chargingState", "ANY", "CHARGING", "NOT_CHARGING", default = "ANY")
         )
         TriggerType.APPLICATION -> schema(
-            stringField("packages", expressionCapable = true)
+            stringField("packages", expressionCapable = true),
+            packageField("package")
         )
         TriggerType.DEVICE -> schema(
-            stringField("event", default = "SCREEN_ON")
+            stringField("event", default = "SCREEN_ON"),
+            stringField("deviceName"),
+            stringField("deviceAddress")
         )
         TriggerType.CONNECTIVITY -> schema(
             enumField("network", "WIFI", "MOBILE", default = "WIFI"),
@@ -63,11 +73,13 @@ internal object TriggerNodeSchemas {
             coordinateField("lat", required = true),
             coordinateField("lng", required = true),
             integerField("radius", default = "100", min = 50.0, max = 2000.0),
-            enumField("event", "ENTER", "EXIT", default = "ENTER")
+            enumField("event", "ENTER", "EXIT", default = "ENTER"),
+            enumField("source", "current", "selected", default = "current")
         )
         TriggerType.SMS -> schema(
             stringField("from", expressionCapable = true),
-            stringField("contains", expressionCapable = true)
+            stringField("contains", expressionCapable = true),
+            enumField("matchMode", "CONTAINS", "EXACT", "ANY", default = "CONTAINS")
         )
         TriggerType.BLUETOOTH_DEVICE -> schema(
             stringField("deviceName"),
@@ -82,6 +94,7 @@ internal object TriggerNodeSchemas {
         )
         TriggerType.NOTIFICATION -> schema(
             stringField("packages"),
+            packageField("package"),
             stringField("contains", expressionCapable = true),
             enumField("event", "POSTED", "REMOVED", default = "POSTED")
         )
@@ -92,14 +105,21 @@ internal object TriggerNodeSchemas {
             integerField("beforeMinutes", default = "0", min = 0.0)
         )
         TriggerType.SENSOR -> schema(
-            enumField("sensor", "PROXIMITY", "SHAKE", "LIGHT", "STEP", default = "PROXIMITY"),
+            enumField(
+                "sensor",
+                "PROXIMITY", "SHAKE", "LIGHT", "STEP",
+                "PRESSURE", "TEMPERATURE", "HUMIDITY", "MAGNETIC",
+                "ACCELERATION", "GYROSCOPE", "GRAVITY", "HINGE",
+                default = "PROXIMITY"
+            ),
             stringField("event", default = "COVERED"),
             decimalField("threshold", default = "200"),
+            decimalField("upperThreshold"),
             decimalField("sensitivity", default = "14", min = 0.0)
         )
         TriggerType.WEBHOOK -> schema(
             stringField("path", required = true, default = "/nexaflow"),
-            enumField("method", "GET", "POST", "PUT", "PATCH", "DELETE", default = "POST"),
+            enumField("method", "ANY", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", default = "POST"),
             secretField("token", required = true)
         )
         TriggerType.ROM_SETTING -> schema(
@@ -120,8 +140,8 @@ internal object TriggerNodeSchemas {
         )
         TriggerType.INCOMING_CALL -> schema(
             stringField("from"),
-            enumField("matchMode", "CONTAINS", "EXACT", "ANY"),
-            enumField("category", "ANY", "UNKNOWN", "PRIVATE")
+            enumField("matchMode", "CONTAINS", "EXACT", "ANY", default = "ANY"),
+            enumField("category", "ANY", "UNKNOWN", "PRIVATE", "CONTACT", default = "ANY")
         )
         TriggerType.APP_INSTALLED -> schema(
             enumField("event", "INSTALLED", "REMOVED", "UPDATED", default = "INSTALLED"),
@@ -147,7 +167,7 @@ internal object TriggerNodeSchemas {
             enumField("state", "PORTRAIT", "LANDSCAPE", default = "PORTRAIT")
         )
         TriggerType.WIFI_SIGNAL_STRENGTH,
-        TriggerType.CELL_SIGNAL_STRENGTH -> thresholdSchema(default = "3", min = 0.0, max = 100.0)
+        TriggerType.CELL_SIGNAL_STRENGTH -> thresholdSchema(default = "3", min = 0.0, max = 4.0)
         TriggerType.BATTERY_TEMPERATURE -> thresholdSchema(default = "40", min = -50.0, max = 100.0)
         TriggerType.CLIPBOARD_CHANGED -> schema(
             stringField("contains", expressionCapable = true)
@@ -162,7 +182,7 @@ internal object TriggerNodeSchemas {
             stringField("contains")
         )
         TriggerType.ALARM_SET_CHANGED -> schema(
-            enumField("event", "SET", "CLEARED")
+            enumField("event", "SET", "CLEARED", default = "SET")
         )
         TriggerType.WEAR_EVENT -> schema(
             stringField("watchInstallId"),
