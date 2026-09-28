@@ -375,11 +375,7 @@ def action_reviews() -> dict[str, Review]:
     for name, page in settings_pages.items():
         _put(out, [name], target="core.system.settings", operation="OPEN", caps=("ANDROID_INTENT",), notes=f"page={page}", **external)
 
-    # Misc system/app/store actions not covered above.
-    _put(out, ["SYSTEM_OPEN_PLAY_UPDATES", "SYSTEM_OPEN_DEVICE_STORE", "SYSTEM_OPEN_PLAY_STORE_APP"], target="core.application.store", operation="OPEN", caps=("ANDROID_INTENT",), **external)
-    _put(out, ["SYSTEM_UPDATE_GOOGLE_PLAY_APPS"], target="core.application.store_updates", operation="UPDATE_APPS", caps=("STORE_PROVIDER",), **external)
-    _put(out, ["SYSTEM_OPEN_CAMERA"], target="core.application.camera", operation="OPEN", caps=("ANDROID_INTENT",), **external)
-    _put(out, ["SYSTEM_OPEN_CONTACTS"], target="core.application.contacts", operation="OPEN", caps=("ANDROID_INTENT",), **external)
+    # Misc system actions not covered above.
     _put(out, ["SYSTEM_TOAST"], target="core.notification.transient_message", operation="SHOW", side="EXTERNAL", idem="NON_IDEMPOTENT", retry="UNSAFE")
     _put(out, ["SYSTEM_ALERT"], target="core.notification.alert", operation="SHOW", side="EXTERNAL", idem="NON_IDEMPOTENT", retry="UNSAFE")
 
