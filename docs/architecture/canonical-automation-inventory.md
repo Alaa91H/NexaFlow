@@ -116,6 +116,15 @@ and reviewed before T01 may close:
   validation covers unknown fields, invisible supplied fields, type
   mismatches, bounds, enum allowlists, and missing required fields. Covered
   by 17 unit tests and CI gate `scripts/check_canonical_schema_engine.py`.
+- T09: **implemented** — Canonical Validation Pipeline in
+  `domain/.../canonical/CanonicalValidationPipeline.kt`: six ordered,
+  fail-closed stages (Syntax → Type → Schema → Semantic → Capability →
+  Security); findings are pinned to a stage and a stable rule name, and the
+  closure condition is structural: an invalid verdict cannot reach the
+  planner through this API. Security stage enforces capability declarations
+  for HIGH_RISK/DESTRUCTIVE classes and keeps secret references inside
+  secret-typed fields only. Covered by 9 unit tests and CI gate
+  `scripts/check_canonical_validation_pipeline.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

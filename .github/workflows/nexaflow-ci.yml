@@ -102,6 +102,10 @@ jobs:
       run: python3 scripts/check_canonical_schema_engine.py
     - name: Test canonical schema engine gate
       run: python3 -m unittest scripts.tests.test_check_canonical_schema_engine
+    - name: Canonical validation pipeline (T09)
+      run: python3 scripts/check_canonical_validation_pipeline.py
+    - name: Test canonical validation pipeline gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_validation_pipeline
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
