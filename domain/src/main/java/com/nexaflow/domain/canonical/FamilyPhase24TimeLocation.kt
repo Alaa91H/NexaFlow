@@ -139,6 +139,10 @@ object FamilyPhase24TimeLocation {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf("query")
 
+        // The destination query is optional: opening Maps without one is
+        // parity-preserving legacy behavior (fail closed handled downstream).
+        override val requiredKeys: Set<String> = emptySet()
+
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
             val arguments = mutableListOf<CanonicalArgument>()

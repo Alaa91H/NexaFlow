@@ -130,12 +130,13 @@ class CanonicalExecutionPlanner private constructor(
          * operations (e.g. send/invoke stay unplannable until a provider
          * declares their idempotency policy).
          */
-        fun default(): CanonicalExecutionPlanner = of(
-            listOf(
-                CommandSemantics(SET_STATE, CommandIdempotency.IDEMPOTENT, reversible = true),
-                CommandSemantics(SET_VALUE, CommandIdempotency.IDEMPOTENT, reversible = true),
-                CommandSemantics(WAIT, CommandIdempotency.IDEMPOTENT, reversible = false),
-            ),
+        fun default(): CanonicalExecutionPlanner = of(defaultSemantics())
+
+        /** The default declarations, exposed for composition (T26 cutover). */
+        fun defaultSemantics(): List<CommandSemantics> = listOf(
+            CommandSemantics(SET_STATE, CommandIdempotency.IDEMPOTENT, reversible = true),
+            CommandSemantics(SET_VALUE, CommandIdempotency.IDEMPOTENT, reversible = true),
+            CommandSemantics(WAIT, CommandIdempotency.IDEMPOTENT, reversible = false),
         )
 
         /** Builds a planner with an explicit semantics table. */
@@ -166,6 +167,9 @@ class CanonicalExecutionPlanner private constructor(
         }
         return plan(ast.root, executionPolicy, failurePolicy)
     }
+
+    /** Operations with declared command semantics (T26 cutover inspection). */
+    fun declaredOperations(): Set<OperationId> = commandSemantics.keys
 
     /**
      * Plans a raw AST root. Deterministic; fails closed on undeclared

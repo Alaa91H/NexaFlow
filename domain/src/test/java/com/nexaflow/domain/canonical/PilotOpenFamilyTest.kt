@@ -36,10 +36,18 @@ class PilotOpenFamilyTest {
             if (rule.legacyType in setOf("SYSTEM_OPEN_APP", "SYSTEM_OPEN_URL")) continue
 
             val skeleton = baseAdapter.canonicalize(
-                LegacyNodeInput(rule.legacyType, LegacyNodeKind.ACTION, emptyList()),
+                LegacyNodeInput(
+                    rule.legacyType,
+                    LegacyNodeKind.ACTION,
+                    listOf(LegacyConfigEntry("page", "SETTINGS")),
+                ),
             ) as LegacyAdapterOutcome.Canonicalized
             val pilot = pilotAdapter.canonicalize(
-                LegacyNodeInput(rule.legacyType, LegacyNodeKind.ACTION, emptyList()),
+                LegacyNodeInput(
+                    rule.legacyType,
+                    LegacyNodeKind.ACTION,
+                    listOf(LegacyConfigEntry("page", "SETTINGS")),
+                ),
             ) as LegacyAdapterOutcome.Canonicalized
 
             val skeletonNode = skeleton.node as InvokeNode
@@ -115,7 +123,10 @@ class PilotOpenFamilyTest {
             LegacyNodeInput(
                 legacyType = "SYSTEM_OPEN_WIFI_SETTINGS",
                 kind = LegacyNodeKind.ACTION,
-                config = listOf(LegacyConfigEntry("futureFlag", "1")),
+                config = listOf(
+                    LegacyConfigEntry("page", "WIFI"),
+                    LegacyConfigEntry("futureFlag", "1"),
+                ),
             ),
         )
         val canonicalized = outcome as LegacyAdapterOutcome.Canonicalized

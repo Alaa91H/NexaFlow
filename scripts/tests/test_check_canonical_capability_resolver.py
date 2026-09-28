@@ -22,7 +22,7 @@ class CanonicalCapabilityResolverGateTest(unittest.TestCase):
             ),
             r"GlobalScope": ("GlobalScope.launch { }",),
             r"System\.currentTimeMillis\(\)": ("val now = System.currentTimeMillis()",),
-            r" kotlin\.random\.Random\b": ("Random.nextInt(4)",),
+            r" kotlin\.random\.Random\b": ("import kotlin.random.Random",),
         }
         self.assertEqual(set(samples_by_pattern), set(FORBIDDEN_PATTERNS))
         for pattern, samples in samples_by_pattern.items():

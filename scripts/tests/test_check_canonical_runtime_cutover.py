@@ -6,22 +6,19 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from scripts.check_canonical_validation_pipeline import (
+from scripts.check_canonical_runtime_cutover import (
     FORBIDDEN_PATTERNS,
     REQUIRED_CONSTRUCTS,
     REQUIRED_TEST_CASES,
 )
 
 
-class CanonicalValidationPipelineGateTest(unittest.TestCase):
-    def test_forbidden_patterns_detect_runtime_leaks(self) -> None:
+class CanonicalRuntimeCutoverGateTest(unittest.TestCase):
+    def test_forbidden_patterns_detect_legacy_leaks(self) -> None:
         samples_by_pattern = {
-            r"\bContext\b": ("fun check(context: Context)",),
-            r"androidx\.compose": ("import androidx.compose.runtime.Immutable",),
-            r"isValid\s*\|\|": ("if (verdict.isValid || force) run()",),
-            r"filterNotNull\(\)\s*\.isEmpty\(\)\s*\|\|": (
-                "if (list.filterNotNull().isEmpty() || fallback) run()",
-            ),
+            r"\bTriggerType\b": ("when (t: TriggerType)",),
+            r"\bActionType\b": ("when (a: ActionType)",),
+            r"Map\s*<\s*String\s*,\s*String\s*>": ("val config: Map<String, String>",),
         }
         self.assertEqual(set(samples_by_pattern), set(FORBIDDEN_PATTERNS))
         for pattern, samples in samples_by_pattern.items():
@@ -31,7 +28,7 @@ class CanonicalValidationPipelineGateTest(unittest.TestCase):
                 )
 
     def test_gate_script_detects_missing_required_constructs(self) -> None:
-        import scripts.check_canonical_validation_pipeline as gate
+        import scripts.check_canonical_runtime_cutover as gate
 
         original = gate.REQUIRED_CONSTRUCTS
         gate.REQUIRED_CONSTRUCTS = ("ConstructThatDoesNotExist",)
@@ -41,7 +38,7 @@ class CanonicalValidationPipelineGateTest(unittest.TestCase):
             gate.REQUIRED_CONSTRUCTS = original
 
     def test_gate_script_detects_missing_required_tests(self) -> None:
-        import scripts.check_canonical_validation_pipeline as gate
+        import scripts.check_canonical_runtime_cutover as gate
 
         original = gate.REQUIRED_TEST_CASES
         gate.REQUIRED_TEST_CASES = ("testThatDoesNotExist",)
@@ -51,7 +48,7 @@ class CanonicalValidationPipelineGateTest(unittest.TestCase):
             gate.REQUIRED_TEST_CASES = original
 
     def test_gate_script_passes_on_current_tree(self) -> None:
-        import scripts.check_canonical_validation_pipeline as gate
+        import scripts.check_canonical_runtime_cutover as gate
 
         self.assertEqual(gate.main(), 0)
 

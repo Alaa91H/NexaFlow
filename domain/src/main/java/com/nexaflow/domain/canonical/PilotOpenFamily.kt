@@ -41,7 +41,7 @@ object PilotOpenFamily {
             } else if (legacyType == "SYSTEM_OPEN_URL") {
                 setOf(Keys.URL)
             } else {
-                emptySet()
+                setOf(Keys.PAGE)
             }
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
@@ -67,12 +67,20 @@ object PilotOpenFamily {
                     )
                 }
                 else -> {
-                    // Page-opening actions carry no config: the page identity
-                    // IS the reviewed target mapping (parity with legacy).
+                    // Page-opening actions carry a typed page token: the page
+                    // identity IS the reviewed target mapping (parity with
+                    // legacy), upgraded into the schema's enum value.
                     input.entry(Keys.PAGE)?.let { page ->
                         arguments += CanonicalArgument(
                             CanonicalFieldId("page"),
-                            LegacyValueParsers.parseText(page),
+                            LegacyValueParsers.parseEnumToken(
+                                page,
+                                "core.system.settings",
+                                openSettingsSchema()
+                                    .field(CanonicalFieldId("page"))
+                                    ?.allowedTokens
+                                    ?: emptyList(),
+                            ),
                         )
                     }
                 }

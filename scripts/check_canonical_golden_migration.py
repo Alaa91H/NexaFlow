@@ -32,7 +32,7 @@ def main() -> int:
     problems: list[str] = []
 
     if not TEST_FILE.is_file():
-        problems.append(f"missing {TEST_FILE.relative_to(ROOT)}")
+        problems.append(f"missing {TEST_FILE.name}")
     else:
         source = TEST_FILE.read_text(encoding="utf-8")
         for case in REQUIRED_TEST_CASES:

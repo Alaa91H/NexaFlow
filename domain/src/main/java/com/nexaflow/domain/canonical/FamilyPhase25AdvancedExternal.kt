@@ -145,6 +145,10 @@ object FamilyPhase25AdvancedExternal {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf("command")
 
+        // The command is replaced by a secret reference either way; the raw
+        // key is optional at the adapter boundary (T26 cutover contract).
+        override val requiredKeys: Set<String> = emptySet()
+
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
             val arguments = mutableListOf<CanonicalArgument>()
@@ -172,6 +176,9 @@ object FamilyPhase25AdvancedExternal {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = emptySet()
 
+        // Consumes nothing, so nothing can be required at the adapter boundary.
+        override val requiredKeys: Set<String> = emptySet()
+
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode =
             base.canonicalize(input)
     }
@@ -182,6 +189,10 @@ object FamilyPhase25AdvancedExternal {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.URL, Keys.METHOD, Keys.AUTH_TOKEN)
+
+        // All three keys upgrade to typed arguments when present; the family
+        // fails closed downstream if a required one is missing.
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
@@ -240,6 +251,10 @@ object FamilyPhase25AdvancedExternal {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.TRIGGER
         override val consumedKeys: Set<String> = setOf(Keys.PLUGIN_ID)
+
+        // The plugin id is optional at the boundary; rules fail closed when a
+        // later stage needs it (no inherited requiredKeys on optional keys).
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as ObserveNode

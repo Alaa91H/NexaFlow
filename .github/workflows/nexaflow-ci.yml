@@ -170,6 +170,10 @@ jobs:
       run: python3 scripts/check_canonical_family_advanced_external.py
     - name: Test advanced external family gate
       run: python3 -m unittest scripts.tests.test_check_canonical_family_advanced_external
+    - name: Canonical runtime cutover (T26)
+      run: python3 scripts/check_canonical_runtime_cutover.py
+    - name: Test canonical runtime cutover gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_runtime_cutover
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

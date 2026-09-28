@@ -270,6 +270,20 @@ and reviewed before T01 may close:
   HTTP schema is SENSITIVE with a secret-typed token field. Covered by 13
   unit tests and CI gate
   `scripts/check_canonical_family_advanced_external.py`.
+- T26: **implemented** — Canonical runtime cutover in
+  `domain/.../canonical/CanonicalRuntimePipeline.kt`: the single runtime
+  path legacy input → adapter (T14 + T15 + T17–T25 overrides) → canonical
+  AST → validation (T09, schema-typed values + declared defaults) →
+  execution plan (T10). `planLegacy` fails closed on rejected mappings and
+  invalid verdicts (`cutover refused`); the validated surface is the
+  schema-typed view of the consumed config while unconsumed legacy keys
+  ride losslessly in `preservedConfig` but are never executed. The cutover
+  planner merges family-declared command semantics over the default table
+  (conflict-checked, fail closed). Page tokens now upgrade to typed
+  enum tokens against the schema allowlist, and optional-key rules no
+  longer inherit required keys (MapsRule, HttpRule, PowerRule,
+  PluginTriggerRule, PrivilegedCommandRule fixed). Covered by 9 unit tests
+  (283 total) and CI gate `scripts/check_canonical_runtime_cutover.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

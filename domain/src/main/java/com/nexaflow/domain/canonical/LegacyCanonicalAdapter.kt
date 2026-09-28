@@ -120,6 +120,22 @@ object LegacyValueParsers {
 
     fun parseText(entry: LegacyConfigEntry): TextValue = TextValue(entry.rawValue)
 
+    /**
+     * Parses a legacy string into a typed enum token, failing closed unless
+     * the token is in the schema-declared allowlist (no free-text enums).
+     */
+    fun parseEnumToken(
+        entry: LegacyConfigEntry,
+        enumType: String,
+        allowedTokens: List<String>,
+    ): EnumTokenValue {
+        val token = entry.rawValue.trim().uppercase()
+        require(token in allowedTokens) {
+            "legacy key ${entry.key} value '${entry.rawValue}' is not an allowed $enumType token"
+        }
+        return EnumTokenValue(enumType, token)
+    }
+
     fun parsePackage(entry: LegacyConfigEntry): PackageIdValue =
         PackageIdValue(entry.rawValue)
 
