@@ -36,6 +36,9 @@ enum class CanonicalPrimitive {
     WAIT,
     OBSERVE,
     COMPARE,
+    ACTION_SELECTION,
+    EVENT_SELECTION,
+    CONDITION_GROUP,
     SEQUENCE,
     BRANCH,
     RESTORE
@@ -208,8 +211,9 @@ data class RestoreNode(
 }
 
 /**
- * Structural ordering only. T05 adds explicit selection/combination semantics;
- * this node merely preserves authored order.
+ * Structural workflow ordering. Multi-selection execution semantics are encoded
+ * separately by [ActionSelectionNode] so an authored sequence is never
+ * confused with a picker-generated ORDERED selection.
  */
 @Serializable
 @SerialName("sequence")
@@ -274,6 +278,9 @@ fun validateCanonicalAst(root: CanonicalNode) {
 
         when (node) {
             is SequenceNode -> node.children.forEach { visit(it, depth + 1) }
+            is ActionSelectionNode -> node.actions.forEach { visit(it, depth + 1) }
+            is EventSelectionNode -> node.events.forEach { visit(it, depth + 1) }
+            is ConditionGroupNode -> node.conditions.forEach { visit(it, depth + 1) }
             is BranchNode -> {
                 visit(node.condition, depth + 1)
                 visit(node.ifTrue, depth + 1)
