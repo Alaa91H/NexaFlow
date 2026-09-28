@@ -43,7 +43,7 @@ value class CapabilityStableId(val value: String) {
 }
 
 private object StableIdRules {
-    private val PATTERN = Regex("[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*){2,}")
+    private val PATTERN = Regex("[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*){1,}")
     private const val MAX_LENGTH = 160
 
     fun requireValid(value: String, kind: String) {
