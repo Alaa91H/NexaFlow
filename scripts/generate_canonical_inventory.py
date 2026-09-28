@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import check_node_contracts as contracts  # noqa: E402
+from canonical_inventory_review import ACTION_REVIEWS, TRIGGER_REVIEWS  # noqa: E402
 
 MODEL = ROOT / "domain/src/main/java/com/nexaflow/domain/models/Automation.kt"
 CATALOG = ROOT / "domain/src/main/java/com/nexaflow/domain/catalog/AutomationNodeCatalog.kt"
@@ -152,11 +153,21 @@ def build_inventory() -> list[dict[str, object]]:
     trigger_owners = trigger_runtime_owners(triggers)
 
     rows: list[dict[str, object]] = []
-    for kind, names, families, schemas, runtime, owners in (
-        ("TRIGGER", triggers, trigger_families, trigger_schema, trigger_runtime, trigger_owners),
-        ("ACTION", actions, action_families, action_schema, action_runtime, action_owners),
+    for kind, names, families, schemas, runtime, owners, reviews in (
+        ("TRIGGER", triggers, trigger_families, trigger_schema, trigger_runtime, trigger_owners, TRIGGER_REVIEWS),
+        ("ACTION", actions, action_families, action_schema, action_runtime, action_owners, ACTION_REVIEWS),
     ):
+        expected = set(names)
+        reviewed_names = set(reviews)
+        missing_reviews = sorted(expected - reviewed_names)
+        unknown_reviews = sorted(reviewed_names - expected)
+        if missing_reviews or unknown_reviews:
+            raise RuntimeError(
+                f"{kind} semantic-review coverage mismatch: "
+                f"missing={missing_reviews}, unknown={unknown_reviews}"
+            )
         for name in names:
+            review = reviews[name].as_dict()
             rows.append(
                 {
                     "legacyType": name,
@@ -166,17 +177,8 @@ def build_inventory() -> list[dict[str, object]]:
                     "runtimeKeys": sorted(runtime.get(name, set())),
                     "runtimeOwners": sorted(owners.get(name, [])),
                     "semanticHint": semantic_hint(kind, name),
-                    "canonicalTarget": None,
-                    "canonicalOperation": None,
-                    "selectionMode": None,
-                    "combinationMode": None,
-                    "capabilityRequirements": [],
-                    "sideEffect": None,
-                    "idempotency": None,
-                    "retrySafety": None,
-                    "migrationNotes": None,
-                    "goldenTestId": None,
-                    "reviewStatus": "UNREVIEWED",
+                    **review,
+                    "goldenTestId": f"legacy_{kind.lower()}_{name.lower()}",
                 }
             )
     return rows
@@ -209,6 +211,14 @@ def validate(rows: list[dict[str, object]]) -> list[str]:
             )
         if row["kind"] == "ACTION" and not row["runtimeOwners"]:
             problems.append(f"{label} has no discovered ActionHandler owner")
+        if row["reviewStatus"] != "REVIEWED":
+            problems.append(f"{label} semantic review is not closed")
+        for required in ("canonicalTarget", "canonicalOperation", "selectionMode",
+                         "combinationMode", "sideEffect", "idempotency",
+                         "retrySafety", "goldenTestId"):
+            value = row.get(required)
+            if value is None or (isinstance(value, str) and not value.strip()):
+                problems.append(f"{label} missing reviewed field {required}")
 
     return problems
 
@@ -233,7 +243,7 @@ def main() -> int:
 
     reviewed = sum(row["reviewStatus"] == "REVIEWED" for row in rows)
     print(
-        "CANONICAL_INVENTORY: SOURCE COVERAGE OK — "
+        "CANONICAL_INVENTORY: REVIEW COVERAGE OK — "
         f"{len(rows)} rows (57 triggers, 176 actions), "
         f"{reviewed}/233 semantically reviewed"
     )
