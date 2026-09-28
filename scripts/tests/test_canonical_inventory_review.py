@@ -60,6 +60,33 @@ class CanonicalInventoryReviewTest(unittest.TestCase):
                 self.assertEqual("OPEN", review.canonicalOperation)
                 self.assertIn("page=", review.migrationNotes)
 
+    def test_existing_semantic_router_actions_keep_the_same_intent(self) -> None:
+        expected = {
+            "SYSTEM_WIFI": ("core.connectivity.wifi", "SET_STATE"),
+            "SYSTEM_BLUETOOTH": ("core.connectivity.bluetooth", "SET_STATE"),
+            "SYSTEM_LOCATION": ("core.location.service", "SET_STATE"),
+            "SYSTEM_AIRPLANE_MODE": ("core.connectivity.airplane_mode", "SET_STATE"),
+            "SYSTEM_SCREEN_ROTATION": ("core.display.auto_rotate", "SET_STATE"),
+            "SYSTEM_BRIGHTNESS": ("core.display.brightness", "SET_VALUE"),
+            "SYSTEM_SCREEN_TIMEOUT": ("core.display.screen_timeout", "SET_VALUE"),
+            "SYSTEM_DND": ("core.audio.dnd", "SET_STATE"),
+            "SYSTEM_NFC": ("core.connectivity.nfc", "SET_STATE"),
+            "SYSTEM_HOTSPOT": ("core.connectivity.hotspot", "SET_STATE"),
+            "SYSTEM_MOBILE_DATA": ("core.connectivity.mobile_data", "SET_STATE"),
+            "SYSTEM_DATA_SAVER": ("core.connectivity.data_saver", "SET_STATE"),
+            "APPLICATION_CLOSE_APP": ("core.application.package", "FORCE_STOP"),
+            "SYSTEM_FORCE_STOP_APP": ("core.application.package", "FORCE_STOP"),
+            "SYSTEM_CLEAR_APP_DATA": ("core.application.package", "CLEAR_DATA"),
+            "SYSTEM_DISABLE_APP": ("core.application.package", "SET_ENABLED"),
+            "SYSTEM_ENABLE_APP": ("core.application.package", "SET_ENABLED"),
+        }
+        self.assertEqual(17, len(expected))
+        for name, (target, operation) in expected.items():
+            with self.subTest(name=name):
+                review = ACTION_REVIEWS[name]
+                self.assertEqual(target, review.canonicalTarget)
+                self.assertEqual(operation, review.canonicalOperation)
+
 
 if __name__ == "__main__":
     unittest.main()
