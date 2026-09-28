@@ -82,6 +82,8 @@ jobs:
       run: python3 scripts/check_canonical_adrs.py
     - name: Canonical stable identity registry
       run: python3 scripts/check_canonical_identity_registry.py
+    - name: Canonical typed model boundary
+      run: python3 scripts/check_canonical_typed_model.py
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
