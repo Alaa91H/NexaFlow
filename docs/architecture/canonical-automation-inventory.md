@@ -77,6 +77,34 @@ and reviewed before T01 may close:
 - Action coverage: **176/176**
 - Existing semantic-router parity pinned: **17/17**
 - CI evidence: workflow run **#735** (`36395436428`) — lint, semantic-review invariants, runtime-contract audit, coverage, and build all passed.
+- T05: **implemented** — typed selection/execution semantics per ADR-003 in
+  `domain/.../canonical/SelectionSemantics.kt`: `TargetSelectionMode`,
+  `EventLogic` (ANY_OF only by design), `ConditionLogic`, `ExecutionMode`,
+  `FailurePolicy`, per-operation cardinality, and a fail-closed validator
+  (`validateSelectionSemantics` / `requireValidSelectionSemantics`) covering
+  missing execution semantics, missing failure policy, cardinality violations,
+  contradictory batch writes, and unverifiable expression batch writes.
+  Covered by 13 unit tests and CI gate
+  `scripts/check_canonical_selection_semantics.py`.
+- T06: **implemented** — Semantic Rules Engine per plan §10 in
+  `domain/.../canonical/NodeSemanticRules.kt`. Registry-backed rules over
+  stable predicate/operation identities: contradictory state assertions
+  (§10.1, §46.12), event-ALL exclusivity with fail-closed proof requirement
+  (§8.2, Gate D), duplicate conflicting writes inside one atomic batch scope
+  with adjacency mirroring plan §29 (§10.2/§10.9), and typed write-payload
+  requirements (§10.4).  Unknown declarations fail closed. Covered by 21 unit
+  tests and CI gate `scripts/check_canonical_semantic_rules.py`.
+- T07: **implemented** — Capability Graph & Resolver per plan §7 / ADR-007 in
+  `domain/.../canonical/CapabilityGraph.kt`: serializable provider catalog
+  reusing the established capability vocabulary (`CapabilityBackendId`,
+  `PrivilegeLevel`, `StrategyId`, `DeviceFeature`), explicit
+  `CapabilitySelectionPolicy` (allow/prefer/pin/privileged opt-in), a pure
+  deterministic `CanonicalCapabilityResolver` (pin > prefer > least privilege
+  > stable id), and fail-closed handling of unknown operations, unobserved
+  backends, missing hardware and ungranted privileges. Unsupported intents
+  stay `UNSUPPORTED`/`PENDING_USER_ACTION` with per-provider exclusion
+  reasons — never a silent intent substitution. Covered by 17 unit tests and
+  CI gate `scripts/check_canonical_capability_resolver.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
