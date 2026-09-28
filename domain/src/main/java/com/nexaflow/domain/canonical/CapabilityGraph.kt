@@ -393,14 +393,16 @@ class CanonicalCapabilityResolver(
 }
 
 /** Least-privilege ordering; mirrors the semantic-layer privilege ladder. */
+@Suppress("DEPRECATION_ERROR")
 internal fun ProviderDescriptor.privilegeCost(): Int = when (
     capabilities.mapNotNull { it.privilege }.maxOrNull()
 ) {
     null -> 0
     PrivilegeLevel.NONE -> 0
-    PrivilegeLevel.NORMAL -> 0
     PrivilegeLevel.ADB_SHELL -> 3
     PrivilegeLevel.SHIZUKU -> 4
     PrivilegeLevel.ROOT -> 5
-    else -> 6 // legacy deprecated levels are deliberately the most expensive
+    // Legacy/deprecated levels (incl. the NONE-synonym) are deliberately the
+    // most expensive so persisted descriptors never rank ahead of NONE.
+    else -> 6
 }

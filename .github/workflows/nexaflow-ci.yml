@@ -110,6 +110,10 @@ jobs:
       run: python3 scripts/check_canonical_execution_planner.py
     - name: Test canonical execution planner gate
       run: python3 -m unittest scripts.tests.test_check_canonical_execution_planner
+    - name: Canonical error model and execution journal (T11 / ADR-009)
+      run: python3 scripts/check_canonical_execution_journal.py
+    - name: Test canonical execution journal gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_execution_journal
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

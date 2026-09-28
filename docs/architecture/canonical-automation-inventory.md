@@ -136,6 +136,15 @@ and reviewed before T01 may close:
   compensations. `planValidated` refuses invalid T09 verdicts, materializing
   the closure rule. Covered by 12 unit tests and CI gate
   `scripts/check_canonical_execution_planner.py`.
+- T11: **implemented** — Unified Error Model & Execution Journal per plan
+  §21–§23 in `domain/.../canonical/ExecutionJournal.kt`: the §21 error-code
+  vocabulary, the six-phase run lifecycle, `TriggerEvaluation` provenance and
+  `SkipReason` for the Why-didn't-it-run diagnostics, plus
+  `validationBlockedRun`/`capabilityBlockedRun` builders that materialize T09
+  verdicts and T07 exclusions into a journal record. The journal is secret-
+  safe by construction: secret-looking metadata keys/values or messages are
+  rejected at construction (Gate I groundwork). Covered by 11 unit tests and
+  CI gate `scripts/check_canonical_execution_journal.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

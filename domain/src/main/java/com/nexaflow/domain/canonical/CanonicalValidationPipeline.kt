@@ -3,6 +3,7 @@ package com.nexaflow.domain.canonical
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequirement
 import com.nexaflow.domain.capability.operation.SemanticOperationId
+import kotlinx.serialization.Serializable
 
 /**
  * T09 — Canonical Validation Pipeline (plan §21 closure rule).
@@ -36,6 +37,7 @@ enum class ValidationStage {
 }
 
 /** One failing finding, pinned to its stage and a stable machine rule name. */
+@Serializable
 data class ValidationFinding(
     val stage: ValidationStage,
     val rule: String,
