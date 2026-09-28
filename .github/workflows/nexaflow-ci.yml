@@ -72,6 +72,8 @@ jobs:
       run: python3 -m unittest discover -s tools/nexaflow-agent/tests -p 'test_*.py'
     - name: Catalog parity (trigger/action enum ↔ builder picker)
       run: python3 scripts/audit_catalog_and_releases.py catalog
+    - name: Canonical automation legacy-surface baseline
+      run: python3 scripts/check_canonical_baseline.py
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
