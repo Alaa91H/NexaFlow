@@ -77,7 +77,11 @@ def action_runtime_owners(action_names: list[str]) -> dict[str, list[str]]:
     for raw_path in glob.glob(str(HANDLERS / "*.kt")):
         path = Path(raw_path)
         source = read(path)
-        class_match = re.search(r"class\s+([A-Za-z0-9_]+)\s*:\s*ActionHandler", source)
+        # Handlers may declare constructor parameters before ': ActionHandler'.
+        # This directory keeps one concrete handler class per handler source file.
+        if ": ActionHandler" not in source:
+            continue
+        class_match = re.search(r"class\s+([A-Za-z0-9_]+)", source)
         if not class_match:
             continue
         owner = class_match.group(1)
