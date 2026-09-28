@@ -33,6 +33,12 @@ RAW_STRING_MAP = re.compile(
 )
 
 
+def strip_kotlin_comments(source: str) -> str:
+    """Remove block/KDoc and line comments for token-level architecture checks."""
+    without_blocks = re.sub(r"/\*.*?\*/", "", source, flags=re.S)
+    return re.sub(r"//.*", "", without_blocks)
+
+
 def main() -> int:
     problems: list[str] = []
 
@@ -47,8 +53,7 @@ def main() -> int:
         # Architectural coupling is a code concern, not a documentation concern.
         # Strip Kotlin comments so ADR/KDoc references to legacy types do not
         # create false positives while actual imports/type usages still fail.
-        code = re.sub(r"/\\*.*?\\*/", "", source, flags=re.S)
-        code = re.sub(r"//.*", "", code)
+        code = strip_kotlin_comments(source)
         for token in FORBIDDEN_CORE_TOKENS:
             if token in code:
                 problems.append(
