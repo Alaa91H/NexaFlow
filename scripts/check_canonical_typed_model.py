@@ -44,12 +44,17 @@ def main() -> int:
         if not path.is_file():
             continue
         source = path.read_text(encoding="utf-8")
+        # Architectural coupling is a code concern, not a documentation concern.
+        # Strip Kotlin comments so ADR/KDoc references to legacy types do not
+        # create false positives while actual imports/type usages still fail.
+        code = re.sub(r"/\\*.*?\\*/", "", source, flags=re.S)
+        code = re.sub(r"//.*", "", code)
         for token in FORBIDDEN_CORE_TOKENS:
-            if token in source:
+            if token in code:
                 problems.append(
                     f"{path.relative_to(ROOT)} couples canonical core to forbidden token {token!r}"
                 )
-        if RAW_STRING_MAP.search(source):
+        if RAW_STRING_MAP.search(code):
             problems.append(
                 f"{path.relative_to(ROOT)} reintroduces Map<String, String> into canonical core"
             )
