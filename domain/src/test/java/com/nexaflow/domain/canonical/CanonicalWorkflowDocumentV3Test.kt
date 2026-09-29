@@ -17,7 +17,11 @@ class CanonicalWorkflowDocumentV3Test {
                 Action(ActionType.SYSTEM_RINGER_MODE, emptyMap()),
             ),
         )
-        val node = document.actions.single().node as InvokeNode
+        val node = document.actions.single().node as SetValueNode
+        assertEquals(
+            EnumTokenValue("compat.system_ringer_mode.mode", "NORMAL"),
+            node.value,
+        )
         assertEquals(
             EnumTokenValue("compat.system_ringer_mode.mode", "NORMAL"),
             node.arguments[CanonicalFieldId("mode")],
