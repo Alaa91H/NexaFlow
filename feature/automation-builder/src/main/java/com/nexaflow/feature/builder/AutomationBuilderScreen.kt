@@ -1004,11 +1004,11 @@ fun AutomationBuilderScreen(
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
-    // Category chips highlight the FIRST category on entry so the fixed menu
-    // shows at a glance; every category's options are always rendered below
-    // (strict no-collapse), so these only track the highlighted chip.
-    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(0) }
-    var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(0) }
+    // Family-first discovery: opening a configurator shows the small family
+    // surface only. Concrete legacy-compatible options are revealed only
+    // after the user chooses a family (or types a search query).
+    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
+    var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(null) }
     var triggerSearchQuery by rememberSaveable { mutableStateOf("") }
     var actionSearchQuery by rememberSaveable { mutableStateOf("") }
     var showTriggerConfigurator by rememberSaveable { mutableStateOf(false) }
@@ -1782,7 +1782,7 @@ fun AutomationBuilderScreen(
                         onClick = {
                             selectedTriggerTypes.clear()
                             triggerSearchQuery = ""
-                            expandedTriggerCategory = 0
+                            expandedTriggerCategory = null
                             showTriggerConfigurator = true
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -1947,7 +1947,7 @@ fun AutomationBuilderScreen(
                             onClick = {
                                 selectedActionTypes.clear()
                                 actionSearchQuery = ""
-                                expandedActionCategory = 0
+                                expandedActionCategory = null
                                 showActionConfigurator = true
                             },
                             modifier = Modifier.fillMaxWidth()
