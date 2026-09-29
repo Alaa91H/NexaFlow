@@ -66,23 +66,23 @@ class CanonicalRuntimePipeline(
             selectedTargetCount = selectedTargetCount,
             cardinality = cardinality,
         )
-        val executableNode = validatedValues
-            ?.let { canonicalized.node.withValidationArguments(it, schema) }
-            ?: canonicalized.node
-        val ast = CanonicalWorkflowAst(root = executableNode)
-
-        // The validated surface is the schema-typed view of the SAME config
-        // the adapter consumed: consumed keys become typed NodeFieldValues,
-        // and schema defaults fill the rest. Unconsumed legacy keys stay out
-        // of the validated surface (they ride in preservedConfig only).
-        val suppliedValues = validatedValues ?: nodeArguments(executableNode).entries.mapNotNull { argument ->
+        // Build the typed value surface first, then materialize that exact
+        // surface back into the executable AST. Defaults are executable
+        // semantics, not validation-only metadata.
+        val suppliedValues = validatedValues ?: nodeArguments(canonicalized.node).entries.mapNotNull { argument ->
             val type = schema.field(argument.id)?.type ?: return@mapNotNull null
             if (argument.value.kind != expectedValueKind(type)) return@mapNotNull null
             NodeFieldValue(argument.id, argument.value)
         }
         val suppliedFields = suppliedValues.mapTo(mutableSetOf()) { it.field }
         val values = suppliedValues + defaultsOf(schema).filter { it.field !in suppliedFields }
+        val executableNode = canonicalized.node.withValidationArguments(values, schema)
+        val ast = CanonicalWorkflowAst(root = executableNode)
 
+        // The validated surface is the schema-typed view of the SAME config
+        // the adapter consumed: consumed keys become typed NodeFieldValues,
+        // schema defaults fill the rest, and the resulting values are exactly
+        // those embedded into the executable AST above.
         val verdict = validate(ast, contract, values)
         require(verdict.isValid) {
             "cutover refused: ${verdict.findings.first().message}"
