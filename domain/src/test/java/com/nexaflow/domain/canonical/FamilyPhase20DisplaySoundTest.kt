@@ -62,7 +62,7 @@ class FamilyPhase20DisplaySoundTest {
     }
 
     @Test
-    fun nonNumericValueStaysStrictText() {
+    fun legacyRingerValueAliasUpgradesToTypedModeToken() {
         val outcome = familyAdapter.canonicalize(
             LegacyNodeInput(
                 "SYSTEM_RINGER_MODE",
@@ -70,8 +70,11 @@ class FamilyPhase20DisplaySoundTest {
                 listOf(LegacyConfigEntry("value", "VIBRATE")),
             ),
         )
-        val node = (outcome as LegacyAdapterOutcome.Canonicalized).node as SetValueNode
-        assertEquals(TextValue("VIBRATE"), node.value)
+        val node = (outcome as LegacyAdapterOutcome.Canonicalized).node as InvokeNode
+        assertEquals(
+            EnumTokenValue("compat.system_ringer_mode.mode", "VIBRATE"),
+            node.arguments[CanonicalFieldId("mode")],
+        )
     }
 
     @Test
@@ -84,7 +87,7 @@ class FamilyPhase20DisplaySoundTest {
     }
 
     @Test
-    fun realRingerModeKeyIsPreservedForCatalogValidation() {
+    fun realRingerModeKeyIsConsumedIntoTypedCanonicalArgument() {
         val outcome = familyAdapter.canonicalize(
             LegacyNodeInput(
                 "SYSTEM_RINGER_MODE",
@@ -92,11 +95,12 @@ class FamilyPhase20DisplaySoundTest {
                 listOf(LegacyConfigEntry("mode", "VIBRATE")),
             ),
         ) as LegacyAdapterOutcome.Canonicalized
-        assertTrue(outcome.node is InvokeNode)
+        val node = outcome.node as InvokeNode
         assertEquals(
-            listOf(LegacyConfigEntry("mode", "VIBRATE")),
-            outcome.preservedConfig,
+            EnumTokenValue("compat.system_ringer_mode.mode", "VIBRATE"),
+            node.arguments[CanonicalFieldId("mode")],
         )
+        assertTrue(outcome.preservedConfig.isEmpty())
     }
 
     @Test
