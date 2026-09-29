@@ -111,6 +111,7 @@ def main() -> int:
             "prepareTrigger",
             "CanonicalRuntimePipeline",
             "planLegacy",
+            "sanitizedPreservedConfig",
         ):
             if token not in product:
                 problems.append(f"CanonicalProductRuntime.kt missing {token!r}")
@@ -125,6 +126,8 @@ def main() -> int:
             "mediaTransportIdentitySurvivesIntoAtomicCommand",
             "expressionCapableBrightnessPromotesTypedExpressionIntoPayload",
             "invalidBrightnessIsRejectedBeforePlanning",
+            "all233CatalogContractsValidateAndPreserveReviewedIdentity",
+            "runtimeCanonicalMetadataNeverRetainsRawSecretFields",
         ):
             if f"fun {case}" not in product_tests:
                 problems.append(f"CanonicalRuntimeCutoverAdapterTest missing {case!r}")
