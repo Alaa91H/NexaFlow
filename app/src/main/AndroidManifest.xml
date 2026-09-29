@@ -49,15 +49,12 @@
         covers APIs that need only basic state on Android 13+.
     -->
     <!--
-        A transitive manifest declares this permission with maxSdkVersion=32.
-        Without this higher-priority removal marker, Android 13+ discards the
-        declaration from the installed APK, so neither the app-info screen nor
-        RequestPermission can grant it. Keep the permission unbounded because
-        the network-mode editor uses it on current Android releases.
+        Keep READ_PHONE_STATE unbounded because the network-mode editor uses it
+        on current Android releases. A merged-manifest regression test pins the
+        absence of maxSdkVersion so a future transitive dependency cannot
+        silently narrow this permission again.
     -->
-    <uses-permission
-        android:name="android.permission.READ_PHONE_STATE"
-        tools:remove="android:maxSdkVersion" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
     <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
     <uses-permission android:name="android.permission.STATUS_BAR" />
@@ -346,7 +343,8 @@
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup"
-                tools:node="remove" />
+                tools:node="remove"
+                tools:selector="androidx.work" />
         </provider>
 
         <!--
@@ -362,11 +360,13 @@
         <provider
             android:name="io.sentry.android.core.SentryInitProvider"
             android:authorities="${applicationId}.SentryInitProvider"
-            tools:node="remove" />
+            tools:node="remove"
+            tools:selector="io.sentry.android.core" />
         <provider
             android:name="io.sentry.android.core.SentryPerformanceProvider"
             android:authorities="${applicationId}.SentryPerformanceProvider"
-            tools:node="remove" />
+            tools:node="remove"
+            tools:selector="io.sentry.android.core" />
 
         <!--
             Phone-side Wear OS bridge: receives run and toggle commands from the
