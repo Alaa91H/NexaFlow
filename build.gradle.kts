@@ -36,14 +36,16 @@ subprojects {
         // multi-module verification build, so healthy suites keep their normal
         // runtime while one stuck module fails with actionable diagnostics.
         timeout.set(java.time.Duration.ofMinutes(10))
+        // Bytecode instrumentation used by JaCoCo/Robolectric appends to the
+        // bootstrap class path. Disable class-data sharing for test JVMs so
+        // OpenJDK does not emit the otherwise harmless CDS warning.
+        jvmArgs("-Xshare:off")
         testLogging {
-            events(
-                if (System.getenv("CI").equals("true", ignoreCase = true)) {
-                    setOf("started", "failed", "skipped")
-                } else {
-                    setOf("failed")
-                }
-            )
+            if (System.getenv("CI").equals("true", ignoreCase = true)) {
+                events("started", "failed", "skipped")
+            } else {
+                events("failed")
+            }
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
             showExceptions = true
             showCauses = true
