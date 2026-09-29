@@ -95,6 +95,32 @@ class PluginEventIngressTest {
     }
 
     @Test
+    fun canonicalPluginIdentityGateRejectsColonPackageBeforePublishing() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val index = TriggerIndex(kotlinx.coroutines.flow.MutableStateFlow(listOf(pluginAutomation())))
+        val indexJob = scope.launch { index.start() }
+        awaitIndexed(index)
+        val bus = InMemoryNexaFlowEventBus(scope)
+        val ingress = PluginEventIngress(index, bus)
+
+        // ':' was accepted by the older generic token check, but it is not a
+        // valid canonical plugin id and must fail before bus publication.
+        val result = ingress.publish(
+            senderPackage = "com.example:plugin",
+            eventComponent = "com.example.plugin.EditActivity",
+            eventId = "changed",
+            correlationId = "correlation-3",
+            payload = JsonObject(emptyMap()),
+        )
+
+        assertFalse(result.accepted)
+        assertFalse(result.deduplicated)
+        assertTrue(result.reason.orEmpty().contains("identity"))
+        bus.close()
+        indexJob.cancel()
+    }
+
+    @Test
     fun payloadAdapterRejectsAndroidParcelableAndAcceptsPrimitivesOnly() {
         val accepted = PluginEventPayloadAdapter.toJson(Bundle().apply {
             putString("state", "on")
