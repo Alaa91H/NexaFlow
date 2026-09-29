@@ -96,6 +96,31 @@ class CanonicalPerformanceBudgetTest {
     }
 
     @Test
+    fun thousandTwentyFourCommandWorkflowPlansWithinShippedBudget() {
+        val children = (0 until 1_024).map { index ->
+            SetStateNode(
+                id = CanonicalNodeId("scale-$index"),
+                target = TargetId("core.scalability.target.$index"),
+                state = BooleanValue(index % 2 == 0),
+            )
+        }
+        val tree = SequenceNode(CanonicalNodeId("scale-root"), children)
+
+        validateCanonicalAst(tree)
+        val plan = CanonicalExecutionPlanner.default().plan(
+            root = tree,
+            executionPolicy = PlanExecutionPolicy.SEQUENTIAL,
+            failurePolicy = FailurePolicy.FAIL_FAST,
+        )
+        val report = CanonicalPerformanceBudget.validate(tree, plan)
+
+        assertTrue(report.withinBudget)
+        assertEquals(1_025, report.ast.nodeCount)
+        assertEquals(1_024, report.plan?.commandCount)
+        assertTrue((report.plan?.groupCount ?: 0) <= 1_024)
+    }
+
+    @Test
     fun exceededNodeBudgetProducesATypedViolation() {
         val tree = seq(
             setState("w1", true),
