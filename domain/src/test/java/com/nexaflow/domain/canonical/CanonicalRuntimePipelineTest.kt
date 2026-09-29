@@ -151,14 +151,16 @@ class CanonicalRuntimePipelineTest {
 
     @Test
     fun all233TypesCanonicalizeDeterministicallyThroughTheCutoverAdapter() {
+        val settingsPages = PilotOpenFamily.legacyPageMappings
+            .associate { it.legacyType to it.pageToken }
         for (rule in LegacyMappingTable.all()) {
             val config = when {
                 rule.kind == LegacyNodeKind.ACTION &&
                     rule.legacyType == "SYSTEM_OPEN_URL" ->
                     listOf(LegacyConfigEntry("url", "https://example.com"))
                 rule.kind == LegacyNodeKind.ACTION &&
-                    rule.legacyType.startsWith("SYSTEM_OPEN_") ->
-                    listOf(LegacyConfigEntry("page", "SETTINGS"))
+                    rule.legacyType in settingsPages ->
+                    listOf(LegacyConfigEntry("page", settingsPages.getValue(rule.legacyType)))
                 rule.kind == LegacyNodeKind.ACTION &&
                     rule.legacyType in setOf(
                         "SYSTEM_MEDIA_PLAY_FROM_SEARCH",
