@@ -14,6 +14,14 @@ TEST_FILE = ROOT / (
     "domain/src/test/java/com/nexaflow/domain/workflow/"
     "WorkflowMigrationOrchestratorTest.kt"
 )
+RUNNER_FILE = ROOT / (
+    "data/src/main/java/com/nexaflow/data/repository/"
+    "CanonicalWorkflowMigrationRunner.kt"
+)
+RUNNER_TEST_FILE = ROOT / (
+    "data/src/test/java/com/nexaflow/data/repository/"
+    "CanonicalWorkflowMigrationRunnerTest.kt"
+)
 
 FORBIDDEN_PATTERNS = (
     r"\bTriggerType\b",
@@ -49,6 +57,7 @@ REQUIRED_TEST_CASES = (
     "failedOutcomesMustCarryATypedReason",
     "progressCountsEveryTerminalState",
     "completionIsRefusedUntilEveryIdIsSettled",
+    "degradedRowsAreRetriedAndBlockCompletion",
     "crashedRunResumesFromTheJournalWithoutDoubleWork",
 )
 
@@ -82,6 +91,37 @@ def main() -> int:
                     f"WorkflowMigrationOrchestratorTest.kt missing {case!r}"
                 )
 
+    for path in (RUNNER_FILE, RUNNER_TEST_FILE):
+        if not path.is_file():
+            problems.append(f"missing production migration wiring {path.relative_to(ROOT)}")
+
+    if RUNNER_FILE.is_file():
+        runner = RUNNER_FILE.read_text(encoding="utf-8")
+        for token in (
+            "CanonicalWorkflowMigrationRunner",
+            "getAllAutomationsSnapshot",
+            "compareAndSetAutomation",
+            "canonicalWriteState",
+            "V3_WITH_LEGACY_FALLBACK",
+            "LEGACY_ONLY_DEGRADED",
+            "canonicalGraphMigrationComplete",
+            "legacyRetirementReady",
+            "WorkflowMigrationOrchestrator.MAX_BATCH_SIZE",
+        ):
+            if token not in runner:
+                problems.append(f"production migration runner missing {token!r}")
+
+    if RUNNER_TEST_FILE.is_file():
+        runner_tests = RUNNER_TEST_FILE.read_text(encoding="utf-8")
+        for case in (
+            "migrationRunsInDeterministicBoundedBatches",
+            "canonicalGraphCanMigrateWhileSecretFallbackStillBlocksLegacyRetirement",
+            "degradedRowsRemainPendingAndCanAbortTheRollout",
+            "concurrentEditWinsWithoutConsumingFailureBudget",
+        ):
+            if f"fun {case}" not in runner_tests:
+                problems.append(f"migration runner tests missing {case!r}")
+
     if problems:
         print("CANONICAL_MIGRATION_ROLLOUT: FAIL")
         for problem in problems:
@@ -89,13 +129,11 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_MIGRATION_ROLLOUT: OK — controlled migration rollout: "
-        "deterministic bounded batches over the T27 V3-write policy, a "
-        "durable idempotent journal with typed per-id outcomes, a per-run "
-        "failure threshold that aborts systematic conversion bugs, crash "
-        "recovery by re-planning from the journal, and a fail-closed "
-        "completion gate that only unlocks T27 V3_ONLY writes when every "
-        "legacy id has settled"
+        "CANONICAL_MIGRATION_ROLLOUT: OK — Room rows are migrated in bounded "
+        "deterministic batches with canonicalWriteState as the durable journal, "
+        "CAS protects concurrent edits, degraded rows remain retryable, and "
+        "canonical graph completion is distinct from legacy-retirement readiness "
+        "when secret fallback is still required"
     )
     return 0
 
