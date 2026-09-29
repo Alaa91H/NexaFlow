@@ -30,6 +30,9 @@ READ_MAPPER_FILE = ROOT / (
 DATA_TEST_FILE = ROOT / (
     "data/src/test/java/com/nexaflow/data/repository/RepositoryImplTest.kt"
 )
+DATA_MAPPER_TEST_FILE = ROOT / (
+    "data/src/test/java/com/nexaflow/data/mapper/AutomationMapperTest.kt"
+)
 NORMALIZER_FILE = ROOT / (
     "domain/src/main/java/com/nexaflow/domain/canonical/"
     "LegacyCatalogCanonicalContract.kt"
@@ -116,6 +119,7 @@ def main() -> int:
         MAPPER_FILE,
         READ_MAPPER_FILE,
         DATA_TEST_FILE,
+        DATA_MAPPER_TEST_FILE,
     ):
         if not path.is_file():
             problems.append(f"missing production V3 wiring {path.relative_to(ROOT)}")
@@ -132,6 +136,7 @@ def main() -> int:
             "CanonicalV3WriteState",
             "prepareWrite",
             "schemaVersion",
+            "suppliedConfigKeys",
         ):
             if token not in v3:
                 problems.append(f"CanonicalWorkflowDocumentV3.kt missing {token!r}")
@@ -184,6 +189,8 @@ def main() -> int:
             "legacyFallbackRequired",
             "SecretReferenceValue",
             "triggerMatch",
+            "suppliedConfigKeys",
+            "NUMERIC_ENUM_PREFIX",
         ):
             if token not in read_mapper:
                 problems.append(f"V3 read compatibility mapper missing {token!r}")
@@ -192,6 +199,13 @@ def main() -> int:
         data_tests = DATA_TEST_FILE.read_text(encoding="utf-8")
         if "automation repository reads canonical V3 before stale legacy workflow columns" not in data_tests:
             problems.append("repository tests do not prove canonical V3 read precedence")
+
+    if DATA_MAPPER_TEST_FILE.is_file():
+        mapper_tests = DATA_MAPPER_TEST_FILE.read_text(encoding="utf-8")
+        if "numericLegacyEnumAndSparseConfigRoundTripThroughCanonicalV3" not in mapper_tests:
+            problems.append(
+                "AutomationMapperTest does not prove sparse numeric enum V3 round-trip"
+            )
 
     if NORMALIZER_FILE.is_file():
         normalizer = NORMALIZER_FILE.read_text(encoding="utf-8")
