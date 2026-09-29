@@ -49,6 +49,7 @@ class CanonicalRuntimePipeline(
         cardinality: OperationCardinality? = null,
         executionPolicy: PlanExecutionPolicy = PlanExecutionPolicy.SEQUENTIAL,
         failurePolicy: FailurePolicy = FailurePolicy.FAIL_FAST,
+        validatedValues: List<NodeFieldValue>? = null,
     ): CanonicalizedPlan {
         val outcome = adapter.canonicalize(LegacyNodeInput(legacyType, kind, config))
         val canonicalized = when (outcome) {
@@ -65,13 +66,16 @@ class CanonicalRuntimePipeline(
             selectedTargetCount = selectedTargetCount,
             cardinality = cardinality,
         )
-        val ast = CanonicalWorkflowAst(root = canonicalized.node)
+        val executableNode = validatedValues
+            ?.let { canonicalized.node.withValidationArguments(it) }
+            ?: canonicalized.node
+        val ast = CanonicalWorkflowAst(root = executableNode)
 
         // The validated surface is the schema-typed view of the SAME config
         // the adapter consumed: consumed keys become typed NodeFieldValues,
         // and schema defaults fill the rest. Unconsumed legacy keys stay out
         // of the validated surface (they ride in preservedConfig only).
-        val suppliedValues = nodeArguments(canonicalized.node).entries.mapNotNull { argument ->
+        val suppliedValues = validatedValues ?: nodeArguments(executableNode).entries.mapNotNull { argument ->
             val type = schema.field(argument.id)?.type ?: return@mapNotNull null
             if (argument.value.kind != expectedValueKind(type)) return@mapNotNull null
             NodeFieldValue(argument.id, argument.value)
@@ -88,6 +92,7 @@ class CanonicalRuntimePipeline(
         return CanonicalizedPlan(
             runId = runId,
             legacyType = legacyType,
+            node = executableNode,
             preservedConfig = canonicalized.preservedConfig,
             verdict = verdict,
             plan = plan,
@@ -98,6 +103,7 @@ class CanonicalRuntimePipeline(
     data class CanonicalizedPlan(
         val runId: String,
         val legacyType: String,
+        val node: CanonicalNode,
         val preservedConfig: List<LegacyConfigEntry>,
         val verdict: ValidationVerdict,
         val plan: ExecutionPlan,
@@ -156,5 +162,33 @@ class CanonicalRuntimePipeline(
             }
             return CanonicalExecutionPlanner.of(byOperation.values.toList())
         }
+    }
+}
+
+
+private fun CanonicalNode.withValidationArguments(
+    values: List<NodeFieldValue>,
+): CanonicalNode {
+    if (values.isEmpty()) return this
+    val existing = when (this) {
+        is CanonicalActionNode -> arguments.entries
+        is ObserveNode -> arguments.entries
+        else -> emptyList()
+    }
+    val incoming = values.map { CanonicalArgument(it.field, it.value) }
+    val merged = CanonicalArguments(
+        (existing + incoming).associateBy { it.id }.values.toList(),
+    )
+    return when (this) {
+        is ObserveNode -> copy(arguments = merged)
+        is SetStateNode -> copy(arguments = merged)
+        is SetValueNode -> copy(arguments = merged)
+        is InvokeNode -> copy(arguments = merged)
+        is OpenNode -> copy(arguments = merged)
+        is SendNode -> copy(arguments = merged)
+        is TransformNode -> copy(arguments = merged)
+        is InputNode -> copy(arguments = merged)
+        is RestoreNode -> copy(arguments = merged)
+        else -> this
     }
 }
