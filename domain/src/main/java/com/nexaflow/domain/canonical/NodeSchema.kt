@@ -66,8 +66,10 @@ enum class NodeFieldType {
     TIMEZONE_ID,
     PACKAGE_ID,
     URI,
+    COORDINATE,
     ENUM_TOKEN,
     JSON,
+    COLLECTION,
     SECRET_REFERENCE,
 }
 
@@ -449,8 +451,10 @@ internal fun expectedValueKind(type: NodeFieldType): CanonicalValueKind = when (
     NodeFieldType.TIMEZONE_ID -> CanonicalValueKind.TIMEZONE_ID
     NodeFieldType.PACKAGE_ID -> CanonicalValueKind.PACKAGE_ID
     NodeFieldType.URI -> CanonicalValueKind.URI
+    NodeFieldType.COORDINATE -> CanonicalValueKind.COORDINATE
     NodeFieldType.ENUM_TOKEN -> CanonicalValueKind.ENUM_TOKEN
     NodeFieldType.JSON -> CanonicalValueKind.JSON
+    NodeFieldType.COLLECTION -> CanonicalValueKind.COLLECTION
     NodeFieldType.SECRET_REFERENCE -> CanonicalValueKind.SECRET_REFERENCE
 }
 
