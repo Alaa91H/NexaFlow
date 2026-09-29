@@ -46,5 +46,14 @@ data class AutomationEntity(
      * the compatibility adapter refused the write; legacy columns remain the
      * rollback source during controlled migration.
      */
-    val canonicalWorkflowJson: String? = null
+    val canonicalWorkflowJson: String? = null,
+    /**
+     * Production T27 dual-write state. Distinguishes a pre-V3/failed write
+     * from a valid V3 payload that intentionally still needs legacy secret
+     * fallback.
+     */
+    @ColumnInfo(defaultValue = "'LEGACY_ONLY'")
+    val canonicalWriteState: String = "LEGACY_ONLY",
+    /** Stable non-sensitive failure code; never stores exception/user text. */
+    val canonicalWriteErrorCode: String? = null
 )
