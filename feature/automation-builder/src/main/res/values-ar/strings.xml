@@ -511,12 +511,12 @@
     <string name="action_set_ringtone_sub">اختر نغمة الرنين الافتراضية للمكالمات</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">وضع الشبكة</string>
-    <string name="state_on">تشغيل</string>
+    <string name="builder_state_on">تشغيل</string>
     <string name="network_mode">وضع الشبكة</string>
     <string name="network_mode_label">جيل الشبكة المفضل</string>
     <string name="action_set_ringtone">تعيين النغمة</string>
     <string name="battery_level_section">مستوى البطارية</string>
-    <string name="state_off">إيقاف</string>
+    <string name="builder_state_off">إيقاف</string>
     <string name="network_hotspot">نقطة الاتصال</string>
     <string name="charging_state_section">حالة الشحن</string>
     <string name="charging_no">لا يشحن</string><string name="trigger_cat_schedule">الجدولة</string>    <string name="trigger_cat_device">الجهاز</string>    <string name="trigger_cat_connectivity">الاتصال</string>    <string name="trigger_cat_location">الموقع</string>    <string name="trigger_cat_apps">التطبيقات</string>    <string name="trigger_cat_communication">التواصل</string>
