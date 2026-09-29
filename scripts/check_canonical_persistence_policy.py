@@ -23,6 +23,13 @@ ENTITY_FILE = ROOT / "core/database/src/main/java/com/nexaflow/core/database/Aut
 DATABASE_FILE = ROOT / "core/database/src/main/java/com/nexaflow/core/database/AppDatabase.kt"
 MIGRATIONS_FILE = ROOT / "core/database/src/main/java/com/nexaflow/core/database/Migrations.kt"
 MAPPER_FILE = ROOT / "data/src/main/java/com/nexaflow/data/mapper/AutomationMapper.kt"
+READ_MAPPER_FILE = ROOT / (
+    "data/src/main/java/com/nexaflow/data/mapper/"
+    "CanonicalWorkflowV3ReadMapper.kt"
+)
+DATA_TEST_FILE = ROOT / (
+    "data/src/test/java/com/nexaflow/data/repository/RepositoryImplTest.kt"
+)
 NORMALIZER_FILE = ROOT / (
     "domain/src/main/java/com/nexaflow/domain/canonical/"
     "LegacyCatalogCanonicalContract.kt"
@@ -107,6 +114,8 @@ def main() -> int:
         DATABASE_FILE,
         MIGRATIONS_FILE,
         MAPPER_FILE,
+        READ_MAPPER_FILE,
+        DATA_TEST_FILE,
     ):
         if not path.is_file():
             problems.append(f"missing production V3 wiring {path.relative_to(ROOT)}")
@@ -159,6 +168,31 @@ def main() -> int:
             if token not in mapper:
                 problems.append(f"production AutomationMapper missing V3 write wiring {token!r}")
 
+        for token in (
+            "CanonicalWorkflowV3ReadMapper.toAutomation",
+            "CanonicalWorkflowV3Codec.decode(payload)",
+            "CanonicalV3WriteState.LEGACY_ONLY_DEGRADED",
+        ):
+            if token not in mapper:
+                problems.append(f"production AutomationMapper missing V3 read wiring {token!r}")
+
+    if READ_MAPPER_FILE.is_file():
+        read_mapper = READ_MAPPER_FILE.read_text(encoding="utf-8")
+        for token in (
+            "CanonicalWorkflowV3ReadMapper",
+            "persisted.sourceType",
+            "legacyFallbackRequired",
+            "SecretReferenceValue",
+            "triggerMatch",
+        ):
+            if token not in read_mapper:
+                problems.append(f"V3 read compatibility mapper missing {token!r}")
+
+    if DATA_TEST_FILE.is_file():
+        data_tests = DATA_TEST_FILE.read_text(encoding="utf-8")
+        if "automation repository reads canonical V3 before stale legacy workflow columns" not in data_tests:
+            problems.append("repository tests do not prove canonical V3 read precedence")
+
     if NORMALIZER_FILE.is_file():
         normalizer = NORMALIZER_FILE.read_text(encoding="utf-8")
         for token in (
@@ -186,11 +220,10 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_PERSISTENCE_POLICY: OK — runtime and V3 share one typed "
-        "catalog normalizer and planLegacy validation path; Room schema 22 "
-        "persists payload plus explicit write/degradation state, raw secrets "
-        "are excluded from V3, and legacy columns remain the controlled "
-        "rollback/secret fallback until retirement is proven safe"
+        "CANONICAL_PERSISTENCE_POLICY: OK — production Room saves write the "
+        "validated canonical V3 graph and production reads prefer that graph; "
+        "typed state makes degradation observable, raw secrets stay outside V3 "
+        "and resolve only through the explicit legacy fallback boundary"
     )
     return 0
 
