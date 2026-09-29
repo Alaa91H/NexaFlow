@@ -456,7 +456,7 @@ starts referencing legacy types — the  containment boundary can only shrink
   `scripts/check_canonical_plugin_conditions.py`.
 - T42: **implemented** — Documentation closure in
   `docs/canonical-automation.md` (current reference guide linked from the
-  docs index): the single runtime path, the contracts table (T05-T41),
+  docs index): the single runtime path, the contracts table (T05-T44),
   the standing guarantees (no generic shell, secrets never exposed,
   Unknown is not false, legacy retired by containment), gate verification
   and the explicit JVM-vs-device evidence boundary. CHANGELOG records the

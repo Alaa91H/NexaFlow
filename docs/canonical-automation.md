@@ -48,6 +48,9 @@ unverified input is a typed failure, never a best-effort execution.
 | Accessibility / RTL contract | `CanonicalAccessibilityModel.kt` | T35 |
 | Device matrix simulation | `CanonicalDeviceMatrixSimulator.kt` | T36 |
 | Plugin condition contract | `PluginConditionContract.kt` | T41 |
+| Documentation closure | `docs/canonical-automation.md` | T42 |
+| Measured performance regression | `CanonicalPerfRegression.kt` | T43 |
+| Release closure | `scripts/check_canonical_release_closure.py` | T44 |
 
 ## Standing guarantees
 
@@ -83,7 +86,7 @@ which cover the canonical model classes in `:domain` and `:core:plugin-sdk`.
 
 ## Status
 
-The migration record is closed through T41. Operational verification status
+The migration record is closed through T44. Operational verification status
 (live device coverage, release publication) is tracked separately in
 [VALIDATION.md](VALIDATION.md); canonical gate results recorded there are
 local-run evidence, not device certifications.
