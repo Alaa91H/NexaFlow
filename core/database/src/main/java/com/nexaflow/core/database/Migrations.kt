@@ -370,6 +370,14 @@ object Migrations {
         }
     }
 
+    /** v21 -> v22: adds the typed Canonical V3 payload beside legacy columns. */
+    val MIGRATION_21_22 = object : Migration(21, 22) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `canonicalWorkflowJson` TEXT")
+        }
+    }
+
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -390,6 +398,7 @@ object Migrations {
         MIGRATION_17_18,
         MIGRATION_18_19,
         MIGRATION_19_20,
-        MIGRATION_20_21
+        MIGRATION_20_21,
+        MIGRATION_21_22
     )
 }
