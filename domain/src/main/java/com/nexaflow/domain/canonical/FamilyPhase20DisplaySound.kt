@@ -22,6 +22,7 @@ object FamilyPhase20DisplaySound {
     object Keys {
         const val ENABLED = "enabled"
         const val VALUE = "value"
+        const val MODE = "mode"
     }
 
     /** Display actions whose desired state is boolean. */
@@ -126,6 +127,40 @@ object FamilyPhase20DisplaySound {
         }
     }
 
+    private class RingerModeRule(
+        override val legacyType: String,
+        private val base: LegacyMappingRule,
+    ) : LegacyMappingRule {
+        override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
+        override val consumedKeys: Set<String> = setOf(Keys.MODE, Keys.VALUE)
+        override val requiredKeys: Set<String> = emptySet()
+
+        override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
+            val skeleton = base.canonicalize(input) as InvokeNode
+            val mode = input.entry(Keys.MODE)?.rawValue
+            val legacyValue = input.entry(Keys.VALUE)?.rawValue
+            if (mode != null && legacyValue != null) {
+                require(mode.trim().uppercase() == legacyValue.trim().uppercase()) {
+                    "ringer mode aliases conflict"
+                }
+            }
+            val raw = mode ?: legacyValue ?: return skeleton
+            val typed = LegacyValueParsers.parseEnumToken(
+                LegacyConfigEntry(Keys.MODE, raw),
+                "compat.system_ringer_mode.mode",
+                listOf("NORMAL", "SILENT", "VIBRATE"),
+            )
+            return InvokeNode(
+                id = skeleton.id,
+                target = skeleton.target,
+                operation = skeleton.operation,
+                arguments = CanonicalArguments(
+                    listOf(CanonicalArgument(CanonicalFieldId(Keys.MODE), typed)),
+                ),
+            )
+        }
+    }
+
     private class TriggerRule(
         override val legacyType: String,
         private val base: LegacyMappingRule,
@@ -173,6 +208,7 @@ object FamilyPhase20DisplaySound {
             val base = generated.getValue(LegacyNodeKind.ACTION to name)
             when {
                 name in DISPLAY_BOOLEAN || name in SOUND_BOOLEAN -> BooleanActionRule(name, base)
+                name == "SYSTEM_RINGER_MODE" -> RingerModeRule(name, base)
                 name in DISPLAY_VALUE || name in SOUND_VALUE -> ValueActionRule(name, base)
                 else -> base // WAKE_SCREEN keeps its reviewed skeleton
             }
