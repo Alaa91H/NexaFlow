@@ -225,10 +225,11 @@ object FamilyPhase25AdvancedExternal {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.DURATION)
-        override val requiredKeys: Set<String> = setOf(Keys.DURATION)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val entry = input.entry(Keys.DURATION) ?: return skeleton
             return InvokeNode(
                 id = skeleton.id,
                 target = skeleton.target,
@@ -237,7 +238,7 @@ object FamilyPhase25AdvancedExternal {
                     listOf(
                         CanonicalArgument(
                             CanonicalFieldId("duration"),
-                            LegacyValueParsers.parseDuration(input.entry(Keys.DURATION)!!),
+                            LegacyValueParsers.parseDuration(entry),
                         ),
                     ),
                 ),
@@ -371,7 +372,7 @@ object FamilyPhase25AdvancedExternal {
                 type = NodeFieldType.ENUM_TOKEN,
                 alwaysRequired = true,
                 enumType = "core.external.http.method",
-                allowedTokens = listOf("GET", "POST", "PUT", "DELETE", "HEAD"),
+                allowedTokens = listOf("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"),
             ),
             NodeSchemaField(
                 id = CanonicalFieldId("authToken"),
