@@ -337,6 +337,15 @@ and reviewed before T01 may close:
   USER_APPROVED value never satisfies trust). Pure module surface — no
   Intent/Bundle/JSON leaks. Covered by 13 unit tests and CI gate
   `scripts/check_canonical_plugin_sdk.py`.
+- T32: **implemented** — Deterministic fault injection in
+  `domain/.../canonical/FaultInjectionController.kt`: scripted FAIL/HANG/
+  STALL actions with first/every/exact-attempt triggers over canonical
+  command ids; per-command attempt tracking with hard bounds; auditable
+  schedules (≤128 entries, duplicate-free); typed refusals for paused,
+  expired and unscripted commands — never a silent pass; no clocks and no
+  randomness so identical harness sequences replay identical decisions on
+  every machine. Covered by 11 unit tests and CI gate
+  `scripts/check_canonical_fault_injection.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
