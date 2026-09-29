@@ -222,6 +222,10 @@ jobs:
       run: python3 scripts/check_canonical_release_readiness.py
     - name: Test release readiness gate
       run: python3 -m unittest scripts.tests.test_check_canonical_release_readiness
+    - name: Legacy retirement (T39)
+      run: python3 scripts/check_canonical_legacy_retirement.py
+    - name: Test legacy retirement gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_legacy_retirement
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

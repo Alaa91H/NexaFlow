@@ -398,6 +398,28 @@ and reviewed before T01 may close:
   phase implemented, the changelog carries an Unreleased section for
   release notes, and the working tree must be clean. Covered by 5 unit
   tests and the same CI gate.
+- T39: **implemented** — Legacy retirement in
+  `scripts/check_canonical_legacy_retirement.py`: the legacy `TriggerType` /
+  `ActionType` system is retired by *containment*, not deletion. The
+  canonical platform surfaces (the canonical package, the workflow
+  persistence contracts, the plugin SDK contract) refuse any legacy-type
+  reference in code; the workflow compatibility bridges
+  (`WorkflowDocumentMappers.kt`, `DataTransforms.kt`) are the only workflow
+  files that may still name legacy types and the gate pins them to that
+  contract; every remaining reference must sit inside a reviewed
+  containment zone (engine monitors, app/feature UI, storage, models) and
+  growth beyond containment fails. Covered by 6 unit tests and CI gate
+  `scripts/check_canonical_legacy_retirement.py`.
+
+### Retirement ledger (T39)
+
+The retirement ledger records the containment decision at T39 close: legacy
+types remain the storage compatibility surface (persisted rows and deep
+links must keep decoding every historical automation), while all canonical
+platform surfaces are legacy-free. The gate prints the exact count of
+contained files at audit time and fails if any new file outside containment
+starts referencing legacy types — the containment boundary can only shrink
+through explicit reviewed changes, never grow.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

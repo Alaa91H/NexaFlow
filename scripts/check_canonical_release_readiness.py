@@ -40,6 +40,7 @@ READINESS_GATES = (
     "check_canonical_accessibility_model",
     "check_canonical_device_matrix",
     "check_canonical_architecture_fitness",
+    "check_canonical_legacy_retirement",
 )
 
 REQUIRED_INVENTORY_STATUSES = (
@@ -55,6 +56,8 @@ REQUIRED_INVENTORY_STATUSES = (
     "T35: **implemented**",
     "T36: **implemented**",
     "T37: **implemented**",
+    "T38: **implemented**",
+    "T39: **implemented**",
 )
 
 
@@ -130,7 +133,7 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_RELEASE_READINESS: OK — release candidate ready: all 25 "
+        "CANONICAL_RELEASE_READINESS: OK — release candidate ready: all 26 "
         "canonical gates pass on the current tree and are wired into CI, the "
         "inventory declares every T26+ phase implemented, the changelog "
         "carries an Unreleased section for release notes, and the working "
