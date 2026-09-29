@@ -39,12 +39,12 @@ data class AutomationEntity(
     /** Persisted multi-trigger match policy; ANY is the historical default. */
     @ColumnInfo(defaultValue = "'ANY'")
     val triggerMatch: String = "ANY",
+    val createdAt: Long,
+    val updatedAt: Long,
     /**
      * Typed Canonical V3 payload. Null means this row predates the V3 writer or
      * the compatibility adapter refused the write; legacy columns remain the
      * rollback source during controlled migration.
      */
-    val canonicalWorkflowJson: String? = null,
-    val createdAt: Long,
-    val updatedAt: Long
+    val canonicalWorkflowJson: String? = null
 )
