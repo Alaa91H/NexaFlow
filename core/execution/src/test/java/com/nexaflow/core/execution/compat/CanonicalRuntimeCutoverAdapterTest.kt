@@ -91,6 +91,19 @@ class CanonicalRuntimeCutoverAdapterTest {
     }
 
     @Test
+    fun timerDurationBoundsUseCanonicalMilliseconds() {
+        val prepared = cutover.prepareAction(
+            Action(ActionType.SYSTEM_SET_TIMER, emptyMap()),
+            runId = "run-timer-default",
+            instanceId = "v3.action.timer",
+        )
+        assertEquals(
+            DurationValue(300_000),
+            prepared.command.arguments[CanonicalFieldId("seconds")],
+        )
+    }
+
+    @Test
     fun installApkUsesPathContract() {
         val prepared = cutover.prepareAction(
             Action(
