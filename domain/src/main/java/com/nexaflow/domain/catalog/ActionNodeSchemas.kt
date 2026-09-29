@@ -287,7 +287,10 @@ internal object ActionNodeSchemas {
             stringField("body", expressionCapable = true)
         )
         ActionType.SYSTEM_SET_NOTIFICATION_TONE -> schema(
-            stringField("tone")
+            // Runtime historically writes an empty tone when omitted. Declare
+            // that compatibility default so canonical set_value planning always
+            // carries an explicit typed payload instead of an implicit handler default.
+            stringField("tone", default = "")
         )
         ActionType.SYSTEM_SET_TIMEZONE -> schema(
             stringField("zone", required = true, default = "GMT", expressionCapable = true)
