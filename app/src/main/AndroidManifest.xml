@@ -327,34 +327,12 @@
             </intent-filter>
         </activity>
 
-        <!--
-            WorkManager is configured through NexaFlowApplication's
-            Configuration.Provider (so @HiltWorker MaintenanceWorker gets its
-            Hilt-injected constructor). The default androidx.startup initializer
-            would otherwise initialize WorkManager with the plain WorkerFactory
-            first and make every @HiltWorker fail to construct at runtime —
-            remove it here so only our configuration is used.
-        -->
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <meta-data
-                android:name="androidx.work.WorkManagerInitializer"
-                android:value="nexaflow.disabled"
-                tools:replace="android:value" />
-        </provider>
 
         <!--
-            THE OPEN-CRASH FIX: sentry-android-core registers SentryInitProvider
-            (and SentryPerformanceProvider) for automatic initialization on every
-            app start. Sentry throws "DSN is required" and force-closes the app
-            when no NEXAFLOW_SENTRY_DSN was baked into the build (CI releases),
-            before Application.onCreate even runs. Sentry is opted in manually
-            (and DSN-guarded) by SentryReporter, so auto-init is removed here —
-            the app always opens, and crash reporting still works on builds that
-            carry a DSN when the user enables it in Settings > Privacy.
+            THE OPEN-CRASH FIX: sentry-android-core registers providers that run
+            before Application.onCreate. Keep those declarations explicitly
+            disabled and disable Sentry auto-init at manifest level; the only
+            activation path is the user's privacy opt-in through SentryReporter.
         -->
         <!--
             Keep Sentry's providers in the merged manifest but make them
