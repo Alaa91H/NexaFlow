@@ -1,5 +1,8 @@
 package com.nexaflow.domain.canonical
 
+import com.nexaflow.domain.capability.CapabilityRequirement
+import com.nexaflow.domain.catalog.AutomationNodeCatalog
+import com.nexaflow.domain.catalog.AutomationNodeDefinition
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehavior
 import kotlinx.serialization.Serializable
@@ -9,10 +12,10 @@ import kotlinx.serialization.json.Json
 /**
  * Persisted canonical payload written beside the historical Room columns.
  *
- * The canonical nodes are the executable intent. [sourceType] and
- * [preservedConfig] are compatibility/audit metadata only and are never used
- * as canonical execution commands. The existing Room columns remain the
- * rollback reader until the controlled-read phase is complete.
+ * The canonical nodes are the validated executable intent. sourceType and
+ * preservedConfig are compatibility/audit metadata only. Raw sensitive fields
+ * are never copied into this JSON. Nodes that still depend on a legacy secret
+ * store are explicitly marked so V3_ONLY retirement cannot be declared early.
  */
 @Serializable
 data class CanonicalWorkflowDocumentV3(
@@ -22,12 +25,19 @@ data class CanonicalWorkflowDocumentV3(
     val triggers: List<CanonicalPersistedNodeV3>,
     val actions: List<CanonicalPersistedNodeV3>,
     val exitActions: List<CanonicalPersistedNodeV3>,
+    val requiresLegacyFallback: Boolean = false,
 ) {
     init {
         require(schemaVersion == SCHEMA_VERSION) {
             "Unsupported canonical workflow schemaVersion=$schemaVersion"
         }
         require(workflowId.isNotBlank()) { "workflowId must not be blank" }
+        require(
+            requiresLegacyFallback ==
+                (triggers + actions + exitActions).any { it.legacyFallbackRequired },
+        ) {
+            "requiresLegacyFallback must match node-level fallback requirements"
+        }
     }
 
     companion object {
@@ -41,6 +51,7 @@ data class CanonicalPersistedNodeV3(
     val node: CanonicalNode,
     val preservedConfig: List<CanonicalLegacyEntryV3> = emptyList(),
     val endBehavior: CanonicalEndBehaviorV3? = null,
+    val legacyFallbackRequired: Boolean = false,
 )
 
 @Serializable
@@ -56,9 +67,11 @@ data class CanonicalEndBehaviorV3(
 )
 
 /**
- * T27 production codec. It uses the exact T14/T15/T17-T25 adapter stack used
- * by the canonical runtime pipeline; persistence can therefore never invent a
- * second mapping table.
+ * T27 production codec.
+ *
+ * Runtime and persistence share LegacyCatalogCanonicalContractNormalizer and
+ * CanonicalRuntimePipeline.planLegacy. V3 therefore serializes the same typed,
+ * validated node that execution admits rather than an adapter-only skeleton.
  */
 object CanonicalWorkflowV3Codec {
 
@@ -68,9 +81,14 @@ object CanonicalWorkflowV3Codec {
         classDiscriminator = "canonicalType"
     }
 
-    private val adapter: LegacyCanonicalAdapter by lazy {
-        CanonicalRuntimePipeline.defaultAdapter()
+    private val pipeline: CanonicalRuntimePipeline by lazy {
+        CanonicalRuntimePipeline()
     }
+
+    private val singleNodeSemantics = NodeSelectionSemantics(
+        targetSelectionMode = TargetSelectionMode.SINGLE,
+        executionMode = ExecutionMode.SINGLE,
+    )
 
     fun encode(automation: Automation): String =
         json.encodeToString(documentFor(automation))
@@ -81,49 +99,58 @@ object CanonicalWorkflowV3Codec {
     fun decode(payload: String): CanonicalWorkflowDocumentV3 =
         json.decodeFromString(CanonicalWorkflowDocumentV3.serializer(), payload)
 
-    fun documentFor(automation: Automation): CanonicalWorkflowDocumentV3 =
-        CanonicalWorkflowDocumentV3(
+    fun documentFor(automation: Automation): CanonicalWorkflowDocumentV3 {
+        val triggers = automation.triggers.mapIndexed { index, trigger ->
+            canonicalize(
+                definition = AutomationNodeCatalog.definitionFor(trigger.type),
+                legacyType = trigger.type.name,
+                kind = LegacyNodeKind.TRIGGER,
+                config = LegacyCatalogCanonicalContractNormalizer
+                    .legacyConfigEntries(trigger.config),
+                instanceId = CanonicalNodeId("v3.trigger.$index"),
+                endBehavior = null,
+            )
+        }
+        val actions = automation.actions.mapIndexed { index, action ->
+            canonicalize(
+                definition = AutomationNodeCatalog.definitionFor(action.type),
+                legacyType = action.type.name,
+                kind = LegacyNodeKind.ACTION,
+                config = LegacyCatalogCanonicalContractNormalizer
+                    .legacyConfigEntries(action.config),
+                instanceId = CanonicalNodeId("v3.action.$index"),
+                endBehavior = action.endBehavior,
+            )
+        }
+        val exitActions = automation.exitActions.mapIndexed { index, action ->
+            canonicalize(
+                definition = AutomationNodeCatalog.definitionFor(action.type),
+                legacyType = action.type.name,
+                kind = LegacyNodeKind.ACTION,
+                config = LegacyCatalogCanonicalContractNormalizer
+                    .legacyConfigEntries(action.config),
+                instanceId = CanonicalNodeId("v3.exit.$index"),
+                endBehavior = action.endBehavior,
+            )
+        }
+        val requiresLegacyFallback =
+            (triggers + actions + exitActions).any { it.legacyFallbackRequired }
+
+        return CanonicalWorkflowDocumentV3(
             workflowId = automation.id,
             conditionLogic = when (automation.triggerMatch.name) {
                 "ALL" -> ConditionLogic.ALL
                 else -> ConditionLogic.ANY
             },
-            triggers = automation.triggers.mapIndexed { index, trigger ->
-                canonicalize(
-                    legacyType = trigger.type.name,
-                    kind = LegacyNodeKind.TRIGGER,
-                    config = trigger.config.entries
-                        .sortedBy { it.key }
-                        .map { LegacyConfigEntry(it.key, it.value) },
-                    instanceId = CanonicalNodeId("v3.trigger.$index"),
-                    endBehavior = null,
-                )
-            },
-            actions = automation.actions.mapIndexed { index, action ->
-                canonicalize(
-                    legacyType = action.type.name,
-                    kind = LegacyNodeKind.ACTION,
-                    config = action.config.entries
-                        .sortedBy { it.key }
-                        .map { LegacyConfigEntry(it.key, it.value) },
-                    instanceId = CanonicalNodeId("v3.action.$index"),
-                    endBehavior = action.endBehavior,
-                )
-            },
-            exitActions = automation.exitActions.mapIndexed { index, action ->
-                canonicalize(
-                    legacyType = action.type.name,
-                    kind = LegacyNodeKind.ACTION,
-                    config = action.config.entries
-                        .sortedBy { it.key }
-                        .map { LegacyConfigEntry(it.key, it.value) },
-                    instanceId = CanonicalNodeId("v3.exit.$index"),
-                    endBehavior = action.endBehavior,
-                )
-            },
+            triggers = triggers,
+            actions = actions,
+            exitActions = exitActions,
+            requiresLegacyFallback = requiresLegacyFallback,
         )
+    }
 
     private fun canonicalize(
+        definition: AutomationNodeDefinition,
         legacyType: String,
         kind: LegacyNodeKind,
         config: List<LegacyConfigEntry>,
@@ -135,20 +162,44 @@ object CanonicalWorkflowV3Codec {
             kind = kind,
             config = config,
         )
-        val outcome = adapter.canonicalize(input)
-        val canonicalized = outcome as? LegacyAdapterOutcome.Canonicalized
+        val preview = pipeline.canonicalize(input)
+        val canonicalized = preview as? LegacyAdapterOutcome.Canonicalized
             ?: throw IllegalArgumentException(
                 "canonical V3 write refused for $kind/$legacyType: " +
-                    (outcome as LegacyAdapterOutcome.Rejected).reason,
+                    (preview as LegacyAdapterOutcome.Rejected).reason,
             )
+        val contract = LegacyCatalogCanonicalContractNormalizer.normalize(
+            definition = definition,
+            node = canonicalized.node,
+            config = config,
+            kind = if (kind == LegacyNodeKind.ACTION) {
+                NodeSchemaKind.ACTION
+            } else {
+                NodeSchemaKind.TRIGGER
+            },
+        )
+        val planned = pipeline.planLegacy(
+            runId = "persist:$legacyType:${instanceId.value}",
+            legacyType = legacyType,
+            kind = kind,
+            schema = contract.schema,
+            config = config,
+            semantics = singleNodeSemantics,
+            capabilityRequirement = CapabilityRequirement.None,
+            failurePolicy = FailurePolicy.FAIL_FAST,
+            validatedValues = contract.values,
+        )
+        val safePreserved = LegacyCatalogCanonicalContractNormalizer
+            .sanitizedPreservedConfig(definition, planned.preservedConfig)
 
         return CanonicalPersistedNodeV3(
             sourceType = legacyType,
-            node = canonicalized.node.withCanonicalId(instanceId),
-            preservedConfig = canonicalized.preservedConfig.map {
+            node = planned.node.withCanonicalId(instanceId),
+            preservedConfig = safePreserved.map {
                 CanonicalLegacyEntryV3(it.key, it.rawValue)
             },
             endBehavior = endBehavior?.toCanonicalCompatibility(),
+            legacyFallbackRequired = contract.containsLegacySecretMaterial,
         )
     }
 
