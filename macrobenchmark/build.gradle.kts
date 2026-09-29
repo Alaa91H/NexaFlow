@@ -45,6 +45,8 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.benchmark.benchmark.macro.junit4)
+    implementation(libs.androidx.benchmark.benchmark.junit4)
+    implementation(project(":domain"))
     implementation(libs.androidx.test.ext.junit)
     implementation(libs.androidx.test.runner)
     implementation(libs.androidx.test.uiautomator.uiautomator)
