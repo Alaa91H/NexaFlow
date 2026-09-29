@@ -76,6 +76,32 @@ class AutomationMapperTest {
     }
 
     @Test
+    fun numericLegacyEnumAndSparseConfigRoundTripThroughCanonicalV3() {
+        val sparse = automation.copy(
+            id = "numeric-enum-round-trip",
+            triggers = listOf(
+                Trigger(
+                    TriggerType.TIME,
+                    config = mapOf(
+                        "time" to "08:15",
+                        "weekOfMonth" to "1",
+                    ),
+                ),
+            ),
+            actions = emptyList(),
+        )
+
+        val entity = sparse.toEntity()
+        assertEquals(CanonicalV3WriteState.V3_READY.name, entity.canonicalWriteState)
+
+        val restored = entity.toDomain()
+        assertEquals(sparse.triggers.single().config, restored.triggers.single().config)
+        assertEquals("1", restored.triggers.single().config["weekOfMonth"])
+        assertTrue("intervalUnit" !in restored.triggers.single().config)
+        assertTrue("zonePolicy" !in restored.triggers.single().config)
+    }
+
+    @Test
     fun invalidCanonicalWriteDegradesExplicitlyWithoutLosingLegacyColumns() {
         val invalid = automation.copy(
             actions = listOf(
