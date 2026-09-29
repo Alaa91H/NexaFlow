@@ -32,6 +32,7 @@ import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.canonical.AtomicCommand
 import com.nexaflow.domain.canonical.CanonicalProductRuntime
 import com.nexaflow.domain.canonical.CommandIdempotency
 import com.nexaflow.domain.canonical.LegacyConfigEntry
@@ -824,7 +825,7 @@ class ExecutionEngine(
                             payloadContext,
                             dataRuntime,
                             executionId = payloadContext.runId,
-                            nodeId = canonicalAction.command.commandId,
+                            canonicalCommand = canonicalAction.command,
                         )
                         // UNKNOWN means the backend may already have applied the
                         // side effect. Never blind-retry it: preserve the durable
@@ -1532,12 +1533,13 @@ class ExecutionEngine(
             runContext = runContext,
             dataRuntime = dataRuntime,
             executionId = executionId,
-            nodeId = prepared.command.commandId,
+            canonicalCommand = prepared.command,
         )
     }
 
     private suspend fun executeAction(
         action: Action,
+        canonicalCommand: AtomicCommand,
         controller: SystemController,
         notif: NotificationSettings,
         channel: ExecutionProvider?,
@@ -1546,7 +1548,6 @@ class ExecutionEngine(
         runContext: WorkflowRunContext? = null,
         dataRuntime: ScopedDataRuntime? = null,
         executionId: String? = runContext?.runId,
-        nodeId: String? = null
     ): SystemControlResult {
         val capabilityRequest = CapabilityActionMapper.requestFor(
             action = action,
@@ -1573,7 +1574,7 @@ class ExecutionEngine(
                     channel = channel,
                     automationId = automationId,
                     executionId = executionId,
-                    nodeId = nodeId,
+                    nodeId = canonicalCommand.commandId,
                     revertOnExit = revertOnExit,
                     runContext = runContext,
                     dataRuntime = dataRuntime,
