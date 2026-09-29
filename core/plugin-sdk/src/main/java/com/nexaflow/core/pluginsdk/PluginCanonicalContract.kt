@@ -174,7 +174,7 @@ object PluginCanonicalContract {
                     val body = trimmed.removePrefix("[").removeSuffix("]").trim()
                     body.isEmpty() || body.split(",").all { element ->
                         val item = element.trim()
-                        item.length >= 2 && item.startsWith(""") && item.endsWith(""")
+                        item.length >= 2 && item.startsWith("\\\"") && item.endsWith("\\\"")
                     }
                 }.getOrDefault(false)
         }
