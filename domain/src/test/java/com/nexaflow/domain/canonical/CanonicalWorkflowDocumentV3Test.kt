@@ -3,6 +3,7 @@ package com.nexaflow.domain.canonical
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.TriggerMatchMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -48,6 +49,75 @@ class CanonicalWorkflowDocumentV3Test {
         assertFalse(persisted.preservedConfig.any { it.key == "password" })
         val node = persisted.node as InvokeNode
         assertTrue(node.arguments[CanonicalFieldId("password")] is SecretReferenceValue)
+    }
+
+    @Test
+    fun canonicalReadOverridesStaleLegacyGraphButKeepsLegacyMetadata() {
+        val canonicalSource = automation(
+            Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("value" to "42")),
+        ).copy(
+            triggerMatch = TriggerMatchMode.ALL,
+        )
+        val staleLegacy = canonicalSource.copy(
+            name = "Metadata from Room",
+            actions = listOf(
+                Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("value" to "200")),
+            ),
+            triggerMatch = TriggerMatchMode.ANY,
+        )
+
+        val restored = CanonicalWorkflowV3Codec.decodeToAutomation(
+            CanonicalWorkflowV3Codec.encode(canonicalSource),
+            staleLegacy,
+        )
+
+        assertEquals("Metadata from Room", restored.name)
+        assertEquals("42", restored.actions.single().config["value"])
+        assertEquals(TriggerMatchMode.ALL, restored.triggerMatch)
+    }
+
+    @Test
+    fun canonicalReadUsesLegacyOnlyForSecretFallback() {
+        val rawSecret = "secret-kept-outside-v3"
+        val canonicalSource = automation(
+            Action(
+                ActionType.SYSTEM_WIFI_CONNECT,
+                mapOf("ssid" to "CanonicalNet", "password" to rawSecret),
+            ),
+        )
+        val legacyFallback = canonicalSource.copy(
+            actions = listOf(
+                Action(
+                    ActionType.SYSTEM_WIFI_CONNECT,
+                    mapOf("ssid" to "StaleLegacyNet", "password" to rawSecret),
+                ),
+            ),
+        )
+
+        val restored = CanonicalWorkflowV3Codec.decodeToAutomation(
+            CanonicalWorkflowV3Codec.encode(canonicalSource),
+            legacyFallback,
+        )
+
+        assertEquals("CanonicalNet", restored.actions.single().config["ssid"])
+        assertEquals(rawSecret, restored.actions.single().config["password"])
+
+        try {
+            CanonicalWorkflowV3Codec.decodeToAutomation(
+                CanonicalWorkflowV3Codec.encode(canonicalSource),
+                legacyFallback.copy(
+                    actions = listOf(
+                        Action(
+                            ActionType.SYSTEM_WIFI_CONNECT,
+                            mapOf("ssid" to "StaleLegacyNet"),
+                        ),
+                    ),
+                ),
+            )
+            throw AssertionError("Expected missing secret fallback to reject V3 read")
+        } catch (expected: IllegalArgumentException) {
+            assertTrue(expected.message.orEmpty().contains("legacy secret fallback missing"))
+        }
     }
 
     @Test
