@@ -297,6 +297,54 @@ class NodeSchemaTest {
     }
 
     @Test
+    fun collectionElementKindIsValidated() {
+        val schema = NodeSchema(
+            schemaId = "core.schema.application.packages",
+            kind = NodeSchemaKind.ACTION,
+            target = TargetId("core.application.package"),
+            operation = OperationId("core.operation.uninstall"),
+            title = "Packages",
+            summaryTemplate = "Packages {packages}",
+            fields = listOf(
+                NodeSchemaField(
+                    id = CanonicalFieldId("packages"),
+                    type = NodeFieldType.COLLECTION,
+                    collectionElementKind = CanonicalValueKind.PACKAGE_ID,
+                    alwaysRequired = true,
+                ),
+            ),
+        )
+
+        val valid = validateNodeValues(
+            schema,
+            listOf(
+                NodeFieldValue(
+                    CanonicalFieldId("packages"),
+                    CollectionValue(
+                        CanonicalValueKind.PACKAGE_ID,
+                        listOf(PackageIdValue("com.example.app")),
+                    ),
+                ),
+            ),
+        )
+        assertTrue(valid.isEmpty())
+
+        val invalid = validateNodeValues(
+            schema,
+            listOf(
+                NodeFieldValue(
+                    CanonicalFieldId("packages"),
+                    CollectionValue(
+                        CanonicalValueKind.TEXT,
+                        listOf(TextValue("com.example.app")),
+                    ),
+                ),
+            ),
+        )
+        assertTrue(invalid.any { it is CollectionElementKindMismatch })
+    }
+
+    @Test
     fun ruleEvaluationIsDeterministic() {
         val values = listOf(
             NodeFieldValue(CanonicalFieldId("enabled"), BooleanValue(true)),
