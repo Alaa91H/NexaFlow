@@ -148,20 +148,10 @@ class CanonicalRuntimePipeline(
          * semantics. Operation-keyed; a family may only refine a declaration,
          * never invent a conflicting one.
          */
-        fun defaultPlanner(): CanonicalExecutionPlanner {
-            val declarations = CanonicalExecutionPlanner.defaultSemantics() +
-                FamilyPhase21Applications.commandSemantics() +
-                FamilyPhase22Communication.commandSemantics() +
-                FamilyPhase25AdvancedExternal.commandSemantics()
-            val byOperation = declarations.associateBy { it.operation }
-            val conflicting = declarations.groupBy { it.operation }
-                .filterValues { it.size > 1 }
-                .filterValues { group -> group.distinct().size > 1 }
-            require(conflicting.isEmpty()) {
-                "conflicting command semantics: " + conflicting.keys.joinToString { it.value }
-            }
-            return CanonicalExecutionPlanner.of(byOperation.values.toList())
-        }
+        fun defaultPlanner(): CanonicalExecutionPlanner =
+            CanonicalExecutionPlanner.of(
+                CanonicalProductRuntime.productCommandSemantics(),
+            )
     }
 }
 
