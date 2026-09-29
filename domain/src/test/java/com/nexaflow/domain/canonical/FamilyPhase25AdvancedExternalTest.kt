@@ -91,7 +91,7 @@ class FamilyPhase25AdvancedExternalTest {
     }
 
     @Test
-    fun waitRequiresTypedDuration() {
+    fun waitDurationRefinesWhenPresentAndDefersWhenAbsent() {
         val ok = familyAdapter.canonicalize(
             LegacyNodeInput(
                 "SYSTEM_WAIT",
@@ -107,11 +107,8 @@ class FamilyPhase25AdvancedExternalTest {
 
         val missing = familyAdapter.canonicalize(
             LegacyNodeInput("SYSTEM_WAIT", LegacyNodeKind.ACTION, emptyList()),
-        )
-        assertEquals(
-            LegacyAdapterRejection.MISSING_REQUIRED_CONFIG,
-            (missing as LegacyAdapterOutcome.Rejected).reason,
-        )
+        ) as LegacyAdapterOutcome.Canonicalized
+        assertTrue(missing.node is InvokeNode)
     }
 
     @Test
