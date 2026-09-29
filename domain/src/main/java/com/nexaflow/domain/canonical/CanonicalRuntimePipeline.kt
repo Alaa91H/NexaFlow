@@ -67,7 +67,7 @@ class CanonicalRuntimePipeline(
             cardinality = cardinality,
         )
         val executableNode = validatedValues
-            ?.let { canonicalized.node.withValidationArguments(it) }
+            ?.let { canonicalized.node.withValidationArguments(it, schema) }
             ?: canonicalized.node
         val ast = CanonicalWorkflowAst(root = executableNode)
 
@@ -158,6 +158,7 @@ class CanonicalRuntimePipeline(
 
 private fun CanonicalNode.withValidationArguments(
     values: List<NodeFieldValue>,
+    schema: NodeSchema,
 ): CanonicalNode {
     if (values.isEmpty()) return this
     val existing = when (this) {
@@ -169,19 +170,44 @@ private fun CanonicalNode.withValidationArguments(
     val merged = CanonicalArguments(
         (existing + incoming).associateBy { it.id }.values.toList(),
     )
+
+    fun selectedWritePayload(vararg preferredIds: String): CanonicalValue? {
+        preferredIds.forEach { preferred ->
+            values.firstOrNull { it.field.value == preferred }?.let { return it.value }
+        }
+        val onlyField = schema.fields.singleOrNull()?.id ?: return null
+        return values.firstOrNull { it.field == onlyField }?.value
+    }
+
     return when (this) {
         is ObserveNode -> copy(arguments = merged)
         is SetStateNode -> copy(
-            state = values.firstOrNull {
-                it.field.value == "enabled" || it.field.value == "state"
-            }?.value ?: state,
+            state = selectedWritePayload("enabled", "state") ?: state,
             arguments = merged,
         )
         is SetValueNode -> copy(
-            value = values.firstOrNull { it.field.value == "value" }?.value ?: value,
+            value = selectedWritePayload("value") ?: value,
             arguments = merged,
         )
-        is InvokeNode -> copy(arguments = merged)
+        is InvokeNode -> when (operation) {
+            CanonicalWriteOperations.SET_STATE -> {
+                val payload = selectedWritePayload("enabled", "state")
+                if (payload != null) {
+                    SetStateNode(id = id, target = target, state = payload, arguments = merged)
+                } else {
+                    copy(arguments = merged)
+                }
+            }
+            CanonicalWriteOperations.SET_VALUE -> {
+                val payload = selectedWritePayload("value")
+                if (payload != null) {
+                    SetValueNode(id = id, target = target, value = payload, arguments = merged)
+                } else {
+                    copy(arguments = merged)
+                }
+            }
+            else -> copy(arguments = merged)
+        }
         is OpenNode -> copy(arguments = merged)
         is SendNode -> copy(arguments = merged)
         is TransformNode -> copy(arguments = merged)
