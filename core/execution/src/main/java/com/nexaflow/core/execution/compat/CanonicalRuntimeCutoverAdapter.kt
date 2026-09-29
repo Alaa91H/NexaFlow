@@ -59,17 +59,25 @@ class CanonicalRuntimeCutoverAdapter(
             config = rawConfig,
             kind = NodeSchemaKind.ACTION,
         )
-        val planned = pipeline.planLegacy(
-            runId = runId,
-            legacyType = action.type.name,
-            kind = LegacyNodeKind.ACTION,
-            schema = contract.schema,
-            config = rawConfig,
-            semantics = SINGLE_NODE_SEMANTICS,
-            capabilityRequirement = CommandRequirementCatalog.requirementFor(action.type),
-            failurePolicy = FailurePolicy.FAIL_FAST,
-            validatedValues = contract.values,
-        )
+        val planned = runCatching {
+            pipeline.planLegacy(
+                runId = runId,
+                legacyType = action.type.name,
+                kind = LegacyNodeKind.ACTION,
+                schema = contract.schema,
+                config = rawConfig,
+                semantics = SINGLE_NODE_SEMANTICS,
+                capabilityRequirement = CommandRequirementCatalog.requirementFor(action.type),
+                failurePolicy = FailurePolicy.FAIL_FAST,
+                validatedValues = contract.values,
+            )
+        }.getOrElse { failure ->
+            throw IllegalArgumentException(
+                "canonical action ${action.type.name} failed during validation/planning: " +
+                    failure.message.orEmpty(),
+                failure,
+            )
+        }
         val commands = planned.plan.allCommands
         require(commands.size == 1) {
             "legacy action ${action.type.name} must plan to exactly one atomic command"
@@ -101,17 +109,25 @@ class CanonicalRuntimeCutoverAdapter(
             config = rawConfig,
             kind = NodeSchemaKind.TRIGGER,
         )
-        val planned = pipeline.planLegacy(
-            runId = runId,
-            legacyType = trigger.type.name,
-            kind = LegacyNodeKind.TRIGGER,
-            schema = contract.schema,
-            config = rawConfig,
-            semantics = SINGLE_NODE_SEMANTICS,
-            capabilityRequirement = CommandRequirementCatalog.requirementFor(trigger.type),
-            failurePolicy = FailurePolicy.FAIL_FAST,
-            validatedValues = contract.values,
-        )
+        val planned = runCatching {
+            pipeline.planLegacy(
+                runId = runId,
+                legacyType = trigger.type.name,
+                kind = LegacyNodeKind.TRIGGER,
+                schema = contract.schema,
+                config = rawConfig,
+                semantics = SINGLE_NODE_SEMANTICS,
+                capabilityRequirement = CommandRequirementCatalog.requirementFor(trigger.type),
+                failurePolicy = FailurePolicy.FAIL_FAST,
+                validatedValues = contract.values,
+            )
+        }.getOrElse { failure ->
+            throw IllegalArgumentException(
+                "canonical trigger ${trigger.type.name} failed during validation/planning: " +
+                    failure.message.orEmpty(),
+                failure,
+            )
+        }
         return PreparedTrigger(
             node = planned.node.withRuntimeId(CanonicalNodeId(instanceId)),
             preservedConfig = LegacyCatalogCanonicalContractNormalizer
