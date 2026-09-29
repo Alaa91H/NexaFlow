@@ -221,8 +221,18 @@ class CanonicalRuntimePipelineTest {
                     rule.legacyType == "PLUGIN_EVENT" ->
                     listOf(LegacyConfigEntry("plugin_id", "com.example.plugin"))
                 rule.kind == LegacyNodeKind.ACTION &&
-                    rule.legacyType in setOf("SYSTEM_SET_ALARM", "SYSTEM_SET_TIMER") ->
-                    listOf(LegacyConfigEntry("time", "07:30"))
+                    rule.legacyType == "SYSTEM_SET_ALARM" ->
+                    listOf(
+                        LegacyConfigEntry("hour", "7"),
+                        LegacyConfigEntry("minute", "30"),
+                    )
+                rule.kind == LegacyNodeKind.ACTION &&
+                    rule.legacyType == "SYSTEM_SET_TIMER" ->
+                    listOf(
+                        LegacyConfigEntry("seconds", "300"),
+                        LegacyConfigEntry("message", "Timer"),
+                        LegacyConfigEntry("skipUi", "false"),
+                    )
                 rule.kind == LegacyNodeKind.ACTION &&
                     rule.legacyType == "SYSTEM_WAIT" ->
                     listOf(LegacyConfigEntry("duration", "1000"))
