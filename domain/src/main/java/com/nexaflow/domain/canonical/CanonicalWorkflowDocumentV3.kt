@@ -92,7 +92,9 @@ object CanonicalWorkflowV3Codec {
                 canonicalize(
                     legacyType = trigger.type.name,
                     kind = LegacyNodeKind.TRIGGER,
-                    config = trigger.config,
+                    config = trigger.config.entries
+                        .sortedBy { it.key }
+                        .map { LegacyConfigEntry(it.key, it.value) },
                     instanceId = CanonicalNodeId("v3.trigger.$index"),
                     endBehavior = null,
                 )
@@ -101,7 +103,9 @@ object CanonicalWorkflowV3Codec {
                 canonicalize(
                     legacyType = action.type.name,
                     kind = LegacyNodeKind.ACTION,
-                    config = action.config,
+                    config = action.config.entries
+                        .sortedBy { it.key }
+                        .map { LegacyConfigEntry(it.key, it.value) },
                     instanceId = CanonicalNodeId("v3.action.$index"),
                     endBehavior = action.endBehavior,
                 )
@@ -110,7 +114,9 @@ object CanonicalWorkflowV3Codec {
                 canonicalize(
                     legacyType = action.type.name,
                     kind = LegacyNodeKind.ACTION,
-                    config = action.config,
+                    config = action.config.entries
+                        .sortedBy { it.key }
+                        .map { LegacyConfigEntry(it.key, it.value) },
                     instanceId = CanonicalNodeId("v3.exit.$index"),
                     endBehavior = action.endBehavior,
                 )
@@ -120,16 +126,14 @@ object CanonicalWorkflowV3Codec {
     private fun canonicalize(
         legacyType: String,
         kind: LegacyNodeKind,
-        config: Map<String, String>,
+        config: List<LegacyConfigEntry>,
         instanceId: CanonicalNodeId,
         endBehavior: EndBehavior?,
     ): CanonicalPersistedNodeV3 {
         val input = LegacyNodeInput(
             legacyType = legacyType,
             kind = kind,
-            config = config.entries
-                .sortedBy { it.key }
-                .map { LegacyConfigEntry(it.key, it.value) },
+            config = config,
         )
         val outcome = adapter.canonicalize(input)
         val canonicalized = outcome as? LegacyAdapterOutcome.Canonicalized
