@@ -190,7 +190,8 @@ def main() -> int:
             "SecretReferenceValue",
             "triggerMatch",
             "suppliedConfigKeys",
-            "NUMERIC_ENUM_PREFIX",
+            "LegacyCatalogCanonicalContractNormalizer.legacyEnumToken",
+            "field.allowedValues",
         ):
             if token not in read_mapper:
                 problems.append(f"V3 read compatibility mapper missing {token!r}")
@@ -202,10 +203,14 @@ def main() -> int:
 
     if DATA_MAPPER_TEST_FILE.is_file():
         mapper_tests = DATA_MAPPER_TEST_FILE.read_text(encoding="utf-8")
-        if "numericLegacyEnumAndSparseConfigRoundTripThroughCanonicalV3" not in mapper_tests:
-            problems.append(
-                "AutomationMapperTest does not prove sparse numeric enum V3 round-trip"
-            )
+        for case in (
+            "numericLegacyEnumAndSparseConfigRoundTripThroughCanonicalV3",
+            "punctuationBearingLegacyEnumRoundTripsThroughCanonicalV3",
+        ):
+            if case not in mapper_tests:
+                problems.append(
+                    f"AutomationMapperTest does not prove enum V3 round-trip {case!r}"
+                )
 
     if NORMALIZER_FILE.is_file():
         normalizer = NORMALIZER_FILE.read_text(encoding="utf-8")
@@ -213,6 +218,9 @@ def main() -> int:
             "LegacyCatalogCanonicalContractNormalizer",
             "containsLegacySecretMaterial",
             "sanitizedPreservedConfig",
+            "canonicalEnumToken",
+            "legacyEnumToken",
+            "legacy enum values collide after canonical encoding",
         ):
             if token not in normalizer:
                 problems.append(f"shared canonical normalizer missing {token!r}")
@@ -236,8 +244,9 @@ def main() -> int:
     print(
         "CANONICAL_PERSISTENCE_POLICY: OK — production Room saves write the "
         "validated canonical V3 graph and production reads prefer that graph; "
-        "typed state makes degradation observable, raw secrets stay outside V3 "
-        "and resolve only through the explicit legacy fallback boundary"
+        "typed state makes degradation observable, raw secrets stay outside V3, "
+        "and legacy enum identities round-trip through one collision-checked "
+        "reversible codec rather than mapper-local compatibility rules"
     )
     return 0
 
