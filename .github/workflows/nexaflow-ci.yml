@@ -190,6 +190,10 @@ jobs:
       run: python3 scripts/check_canonical_diagnostics_model.py
     - name: Test diagnostics model gate
       run: python3 -m unittest scripts.tests.test_check_canonical_diagnostics_model
+    - name: Canonical plugin SDK (T31)
+      run: python3 scripts/check_canonical_plugin_sdk.py
+    - name: Test plugin SDK gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_plugin_sdk
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

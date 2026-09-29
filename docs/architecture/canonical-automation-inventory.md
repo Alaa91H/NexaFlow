@@ -326,6 +326,17 @@ and reviewed before T01 may close:
   carries no Android/Compose coupling so Compose, logs and exports render
   one identical fact. Covered by 9 unit tests and CI gate
   `scripts/check_canonical_diagnostics_model.py`.
+- T31: **implemented** — Canonical plugin SDK surface in
+  `core/plugin-sdk/.../PluginCanonicalContract.kt`: the typed host-side
+  contract between the canonical platform and external plugins —
+  event/invocation identities mirror the pinned canonical AST (plugin.event,
+  plugin.action, match_event_filter, typed pluginId/payload arguments); a
+  deterministic event matcher with wildcard payload filters; bounded
+  payload schemas with typed refusal reasons; and a single fail-closed
+  invocation gate over schema + lifecycle + trust (the deprecated
+  USER_APPROVED value never satisfies trust). Pure module surface — no
+  Intent/Bundle/JSON leaks. Covered by 13 unit tests and CI gate
+  `scripts/check_canonical_plugin_sdk.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
