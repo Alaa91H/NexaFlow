@@ -391,6 +391,13 @@ and reviewed before T01 may close:
   and every canonical gate (T26+ family) verified to exist, ship a
   unittest, and stay wired into CI. Covered by 5 unit tests and the same
   CI gate.
+- T38: **implemented** — Release candidate readiness in
+  `scripts/check_canonical_release_readiness.py`: one aggregate, fail-closed
+  verdict for tagging an RC — all 25 canonical gates run and pass on the
+  current tree and stay wired into CI, the inventory declares every T26+
+  phase implemented, the changelog carries an Unreleased section for
+  release notes, and the working tree must be clean. Covered by 5 unit
+  tests and the same CI gate.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

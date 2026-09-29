@@ -218,6 +218,10 @@ jobs:
       run: python3 scripts/check_canonical_architecture_fitness.py
     - name: Test architecture fitness gate
       run: python3 -m unittest scripts.tests.test_check_canonical_architecture_fitness
+    - name: Release candidate readiness (T38)
+      run: python3 scripts/check_canonical_release_readiness.py
+    - name: Test release readiness gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_release_readiness
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
