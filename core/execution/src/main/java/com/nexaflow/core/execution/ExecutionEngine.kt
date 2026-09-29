@@ -1539,7 +1539,6 @@ class ExecutionEngine(
 
     private suspend fun executeAction(
         action: Action,
-        canonicalCommand: AtomicCommand,
         controller: SystemController,
         notif: NotificationSettings,
         channel: ExecutionProvider?,
@@ -1548,6 +1547,7 @@ class ExecutionEngine(
         runContext: WorkflowRunContext? = null,
         dataRuntime: ScopedDataRuntime? = null,
         executionId: String? = runContext?.runId,
+        canonicalCommand: AtomicCommand,
     ): SystemControlResult {
         val capabilityRequest = CapabilityActionMapper.requestFor(
             action = action,
