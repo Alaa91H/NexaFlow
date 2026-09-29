@@ -75,13 +75,27 @@ class FamilyPhase20DisplaySoundTest {
     }
 
     @Test
-    fun missingValueIsRejected() {
+    fun missingValueDefersToCatalogContract() {
         val outcome = familyAdapter.canonicalize(
             LegacyNodeInput("SYSTEM_BRIGHTNESS", LegacyNodeKind.ACTION, emptyList()),
         )
+        val canonicalized = outcome as LegacyAdapterOutcome.Canonicalized
+        assertTrue(canonicalized.node is InvokeNode)
+    }
+
+    @Test
+    fun realRingerModeKeyIsPreservedForCatalogValidation() {
+        val outcome = familyAdapter.canonicalize(
+            LegacyNodeInput(
+                "SYSTEM_RINGER_MODE",
+                LegacyNodeKind.ACTION,
+                listOf(LegacyConfigEntry("mode", "VIBRATE")),
+            ),
+        ) as LegacyAdapterOutcome.Canonicalized
+        assertTrue(outcome.node is InvokeNode)
         assertEquals(
-            LegacyAdapterRejection.MISSING_REQUIRED_CONFIG,
-            (outcome as LegacyAdapterOutcome.Rejected).reason,
+            listOf(LegacyConfigEntry("mode", "VIBRATE")),
+            outcome.preservedConfig,
         )
     }
 
@@ -172,23 +186,21 @@ class FamilyPhase20DisplaySoundTest {
     }
 
     @Test
-    fun brightnessSchemaEnforcesPercentageBounds() {
+    fun brightnessSchemaEnforcesRuntimeIntegerBounds() {
         val schema = FamilyPhase20DisplaySound.brightnessSchema()
 
         assertTrue(
             validateNodeValues(
                 schema,
-                listOf(NodeFieldValue(CanonicalFieldId("level"), PercentageValue("35"))),
+                listOf(NodeFieldValue(CanonicalFieldId("level"), IntegerValue(128))),
             ).isEmpty(),
         )
-        // Out-of-range percentages are rejected even earlier, by the typed
-        // value constructor itself (fail closed at the type layer).
-        try {
-            PercentageValue("140")
-            throw AssertionError("Expected IllegalArgumentException")
-        } catch (_: IllegalArgumentException) {
-            // expected
-        }
+        assertTrue(
+            validateNodeValues(
+                schema,
+                listOf(NodeFieldValue(CanonicalFieldId("level"), IntegerValue(256))),
+            ).any { it is FieldValueOutOfBounds },
+        )
     }
 
     @Test
@@ -198,7 +210,7 @@ class FamilyPhase20DisplaySoundTest {
                 LegacyNodeKind.TRIGGER -> emptyList()
                 else -> when (rule.legacyType) {
                     "SYSTEM_BRIGHTNESS" -> listOf(LegacyConfigEntry("value", "35"))
-                    "SYSTEM_RINGER_MODE" -> listOf(LegacyConfigEntry("value", "VIBRATE"))
+                    "SYSTEM_RINGER_MODE" -> listOf(LegacyConfigEntry("mode", "VIBRATE"))
                     else -> listOf(LegacyConfigEntry("enabled", "true"))
                 }
             }
