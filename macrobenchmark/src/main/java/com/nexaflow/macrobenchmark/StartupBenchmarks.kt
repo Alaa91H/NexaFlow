@@ -1,6 +1,7 @@
 package com.nexaflow.macrobenchmark
 
 import androidx.benchmark.macro.CompilationMode
+import androidx.benchmark.macro.FrameTimingMetric
 import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.StartupTimingMetric
 // In benchmark 1.4.x the rule moved to its own junit4 package.
@@ -35,7 +36,7 @@ class StartupBenchmarks {
     @Test
     fun startup() = benchmarkRule.measureRepeated(
         packageName = "com.nexaflow.app",
-        metrics = listOf(StartupTimingMetric()),
+        metrics = listOf(StartupTimingMetric(), FrameTimingMetric()),
         iterations = 5,
         startupMode = StartupMode.COLD,
     ) {
