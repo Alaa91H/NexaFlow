@@ -102,6 +102,30 @@ class AutomationMapperTest {
     }
 
     @Test
+    fun punctuationBearingLegacyEnumRoundTripsThroughCanonicalV3() {
+        val hashed = automation.copy(
+            id = "hash-enum-round-trip",
+            triggers = emptyList(),
+            actions = listOf(
+                Action(
+                    ActionType.DATA_HASH,
+                    config = mapOf(
+                        "operation" to "SHA-256",
+                        "input" to "hello",
+                    ),
+                ),
+            ),
+        )
+
+        val entity = hashed.toEntity()
+        assertEquals(CanonicalV3WriteState.V3_READY.name, entity.canonicalWriteState)
+
+        val restored = entity.toDomain()
+        assertEquals(hashed.actions.single().config, restored.actions.single().config)
+        assertEquals("SHA-256", restored.actions.single().config["operation"])
+    }
+
+    @Test
     fun invalidCanonicalWriteDegradesExplicitlyWithoutLosingLegacyColumns() {
         val invalid = automation.copy(
             actions = listOf(
