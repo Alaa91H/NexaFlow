@@ -67,10 +67,16 @@ object WorkflowMigrationOrchestrator {
     ) {
         private val byId: Map<String, MigrationOutcome> = entries.associateBy { it.id }
 
-        /** Terminal statuses count as settled regardless of re-runs. */
+        /**
+         * Only rows with a canonical payload are settled. A degraded
+         * legacy-only write remains pending and is retried on later runs.
+         */
         val completedIds: Set<String>
             get() = byId.values
-                .filter { it.status != OutcomeStatus.FAILED }
+                .filter {
+                    it.status == OutcomeStatus.MIGRATED ||
+                        it.status == OutcomeStatus.SKIPPED_UNCHANGED
+                }
                 .mapTo(mutableSetOf()) { it.id }
 
         val failedIds: Set<String>
@@ -118,8 +124,10 @@ object WorkflowMigrationOrchestrator {
      * Attempts one batch. Each conversion is delegated to [convert] (the
      * production default plans a T27 DUAL_WRITE_V3_PRIMARY decision); a
      * prepared V3 row means MIGRATED, a degraded decision means
-     * DEGRADED_LEGACY_ONLY, and any thrown conversion failure means FAILED.
-     * When [maxFailuresPerRun] is exceeded the batch aborts: remaining ids
+     * DEGRADED_LEGACY_ONLY and remains retryable, and any thrown conversion
+     * failure means FAILED. Both degraded and failed conversions consume the
+     * failure budget. When [maxFailuresPerRun] is exceeded the batch aborts:
+     * remaining ids
      * are left unattempted so the rollout stops before repeating the same
      * systematic failure. The failure counter is per-run; historical journal
      * failures are retried by a later run instead of blocking it.
@@ -162,21 +170,36 @@ object WorkflowMigrationOrchestrator {
                     reason = failure.message ?: failure::class.simpleName ?: "conversion failed",
                     attemptedAtEpochMs = attemptedAtEpochMs,
                 )
+                if (failures > maxFailuresPerRun) {
+                    return BatchResult(
+                        batchIndex = batch.index,
+                        outcomes = outcomes,
+                        aborted = true,
+                    )
+                }
                 continue
             }
-            outcomes += if (decision.row != null) {
-                MigrationOutcome(
+            if (decision.row != null) {
+                outcomes += MigrationOutcome(
                     id = id,
                     status = OutcomeStatus.MIGRATED,
                     attemptedAtEpochMs = attemptedAtEpochMs,
                 )
             } else {
-                MigrationOutcome(
+                failures += 1
+                outcomes += MigrationOutcome(
                     id = id,
                     status = OutcomeStatus.DEGRADED_LEGACY_ONLY,
                     reason = decision.warnings.joinToString(separator = ";"),
                     attemptedAtEpochMs = attemptedAtEpochMs,
                 )
+                if (failures > maxFailuresPerRun) {
+                    return BatchResult(
+                        batchIndex = batch.index,
+                        outcomes = outcomes,
+                        aborted = true,
+                    )
+                }
             }
         }
         return BatchResult(batchIndex = batch.index, outcomes = outcomes)
@@ -200,8 +223,9 @@ object WorkflowMigrationOrchestrator {
         val degraded: Int,
         val failed: Int,
     ) {
-        val settled: Int get() = migrated + degraded
-        val fraction: Double get() = if (total == 0) 1.0 else settled.toDouble() / total
+        /** Canonical-ready rows only; degraded rows are intentionally pending. */
+        val settled: Int get() = migrated
+        val fraction: Double get() = if (total == 0) 1.0 else migrated.toDouble() / total
     }
 
     fun progress(items: List<MigrationItem>, journal: MigrationJournal): MigrationProgress {
@@ -230,8 +254,13 @@ object WorkflowMigrationOrchestrator {
         journal: MigrationJournal,
     ) {
         val unresolved = items.map { it.id }.filter { id ->
-            val status = journal.outcomeFor(id)?.status
-            status == null || status == OutcomeStatus.FAILED
+            when (journal.outcomeFor(id)?.status) {
+                OutcomeStatus.MIGRATED,
+                OutcomeStatus.SKIPPED_UNCHANGED -> false
+                OutcomeStatus.DEGRADED_LEGACY_ONLY,
+                OutcomeStatus.FAILED,
+                null -> true
+            }
         }
         require(unresolved.isEmpty()) {
             "cannot declare migration complete: ${unresolved.size} unresolved ids " +
