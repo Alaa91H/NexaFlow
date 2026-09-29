@@ -210,6 +210,10 @@ jobs:
       run: python3 scripts/check_canonical_accessibility_model.py
     - name: Test accessibility model gate
       run: python3 -m unittest scripts.tests.test_check_canonical_accessibility_model
+    - name: Device matrix (T36)
+      run: python3 scripts/check_canonical_device_matrix.py
+    - name: Test device matrix gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_device_matrix
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

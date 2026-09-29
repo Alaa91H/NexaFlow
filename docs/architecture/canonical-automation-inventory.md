@@ -372,9 +372,17 @@ and reviewed before T01 may close:
   payloads redact in accessibility text (defense in depth over T30);
   overflow announced as exact counts; RTL policy pins mirroring without
   reordering, trailing-edge overflow badges and locale-neutral logical
-  detail order; builder node announcements redact secret arguments.
+  detail order; builder node  announcements redact secret arguments.
   Covered by 9 unit tests and CI gate
   `scripts/check_canonical_accessibility_model.py`.
+- T36: **implemented** — Device matrix simulator in
+  `domain/.../canonical/CanonicalDeviceMatrixSimulator.kt`: deterministic
+  OEM/ROM profiles (families, integration tiers, SDK bands) with typed
+  per-primitive expected outcomes (SUPPORTED/DEGRADED/UNSUPPORTED);
+  profiles fail closed unless every primitive is declared exactly once;
+  deterministic replay; computed coverage reports primitive blind spots
+  and missing family gaps instead of hiding them. Covered by 10 unit
+  tests and CI gate `scripts/check_canonical_device_matrix.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
