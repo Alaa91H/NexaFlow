@@ -111,10 +111,14 @@ object PluginConditionContract {
      * host lifecycle must ALL hold when the corresponding policy knob is on.
      */
     fun checkQuery(
-        query: ConditionQuery,
+        @Suppress("UnusedParameter") query: ConditionQuery,
         host: QueryHostState,
         policy: QueryPolicy = QueryPolicy(),
     ): QueryCheck {
+        // `query` stays in the signature so the gate contract carries the
+        // typed instance argument end to end; its validity is enforced by
+        // the ConditionQuery constructor and the host's approved-instance
+        // lookup, so the pure policy check itself needs nothing from it.
         val reasons = mutableListOf<QueryRefusal>()
         if (policy.requireInstanceApproval && !host.instanceApproved) {
             reasons += QueryRefusal.INSTANCE_NOT_APPROVED

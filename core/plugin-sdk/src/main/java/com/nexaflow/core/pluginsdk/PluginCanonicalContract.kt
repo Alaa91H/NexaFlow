@@ -134,7 +134,7 @@ object PluginCanonicalContract {
     // Payload validation (fail closed, bounded, deterministic)
     // ------------------------------------------------------------------
 
-    private val MAX_PAYLOAD_ENTRIES: Int = 32
+    private const val MAX_PAYLOAD_ENTRIES: Int = 32
 
     fun validatePayload(
         schema: PayloadSchema,

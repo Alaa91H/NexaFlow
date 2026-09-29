@@ -17,6 +17,7 @@ package com.nexaflow.domain.canonical
  * family phase upgrades values with schema type information. This is what
  * keeps the migration lossless and idempotent.
  */
+@Suppress("LargeClass") // one reviewed 233-entry table; splitting it would hide the parity contract
 object LegacyMappingTable {
 
     private data class Entry(
