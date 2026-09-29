@@ -880,15 +880,25 @@ private fun SelectedActionCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
-                    ActionConfigEditor(
-                        option = option,
-                        config = config,
-                        onConfigChange = onConfigChange,
-                        onPickApp = onPickApp,
-                        availableVariables = availableVariables,
-                        onPluginConfigure = onPluginConfigure,
-                        automations = automations
-                    )
+                    val canonicalBinding =
+                        CanonicalBuilderSchemaBridge.editingBindingForAction(option.actionType)
+                    if (canonicalBinding != null) {
+                        CanonicalSchemaFieldEditor(
+                            binding = canonicalBinding,
+                            config = config,
+                            onConfigChange = onConfigChange,
+                        )
+                    } else {
+                        ActionConfigEditor(
+                            option = option,
+                            config = config,
+                            onConfigChange = onConfigChange,
+                            onPickApp = onPickApp,
+                            availableVariables = availableVariables,
+                            onPluginConfigure = onPluginConfigure,
+                            automations = automations
+                        )
+                    }
                     PermissionHintForAction(
                         actionType = option.actionType,
                         actionConfig = config,
