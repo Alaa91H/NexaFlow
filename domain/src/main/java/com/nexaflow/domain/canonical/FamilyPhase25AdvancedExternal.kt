@@ -26,6 +26,8 @@ object FamilyPhase25AdvancedExternal {
         const val EXPRESSION = "expression"
         const val DURATION = "duration"
         const val PLUGIN_ID = "plugin_id"
+        const val PACKAGE = "package"
+        const val PLUGIN_INSTANCE = "pluginInstance"
         const val KEY = "key"
         const val VALUE = "value"
     }
@@ -246,36 +248,95 @@ object FamilyPhase25AdvancedExternal {
         }
     }
 
+    private class PluginFireRule(
+        override val legacyType: String,
+        private val base: LegacyMappingRule,
+    ) : LegacyMappingRule {
+        override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
+        override val consumedKeys: Set<String> =
+            setOf(Keys.PACKAGE, Keys.PLUGIN_INSTANCE, Keys.PLUGIN_ID)
+        override val requiredKeys: Set<String> = emptySet()
+
+        override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
+            val skeleton = base.canonicalize(input) as InvokeNode
+            val packageId = input.entry(Keys.PACKAGE)?.rawValue
+            val legacyPluginId = input.entry(Keys.PLUGIN_ID)?.rawValue
+            if (packageId != null && legacyPluginId != null) {
+                require(packageId == legacyPluginId) {
+                    "plugin package and legacy plugin_id aliases conflict"
+                }
+            }
+            val pluginId = packageId ?: legacyPluginId
+            val arguments = buildList {
+                pluginId?.let {
+                    add(
+                        CanonicalArgument(
+                            CanonicalFieldId("pluginId"),
+                            TextValue(it),
+                        ),
+                    )
+                }
+                input.entry(Keys.PLUGIN_INSTANCE)?.let {
+                    add(
+                        CanonicalArgument(
+                            CanonicalFieldId("configRef"),
+                            TextValue(it.rawValue),
+                        ),
+                    )
+                }
+            }
+            return InvokeNode(
+                id = skeleton.id,
+                target = skeleton.target,
+                operation = skeleton.operation,
+                arguments = CanonicalArguments(arguments),
+            )
+        }
+    }
+
     private class PluginTriggerRule(
         override val legacyType: String,
         private val base: LegacyMappingRule,
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.TRIGGER
-        override val consumedKeys: Set<String> = setOf(Keys.PLUGIN_ID)
-
-        // The plugin id is optional at the boundary; rules fail closed when a
-        // later stage needs it (no inherited requiredKeys on optional keys).
+        override val consumedKeys: Set<String> =
+            setOf(Keys.PACKAGE, Keys.PLUGIN_INSTANCE, Keys.PLUGIN_ID)
         override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as ObserveNode
-            input.entry(Keys.PLUGIN_ID)?.let {
-                // Plugin ids are strict opaque tokens, not free text.
-                return ObserveNode(
-                    id = skeleton.id,
-                    target = skeleton.target,
-                    predicate = skeleton.predicate,
-                    arguments = CanonicalArguments(
-                        listOf(
-                            CanonicalArgument(
-                                CanonicalFieldId("pluginId"),
-                                LegacyValueParsers.parseText(it),
-                            ),
-                        ),
-                    ),
-                )
+            val packageId = input.entry(Keys.PACKAGE)?.rawValue
+            val legacyPluginId = input.entry(Keys.PLUGIN_ID)?.rawValue
+            if (packageId != null && legacyPluginId != null) {
+                require(packageId == legacyPluginId) {
+                    "plugin package and legacy plugin_id aliases conflict"
+                }
             }
-            return skeleton
+            val pluginId = packageId ?: legacyPluginId
+            val arguments = buildList {
+                pluginId?.let {
+                    add(
+                        CanonicalArgument(
+                            CanonicalFieldId("pluginId"),
+                            TextValue(it),
+                        ),
+                    )
+                }
+                input.entry(Keys.PLUGIN_INSTANCE)?.let {
+                    add(
+                        CanonicalArgument(
+                            CanonicalFieldId("configRef"),
+                            TextValue(it.rawValue),
+                        ),
+                    )
+                }
+            }
+            return ObserveNode(
+                id = skeleton.id,
+                target = skeleton.target,
+                predicate = skeleton.predicate,
+                arguments = CanonicalArguments(arguments),
+            )
         }
     }
 
@@ -299,8 +360,9 @@ object FamilyPhase25AdvancedExternal {
                 name in PRIVILEGED_COMMANDS -> PrivilegedCommandRule(name, base)
                 name in DEVICE_POWER -> PowerRule(name, base)
                 name == "SYSTEM_HTTP_REQUEST" -> HttpRule(name, base)
+                name == "PLUGIN_FIRE" -> PluginFireRule(name, base)
                 name == "SYSTEM_WAIT" -> WaitRule(name, base)
-                else -> DataTransformRule(name, base) // clipboard/setting/plugin
+                else -> DataTransformRule(name, base) // clipboard/setting
             }
         } + PLUGIN_TRIGGERS.map { name ->
             PluginTriggerRule(name, generated.getValue(LegacyNodeKind.TRIGGER to name))
