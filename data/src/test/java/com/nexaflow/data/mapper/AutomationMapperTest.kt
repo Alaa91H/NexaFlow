@@ -1,5 +1,6 @@
 package com.nexaflow.data.mapper
 
+import com.nexaflow.domain.canonical.CanonicalWorkflowV3Codec
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -56,6 +57,19 @@ class AutomationMapperTest {
         assertEquals(automation.triggers.size, 4)
 
         assertEquals(automation, entity.toDomain())
+    }
+
+    @Test
+    fun domainToEntityWritesTypedCanonicalV3() {
+        val entity = automation.toEntity()
+        val payload = requireNotNull(entity.canonicalWorkflowJson)
+        val document = CanonicalWorkflowV3Codec.decode(payload)
+
+        assertEquals(3, document.schemaVersion)
+        assertEquals(automation.id, document.workflowId)
+        assertEquals(automation.triggers.size, document.triggers.size)
+        assertEquals(automation.actions.size, document.actions.size)
+        assertTrue(document.triggers.all { it.node is com.nexaflow.domain.canonical.ObserveNode })
     }
 
     @Test
