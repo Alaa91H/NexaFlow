@@ -46,6 +46,58 @@ class FamilyPhase18MediaNavigationTest {
     }
 
     @Test
+    fun mediaCommandIdentitySurvivesCanonicalization() {
+        val expected = linkedMapOf(
+            "SYSTEM_MEDIA_PLAY_PAUSE" to "PLAY_PAUSE",
+            "SYSTEM_MEDIA_NEXT" to "NEXT",
+            "SYSTEM_MEDIA_PREVIOUS" to "PREVIOUS",
+            "SYSTEM_MEDIA_STOP" to "STOP",
+            "SYSTEM_MEDIA_FAST_FORWARD" to "FAST_FORWARD",
+            "SYSTEM_MEDIA_REWIND" to "REWIND",
+            "SYSTEM_MEDIA_PLAY_FROM_SEARCH" to "PLAY_FROM_SEARCH",
+        )
+        for ((legacyType, token) in expected) {
+            val config = if (legacyType == "SYSTEM_MEDIA_PLAY_FROM_SEARCH") {
+                listOf(LegacyConfigEntry("query", "jazz"))
+            } else {
+                emptyList()
+            }
+            val outcome = familyAdapter.canonicalize(
+                LegacyNodeInput(legacyType, LegacyNodeKind.ACTION, config),
+            ) as LegacyAdapterOutcome.Canonicalized
+            val node = outcome.node as InvokeNode
+            assertEquals(
+                EnumTokenValue("core.media.command", token),
+                node.arguments[CanonicalFieldId("command")],
+            )
+        }
+    }
+
+    @Test
+    fun navigationDestinationIdentitySurvivesCanonicalization() {
+        val expected = linkedMapOf(
+            "SYSTEM_GO_HOME" to "HOME",
+            "SYSTEM_OPEN_RECENTS" to "RECENTS",
+            "SYSTEM_OPEN_NOTIFICATIONS" to "NOTIFICATIONS",
+            "SYSTEM_OPEN_QUICK_SETTINGS" to "QUICK_SETTINGS",
+            "SYSTEM_OPEN_APP_DRAWER" to "APP_DRAWER",
+            "SYSTEM_EXPAND_STATUS_BAR" to "EXPAND_STATUS_BAR",
+            "SYSTEM_COLLAPSE_STATUS_BAR" to "COLLAPSE_STATUS_BAR",
+            "SYSTEM_STATUS_BAR_TOGGLE" to "STATUS_BAR_TOGGLE",
+        )
+        for ((legacyType, token) in expected) {
+            val outcome = familyAdapter.canonicalize(
+                LegacyNodeInput(legacyType, LegacyNodeKind.ACTION, emptyList()),
+            ) as LegacyAdapterOutcome.Canonicalized
+            val node = outcome.node as InvokeNode
+            assertEquals(
+                EnumTokenValue("core.system.navigation.destination", token),
+                node.arguments[CanonicalFieldId("destination")],
+            )
+        }
+    }
+
+    @Test
     fun mediaSessionFilterUpgradesToTypedPackage() {
         val outcome = familyAdapter.canonicalize(
             LegacyNodeInput(
@@ -140,6 +192,10 @@ class FamilyPhase18MediaNavigationTest {
             schema,
             listOf(
                 NodeFieldValue(
+                    CanonicalFieldId("command"),
+                    EnumTokenValue("core.media.command", "NEXT"),
+                ),
+                NodeFieldValue(
                     CanonicalFieldId("sessionPackage"),
                     PackageIdValue("com.example.player"),
                 ),
@@ -151,6 +207,10 @@ class FamilyPhase18MediaNavigationTest {
             schema,
             listOf(
                 NodeFieldValue(
+                    CanonicalFieldId("command"),
+                    EnumTokenValue("core.media.command", "NEXT"),
+                ),
+                NodeFieldValue(
                     CanonicalFieldId("sessionPackage"),
                     TextValue("com.example.player"),
                 ),
@@ -160,10 +220,21 @@ class FamilyPhase18MediaNavigationTest {
     }
 
     @Test
-    fun navigationSchemaHasNoPayloadFields() {
+    fun navigationSchemaRequiresTypedDestination() {
         val schema = FamilyPhase18MediaNavigation.navigationSchema()
-        assertTrue(schema.fields.isEmpty())
-        assertTrue(validateNodeValues(schema, emptyList()).isEmpty())
+        val missing = validateNodeValues(schema, emptyList())
+        assertTrue(missing.any { it is MissingRequiredField })
+
+        val valid = validateNodeValues(
+            schema,
+            listOf(
+                NodeFieldValue(
+                    CanonicalFieldId("destination"),
+                    EnumTokenValue("core.system.navigation.destination", "HOME"),
+                ),
+            ),
+        )
+        assertTrue(valid.isEmpty())
     }
 
     @Test
