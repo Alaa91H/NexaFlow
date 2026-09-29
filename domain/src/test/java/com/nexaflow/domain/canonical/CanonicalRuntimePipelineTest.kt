@@ -254,6 +254,53 @@ class CanonicalRuntimePipelineTest {
     }
 
     @Test
+    fun structuredSetValueUsesDeclaredPrimaryDefaultAsPayload() {
+        val network = pipeline.planLegacy(
+            runId = "structured-network",
+            legacyType = "SYSTEM_NETWORK_MODE",
+            kind = LegacyNodeKind.ACTION,
+            schema = LegacyCatalogCanonicalContractNormalizer.normalize(
+                definition = AutomationNodeCatalog.definitionFor(
+                    com.nexaflow.domain.models.ActionType.SYSTEM_NETWORK_MODE,
+                ),
+                node = requireNotNull(
+                    (pipeline.canonicalize(
+                        LegacyNodeInput(
+                            "SYSTEM_NETWORK_MODE",
+                            LegacyNodeKind.ACTION,
+                            emptyList(),
+                        ),
+                    ) as LegacyAdapterOutcome.Canonicalized).node,
+                ),
+                config = emptyList(),
+                kind = NodeSchemaKind.ACTION,
+            ).schema,
+            config = emptyList(),
+            semantics = NodeSelectionSemantics(),
+            capabilityRequirement = OperationCapabilityRequirements(
+                operation = OperationId("core.operation.set_value"),
+                providers = emptyList(),
+            ),
+        )
+        assertTrue(network.executableNode is SetValueNode)
+        assertEquals(
+            TextValue("AUTO"),
+            (network.executableNode as SetValueNode).value,
+        )
+    }
+
+    @Test
+    fun systemSettingDeclaresLegacyEmptyValueDefault() {
+        val definition = AutomationNodeCatalog.definitionFor(
+            com.nexaflow.domain.models.ActionType.SYSTEM_SET_SETTING,
+        )
+        val valueField = requireNotNull(
+            definition.configuration.fields.firstOrNull { it.key == "value" },
+        )
+        assertEquals("", valueField.defaultValue)
+    }
+
+    @Test
     fun cutoverPathIsDeterministic() {
         val input = { runId: String ->
             pipeline.planLegacy(
