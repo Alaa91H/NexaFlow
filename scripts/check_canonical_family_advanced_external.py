@@ -35,7 +35,7 @@ REQUIRED_TEST_CASES = (
     "dataTransformUpgradesToTypedExpression",
     "privilegedCommandNeverCarriesRawCommandText",
     "httpUpgradesUrlAndSecretAuthToken",
-    "waitRequiresTypedDuration",
+    "waitDurationRefinesWhenPresentAndDefersWhenAbsent",
     "pluginTriggerCarriesTypedPluginId",
     "privilegedOperationsAreNeverBlindlyRetryable",
     "httpSchemaIsSensitiveWithSecretTokenField",
