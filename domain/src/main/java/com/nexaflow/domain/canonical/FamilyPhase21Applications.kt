@@ -325,6 +325,7 @@ object FamilyPhase21Applications {
             NodeSchemaField(
                 id = CanonicalFieldId("packages"),
                 type = NodeFieldType.COLLECTION,
+                collectionElementKind = CanonicalValueKind.PACKAGE_ID,
                 alwaysRequired = true,
             ),
         ),
