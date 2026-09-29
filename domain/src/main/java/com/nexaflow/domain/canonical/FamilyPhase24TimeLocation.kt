@@ -22,6 +22,11 @@ object FamilyPhase24TimeLocation {
         const val ENABLED = "enabled"
         const val TIME = "time"
         const val TIMEZONE = "timezone"
+        const val HOUR = "hour"
+        const val MINUTE = "minute"
+        const val SECONDS = "seconds"
+        const val MESSAGE = "message"
+        const val SKIP_UI = "skipUi"
         const val RADIUS = "radius"
         const val TRANSITION = "transition"
         const val VALUE = "value"
@@ -33,11 +38,9 @@ object FamilyPhase24TimeLocation {
     /** Location mode / alarm / timer are value-ish CREATE/SET actions. */
     private val LOCATION_VALUE_ACTIONS = setOf("SYSTEM_LOCATION_MODE")
 
-    /** Schedule-create actions (alarm/timer) with typed times. */
-    private val SCHEDULE_ACTIONS = setOf(
-        "SYSTEM_SET_ALARM",
-        "SYSTEM_SET_TIMER",
-    )
+    /** Alarm/timer keep the persisted/runtime contracts exactly. */
+    private val ALARM_ACTIONS = setOf("SYSTEM_SET_ALARM")
+    private val TIMER_ACTIONS = setOf("SYSTEM_SET_TIMER")
 
     /** Maps stays an open skeleton with an optional typed query. */
     private val OTHER_ACTIONS = setOf("SYSTEM_OPEN_MAPS")
@@ -48,7 +51,7 @@ object FamilyPhase24TimeLocation {
     private val STATE_TRIGGERS = setOf("LOCATION_STATE")
 
     private val ALL_FAMILY_ACTIONS = LOCATION_STATE_ACTIONS + LOCATION_VALUE_ACTIONS +
-        SCHEDULE_ACTIONS + OTHER_ACTIONS
+        ALARM_ACTIONS + TIMER_ACTIONS + OTHER_ACTIONS
     private val ALL_FAMILY_TRIGGERS = SCHEDULE_TRIGGERS + EVENT_TRIGGERS +
         GEOFENCE_TRIGGERS + STATE_TRIGGERS
 
@@ -99,25 +102,69 @@ object FamilyPhase24TimeLocation {
         }
     }
 
-    private class ScheduleRule(
+    private class AlarmRule(
         override val legacyType: String,
         private val base: LegacyMappingRule,
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
-        override val consumedKeys: Set<String> = setOf(Keys.TIME, Keys.TIMEZONE)
+        override val consumedKeys: Set<String> = setOf(Keys.HOUR, Keys.MINUTE)
         override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
             val arguments = mutableListOf<CanonicalArgument>()
-            val time = input.entry(Keys.TIME)
-            time?.let {
-                arguments += CanonicalArgument(CanonicalFieldId("time"), parseWallClock(it))
+            input.entry(Keys.HOUR)?.let { entry ->
+                val hour = LegacyValueParsers.parseInteger(entry)
+                require(hour.value in 0L..23L) { "alarm hour must be in 0..23" }
+                arguments += CanonicalArgument(CanonicalFieldId(Keys.HOUR), hour)
             }
-            input.entry(Keys.TIMEZONE)?.let {
+            input.entry(Keys.MINUTE)?.let { entry ->
+                val minute = LegacyValueParsers.parseInteger(entry)
+                require(minute.value in 0L..59L) { "alarm minute must be in 0..59" }
+                arguments += CanonicalArgument(CanonicalFieldId(Keys.MINUTE), minute)
+            }
+            return InvokeNode(
+                id = skeleton.id,
+                target = skeleton.target,
+                operation = skeleton.operation,
+                arguments = CanonicalArguments(arguments),
+            )
+        }
+    }
+
+    private class TimerRule(
+        override val legacyType: String,
+        private val base: LegacyMappingRule,
+    ) : LegacyMappingRule {
+        override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
+        override val consumedKeys: Set<String> =
+            setOf(Keys.SECONDS, Keys.MESSAGE, Keys.SKIP_UI)
+        override val requiredKeys: Set<String> = emptySet()
+
+        override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
+            val skeleton = base.canonicalize(input) as InvokeNode
+            val arguments = mutableListOf<CanonicalArgument>()
+            input.entry(Keys.SECONDS)?.let { entry ->
+                val seconds = entry.rawValue.toLongOrNull()
+                    ?: throw IllegalArgumentException("timer seconds must be an integer")
+                require(seconds in 1L..86_400L) {
+                    "timer seconds must be in 1..86400"
+                }
                 arguments += CanonicalArgument(
-                    CanonicalFieldId("timezone"),
-                    TimezoneValue(it.rawValue),
+                    CanonicalFieldId(Keys.SECONDS),
+                    DurationValue(Math.multiplyExact(seconds, 1000L)),
+                )
+            }
+            input.entry(Keys.MESSAGE)?.let { entry ->
+                arguments += CanonicalArgument(
+                    CanonicalFieldId(Keys.MESSAGE),
+                    LegacyValueParsers.parseText(entry),
+                )
+            }
+            input.entry(Keys.SKIP_UI)?.let { entry ->
+                arguments += CanonicalArgument(
+                    CanonicalFieldId(Keys.SKIP_UI),
+                    LegacyValueParsers.parseBoolean(entry),
                 )
             }
             return InvokeNode(
@@ -262,7 +309,8 @@ object FamilyPhase24TimeLocation {
             when {
                 name in LOCATION_STATE_ACTIONS -> LocationStateRule(name, base)
                 name in LOCATION_VALUE_ACTIONS -> TimeValueRule(name, base)
-                name in SCHEDULE_ACTIONS -> ScheduleRule(name, base)
+                name in ALARM_ACTIONS -> AlarmRule(name, base)
+                name in TIMER_ACTIONS -> TimerRule(name, base)
                 else -> MapsRule(name, base)
             }
         } + ALL_FAMILY_TRIGGERS.map { name ->
