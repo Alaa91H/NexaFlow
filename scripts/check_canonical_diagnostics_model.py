@@ -14,6 +14,27 @@ TEST_FILE = ROOT / (
     "domain/src/test/java/com/nexaflow/domain/canonical/"
     "CanonicalDiagnosticsModelTest.kt"
 )
+RUN_EXPLAINER_FILE = ROOT / (
+    "core/logging/src/main/java/com/nexaflow/core/logging/RunExplainer.kt"
+)
+TRACE_FILE = ROOT / (
+    "core/logging/src/main/java/com/nexaflow/core/logging/ExecutionTraceEvent.kt"
+)
+DETAILS_VM_FILE = ROOT / (
+    "feature/history/src/main/java/com/nexaflow/feature/history/"
+    "ExecutionDetailsViewModel.kt"
+)
+DETAILS_SCREEN_FILE = ROOT / (
+    "feature/history/src/main/java/com/nexaflow/feature/history/"
+    "ExecutionDetailsScreen.kt"
+)
+RUN_EXPLAINER_TEST = ROOT / (
+    "core/logging/src/test/java/com/nexaflow/core/logging/RunExplainerTest.kt"
+)
+DETAILS_TEST = ROOT / (
+    "feature/history/src/test/java/com/nexaflow/feature/history/"
+    "ExecutionDetailsExplanationTest.kt"
+)
 
 FORBIDDEN_PATTERNS = (
     r"\bTriggerType\b",
@@ -77,6 +98,87 @@ def main() -> int:
             if f"fun {case}" not in test_source:
                 problems.append(f"CanonicalDiagnosticsModelTest.kt missing {case!r}")
 
+    # Product closure: T30 is not complete with a pure presentation model
+    # alone. The real history/details surface must consume structured trace
+    # reasons, correlate one exact run, and redact detail again before UI.
+    for path in (
+        RUN_EXPLAINER_FILE,
+        TRACE_FILE,
+        DETAILS_VM_FILE,
+        DETAILS_SCREEN_FILE,
+        RUN_EXPLAINER_TEST,
+        DETAILS_TEST,
+    ):
+        if not path.is_file():
+            problems.append(f"missing product diagnostics wiring {path.relative_to(ROOT)}")
+
+    if TRACE_FILE.is_file():
+        trace = TRACE_FILE.read_text(encoding="utf-8")
+        for token in (
+            "class TraceRecorder",
+            "SecretRedactor.redact(stamped.detail)",
+            "traceReasonCode",
+            "traceDetail",
+        ):
+            if token not in trace:
+                problems.append(f"structured trace boundary missing {token!r}")
+
+    if RUN_EXPLAINER_FILE.is_file():
+        explainer = RUN_EXPLAINER_FILE.read_text(encoding="utf-8")
+        for token in (
+            "object RunExplainer",
+            "SecretRedactor.redact(event.detail)",
+            "explainTimeline",
+            "TraceReasons.CONSTRAINT_BLOCKED",
+            "TraceReasons.CAPABILITY_BLOCKED",
+            "TraceReasons.ACTION_FAILED",
+            "TraceReasons.OUTCOME_UNCERTAIN",
+        ):
+            if token not in explainer:
+                problems.append(f"run explainer missing {token!r}")
+
+    if DETAILS_VM_FILE.is_file():
+        details_vm = DETAILS_VM_FILE.read_text(encoding="utf-8")
+        for token in (
+            "RunExplainer.Explanation",
+            "explanationForRecord",
+            "RunExplainer.explainTimeline",
+            "entry.traceRunId",
+        ):
+            if token not in details_vm:
+                problems.append(f"execution details ViewModel missing {token!r}")
+
+    if DETAILS_SCREEN_FILE.is_file():
+        details_screen = DETAILS_SCREEN_FILE.read_text(encoding="utf-8")
+        for token in (
+            "RunExplanationCard",
+            "R.string.why_run_title",
+            "uiState.explanation",
+        ):
+            if token not in details_screen:
+                problems.append(f"why-did-not-run product UI missing {token!r}")
+
+    if RUN_EXPLAINER_TEST.is_file():
+        explainer_tests = RUN_EXPLAINER_TEST.read_text(encoding="utf-8")
+        for case in (
+            "explanationRedactsDetailBeforeUiEvenForUntrustedTrace",
+            "reportIsPrivacySafeAndStructured",
+            "timelineTraceRetainsStructuredFieldsForExplainer",
+        ):
+            if f"fun {case}" not in explainer_tests:
+                problems.append(f"RunExplainerTest missing {case!r}")
+
+    if DETAILS_TEST.is_file():
+        details_tests = DETAILS_TEST.read_text(encoding="utf-8")
+        for case in (
+            "skippedRunUsesStructuredTraceWithExactStartTime",
+            "explicitRunIdCorrelatesTerminalTraceEvenWhenEventTimeDiffers",
+            "nearbyTraceIsNotGuessedForAnotherRun",
+            "explanationShownByDetailsScreenIsSecretSafe",
+        ):
+            if f"fun {case}" not in details_tests:
+                problems.append(f"ExecutionDetailsExplanationTest missing {case!r}")
+
     if problems:
         print("CANONICAL_DIAGNOSTICS_MODEL: FAIL")
         for problem in problems:
@@ -84,12 +186,11 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_DIAGNOSTICS_MODEL: OK — pure diagnostics presentation "
-        "layer over the canonical platform: deterministic display-ready "
-        "rows with stable machine codes, secret-reference payloads redacted "
-        "to a fixed label (deep-link tokens never render), every section "
-        "capped with an exact overflow count, and no Android/Compose "
-        "coupling so the same model feeds Compose, logs and exports"
+        "CANONICAL_DIAGNOSTICS_MODEL: OK — canonical diagnostics model plus "
+        "the real execution-details UI are wired to structured trace reasons; "
+        "exact-run correlation avoids cross-run guesses, TraceRecorder and "
+        "RunExplainer both redact details, and Why-did-not-run renders stable "
+        "localized explanation/fix keys without exposing secrets"
     )
     return 0
 
