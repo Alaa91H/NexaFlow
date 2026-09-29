@@ -87,6 +87,20 @@ internal object CanonicalBuilderSchemaBridge {
         else -> null
     }
 
+    /**
+     * Only bindings whose canonical schema models the complete current editor
+     * contract may replace the legacy field renderer. Partial schemas stay
+     * observable through [forAction] but never hide legacy options.
+     */
+    fun editingBindingForAction(type: ActionType): CanonicalBuilderSchemaBinding? = when (type) {
+        ActionType.SYSTEM_OPEN_SETTINGS,
+        ActionType.SYSTEM_RINGER_MODE,
+        ActionType.SYSTEM_BRIGHTNESS,
+        ActionType.SYSTEM_SEND_SMS,
+        ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> forAction(type)
+        else -> null
+    }
+
     fun forTrigger(type: TriggerType): CanonicalBuilderSchemaBinding? = when (type) {
         TriggerType.TIME -> CanonicalBuilderSchemaBinding(
             FamilyPhase24TimeLocation.scheduleSchema(),
