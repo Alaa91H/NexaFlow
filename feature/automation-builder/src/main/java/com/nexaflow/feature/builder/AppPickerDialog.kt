@@ -88,25 +88,24 @@ fun AppPickerDialog(
         }
     }
 
-    val filtered = allApps.filter { app ->
-        (showSystem || !app.isSystemApp) &&
-            (query.isBlank() ||
-                if (searchByPackage) {
-                    app.packageName.contains(query, ignoreCase = true)
-                } else {
-                    app.label.contains(query, ignoreCase = true) ||
-                        app.packageName.contains(query, ignoreCase = true)
-                })
+    val projection = remember(
+        allApps,
+        query,
+        showSystem,
+        searchByPackage,
+        recentPackages,
+    ) {
+        projectAppPickerApps(
+            allApps = allApps,
+            query = query,
+            showSystem = showSystem,
+            searchByPackage = searchByPackage,
+            recentPackages = recentPackages,
+            recentsLimit = RECENTS_LIMIT,
+        )
     }
-    // Recents: other tasks' apps, in most-recently-saved order, filtered to
-    // installed ones and shown as the leading section while not searching.
-    val recentApps = if (query.isBlank()) {
-        recentPackages.mapNotNull { pkg -> allApps.firstOrNull { it.packageName == pkg } }
-            .distinctBy { it.packageName }
-            .take(RECENTS_LIMIT)    } else {
-        emptyList()
-    }
-    val listApps = filtered.filter { app -> recentApps.none { it.packageName == app.packageName } }
+    val recentApps = projection.recentApps
+    val listApps = projection.listApps
 
     fun confirm() {
         if (multiSelect && selected.isNotEmpty()) {
@@ -183,7 +182,7 @@ fun AppPickerDialog(
                 )
             }
             Text(
-                text = stringResource(R.string.app_count, filtered.size),
+                text = stringResource(R.string.app_count, projection.filteredCount),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
