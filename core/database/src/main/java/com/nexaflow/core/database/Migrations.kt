@@ -370,10 +370,17 @@ object Migrations {
         }
     }
 
-    /** v21 -> v22: adds the typed Canonical V3 payload beside legacy columns. */
+    /** v21 -> v22: typed Canonical V3 payload + observable dual-write state. */
     val MIGRATION_21_22 = object : Migration(21, 22) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE `automations` ADD COLUMN `canonicalWorkflowJson` TEXT")
+            db.execSQL(
+                "ALTER TABLE `automations` ADD COLUMN `canonicalWriteState` " +
+                    "TEXT NOT NULL DEFAULT 'LEGACY_ONLY'"
+            )
+            db.execSQL(
+                "ALTER TABLE `automations` ADD COLUMN `canonicalWriteErrorCode` TEXT"
+            )
         }
     }
 
