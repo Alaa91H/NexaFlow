@@ -411,8 +411,8 @@
     <string name="network_mode_permission_hint">Phone permission improves live generation and 5G detection</string>
     <string name="state_connected">Connected</string>
     <string name="state_disconnected">Disconnected</string>
-    <string name="state_on">On</string>
-    <string name="state_off">Off</string>
+    <string name="builder_state_on">On</string>
+    <string name="builder_state_off">Off</string>
     <string name="repeat_selected">Selected: %1$s</string>
     <string name="end_behavior_label">When the task ends</string>
     <string name="end_rerun">Run again at end</string>
