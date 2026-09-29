@@ -383,16 +383,16 @@ fun ConstraintEditorCard(
                     val stateKey = "state"
                     val currentState = draft.config[stateKey] ?: "ON"
                     val onLabel = when (draft.type) {
-                        ConstraintType.BLUETOOTH -> stringResource(R.string.state_on)
-                        ConstraintType.DND -> stringResource(R.string.state_on)
-                        ConstraintType.AIRPLANE -> stringResource(R.string.state_on)
-                        ConstraintType.LOCATION -> stringResource(R.string.state_on)
+                        ConstraintType.BLUETOOTH -> stringResource(R.string.builder_state_on)
+                        ConstraintType.DND -> stringResource(R.string.builder_state_on)
+                        ConstraintType.AIRPLANE -> stringResource(R.string.builder_state_on)
+                        ConstraintType.LOCATION -> stringResource(R.string.builder_state_on)
                     }
                     val offLabel = when (draft.type) {
-                        ConstraintType.BLUETOOTH -> stringResource(R.string.state_off)
-                        ConstraintType.DND -> stringResource(R.string.state_off)
-                        ConstraintType.AIRPLANE -> stringResource(R.string.state_off)
-                        ConstraintType.LOCATION -> stringResource(R.string.state_off)
+                        ConstraintType.BLUETOOTH -> stringResource(R.string.builder_state_off)
+                        ConstraintType.DND -> stringResource(R.string.builder_state_off)
+                        ConstraintType.AIRPLANE -> stringResource(R.string.builder_state_off)
+                        ConstraintType.LOCATION -> stringResource(R.string.builder_state_off)
                     }
                     Text(
                         text = stringResource(R.string.constraint_state_label),
