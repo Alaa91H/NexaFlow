@@ -94,7 +94,39 @@ internal object ActionNodeSchemas {
             integerField("minute", default = "0", min = 0.0, max = 59.0)
         )
         ActionType.SYSTEM_OPEN_SETTINGS -> schema(
-            enumField("page", "WIFI", "BLUETOOTH", "LOCATION", "SOUND", "DISPLAY", "BATTERY", "NOTIFICATION", default = "WIFI")
+            enumField(
+                "page",
+                "SETTINGS",
+                "ABOUT_PHONE",
+                "ACCESSIBILITY",
+                "AIRPLANE_MODE",
+                "APP_SETTINGS_LIST",
+                "BATTERY",
+                "BLUETOOTH",
+                "CAST",
+                "DATA_SAVER",
+                "DATA_USAGE",
+                "DATE",
+                "DEFAULT_APPS",
+                "DEVELOPER",
+                "DEVICE_ADMIN",
+                "DISPLAY",
+                "INPUT_METHOD",
+                "LOCATION",
+                "NETWORK",
+                "NFC",
+                "NOTIFICATION",
+                "PRINT",
+                "PRIVACY",
+                "SECURITY",
+                "SOUND",
+                "STORAGE",
+                "SYSTEM_UPDATE",
+                "USAGE_ACCESS",
+                "VPN",
+                "WIFI",
+                default = "WIFI"
+            )
         )
         ActionType.SYSTEM_WAIT -> schema(
             durationField("seconds", default = "5", min = 0.0, expressionCapable = true)
