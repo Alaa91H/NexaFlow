@@ -34,6 +34,7 @@ import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.canonical.CanonicalProductRuntime
 import com.nexaflow.domain.canonical.CommandIdempotency
+import com.nexaflow.domain.canonical.LegacyConfigEntry
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.models.Action
@@ -358,7 +359,9 @@ class ExecutionEngine(
             automation.triggers.forEachIndexed { index, trigger ->
                 canonicalProductRuntime.prepareTrigger(
                     sourceType = trigger.type.name,
-                    config = trigger.config,
+                    config = trigger.config.entries
+                        .sortedBy { it.key }
+                        .map { LegacyConfigEntry(it.key, it.value) },
                     instanceId = "v3.trigger.$index",
                 )
             }
@@ -778,7 +781,9 @@ class ExecutionEngine(
                 val prepared = runCatching {
                     canonicalProductRuntime.prepareAction(
                         sourceType = resolved.type.name,
-                        config = resolved.config,
+                        config = resolved.config.entries
+                            .sortedBy { it.key }
+                            .map { LegacyConfigEntry(it.key, it.value) },
                         instanceId = "v3.action.$actionIndex",
                     )
                 }
@@ -1507,7 +1512,9 @@ class ExecutionEngine(
         val prepared = runCatching {
             canonicalProductRuntime.prepareAction(
                 sourceType = action.type.name,
-                config = action.config,
+                config = action.config.entries
+                    .sortedBy { it.key }
+                    .map { LegacyConfigEntry(it.key, it.value) },
                 instanceId = instanceId,
             )
         }.getOrElse { failure ->
