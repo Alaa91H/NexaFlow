@@ -27,6 +27,7 @@ class CanonicalWorkflowDocumentV3Test {
             node.arguments[CanonicalFieldId("mode")],
         )
         assertFalse(document.requiresLegacyFallback)
+        assertEquals(emptyList<String>(), document.actions.single().suppliedConfigKeys)
     }
 
     @Test
@@ -50,6 +51,7 @@ class CanonicalWorkflowDocumentV3Test {
         assertTrue(persisted.legacyFallbackRequired)
         assertFalse(json.contains(rawSecret))
         assertFalse(persisted.preservedConfig.any { it.key == "password" })
+        assertEquals(listOf("password", "ssid"), persisted.suppliedConfigKeys)
         val node = persisted.node as InvokeNode
         assertTrue(node.arguments[CanonicalFieldId("password")] is SecretReferenceValue)
     }
