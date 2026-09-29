@@ -19,8 +19,10 @@ class CanonicalFinalAuditGateTest(unittest.TestCase):
         self.assertNotIn(gate.SELF, gates)
 
     def test_audit_fails_on_an_unknown_inventory_phase(self) -> None:
+        # T01/T02 have no closure statuses in the inventory (the record
+        # starts at T03), so lowering the first phase must fail the audit.
         original = gate.FIRST_PHASE
-        gate.FIRST_PHASE = 3
+        gate.FIRST_PHASE = 1
         try:
             self.assertEqual(gate.main(), 1)
         finally:
