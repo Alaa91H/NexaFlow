@@ -868,30 +868,36 @@ private fun SelectedActionCard(
             }
             }
             if (expanded) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            // The action subtitle doubles as its one-line instruction.
-            Text(
-                text = stringResource(option.subtitleRes),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
-            ActionConfigEditor(
-                option = option,
-                config = config,
-                onConfigChange = onConfigChange,
-                onPickApp = onPickApp,
-                availableVariables = availableVariables,
-                onPluginConfigure = onPluginConfigure,
-                automations = automations
-            )
-            PermissionHintForAction(
-                actionType = option.actionType,
-                actionConfig = config,
-                context = context,
-                refreshKey = refreshKey,
-                onRequestPermission = onRequestPermission,
-                onExplainSpecial = onExplainSpecial
-            )
+                NodeConfiguratorSheet(
+                    title = actionSummary(option, config),
+                    confirmLabel = stringResource(R.string.save),
+                    confirmEnabled = true,
+                    onConfirm = { onExpandedChange(false) },
+                    onDismiss = { onExpandedChange(false) }
+                ) {
+                    Text(
+                        text = stringResource(option.subtitleRes),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    ActionConfigEditor(
+                        option = option,
+                        config = config,
+                        onConfigChange = onConfigChange,
+                        onPickApp = onPickApp,
+                        availableVariables = availableVariables,
+                        onPluginConfigure = onPluginConfigure,
+                        automations = automations
+                    )
+                    PermissionHintForAction(
+                        actionType = option.actionType,
+                        actionConfig = config,
+                        context = context,
+                        refreshKey = refreshKey,
+                        onRequestPermission = onRequestPermission,
+                        onExplainSpecial = onExplainSpecial
+                    )
+                }
             }
         }
     }
