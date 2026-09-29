@@ -32,6 +32,8 @@ import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.canonical.CanonicalProductRuntime
+import com.nexaflow.domain.canonical.CommandIdempotency
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.models.Action
@@ -107,6 +109,12 @@ class ExecutionEngine(
     private val privilegeSnapshotInvalidator: (() -> Unit)? = null,
     /** Live semantic strategy planner; null preserves legacy/test construction. */
     private val semanticWorkflowPlanner: SemanticWorkflowPlanner? = null,
+    /**
+     * T26 product cutover boundary. Every trigger is canonicalized at run
+     * admission and every side-effecting action is planned to an atomic
+     * canonical command before a compatibility provider may execute it.
+     */
+    private val canonicalProductRuntime: CanonicalProductRuntime = CanonicalProductRuntime(),
     /** Test seam for deterministic snapshot-capture failure coverage. */
     private val snapshotCapture: () -> DeviceStateSnapshot = { DeviceStateSnapshot.capture(context) },
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
@@ -343,6 +351,42 @@ class ExecutionEngine(
         if (automation.requiresTimeRangeForEndBehavior) {
             return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
+
+        // T26: canonical trigger admission happens before snapshots,
+        // checkpoints, lifecycle ownership or any action side effect.
+        val canonicalTriggerFailure = runCatching {
+            automation.triggers.forEachIndexed { index, trigger ->
+                canonicalProductRuntime.prepareTrigger(
+                    sourceType = trigger.type.name,
+                    config = trigger.config,
+                    instanceId = "v3.trigger.$index",
+                )
+            }
+        }.exceptionOrNull()
+        if (canonicalTriggerFailure != null) {
+            val detail = canonicalTriggerFailure.message.orEmpty().take(240)
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = false,
+                message = historyMessage("Canonical runtime refused trigger graph: $detail"),
+                executedAt = startedAt,
+            )
+            recordHistory(record)
+            diagnostics.recordTimeline(
+                automation, "CANONICAL_TRIGGER_REJECTED", record, startedAt, payloadContext.runId
+            )
+            traceRecorder.recordBlockedRun(
+                payloadContext.runId,
+                automation.id,
+                TraceReasons.ADMISSION_REJECTED,
+                "canonical trigger graph rejected",
+                epochMillis.now(),
+            )
+            return record
+        }
+
         val admission = workflowAdmissionGate.evaluate(automation)
         when (admission.state) {
             WorkflowAdmissionState.ADMITTED -> Unit
@@ -728,30 +772,65 @@ class ExecutionEngine(
                     continue
                 }
 
-                // 2. Retry support
-                val retryCount = resolved.config["retryCount"]?.toIntOrNull()?.coerceIn(0, 5) ?: 0
-                val retryDelayMs = resolved.config["retryDelayMs"]?.toLongOrNull()?.coerceIn(0, 10_000L) ?: 500L
+                // 2. Canonical T26 planning + retry safety. No legacy
+                // handler is reached until the resolved action has produced one
+                // typed atomic command.
+                val prepared = runCatching {
+                    canonicalProductRuntime.prepareAction(
+                        sourceType = resolved.type.name,
+                        config = resolved.config,
+                        instanceId = "v3.action.$actionIndex",
+                    )
+                }
+                val canonicalFailure = prepared.exceptionOrNull()
+                val canonicalAction = prepared.getOrNull()
+                val configuredRetryCount =
+                    resolved.config["retryCount"]?.toIntOrNull()?.coerceIn(0, 5) ?: 0
+                // Blind retries are permitted only for commands whose
+                // idempotency is explicitly proven. Conditional and
+                // non-idempotent commands get one attempt until a provider
+                // exposes a stronger idempotency contract.
+                val retryCount = if (
+                    canonicalAction?.command?.idempotency == CommandIdempotency.IDEMPOTENT
+                ) {
+                    configuredRetryCount
+                } else {
+                    0
+                }
+                val retryDelayMs =
+                    resolved.config["retryDelayMs"]?.toLongOrNull()?.coerceIn(0, 10_000L) ?: 500L
                 var currentAttempt = 0
                 var result: SystemControlResult
-                while (true) {
-                    currentAttempt++
-                    result = executeAction(
-                        resolved,
-                        controller,
-                        notif,
-                        channel,
-                        automation.id,
-                        automation.revertOnExit,
-                        payloadContext,
-                        dataRuntime,
-                        executionId = payloadContext.runId,
-                        nodeId = "action:$actionIndex"
+                if (canonicalFailure != null || canonicalAction == null) {
+                    result = SystemControlResult.fail(
+                        "Canonical runtime refused action: " +
+                            canonicalFailure?.message.orEmpty().take(200)
                     )
-                    // UNKNOWN means the backend may already have applied the
-                    // side effect. Never blind-retry it: preserve the durable
-                    // ACTION_UNKNOWN checkpoint and let reconciliation decide.
-                    if (result.success || result.outcomeUncertain || currentAttempt > retryCount) break
-                    kotlinx.coroutines.delay(retryDelayMs)
+                } else {
+                    while (true) {
+                        currentAttempt++
+                        result = executeAction(
+                            resolved,
+                            controller,
+                            notif,
+                            channel,
+                            automation.id,
+                            automation.revertOnExit,
+                            payloadContext,
+                            dataRuntime,
+                            executionId = payloadContext.runId,
+                            nodeId = canonicalAction.command.commandId,
+                        )
+                        // UNKNOWN means the backend may already have applied the
+                        // side effect. Never blind-retry it: preserve the durable
+                        // ACTION_UNKNOWN checkpoint and let reconciliation decide.
+                        if (
+                            result.success ||
+                            result.outcomeUncertain ||
+                            currentAttempt > retryCount
+                        ) break
+                        kotlinx.coroutines.delay(retryDelayMs)
+                    }
                 }
 
                 if (result.outcomeUncertain) {
