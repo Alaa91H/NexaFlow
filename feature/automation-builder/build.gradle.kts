@@ -90,6 +90,7 @@ dependencies {
     implementation(libs.androidx.paging.paging.runtime)
     implementation(libs.androidx.paging.paging.compose)
     implementation(libs.androidx.lifecycle.lifecycle.viewmodel.ktx)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     debugImplementation(libs.androidx.compose.ui.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.ui.test.manifest)
     implementation(libs.com.google.dagger.hilt.android)
