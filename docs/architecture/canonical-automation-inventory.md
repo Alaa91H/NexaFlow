@@ -383,6 +383,14 @@ and reviewed before T01 may close:
   deterministic replay; computed coverage reports primitive blind spots
   and missing family gaps instead of hiding them. Covered by 10 unit
   tests and CI gate `scripts/check_canonical_device_matrix.py`.
+- T37: **implemented** — Architecture fitness gates in
+  `scripts/check_canonical_architecture_fitness.py`: dependency direction
+  over the canonical packages (no app/data/Android imports), legacy type
+  system leaks refused, the T27/T28 persistence contracts pinned clock- and
+  random-free, the plugin SDK contract held to a pure protocol surface,
+  and every canonical gate (T26+ family) verified to exist, ship a
+  unittest, and stay wired into CI. Covered by 5 unit tests and the same
+  CI gate.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

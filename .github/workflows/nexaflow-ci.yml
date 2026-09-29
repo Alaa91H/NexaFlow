@@ -214,6 +214,10 @@ jobs:
       run: python3 scripts/check_canonical_device_matrix.py
     - name: Test device matrix gate
       run: python3 -m unittest scripts.tests.test_check_canonical_device_matrix
+    - name: Architecture fitness gates (T37)
+      run: python3 scripts/check_canonical_architecture_fitness.py
+    - name: Test architecture fitness gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_architecture_fitness
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
