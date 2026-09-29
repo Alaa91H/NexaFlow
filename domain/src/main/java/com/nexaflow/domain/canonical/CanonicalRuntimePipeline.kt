@@ -175,8 +175,15 @@ private fun CanonicalNode.withValidationArguments(
         preferredIds.forEach { preferred ->
             values.firstOrNull { it.field.value == preferred }?.let { return it.value }
         }
-        val onlyField = schema.fields.singleOrNull()?.id ?: return null
-        return values.firstOrNull { it.field == onlyField }?.value
+
+        // A one-field write is unambiguous. For structured set_value schemas,
+        // a single declared default identifies the primary scalar payload
+        // (for example mode, percent, dpi or policy); sibling fields remain
+        // typed arguments on the same command.
+        val payloadField = schema.fields.singleOrNull()?.id
+            ?: schema.fields.singleOrNull { it.default != null }?.id
+            ?: return null
+        return values.firstOrNull { it.field == payloadField }?.value
     }
 
     return when (this) {
