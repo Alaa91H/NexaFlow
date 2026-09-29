@@ -512,12 +512,12 @@
     <string name="action_set_ringtone_sub">डिफ़ॉल्ट कॉल रिंगटोन चुनें</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">नेटवर्क मोड</string>
-    <string name="state_on">चालू</string>
+    <string name="builder_state_on">चालू</string>
     <string name="network_mode">नेटवर्क मोड</string>
     <string name="network_mode_label">पसंदीदा नेटवर्क पीढ़ी</string>
     <string name="action_set_ringtone">रिंगटोन सेट करें</string>
     <string name="battery_level_section">बैटरी स्तर</string>
-    <string name="state_off">बंद</string>
+    <string name="builder_state_off">बंद</string>
     <string name="network_hotspot">हॉटस्पॉट</string>
     <string name="charging_state_section">चार्जिंग स्थिति</string>
     <string name="charging_no">चार्ज नहीं हो रहा</string><string name="trigger_cat_schedule">शेड्यूल</string>    <string name="trigger_cat_device">डिवाइस</string>    <string name="trigger_cat_connectivity">कनेक्टिविटी</string>    <string name="trigger_cat_location">स्थान</string>    <string name="trigger_cat_apps">ऐप्स</string>    <string name="trigger_cat_communication">संचार</string>
