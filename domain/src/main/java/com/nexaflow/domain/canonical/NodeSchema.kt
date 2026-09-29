@@ -156,6 +156,8 @@ data class NodeSchemaField(
     val enumType: String? = null,
     /** For ENUM_TOKEN fields: the bounded token allowlist. */
     val allowedTokens: List<String> = emptyList(),
+    /** Whether a typed expression may stand in for this field at runtime. */
+    val expressionCapable: Boolean = false,
 ) {
     init {
         require(minimum == null || maximum == null || minimum <= maximum) {
@@ -352,6 +354,15 @@ fun validateNodeValues(
     for (field in schema.fields) {
         val value = byId[field.id] ?: continue
         val expectedKind = expectedValueKind(field.type)
+        val expression = value.value as? ExpressionValue
+        if (expression != null) {
+            if (!field.expressionCapable || expression.resultKind != expectedKind) {
+                violations += FieldTypeMismatch(field.id, field.type, value.value.kind)
+            }
+            // Dynamic expressions are type-checked here; bounds/enum values are
+            // validated after resolution by the execution provider.
+            continue
+        }
         if (value.value.kind != expectedKind) {
             violations += FieldTypeMismatch(field.id, field.type, value.value.kind)
             continue
