@@ -161,12 +161,23 @@ class AutomationMapperTest {
     }
 
     @Test
-    fun triggerMatchRoundTripsAndUnknownStoredValueFallsBackToAny() {
+    fun triggerMatchUsesCanonicalV3WhenPresentAndLegacyFallbackOtherwise() {
         val all = automation.copy(triggerMatch = TriggerMatchMode.ALL)
-        assertEquals(TriggerMatchMode.ALL, all.toEntity().toDomain().triggerMatch)
+        val canonical = all.toEntity()
+        assertEquals(TriggerMatchMode.ALL, canonical.toDomain().triggerMatch)
 
-        val future = all.toEntity().copy(triggerMatch = "FUTURE_MODE")
-        assertEquals(TriggerMatchMode.ANY, future.toDomain().triggerMatch)
+        // A valid V3 graph is authoritative even if the legacy scalar contains
+        // a future/unknown value. This is the T27 dual-read contract.
+        val futureWithV3 = canonical.copy(triggerMatch = "FUTURE_MODE")
+        assertEquals(TriggerMatchMode.ALL, futureWithV3.toDomain().triggerMatch)
+
+        // Pre-V3 / legacy-only rows retain the old defensive fallback.
+        val futureLegacyOnly = futureWithV3.copy(
+            canonicalWorkflowJson = null,
+            canonicalWriteState = "LEGACY_ONLY",
+            canonicalWriteErrorCode = null,
+        )
+        assertEquals(TriggerMatchMode.ANY, futureLegacyOnly.toDomain().triggerMatch)
     }
 
     @Test
