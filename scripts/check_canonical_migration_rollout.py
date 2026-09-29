@@ -22,6 +22,12 @@ RUNNER_TEST_FILE = ROOT / (
     "data/src/test/java/com/nexaflow/data/repository/"
     "CanonicalWorkflowMigrationRunnerTest.kt"
 )
+APPLICATION_FILE = ROOT / (
+    "app/src/main/java/com/nexaflow/app/NexaFlowApplication.kt"
+)
+MAINTENANCE_WORKER_FILE = ROOT / (
+    "app/src/main/java/com/nexaflow/app/work/MaintenanceWorker.kt"
+)
 
 FORBIDDEN_PATTERNS = (
     r"\bTriggerType\b",
@@ -91,7 +97,12 @@ def main() -> int:
                     f"WorkflowMigrationOrchestratorTest.kt missing {case!r}"
                 )
 
-    for path in (RUNNER_FILE, RUNNER_TEST_FILE):
+    for path in (
+        RUNNER_FILE,
+        RUNNER_TEST_FILE,
+        APPLICATION_FILE,
+        MAINTENANCE_WORKER_FILE,
+    ):
         if not path.is_file():
             problems.append(f"missing production migration wiring {path.relative_to(ROOT)}")
 
@@ -121,6 +132,24 @@ def main() -> int:
         ):
             if f"fun {case}" not in runner_tests:
                 problems.append(f"migration runner tests missing {case!r}")
+
+    if APPLICATION_FILE.is_file():
+        application = APPLICATION_FILE.read_text(encoding="utf-8")
+        for token in (
+            "CanonicalWorkflowMigrationRunner",
+            "canonicalMigrationRunner.runNextBatch()",
+        ):
+            if token not in application:
+                problems.append(f"startup is missing canonical migration invocation {token!r}")
+
+    if MAINTENANCE_WORKER_FILE.is_file():
+        maintenance = MAINTENANCE_WORKER_FILE.read_text(encoding="utf-8")
+        for token in (
+            "CanonicalWorkflowMigrationRunner",
+            "canonicalMigrationRunner.runNextBatch()",
+        ):
+            if token not in maintenance:
+                problems.append(f"maintenance is missing canonical migration invocation {token!r}")
 
     if problems:
         print("CANONICAL_MIGRATION_ROLLOUT: FAIL")
