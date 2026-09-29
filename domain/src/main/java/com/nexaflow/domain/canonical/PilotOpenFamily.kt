@@ -67,17 +67,25 @@ object PilotOpenFamily {
         private val fixedPage: String,
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
-        override val consumedKeys: Set<String> =
-            if (legacyType == "SYSTEM_OPEN_SETTINGS") setOf(Keys.PAGE) else emptySet()
+        // page is consumed for every legacy launcher. Dedicated launchers have
+        // a fixed page, but older/imported rows can still carry a redundant
+        // page key; it must not survive as contradictory preserved payload.
+        override val consumedKeys: Set<String> = setOf(Keys.PAGE)
         // SYSTEM_OPEN_SETTINGS historically defaulted to WIFI when page was
         // absent, so page is deliberately optional at the adapter boundary.
         override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val configuredPage = input.entry(Keys.PAGE)?.rawValue
             val page = if (legacyType == "SYSTEM_OPEN_SETTINGS") {
-                input.entry(Keys.PAGE)?.rawValue ?: fixedPage
+                configuredPage ?: fixedPage
             } else {
+                configuredPage?.let { configured ->
+                    require(configured.trim().uppercase() == fixedPage) {
+                        "legacy page $configured conflicts with fixed launcher $fixedPage"
+                    }
+                }
                 fixedPage
             }
             val allowed = openSettingsSchema()
