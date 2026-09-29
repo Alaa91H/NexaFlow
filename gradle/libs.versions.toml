@@ -46,6 +46,7 @@ vOkHttp = "4.12.0"
 androidx-activity-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "v1_13_0" }
 androidx-appcompat-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "v1_8_0" }
 androidx-benchmark-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "v1_4_1" }
+androidx-benchmark-benchmark-junit4 = { module = "androidx.benchmark:benchmark-junit4", version.ref = "v1_4_1" }
 androidx-compose-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "v2026_08_00" }
 androidx-compose-material-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-compose-material3-material3 = { module = "androidx.compose.material3:material3", version.ref = "vM3_1_5_0_alpha26" }
