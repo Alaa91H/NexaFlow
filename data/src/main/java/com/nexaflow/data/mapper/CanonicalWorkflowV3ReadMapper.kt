@@ -16,6 +16,7 @@ import com.nexaflow.domain.canonical.EnumTokenValue
 import com.nexaflow.domain.canonical.ExpressionValue
 import com.nexaflow.domain.canonical.IntegerValue
 import com.nexaflow.domain.canonical.JsonValue
+import com.nexaflow.domain.canonical.LegacyCatalogCanonicalContractNormalizer
 import com.nexaflow.domain.canonical.ObserveNode
 import com.nexaflow.domain.canonical.PackageIdValue
 import com.nexaflow.domain.canonical.SecretReferenceValue
@@ -173,15 +174,10 @@ internal object CanonicalWorkflowV3ReadMapper {
             NodeConfigValueType.DECIMAL -> (value as? DecimalValue)?.value
             NodeConfigValueType.BOOLEAN -> (value as? BooleanValue)?.value?.toString()
             NodeConfigValueType.ENUM -> (value as? EnumTokenValue)?.token?.let { token ->
-                // Numeric legacy enum display values are encoded canonically as
-                // VALUE_<n> because EnumTokenValue requires a leading letter.
-                // Reverse only when the catalog proves that <n> is a real
-                // legacy value, so native VALUE_* enums remain untouched.
-                val numericLegacy = token
-                    .takeIf { it.startsWith(NUMERIC_ENUM_PREFIX) }
-                    ?.removePrefix(NUMERIC_ENUM_PREFIX)
-                    ?.takeIf { it in field.allowedValues }
-                numericLegacy ?: token
+                LegacyCatalogCanonicalContractNormalizer.legacyEnumToken(
+                    allowedValues = field.allowedValues,
+                    canonicalToken = token,
+                ) ?: token
             }
             NodeConfigValueType.TIME -> (value as? TimeOfDayValue)?.let {
                 "%02d:%02d".format(it.minuteOfDay / 60, it.minuteOfDay % 60)
@@ -211,7 +207,6 @@ internal object CanonicalWorkflowV3ReadMapper {
         else -> CanonicalArguments.EMPTY
     }
 
-    private const val NUMERIC_ENUM_PREFIX = "VALUE_"
 
     private inline fun <reified T : Enum<T>> enumValueOrThrow(
         raw: String,
