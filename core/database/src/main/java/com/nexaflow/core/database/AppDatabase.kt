@@ -13,7 +13,7 @@ import androidx.room.TypeConverters
         AgentAuditEntity::class,
         AgentIdempotencyEntity::class
     ],
-    version = 21,
+    version = 22,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
