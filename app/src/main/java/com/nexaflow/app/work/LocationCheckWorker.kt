@@ -2,15 +2,10 @@ package com.nexaflow.app.work
 
 import android.content.Context
 import android.util.Log
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.nexaflow.core.database.AppDatabase
-import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.engine.LocationAccess
-import com.nexaflow.core.engine.LocationMonitor
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 
@@ -25,17 +20,20 @@ import kotlinx.coroutines.flow.first
  * no settings screens. If no elevated runtime exists the worker does nothing
  * (the foreground editor still offers the one-tap settings fallback).
  */
-@HiltWorker
-class LocationCheckWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
-    private val locationPreferences: LocationPreferences,
-    private val database: AppDatabase,
-    private val locationMonitor: LocationMonitor
+class LocationCheckWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         return try {
+            val dependencies = EntryPointAccessors.fromApplication(
+                applicationContext,
+                WorkerDependenciesEntryPoint::class.java,
+            )
+            val locationPreferences = dependencies.locationPreferences()
+            val database = dependencies.appDatabase()
+            val locationMonitor = dependencies.locationMonitor()
             val interval = locationPreferences.checkIntervalMinutes.first()
             if (interval <= 0) return Result.success()
 
