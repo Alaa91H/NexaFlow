@@ -124,6 +124,24 @@ class PluginCanonicalContractTest {
     }
 
     @Test
+    fun configReferenceSchemaRejectsOversizedOpaqueInstance() {
+        val result = PluginCanonicalContract.checkInvocation(
+            invocation = PluginCanonicalContract.PluginInvocation(
+                pluginId = "com.example.plugin",
+                payload = mapOf(
+                    PluginCanonicalContract.ARG_CONFIG_REF to "x".repeat(193),
+                ),
+            ),
+            schema = PluginCanonicalContract.CONFIG_REFERENCE_SCHEMA,
+            host = host(),
+        ) as PluginCanonicalContract.CheckResult.Refused
+
+        assertTrue(
+            PluginCanonicalContract.RefusalReason.SLOT_LENGTH_OVERFLOW in result.reasons,
+        )
+    }
+
+    @Test
     fun validPayloadIsAccepted() {
         assertEquals(
             PluginCanonicalContract.CheckResult.Accepted,
