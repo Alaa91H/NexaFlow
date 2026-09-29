@@ -36,6 +36,9 @@ object PluginCanonicalContract {
     /** Optional typed payload argument of PLUGIN_FIRE. */
     const val ARG_PAYLOAD: String = "payload"
 
+    /** Opaque persisted plugin configuration reference used by the host. */
+    const val ARG_CONFIG_REF: String = "configRef"
+
     /** Optional event payload argument surfaced to trigger conditions. */
     const val ARG_EVENT_PAYLOAD: String = "eventPayload"
 
@@ -71,6 +74,22 @@ object PluginCanonicalContract {
 
         fun slot(name: String): PayloadSlot? = slots.firstOrNull { it.name == name }
     }
+
+    /**
+     * Product invocation schema for Locale-compatible settings. Raw Bundle
+     * configuration never crosses the canonical boundary; only the opaque
+     * persisted instance reference does.
+     */
+    val CONFIG_REFERENCE_SCHEMA: PayloadSchema = PayloadSchema(
+        listOf(
+            PayloadSlot(
+                name = ARG_CONFIG_REF,
+                kind = PayloadKind.STRING,
+                required = true,
+                maximumLength = 192,
+            ),
+        ),
+    )
 
     /** A plugin event emitted by an external plugin or the host bridge. */
     data class PluginEvent(
