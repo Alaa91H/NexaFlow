@@ -3,11 +3,14 @@ package com.nexaflow.data.repository
 import androidx.paging.PagingSource
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.AutomationEntity
+import com.nexaflow.core.database.Converters
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.ExecutionRecordEntity
 import com.nexaflow.core.database.GlobalVariableEntity
 import com.nexaflow.core.database.VariableDao
 import com.nexaflow.core.security.SecureStorage
+import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
@@ -466,6 +469,51 @@ class RepositoryImplTest {
         assertEquals(edited.triggers, loaded?.triggers)
         assertEquals(TriggerMatchMode.ALL, loaded?.triggerMatch)
         assertEquals(2L, loaded?.updatedAt)
+    }
+
+    @Test
+    fun `automation repository reads canonical V3 before stale legacy workflow columns`() = runTest {
+        val dao = FakeAutomationDao()
+        val repository = AutomationRepositoryImpl(dao)
+        val source = Automation(
+            id = "v3-authoritative",
+            name = "Canonical task",
+            description = "",
+            icon = "",
+            iconColor = 0L,
+            backgroundColor = 0L,
+            category = "custom",
+            priority = 0,
+            enabled = true,
+            triggers = emptyList(),
+            triggerMatch = TriggerMatchMode.ALL,
+            actions = listOf(
+                Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("value" to "42")),
+            ),
+            createdAt = 1L,
+            updatedAt = 2L,
+        )
+        repository.saveAutomation(source)
+
+        val stored = dao.rows.value.single()
+        assertTrue(stored.canonicalWorkflowJson != null)
+        dao.rows.value = listOf(
+            stored.copy(
+                actionsJson = Converters().fromActionList(
+                    listOf(
+                        Action(
+                            ActionType.SYSTEM_BRIGHTNESS,
+                            mapOf("value" to "200"),
+                        ),
+                    ),
+                ),
+                triggerMatch = TriggerMatchMode.ANY.name,
+            ),
+        )
+
+        val loaded = requireNotNull(repository.getAutomationById(source.id))
+        assertEquals("42", loaded.actions.single().config["value"])
+        assertEquals(TriggerMatchMode.ALL, loaded.triggerMatch)
     }
 
     @Test
