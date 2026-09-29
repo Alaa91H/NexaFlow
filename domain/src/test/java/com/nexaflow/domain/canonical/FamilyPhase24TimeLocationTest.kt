@@ -38,26 +38,6 @@ class FamilyPhase24TimeLocationTest {
     }
 
     @Test
-    fun alarmCarriesWallClockAndExplicitTimezone() {
-        val outcome = familyAdapter.canonicalize(
-            LegacyNodeInput(
-                "SYSTEM_SET_ALARM",
-                LegacyNodeKind.ACTION,
-                listOf(
-                    LegacyConfigEntry("time", "07:30"),
-                    LegacyConfigEntry("timezone", "Europe/Berlin"),
-                ),
-            ),
-        )
-        val node = (outcome as LegacyAdapterOutcome.Canonicalized).node as InvokeNode
-        assertEquals(TimeOfDayValue(450), node.arguments[CanonicalFieldId("time")])
-        assertEquals(
-            TimezoneValue("Europe/Berlin"),
-            node.arguments[CanonicalFieldId("timezone")],
-        )
-    }
-
-    @Test
     fun alarmUsesPersistedHourMinuteContractAndRejectsOutOfRangeValues() {
         val defaulted = familyAdapter.canonicalize(
             LegacyNodeInput("SYSTEM_SET_ALARM", LegacyNodeKind.ACTION, emptyList()),
@@ -132,10 +112,24 @@ class FamilyPhase24TimeLocationTest {
 
     @Test
     fun timerDurationsAreMonotonicNotWallClock() {
-        // A timer payload is a DurationValue (monotonic), never a time of
-        // day: 90 minutes from now is unaffected by DST transitions.
-        val duration = DurationValue(90 * 60 * 1000L)
-        assertEquals(5_400_000L, duration.milliseconds)
+        val outcome = familyAdapter.canonicalize(
+            LegacyNodeInput(
+                "SYSTEM_SET_TIMER",
+                LegacyNodeKind.ACTION,
+                listOf(
+                    LegacyConfigEntry("seconds", "5400"),
+                    LegacyConfigEntry("message", "Later"),
+                    LegacyConfigEntry("skipUi", "false"),
+                ),
+            ),
+        ) as LegacyAdapterOutcome.Canonicalized
+        val node = outcome.node as InvokeNode
+        assertEquals(
+            DurationValue(5_400_000L),
+            node.arguments[CanonicalFieldId("seconds")],
+        )
+        assertEquals(TextValue("Later"), node.arguments[CanonicalFieldId("message")])
+        assertEquals(BooleanValue(false), node.arguments[CanonicalFieldId("skipUi")])
     }
 
     @Test
