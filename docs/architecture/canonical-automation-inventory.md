@@ -355,6 +355,16 @@ and reviewed before T01 may close:
   Integrates with T29: an over-budget tree re-measures smaller after
   consolidation. Covered by 12 unit tests and CI gate
   `scripts/check_canonical_performance_budget.py`.
+- T34: **implemented** — Security hardening auditor in
+  `domain/.../canonical/CanonicalSecurityAuditor.kt`: defense-in-depth
+  re-audit of composed workflows (post-migration, post-optimizer) —
+  secrets refused on observations (sanctioned on actions), URI schemes
+  allowlisted with file/javascript/data refused outright, unclassified
+  operations fail closed, HIGH_RISK/DESTRUCTIVE operations require
+  declared capabilities and may never be IDEMPOTENT, expression payloads
+  on destructive writes refused. Deterministic with stably sorted
+  findings. Covered by 11 unit tests and CI gate
+  `scripts/check_canonical_security_auditor.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
