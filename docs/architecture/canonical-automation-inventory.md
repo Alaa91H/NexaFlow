@@ -365,6 +365,16 @@ and reviewed before T01 may close:
   on destructive writes refused. Deterministic with stably sorted
   findings. Covered by 11 unit tests and CI gate
   `scripts/check_canonical_security_auditor.py`.
+- T35: **implemented** — Accessibility & RTL contract model in
+  `domain/.../canonical/CanonicalAccessibilityModel.kt`: deterministic
+  screen-reader statements over the T30 diagnostics snapshot with stable
+  machine ids, severity prefixes and key-first detail announcement; secret
+  payloads redact in accessibility text (defense in depth over T30);
+  overflow announced as exact counts; RTL policy pins mirroring without
+  reordering, trailing-edge overflow badges and locale-neutral logical
+  detail order; builder node announcements redact secret arguments.
+  Covered by 9 unit tests and CI gate
+  `scripts/check_canonical_accessibility_model.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
