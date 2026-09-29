@@ -36,7 +36,7 @@ REQUIRED_TEST_CASES = (
     "familyOverridesCoverConnectivityMembers",
     "familyAdapterKeepsTheFullTable",
     "enableActionsUpgradeToTypedSetState",
-    "missingEnabledKeyIsRejected",
+    "missingEnabledKeyDefersToCatalogContract",
     "bogusEnabledValueIsRejected",
     "wifiConnectCarriesSsidAndSecretPasswordReference",
     "triggersUpgradeEnabledStateConditionally",
