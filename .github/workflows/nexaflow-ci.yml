@@ -198,6 +198,10 @@ jobs:
       run: python3 scripts/check_canonical_fault_injection.py
     - name: Test fault injection gate
       run: python3 -m unittest scripts.tests.test_check_canonical_fault_injection
+    - name: Performance budgets (T33)
+      run: python3 scripts/check_canonical_performance_budget.py
+    - name: Test performance budget gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_performance_budget
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

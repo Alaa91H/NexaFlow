@@ -346,6 +346,15 @@ and reviewed before T01 may close:
   randomness so identical harness sequences replay identical decisions on
   every machine. Covered by 11 unit tests and CI gate
   `scripts/check_canonical_fault_injection.py`.
+- T33: **implemented** — Structural performance budgets in
+  `domain/.../canonical/CanonicalPerformanceBudget.kt`: deterministic
+  measurement of AST node count, depth and wait count plus execution-plan
+  command and group counts; configurable budgets whose defaults mirror the
+  AST/planner hard invariants; typed violations naming rule, observation
+  and bound, stacked in fixed rule order; no clocks and no randomness.
+  Integrates with T29: an over-budget tree re-measures smaller after
+  consolidation. Covered by 12 unit tests and CI gate
+  `scripts/check_canonical_performance_budget.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
