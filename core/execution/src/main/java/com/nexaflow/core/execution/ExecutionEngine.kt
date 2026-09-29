@@ -33,9 +33,8 @@ import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.canonical.AtomicCommand
-import com.nexaflow.domain.canonical.CanonicalProductRuntime
+import com.nexaflow.core.execution.compat.CanonicalRuntimeCutoverAdapter
 import com.nexaflow.domain.canonical.CommandIdempotency
-import com.nexaflow.domain.canonical.LegacyConfigEntry
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.models.Action
@@ -116,7 +115,8 @@ class ExecutionEngine(
      * admission and every side-effecting action is planned to an atomic
      * canonical command before a compatibility provider may execute it.
      */
-    private val canonicalProductRuntime: CanonicalProductRuntime = CanonicalProductRuntime(),
+    private val canonicalRuntimeCutover: CanonicalRuntimeCutoverAdapter =
+        CanonicalRuntimeCutoverAdapter(),
     /** Test seam for deterministic snapshot-capture failure coverage. */
     private val snapshotCapture: () -> DeviceStateSnapshot = { DeviceStateSnapshot.capture(context) },
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
@@ -358,11 +358,9 @@ class ExecutionEngine(
         // checkpoints, lifecycle ownership or any action side effect.
         val canonicalTriggerFailure = runCatching {
             automation.triggers.forEachIndexed { index, trigger ->
-                canonicalProductRuntime.prepareTrigger(
-                    sourceType = trigger.type.name,
-                    config = trigger.config.entries
-                        .sortedBy { it.key }
-                        .map { LegacyConfigEntry(it.key, it.value) },
+                canonicalRuntimeCutover.prepareTrigger(
+                    trigger = trigger,
+                    runId = payloadContext.runId,
                     instanceId = "v3.trigger.$index",
                 )
             }
@@ -780,11 +778,9 @@ class ExecutionEngine(
                 // handler is reached until the resolved action has produced one
                 // typed atomic command.
                 val prepared = runCatching {
-                    canonicalProductRuntime.prepareAction(
-                        sourceType = resolved.type.name,
-                        config = resolved.config.entries
-                            .sortedBy { it.key }
-                            .map { LegacyConfigEntry(it.key, it.value) },
+                    canonicalRuntimeCutover.prepareAction(
+                        action = resolved,
+                        runId = payloadContext.runId,
                         instanceId = "v3.action.$actionIndex",
                     )
                 }
@@ -1511,11 +1507,9 @@ class ExecutionEngine(
         dataRuntime: ScopedDataRuntime? = null,
     ): SystemControlResult {
         val prepared = runCatching {
-            canonicalProductRuntime.prepareAction(
-                sourceType = action.type.name,
-                config = action.config.entries
-                    .sortedBy { it.key }
-                    .map { LegacyConfigEntry(it.key, it.value) },
+            canonicalRuntimeCutover.prepareAction(
+                action = action,
+                runId = executionId,
                 instanceId = instanceId,
             )
         }.getOrElse { failure ->
