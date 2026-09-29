@@ -171,8 +171,16 @@ private fun CanonicalNode.withValidationArguments(
     )
     return when (this) {
         is ObserveNode -> copy(arguments = merged)
-        is SetStateNode -> copy(arguments = merged)
-        is SetValueNode -> copy(arguments = merged)
+        is SetStateNode -> copy(
+            state = values.firstOrNull {
+                it.field.value == "enabled" || it.field.value == "state"
+            }?.value ?: state,
+            arguments = merged,
+        )
+        is SetValueNode -> copy(
+            value = values.firstOrNull { it.field.value == "value" }?.value ?: value,
+            arguments = merged,
+        )
         is InvokeNode -> copy(arguments = merged)
         is OpenNode -> copy(arguments = merged)
         is SendNode -> copy(arguments = merged)
