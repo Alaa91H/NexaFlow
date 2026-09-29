@@ -157,7 +157,7 @@ class WorkflowMigrationOrchestratorTest {
         val result = WorkflowMigrationOrchestrator.attemptBatch(
             batch = WorkflowMigrationOrchestrator.MigrationBatch(index = 0, ids = listOf("a", "b", "c", "d", "e")),
             itemsById = byId,
-            maxFailuresPerRun = 1,
+            maxFailuresPerRun = 0,
             attemptedAtEpochMs = 5L,
             convert = { item ->
                 if (item.id == "c") {
@@ -199,7 +199,7 @@ class WorkflowMigrationOrchestratorTest {
         val result = WorkflowMigrationOrchestrator.attemptBatch(
             batch = WorkflowMigrationOrchestrator.MigrationBatch(0, listOf("c")),
             itemsById = mapOf("c" to poisoned),
-            maxFailuresPerRun = 0,
+            maxFailuresPerRun = 1,
             attemptedAtEpochMs = 5L,
         )
 
