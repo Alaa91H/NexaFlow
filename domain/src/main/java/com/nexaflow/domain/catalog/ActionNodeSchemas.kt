@@ -142,13 +142,21 @@ internal object ActionNodeSchemas {
         )
         ActionType.ADVANCED_SHIZUKU,
         ActionType.ADVANCED_ROOT -> schema(
-            stringField("command", required = true, expressionCapable = true)
+            // Privileged command text is executable secret material. Runtime
+            // resolves %variables before canonical admission, while V3 stores
+            // only a SecretReferenceValue and reads the raw command from the
+            // controlled legacy fallback.
+            secretField("command", required = true)
         )
         ActionType.SYSTEM_HTTP_REQUEST -> schema(
             urlField("url", required = true, expressionCapable = true),
             enumField("method", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", default = "GET"),
-            stringField("body", expressionCapable = true),
-            stringField("headers", expressionCapable = true),
+            // Bodies/headers routinely carry tokens, cookies or credentials;
+            // canonical persistence keeps only references, never opaque raw
+            // request material.
+            secretField("body"),
+            secretField("headers"),
+            secretField("auth_token"),
             booleanField("allowPrivateNetwork", default = "false"),
             integerField("timeoutMs", default = "10000", min = 1_000.0, max = 60_000.0),
             integerField("retryAttempts", default = "0", min = 0.0, max = 5.0),
