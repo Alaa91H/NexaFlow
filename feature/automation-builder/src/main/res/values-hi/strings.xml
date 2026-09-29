@@ -1272,4 +1272,7 @@
     <string name="sensor_invalid_range">ऊपरी सीमा निचली सीमा से बड़ी या बराबर होनी चाहिए।</string>
     <string name="trigger_wear_event">Wear OS घड़ी</string>
     <string name="trigger_wear_event_sub">NexaFlow घड़ी के कनेक्ट या डिस्कनेक्ट होने पर कार्य चलाएँ</string>
+    <string name="option_tier_common">सामान्य</string>
+    <string name="option_tier_advanced">उन्नत</string>
+    <string name="option_tier_all">सभी विकल्प</string>
 </resources>
