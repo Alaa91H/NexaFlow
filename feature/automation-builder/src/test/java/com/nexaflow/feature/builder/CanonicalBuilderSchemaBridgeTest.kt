@@ -15,10 +15,8 @@ class CanonicalBuilderSchemaBridgeTest {
     private val genericTypes = setOf(
         NodeConfigValueType.STRING,
         NodeConfigValueType.INTEGER,
-        NodeConfigValueType.DECIMAL,
         NodeConfigValueType.BOOLEAN,
         NodeConfigValueType.ENUM,
-        NodeConfigValueType.DURATION_SECONDS,
         NodeConfigValueType.URL,
     )
 
@@ -93,8 +91,9 @@ class CanonicalBuilderSchemaBridgeTest {
         val page = requireNotNull(
             binding.schema.fields.singleOrNull { it.id.value == "page" },
         )
-        assertEquals(29, page.allowedTokens.size)
+        assertEquals(30, page.allowedTokens.size)
         assertTrue("WIFI" in page.allowedTokens)
+        assertTrue("SETTINGS" in page.allowedTokens)
         assertTrue("SYSTEM_UPDATE" in page.allowedTokens)
     }
 }
