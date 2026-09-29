@@ -226,6 +226,10 @@ jobs:
       run: python3 scripts/check_canonical_legacy_retirement.py
     - name: Test legacy retirement gate
       run: python3 -m unittest scripts.tests.test_check_canonical_legacy_retirement
+    - name: Final canonical audit (T40)
+      run: python3 scripts/check_canonical_final_audit.py
+    - name: Test final canonical audit gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_final_audit
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
