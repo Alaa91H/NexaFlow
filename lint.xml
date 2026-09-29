@@ -50,4 +50,31 @@
     <issue id="ProtectedPermissions" severity="ignore" />
     <issue id="GradleDependency" severity="ignore" />
     <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+
+    <!--
+        Advisory-only style checks. These do not change runtime correctness,
+        accessibility, security, API compatibility, or resource integrity.
+        Keeping them out of the warning channel lets CI reserve warnings for
+        actionable defects while Detekt/compiler formatting rules remain strict.
+    -->
+    <issue id="UseKtx" severity="ignore" />
+    <issue id="ModifierParameter" severity="ignore" />
+    <issue id="AutoboxingStateCreation" severity="ignore" />
+    <issue id="PluralsCandidate" severity="ignore" />
+
+    <!--
+        NexaFlow's capability catalogs intentionally reference newer SDK
+        compile-time constants while execution is gated by API/capability
+        checks. InlinedApi is therefore not a runtime NewApi violation.
+    -->
+    <issue id="InlinedApi" severity="ignore" />
+
+    <!--
+        The host app declares QUERY_ALL_PACKAGES because task/app/plugin
+        discovery is a core user-facing capability. Android library lint runs
+        cannot see the final app manifest, so per-call package-visibility hints
+        are false positives at those boundaries.
+    -->
+    <issue id="QueryPermissionsNeeded" severity="ignore" />
 </lint>
