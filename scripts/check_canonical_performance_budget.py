@@ -14,6 +14,35 @@ TEST_FILE = ROOT / (
     "domain/src/test/java/com/nexaflow/domain/canonical/"
     "CanonicalPerformanceBudgetTest.kt"
 )
+APP_PICKER_FILE = ROOT / (
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+    "AppPickerDialog.kt"
+)
+APP_PICKER_PROJECTION_FILE = ROOT / (
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+    "AppPickerProjection.kt"
+)
+APP_PICKER_TEST_FILE = ROOT / (
+    "feature/automation-builder/src/test/java/com/nexaflow/feature/builder/"
+    "AppPickerProjectionTest.kt"
+)
+MIGRATION_TEST_FILE = ROOT / (
+    "data/src/test/java/com/nexaflow/data/repository/"
+    "CanonicalWorkflowMigrationRunnerTest.kt"
+)
+EVENT_BURST_TEST_FILE = ROOT / (
+    "core/automation-engine/src/test/java/com/nexaflow/core/engine/"
+    "PluginEventIngressTest.kt"
+)
+PLANNER_BENCHMARK_FILE = ROOT / (
+    "macrobenchmark/src/main/java/com/nexaflow/macrobenchmark/"
+    "CanonicalPlannerBenchmarks.kt"
+)
+STARTUP_BENCHMARK_FILE = ROOT / (
+    "macrobenchmark/src/main/java/com/nexaflow/macrobenchmark/"
+    "StartupBenchmarks.kt"
+)
+BENCHMARK_BUILD_FILE = ROOT / "macrobenchmark/build.gradle.kts"
 
 FORBIDDEN_PATTERNS = (
     r"\bTriggerType\b",
@@ -53,6 +82,7 @@ REQUIRED_TEST_CASES = (
     "budgetConstructorRejectsNonPositiveLimits",
     "optimizingAnOverBudgetTreeShrinksTheReport",
     "mergedWaitsReduceTheWaitCount",
+    "thousandTwentyFourCommandWorkflowPlansWithinShippedBudget",
 )
 
 
@@ -81,6 +111,87 @@ def main() -> int:
             if f"fun {case}" not in test_source:
                 problems.append(f"CanonicalPerformanceBudgetTest.kt missing {case!r}")
 
+    for path in (
+        APP_PICKER_FILE,
+        APP_PICKER_PROJECTION_FILE,
+        APP_PICKER_TEST_FILE,
+        MIGRATION_TEST_FILE,
+        EVENT_BURST_TEST_FILE,
+        PLANNER_BENCHMARK_FILE,
+        STARTUP_BENCHMARK_FILE,
+        BENCHMARK_BUILD_FILE,
+    ):
+        if not path.is_file():
+            problems.append(f"missing product scalability evidence {path.relative_to(ROOT)}")
+
+    if APP_PICKER_FILE.is_file():
+        picker = APP_PICKER_FILE.read_text(encoding="utf-8")
+        for token in (
+            "LazyColumn(",
+            "remember(app.packageName)",
+            "projectAppPickerApps(",
+            "val projection = remember(",
+        ):
+            if token not in picker:
+                problems.append(f"app picker scalability wiring missing {token!r}")
+
+    if APP_PICKER_PROJECTION_FILE.is_file():
+        projection = APP_PICKER_PROJECTION_FILE.read_text(encoding="utf-8")
+        for token in (
+            "fun projectAppPickerApps",
+            "associateBy",
+            "hashSetOf",
+            "recentsLimit",
+        ):
+            if token not in projection:
+                problems.append(f"app picker projection missing {token!r}")
+
+    if APP_PICKER_TEST_FILE.is_file():
+        picker_tests = APP_PICKER_TEST_FILE.read_text(encoding="utf-8")
+        for case in (
+            "thousandAppProjectionPreservesAllItemsWithoutSearch",
+            "recentsStayBoundedAndAreRemovedFromMainListAtLargeScale",
+            "packageSearchOverThousandAppsIsExactAndDoesNotLeakSystemFilter",
+        ):
+            if f"fun {case}" not in picker_tests:
+                problems.append(f"app picker scale tests missing {case!r}")
+
+    if MIGRATION_TEST_FILE.is_file():
+        migration_tests = MIGRATION_TEST_FILE.read_text(encoding="utf-8")
+        if "hundredTwentyFiveLegacyRowsMigrateInBoundedResumableBatches" not in migration_tests:
+            problems.append("100+ automation migration scale test is missing")
+
+    if EVENT_BURST_TEST_FILE.is_file():
+        event_tests = EVENT_BURST_TEST_FILE.read_text(encoding="utf-8")
+        if "hundredEventBurstIsBoundedAtIngressWithoutUnboundedQueueGrowth" not in event_tests:
+            problems.append("repeated event burst scale test is missing")
+
+    if PLANNER_BENCHMARK_FILE.is_file():
+        planner_benchmark = PLANNER_BENCHMARK_FILE.read_text(encoding="utf-8")
+        for token in (
+            "BenchmarkRule",
+            "measureRepeated",
+            "1_024",
+            "fun plan1024Commands",
+        ):
+            if token not in planner_benchmark:
+                problems.append(f"planner latency benchmark missing {token!r}")
+
+    if STARTUP_BENCHMARK_FILE.is_file():
+        startup_benchmark = STARTUP_BENCHMARK_FILE.read_text(encoding="utf-8")
+        for token in ("StartupTimingMetric()", "FrameTimingMetric()"):
+            if token not in startup_benchmark:
+                problems.append(f"device startup/frame benchmark missing {token!r}")
+
+    if BENCHMARK_BUILD_FILE.is_file():
+        benchmark_build = BENCHMARK_BUILD_FILE.read_text(encoding="utf-8")
+        for token in (
+            "libs.androidx.benchmark.benchmark.junit4",
+            'project(":domain")',
+        ):
+            if token not in benchmark_build:
+                problems.append(f"planner benchmark dependency missing {token!r}")
+
     if problems:
         print("CANONICAL_PERFORMANCE_BUDGET: FAIL")
         for problem in problems:
@@ -88,12 +199,12 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_PERFORMANCE_BUDGET: OK — structural performance budgets "
-        "over the canonical AST and execution plan: deterministic "
-        "measurement of node count, depth, waits, plan commands and groups; "
-        "typed violations naming rule, observation and bound; no clocks and "
-        "no randomness; integrates with the T29 optimizer so over-budget "
-        "trees re-measure smaller after consolidation"
+        "CANONICAL_PERFORMANCE_BUDGET: OK — structural budgets plus product "
+        "scale evidence: memoized/lazy 1000-app picker projection, 125-row "
+        "bounded migration, 100-event ingress burst control, 1024-command "
+        "planner workload, and device-side planner/startup/frame benchmarks; "
+        "JVM budgets stay deterministic while wall-clock timing remains in "
+        "the dedicated device benchmark harness"
     )
     return 0
 
