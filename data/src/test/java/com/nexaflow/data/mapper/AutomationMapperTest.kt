@@ -126,6 +126,49 @@ class AutomationMapperTest {
     }
 
     @Test
+    fun privilegedAndHttpSecretsStayOutOfV3AndRoundTripThroughFallback() {
+        val rootCommand = "settings put secure secret_key super-secret-value"
+        val httpBody = "{\"password\":\"body-secret\"}"
+        val httpHeaders = "Authorization: Bearer header-secret"
+        val authToken = "auth-token-secret"
+        val secured = automation.copy(
+            id = "sensitive-round-trip",
+            triggers = emptyList(),
+            actions = listOf(
+                Action(
+                    ActionType.ADVANCED_ROOT,
+                    config = mapOf("command" to rootCommand),
+                ),
+                Action(
+                    ActionType.SYSTEM_HTTP_REQUEST,
+                    config = mapOf(
+                        "url" to "https://example.com/api",
+                        "method" to "POST",
+                        "body" to httpBody,
+                        "headers" to httpHeaders,
+                        "auth_token" to authToken,
+                    ),
+                ),
+            ),
+        )
+
+        val entity = secured.toEntity()
+        val payload = requireNotNull(entity.canonicalWorkflowJson)
+
+        assertEquals(
+            CanonicalV3WriteState.V3_WITH_LEGACY_FALLBACK.name,
+            entity.canonicalWriteState,
+        )
+        assertTrue(!payload.contains(rootCommand))
+        assertTrue(!payload.contains("body-secret"))
+        assertTrue(!payload.contains("header-secret"))
+        assertTrue(!payload.contains(authToken))
+
+        val restored = entity.toDomain()
+        assertEquals(secured.actions, restored.actions)
+    }
+
+    @Test
     fun invalidCanonicalWriteDegradesExplicitlyWithoutLosingLegacyColumns() {
         val invalid = automation.copy(
             actions = listOf(
