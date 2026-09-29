@@ -464,6 +464,17 @@ starts referencing legacy types — the  containment boundary can only shrink
   gate evidence with the device-evidence rule intact. The gate
   `scripts/check_canonical_docs_closure.py` pins all of it fail-closed.
   Covered by 3 unit tests and the same CI gate.
+- T43: **implemented** — Measured performance regression ledger in
+  `domain/.../canonical/CanonicalPerfRegression.kt`: three synthetic
+  worst-case probes (maxDepthSpine at the 64-deep limit, wideFanOut at the
+  64-wide limit, optimizerChurn feeding an optimizable tree) run through
+  the pure rewrite/measure pipeline on every test run; the work counter is
+  exact and platform-independent (validation visits + optimizer rewrites +
+  budget visits), so the checked-in baseline binds without flaking; a
+  regression is typed (baseline + observation + probe name) and lowering
+  the baseline is an explicit reviewed change. No clocks, no randomness.
+  Covered by 7 unit tests and CI gate
+  `scripts/check_canonical_perf_regression.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
