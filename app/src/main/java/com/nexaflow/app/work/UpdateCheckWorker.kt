@@ -11,7 +11,6 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -22,12 +21,10 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.nexaflow.app.MainActivity
 import com.nexaflow.app.R
-import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.datastore.UpdateSettings
 import com.nexaflow.feature.settings.UpdateChecker
 import com.nexaflow.feature.settings.UpdateVersion
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.EntryPointAccessors
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
 
@@ -36,14 +33,16 @@ import kotlinx.coroutines.flow.first
  * same-version result: notification is reserved only for a proven newer,
  * canonical release not previously announced by this device.
  */
-@HiltWorker
-class UpdateCheckWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
-    private val updatePreferences: UpdatePreferences
+class UpdateCheckWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        val updatePreferences = EntryPointAccessors.fromApplication(
+            applicationContext,
+            WorkerDependenciesEntryPoint::class.java,
+        ).updatePreferences()
         val settings = updatePreferences.settings.first()
         if (!settings.automaticChecksEnabled) return Result.success()
 
