@@ -150,7 +150,7 @@ class CanonicalRuntimePipeline(
          */
         fun defaultPlanner(): CanonicalExecutionPlanner =
             CanonicalExecutionPlanner.of(
-                CanonicalProductRuntime.productCommandSemantics(),
+                CanonicalCommandSemanticsCatalog.all(),
             )
     }
 }
