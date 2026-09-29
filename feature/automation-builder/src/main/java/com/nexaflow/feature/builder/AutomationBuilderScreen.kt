@@ -563,8 +563,8 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
     val name = stringResource(option.titleRes)
     val value: String? = when {
         option.actionType in TOGGLE_SUMMARY_ACTIONS ->
-            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
+            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.builder_state_on)
+            else stringResource(R.string.builder_state_off)
 
         option.actionType in SETTINGS_OPEN_SUMMARY ->
             stringResource(SETTINGS_OPEN_SUMMARY[option.actionType]!!)
@@ -667,7 +667,7 @@ private fun actionSummaryDetail(option: ActionOption, config: Map<String, String
             stringResource(R.string.wait_counter_label, config["seconds"]?.toIntOrNull() ?: 5)
         ActionType.SYSTEM_SCREEN_ROTATION ->
             if (config["autoRotate"]?.toBoolean() ?: true) stringResource(R.string.auto_rotate)
-            else stringResource(R.string.state_off)
+            else stringResource(R.string.builder_state_off)
         ActionType.SYSTEM_OPEN_URL -> config["url"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_HTTP_REQUEST -> {
             val method = config["method"] ?: "GET"
@@ -718,7 +718,7 @@ private fun actionSummaryDetail(option: ActionOption, config: Map<String, String
         }
         ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY -> {
             val t = config["timeoutSeconds"]?.toIntOrNull() ?: 300
-            if (t == 0) stringResource(R.string.state_off) else "${t}s"
+            if (t == 0) stringResource(R.string.builder_state_off) else "${t}s"
         }
         ActionType.SYSTEM_HAPTIC_INTENSITY -> config["level"] ?: "255"
         ActionType.SYSTEM_DIAL_NUMBER -> config["number"].orEmpty().trim().ifEmpty { null }
