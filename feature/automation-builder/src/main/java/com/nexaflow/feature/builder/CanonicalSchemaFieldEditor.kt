@@ -19,12 +19,16 @@ import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.canonical.BooleanValue
 import com.nexaflow.domain.canonical.CanonicalValue
+import com.nexaflow.domain.canonical.CanonicalValueKind
+import com.nexaflow.domain.canonical.CollectionValue
+import com.nexaflow.domain.canonical.CoordinateValue
 import com.nexaflow.domain.canonical.DateValue
 import com.nexaflow.domain.canonical.DecimalValue
 import com.nexaflow.domain.canonical.DisclosureState
 import com.nexaflow.domain.canonical.DurationValue
 import com.nexaflow.domain.canonical.EnumTokenValue
 import com.nexaflow.domain.canonical.IntegerValue
+import com.nexaflow.domain.canonical.JsonValue
 import com.nexaflow.domain.canonical.NodeConfiguratorState
 import com.nexaflow.domain.canonical.NodeFieldType
 import com.nexaflow.domain.canonical.NodeFieldValue
@@ -36,6 +40,7 @@ import com.nexaflow.domain.canonical.TextValue
 import com.nexaflow.domain.canonical.TimeOfDayValue
 import com.nexaflow.domain.canonical.TimezoneValue
 import com.nexaflow.domain.canonical.UriValue
+import kotlinx.serialization.json.Json
 
 /**
  * T12 schema-driven field renderer. The canonical schema decides which fields
@@ -199,13 +204,26 @@ private fun parseCanonicalField(field: NodeSchemaField, raw: String): CanonicalV
             NodeFieldType.TIMEZONE_ID -> TimezoneValue(raw)
             NodeFieldType.PACKAGE_ID -> PackageIdValue(raw)
             NodeFieldType.URI -> UriValue(raw)
+            NodeFieldType.COORDINATE -> {
+                val parts = raw.split(",", limit = 2)
+                require(parts.size == 2) { "coordinate must use latitude,longitude" }
+                CoordinateValue(parts[0].trim().toDouble(), parts[1].trim().toDouble())
+            }
             NodeFieldType.ENUM_TOKEN -> EnumTokenValue(
                 requireNotNull(field.enumType),
                 raw,
             )
-            NodeFieldType.JSON,
-            NodeFieldType.COORDINATE,
-            NodeFieldType.COLLECTION,
+            NodeFieldType.JSON -> JsonValue(Json.parseToJsonElement(raw))
+            NodeFieldType.COLLECTION -> {
+                val elementKind = requireNotNull(field.collectionElementKind) {
+                    "collection field requires collectionElementKind"
+                }
+                val items = raw.split('|', ';', ',')
+                    .map(String::trim)
+                    .filter(String::isNotEmpty)
+                    .map { token -> parseCollectionElement(elementKind, token) }
+                CollectionValue(elementKind, items)
+            }
             NodeFieldType.SECRET_REFERENCE -> null
         }
     }.getOrNull()
@@ -223,6 +241,44 @@ private fun canonicalValueToLegacy(value: CanonicalValue): String = when (value)
     is TimezoneValue -> value.zoneId
     is PackageIdValue -> value.packageName
     is UriValue -> value.value
+    is CoordinateValue -> "${value.latitude},${value.longitude}"
     is EnumTokenValue -> value.token
-    else -> ""
+    is JsonValue -> value.value.toString()
+    is CollectionValue -> value.values.joinToString("|", transform = ::canonicalValueToLegacy)
+    is com.nexaflow.domain.canonical.SecretReferenceValue -> ""
+    is com.nexaflow.domain.canonical.ExpressionValue -> value.source
+}
+
+private fun parseCollectionElement(
+    kind: CanonicalValueKind,
+    raw: String,
+): CanonicalValue = when (kind) {
+    CanonicalValueKind.BOOLEAN -> BooleanValue(raw.toBooleanStrict())
+    CanonicalValueKind.INTEGER -> IntegerValue(raw.toLong())
+    CanonicalValueKind.DECIMAL -> DecimalValue(raw)
+    CanonicalValueKind.TEXT -> TextValue(raw)
+    CanonicalValueKind.PERCENTAGE -> PercentageValue(raw)
+    CanonicalValueKind.DURATION_MS -> DurationValue(raw.toLong())
+    CanonicalValueKind.TIMESTAMP_MS ->
+        com.nexaflow.domain.canonical.TimestampValue(raw.toLong())
+    CanonicalValueKind.TIME_OF_DAY -> {
+        val parts = raw.split(":")
+        require(parts.size == 2) { "time must use HH:mm" }
+        TimeOfDayValue(parts[0].toInt() * 60 + parts[1].toInt())
+    }
+    CanonicalValueKind.DATE -> DateValue(raw)
+    CanonicalValueKind.TIMEZONE_ID -> TimezoneValue(raw)
+    CanonicalValueKind.PACKAGE_ID -> PackageIdValue(raw)
+    CanonicalValueKind.URI -> UriValue(raw)
+    CanonicalValueKind.COORDINATE -> {
+        val parts = raw.split(",", limit = 2)
+        require(parts.size == 2) { "coordinate must use latitude,longitude" }
+        CoordinateValue(parts[0].trim().toDouble(), parts[1].trim().toDouble())
+    }
+    CanonicalValueKind.JSON -> JsonValue(Json.parseToJsonElement(raw))
+    CanonicalValueKind.ENUM_TOKEN,
+    CanonicalValueKind.SECRET_REFERENCE,
+    CanonicalValueKind.COLLECTION,
+    CanonicalValueKind.EXPRESSION ->
+        throw IllegalArgumentException("unsupported collection element kind $kind")
 }
