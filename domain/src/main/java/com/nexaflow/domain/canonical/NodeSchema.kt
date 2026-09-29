@@ -67,6 +67,7 @@ enum class NodeFieldType {
     PACKAGE_ID,
     URI,
     ENUM_TOKEN,
+    JSON,
     SECRET_REFERENCE,
 }
 
@@ -103,6 +104,7 @@ data class NodeFieldDefault(
             CanonicalValueKind.PACKAGE_ID,
             CanonicalValueKind.URI,
             CanonicalValueKind.ENUM_TOKEN,
+            CanonicalValueKind.JSON,
         )
 
         fun ofBoolean(value: Boolean) = NodeFieldDefault(BooleanValue(value))
@@ -448,6 +450,7 @@ internal fun expectedValueKind(type: NodeFieldType): CanonicalValueKind = when (
     NodeFieldType.PACKAGE_ID -> CanonicalValueKind.PACKAGE_ID
     NodeFieldType.URI -> CanonicalValueKind.URI
     NodeFieldType.ENUM_TOKEN -> CanonicalValueKind.ENUM_TOKEN
+    NodeFieldType.JSON -> CanonicalValueKind.JSON
     NodeFieldType.SECRET_REFERENCE -> CanonicalValueKind.SECRET_REFERENCE
 }
 
