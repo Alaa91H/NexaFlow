@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun NodeConfiguratorSheet(
     title: String,
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
-    selectedCount: Int,
+    searchQuery: String? = null,
+    onSearchQueryChange: ((String) -> Unit)? = null,
+    selectedCount: Int? = null,
     confirmLabel: String,
     confirmEnabled: Boolean,
     onConfirm: () -> Unit,
@@ -47,17 +47,21 @@ internal fun NodeConfiguratorSheet(
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
         ) {
             Text(text = title, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = onSearchQueryChange,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text(stringResource(R.string.search)) }
-            )
-            Text(
-                text = stringResource(R.string.selected_count, selectedCount),
-                style = androidx.compose.material3.MaterialTheme.typography.labelLarge
-            )
+            if (searchQuery != null && onSearchQueryChange != null) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.search)) }
+                )
+            }
+            selectedCount?.let { count ->
+                Text(
+                    text = stringResource(R.string.selected_count, count),
+                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                )
+            }
             content()
             Button(
                 onClick = onConfirm,
