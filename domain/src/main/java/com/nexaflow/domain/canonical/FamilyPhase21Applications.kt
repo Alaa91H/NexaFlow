@@ -139,6 +139,33 @@ object FamilyPhase21Applications {
         }
     }
 
+    private class InstallApkRule(
+        override val legacyType: String,
+        private val base: LegacyMappingRule,
+    ) : LegacyMappingRule {
+        override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
+        override val consumedKeys: Set<String> = setOf("path")
+        override val requiredKeys: Set<String> = emptySet()
+
+        override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
+            val skeleton = base.canonicalize(input) as InvokeNode
+            val path = input.entry("path") ?: return skeleton
+            return InvokeNode(
+                id = skeleton.id,
+                target = skeleton.target,
+                operation = skeleton.operation,
+                arguments = CanonicalArguments(
+                    listOf(
+                        CanonicalArgument(
+                            CanonicalFieldId("path"),
+                            LegacyValueParsers.parseText(path),
+                        ),
+                    ),
+                ),
+            )
+        }
+    }
+
     private class AppTriggerRule(
         override val legacyType: String,
         private val base: LegacyMappingRule,
@@ -195,7 +222,7 @@ object FamilyPhase21Applications {
                 name in DESTRUCTIVE_MULTI_ACTIONS ->
                     PackageListRule(name, base, destructive = true)
                 name in DESTRUCTIVE_SINGLE_ACTIONS ->
-                    PackageListRule(name, base, destructive = true)
+                    InstallApkRule(name, base)
                 else -> OpenAppRule(name, base) // store updates: optional filter
             }
         } + APP_TRIGGERS.map { name ->
