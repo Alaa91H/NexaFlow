@@ -1598,6 +1598,8 @@ class ExecutionEngine(
                                 notificationSettings = notif,
                                 channel = channel,
                                 automationId = automationId,
+                                executionId = executionId,
+                                nodeId = canonicalCommand.commandId,
                                 revertOnExit = revertOnExit,
                                 runContext = runContext,
                                 dataRuntime = dataRuntime,
