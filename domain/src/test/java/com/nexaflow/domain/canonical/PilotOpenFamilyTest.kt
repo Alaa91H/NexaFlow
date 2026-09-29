@@ -12,13 +12,13 @@ class PilotOpenFamilyTest {
     private fun settingsRules() = LegacyMappingTable.all()
         .filter {
             it.kind == LegacyNodeKind.ACTION &&
-                it.legacyType in PilotOpenFamily.legacyPageMappings
+                PilotOpenFamily.legacyPageMappings.any { mapping -> mapping.legacyType == it.legacyType }
         }
 
     @Test
     fun pilotOverridesCoverExactlyTheSettingsLaunchers() {
         val overrides = PilotOpenFamily.ruleOverrides()
-        val expected = PilotOpenFamily.legacyPageMappings.keys.sorted()
+        val expected = PilotOpenFamily.legacyPageMappings.map { it.legacyType }.sorted()
 
         assertEquals(29, overrides.size)
         assertEquals(expected, overrides.map { it.legacyType }.sorted())
@@ -39,7 +39,9 @@ class PilotOpenFamilyTest {
                 LegacyNodeInput(rule.legacyType, LegacyNodeKind.ACTION, emptyList()),
             ) as LegacyAdapterOutcome.Canonicalized
             val node = outcome.node as OpenNode
-            val expected = PilotOpenFamily.legacyPageMappings.getValue(rule.legacyType)
+            val expected = PilotOpenFamily.legacyPageMappings
+                .single { it.legacyType == rule.legacyType }
+                .pageToken
             assertEquals(
                 EnumTokenValue("core.system.settings", expected),
                 node.arguments[CanonicalFieldId("page")],
@@ -129,7 +131,7 @@ class PilotOpenFamilyTest {
     @Test
     fun schemaValidatesEveryDeclaredPageToken() {
         val schema = PilotOpenFamily.openSettingsSchema()
-        for (token in PilotOpenFamily.legacyPageMappings.values.distinct()) {
+        for (token in PilotOpenFamily.legacyPageMappings.map { it.pageToken }.distinct()) {
             val issues = validateNodeValues(
                 schema,
                 listOf(
