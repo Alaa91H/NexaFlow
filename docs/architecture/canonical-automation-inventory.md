@@ -295,6 +295,17 @@ and reviewed before T01 may close:
   fallback reasons for corrupt or future-version payloads — never
   fabricated defaults. Pure domain (no Room/clock coupling). Covered by 13
   unit tests and CI gate `scripts/check_canonical_persistence_policy.py`.
+- T28: **implemented** — Controlled migration rollout in
+  `domain/.../workflow/WorkflowMigrationOrchestrator.kt`: deterministic
+  bounded batches (1..200) over the T27 V3-write policy, a durable
+  idempotent journal with typed per-id outcomes (MIGRATED /
+  DEGRADED_LEGACY_ONLY / FAILED), a per-run failure threshold that aborts
+  systematic conversion bugs mid-batch, crash recovery by re-planning from
+  the journal (settled ids never replanned, FAILED ids retried), and a
+  fail-closed completion gate whose declaration unlocks T27 `V3_ONLY`
+  writes. Pure domain; the runner supplies clocks and executes planned
+  decisions. Covered by 11 unit tests and CI gate
+  `scripts/check_canonical_migration_rollout.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
