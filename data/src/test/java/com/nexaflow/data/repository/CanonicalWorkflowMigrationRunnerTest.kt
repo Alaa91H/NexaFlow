@@ -94,6 +94,30 @@ class CanonicalWorkflowMigrationRunnerTest {
     }
 
     @Test
+    fun hundredTwentyFiveLegacyRowsMigrateInBoundedResumableBatches() = runTest {
+        val rows = (0 until 125).map { index ->
+            legacyRow(automation("scale-%03d".format(index)))
+        }
+        val dao = FakeAutomationDao(rows)
+        val runner = CanonicalWorkflowMigrationRunner(dao)
+
+        val first = runner.runNextBatch(batchSize = 50)
+        val second = runner.runNextBatch(batchSize = 50)
+        val third = runner.runNextBatch(batchSize = 50)
+        val status = runner.fleetStatus()
+
+        assertEquals(50, first.migrated)
+        assertEquals(75, first.remaining)
+        assertEquals(50, second.migrated)
+        assertEquals(25, second.remaining)
+        assertEquals(25, third.migrated)
+        assertEquals(0, third.remaining)
+        assertEquals(125, status.canonicalGraphReady)
+        assertTrue(status.canonicalGraphMigrationComplete)
+        assertTrue(status.legacyRetirementReady)
+    }
+
+    @Test
     fun canonicalGraphCanMigrateWhileSecretFallbackStillBlocksLegacyRetirement() = runTest {
         val secretAutomation = automation("secret").copy(
             actions = listOf(
