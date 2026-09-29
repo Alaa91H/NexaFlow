@@ -91,6 +91,30 @@ class CategoryAccordionTest {
     }
 
     @Test
+    fun familyFirstEntryShowsCategoriesWithoutAutoExpandingOptions() {
+        composeRule.setContent {
+            MaterialTheme {
+                var expanded by remember { mutableStateOf<Int?>(null) }
+                CategoryAccordion(
+                    tabs = listOf("Cat A" to null, "Cat B" to null),
+                    expandedIndex = expanded,
+                    onExpandedChange = { expanded = it },
+                ) { index ->
+                    Text(if (index == 0) "A1" else "B1")
+                }
+            }
+        }
+
+        composeRule.onNode(hasText("Cat A") and hasClickAction()).assertIsDisplayed()
+        composeRule.onNode(hasText("Cat B") and hasClickAction()).assertIsDisplayed()
+        composeRule.onAllNodesWithText("A1").assertCountEquals(0)
+        composeRule.onAllNodesWithText("B1").assertCountEquals(0)
+
+        composeRule.onNode(hasText("Cat A") and hasClickAction()).performClick()
+        composeRule.onNodeWithText("A1").assertIsDisplayed()
+    }
+
+    @Test
     fun enteringThePicker_showsOnlyTheDefaultCategoryOptions() {
         setHarness()
 
