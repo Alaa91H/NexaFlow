@@ -116,7 +116,8 @@ def main() -> int:
         for token in (
             "canonicalProductRuntime.prepareTrigger",
             "canonicalProductRuntime.prepareAction",
-            "canonicalAction.command.commandId",
+            "canonicalCommand = canonicalAction.command",
+            "canonicalCommand: AtomicCommand",
             "CommandIdempotency.IDEMPOTENT",
             "executeCanonicalCompatibilityAction",
         ):
