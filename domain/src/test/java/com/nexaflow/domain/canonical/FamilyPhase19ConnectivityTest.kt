@@ -50,14 +50,12 @@ class FamilyPhase19ConnectivityTest {
     }
 
     @Test
-    fun missingEnabledKeyIsRejected() {
+    fun missingEnabledKeyDefersToCatalogContract() {
         val outcome = familyAdapter.canonicalize(
             LegacyNodeInput("SYSTEM_BLUETOOTH", LegacyNodeKind.ACTION, emptyList()),
         )
-        assertEquals(
-            LegacyAdapterRejection.MISSING_REQUIRED_CONFIG,
-            (outcome as LegacyAdapterOutcome.Rejected).reason,
-        )
+        val canonicalized = outcome as LegacyAdapterOutcome.Canonicalized
+        assertTrue(canonicalized.node is InvokeNode)
     }
 
     @Test
