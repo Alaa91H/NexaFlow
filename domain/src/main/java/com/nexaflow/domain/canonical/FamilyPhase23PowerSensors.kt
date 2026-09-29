@@ -67,14 +67,15 @@ object FamilyPhase23PowerSensors {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.ENABLED)
-        override val requiredKeys: Set<String> = setOf(Keys.ENABLED)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val entry = input.entry(Keys.ENABLED) ?: return skeleton
             return SetStateNode(
                 id = skeleton.id,
                 target = skeleton.target,
-                state = LegacyValueParsers.parseBoolean(input.entry(Keys.ENABLED)!!),
+                state = LegacyValueParsers.parseBoolean(entry),
             )
         }
     }
@@ -85,14 +86,15 @@ object FamilyPhase23PowerSensors {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.VALUE)
-        override val requiredKeys: Set<String> = setOf(Keys.VALUE)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val entry = input.entry(Keys.VALUE) ?: return skeleton
             return SetValueNode(
                 id = skeleton.id,
                 target = skeleton.target,
-                value = LegacyValueParsers.parseInteger(input.entry(Keys.VALUE)!!),
+                value = LegacyValueParsers.parseInteger(entry),
             )
         }
     }
