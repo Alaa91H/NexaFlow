@@ -162,7 +162,7 @@ class CanonicalRuntimeCutoverAdapter(
         config: Map<String, String>,
         kind: NodeSchemaKind,
     ): Contract {
-        val fields = definition.configuration.fields.map { field ->
+        val catalogFields = definition.configuration.fields.map { field ->
             NodeSchemaField(
                 id = CanonicalFieldId(field.key),
                 type = canonicalFieldType(field.valueType),
@@ -188,7 +188,7 @@ class CanonicalRuntimeCutoverAdapter(
             )
         }
 
-        val values = definition.configuration.fields.mapNotNull { field ->
+        val catalogValues = definition.configuration.fields.mapNotNull { field ->
             val raw = config[field.key] ?: field.defaultValue ?: return@mapNotNull null
             canonicalValue(
                 field = field,
@@ -197,6 +197,19 @@ class CanonicalRuntimeCutoverAdapter(
                 allowExpression = field.expressionCapable,
             )?.let { NodeFieldValue(CanonicalFieldId(field.key), it) }
         }
+
+        val derivedValues = nodeArguments(node).entries.map {
+            NodeFieldValue(it.id, it.value)
+        }
+        val catalogIds = catalogFields.mapTo(linkedSetOf()) { it.id }
+        val derivedFields = derivedValues
+            .filter { it.field !in catalogIds }
+            .map { value -> inferredField(value) }
+        val fields = catalogFields + derivedFields
+        val values = (derivedValues + catalogValues)
+            .associateBy { it.field }
+            .values
+            .toList()
 
         val schema = NodeSchema(
             schemaId = "compat." + kind.name.lowercase() + "." +
@@ -216,6 +229,71 @@ class CanonicalRuntimeCutoverAdapter(
             summaryTemplate = definition.legacyTypeName,
         )
         return Contract(schema, values)
+    }
+
+    private fun nodeArguments(node: CanonicalNode): com.nexaflow.domain.canonical.CanonicalArguments =
+        when (node) {
+            is CanonicalActionNode -> node.arguments
+            is ObserveNode -> node.arguments
+            else -> com.nexaflow.domain.canonical.CanonicalArguments.EMPTY
+        }
+
+    private fun inferredField(value: NodeFieldValue): NodeSchemaField {
+        val raw = value.value
+        val type = when (raw.kind) {
+            CanonicalValueKind.BOOLEAN -> NodeFieldType.BOOLEAN
+            CanonicalValueKind.INTEGER -> NodeFieldType.INTEGER
+            CanonicalValueKind.DECIMAL -> NodeFieldType.DECIMAL
+            CanonicalValueKind.TEXT -> NodeFieldType.TEXT
+            CanonicalValueKind.PERCENTAGE -> NodeFieldType.PERCENTAGE
+            CanonicalValueKind.DURATION_MS -> NodeFieldType.DURATION_MS
+            CanonicalValueKind.TIMESTAMP_MS -> NodeFieldType.TIMESTAMP_MS
+            CanonicalValueKind.TIME_OF_DAY -> NodeFieldType.TIME_OF_DAY
+            CanonicalValueKind.DATE -> NodeFieldType.DATE
+            CanonicalValueKind.TIMEZONE_ID -> NodeFieldType.TIMEZONE_ID
+            CanonicalValueKind.PACKAGE_ID -> NodeFieldType.PACKAGE_ID
+            CanonicalValueKind.URI -> NodeFieldType.URI
+            CanonicalValueKind.COORDINATE -> NodeFieldType.COORDINATE
+            CanonicalValueKind.ENUM_TOKEN -> NodeFieldType.ENUM_TOKEN
+            CanonicalValueKind.JSON -> NodeFieldType.JSON
+            CanonicalValueKind.SECRET_REFERENCE -> NodeFieldType.SECRET_REFERENCE
+            CanonicalValueKind.COLLECTION -> NodeFieldType.COLLECTION
+            CanonicalValueKind.EXPRESSION -> {
+                val expression = raw as ExpressionValue
+                nodeFieldTypeForKind(expression.resultKind)
+            }
+        }
+        val enum = raw as? EnumTokenValue
+        return NodeSchemaField(
+            id = value.field,
+            type = type,
+            alwaysRequired = true,
+            enumType = enum?.enumType,
+            allowedTokens = enum?.let { listOf(it.token) }.orEmpty(),
+            expressionCapable = raw is ExpressionValue,
+        )
+    }
+
+    private fun nodeFieldTypeForKind(kind: CanonicalValueKind): NodeFieldType = when (kind) {
+        CanonicalValueKind.BOOLEAN -> NodeFieldType.BOOLEAN
+        CanonicalValueKind.INTEGER -> NodeFieldType.INTEGER
+        CanonicalValueKind.DECIMAL -> NodeFieldType.DECIMAL
+        CanonicalValueKind.TEXT -> NodeFieldType.TEXT
+        CanonicalValueKind.PERCENTAGE -> NodeFieldType.PERCENTAGE
+        CanonicalValueKind.DURATION_MS -> NodeFieldType.DURATION_MS
+        CanonicalValueKind.TIMESTAMP_MS -> NodeFieldType.TIMESTAMP_MS
+        CanonicalValueKind.TIME_OF_DAY -> NodeFieldType.TIME_OF_DAY
+        CanonicalValueKind.DATE -> NodeFieldType.DATE
+        CanonicalValueKind.TIMEZONE_ID -> NodeFieldType.TIMEZONE_ID
+        CanonicalValueKind.PACKAGE_ID -> NodeFieldType.PACKAGE_ID
+        CanonicalValueKind.URI -> NodeFieldType.URI
+        CanonicalValueKind.COORDINATE -> NodeFieldType.COORDINATE
+        CanonicalValueKind.ENUM_TOKEN -> NodeFieldType.ENUM_TOKEN
+        CanonicalValueKind.JSON -> NodeFieldType.JSON
+        CanonicalValueKind.SECRET_REFERENCE -> NodeFieldType.SECRET_REFERENCE
+        CanonicalValueKind.COLLECTION -> NodeFieldType.COLLECTION
+        CanonicalValueKind.EXPRESSION ->
+            throw IllegalArgumentException("nested expression result kind is invalid")
     }
 
     private fun canonicalValue(
