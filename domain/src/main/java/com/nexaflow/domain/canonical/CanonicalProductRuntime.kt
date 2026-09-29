@@ -68,9 +68,14 @@ class CanonicalProductRuntime(
             kind = LegacyNodeKind.TRIGGER,
             config = config,
         )
-        val node = canonicalized.node.withProductRuntimeId(CanonicalNodeId(instanceId))
-        require(node is CanonicalConditionNode) {
-            "Canonical trigger $sourceType did not produce a condition node"
+        val reidentified = canonicalized.node.withProductRuntimeId(CanonicalNodeId(instanceId))
+        val node: CanonicalConditionNode = when (reidentified) {
+            is ObserveNode -> ObservedConditionNode(reidentified.id, reidentified)
+            is CompareNode -> ComparisonConditionNode(reidentified.id, reidentified)
+            is CanonicalConditionNode -> reidentified
+            else -> throw IllegalArgumentException(
+                "Canonical trigger $sourceType did not produce an observation/comparison node",
+            )
         }
         return PreparedTrigger(
             sourceType = sourceType,
