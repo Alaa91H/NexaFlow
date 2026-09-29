@@ -51,7 +51,7 @@ object LegacyCatalogCanonicalContractNormalizer {
                     null
                 },
                 allowedTokens = if (field.valueType == NodeConfigValueType.ENUM) {
-                    field.allowedValues.map(::canonicalEnumToken)
+                    canonicalEnumTokens(field.allowedValues)
                 } else {
                     emptyList()
                 },
@@ -296,14 +296,68 @@ object LegacyCatalogCanonicalContractNormalizer {
     }
 
     /**
-     * Legacy catalogs occasionally use numeric display values for an enum
-     * (for example TIME.weekOfMonth = "1".."5"). Canonical EnumTokenValue
-     * intentionally requires a leading letter, so prefix only those numeric
-     * compatibility values while leaving already-valid semantic tokens intact.
+     * Lossless compatibility encoding for legacy enum values.
+     *
+     * Canonical EnumTokenValue accepts only [A-Z][A-Z0-9_]*, while historical
+     * catalogs also contain numeric, lowercase and punctuation-bearing values
+     * (for example "1", "right" and "SHA-256"). Keep already-canonical tokens
+     * readable, retain the historical VALUE_<n> encoding for numeric enums,
+     * and hex-encode every other unsafe/reserved value under LEGACY_. The
+     * mapping is deterministic and reversible against the catalog allowlist.
      */
-    private fun canonicalEnumToken(raw: String): String {
-        val token = raw.trim().uppercase()
-        return if (token.firstOrNull()?.isDigit() == true) "VALUE_$token" else token
+    fun canonicalEnumToken(raw: String): String {
+        val value = raw.trim()
+        require(value.isNotEmpty()) { "legacy enum token must not be blank" }
+
+        if (value.all(Char::isDigit)) {
+            val token = NUMERIC_ENUM_PREFIX + value
+            require(CANONICAL_ENUM_TOKEN.matches(token)) {
+                "numeric legacy enum token is too long"
+            }
+            return token
+        }
+
+        if (
+            CANONICAL_ENUM_TOKEN.matches(value) &&
+            !value.startsWith(NUMERIC_ENUM_PREFIX) &&
+            !value.startsWith(ESCAPED_ENUM_PREFIX)
+        ) {
+            return value
+        }
+
+        val hex = buildString(value.encodeToByteArray().size * 2) {
+            for (byte in value.encodeToByteArray()) {
+                val unsigned = byte.toInt() and 0xFF
+                append(HEX_DIGITS[unsigned ushr 4])
+                append(HEX_DIGITS[unsigned and 0x0F])
+            }
+        }
+        val token = ESCAPED_ENUM_PREFIX + hex
+        require(CANONICAL_ENUM_TOKEN.matches(token)) {
+            "legacy enum token cannot be represented within canonical bounds"
+        }
+        return token
+    }
+
+    fun legacyEnumToken(
+        allowedValues: List<String>,
+        canonicalToken: String,
+    ): String? {
+        val matches = allowedValues.filter {
+            canonicalEnumToken(it) == canonicalToken
+        }
+        require(matches.size <= 1) {
+            "legacy enum values collide after canonical encoding"
+        }
+        return matches.singleOrNull()
+    }
+
+    private fun canonicalEnumTokens(values: List<String>): List<String> {
+        val tokens = values.map(::canonicalEnumToken)
+        require(tokens.distinct().size == tokens.size) {
+            "legacy enum values collide after canonical encoding"
+        }
+        return tokens
     }
 
     private fun enumTypeId(legacyType: String, key: String): String =
@@ -331,6 +385,10 @@ object LegacyCatalogCanonicalContractNormalizer {
 
     private val EXPRESSION_MARKER = Regex("%(?:CTX\\.|[A-Za-z_])")
     private val NON_ID_CHARS = Regex("[^a-z0-9_]")
+    private val CANONICAL_ENUM_TOKEN = Regex("[A-Z][A-Z0-9_]{0,127}")
+    private const val NUMERIC_ENUM_PREFIX = "VALUE_"
+    private const val ESCAPED_ENUM_PREFIX = "LEGACY_"
+    private const val HEX_DIGITS = "0123456789ABCDEF"
     private val NON_BLANK_TYPES = setOf(
         NodeConfigValueType.INTEGER,
         NodeConfigValueType.DECIMAL,
