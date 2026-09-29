@@ -1091,23 +1091,25 @@ class SystemController(
     /** Open a system settings page (Wi-Fi, Bluetooth, location, sound...). */
     fun openSystemSettings(page: String): SystemControlResult {
         val settingsIntent = when (page) {
+            "SETTINGS" -> Intent(Settings.ACTION_SETTINGS)
             "WIFI" -> Intent(Settings.ACTION_WIFI_SETTINGS)
             "BLUETOOTH" -> Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
             "LOCATION" -> Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             "SOUND" -> Intent(Settings.ACTION_SOUND_SETTINGS)
             "DISPLAY" -> Intent(Settings.ACTION_DISPLAY_SETTINGS)
             "BATTERY" -> Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
-            "NOTIFICATION" -> Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+            "NOTIFICATION" -> Intent("android.settings.NOTIFICATION_SETTINGS")
             "DATA_USAGE" -> Intent(Settings.ACTION_DATA_USAGE_SETTINGS)
             "STORAGE" -> Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS)
             "SECURITY" -> Intent(Settings.ACTION_SECURITY_SETTINGS)
             "ACCESSIBILITY" -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            "APPS" -> Intent(Settings.ACTION_APPLICATION_SETTINGS)
-            "ABOUT" -> Intent(Settings.ACTION_DEVICE_INFO_SETTINGS)
+            "APP_SETTINGS_LIST", "APPS" -> Intent(Settings.ACTION_APPLICATION_SETTINGS)
+            "ABOUT_PHONE", "ABOUT" -> Intent(Settings.ACTION_DEVICE_INFO_SETTINGS)
             "NETWORK" -> Intent(Settings.ACTION_WIRELESS_SETTINGS)
             "NFC" -> Intent(Settings.ACTION_NFC_SETTINGS)
             "DATA_SAVER" -> Intent(Settings.ACTION_DATA_USAGE_SETTINGS)
             "DEVELOPER" -> Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+            // Kept for historical SYSTEM_OPEN_SETTINGS rows that used the old token.
             "NOTIFICATION_LIST" -> Intent("android.settings.NOTIFICATION_SETTINGS")
             "PRIVACY" -> Intent(Settings.ACTION_PRIVACY_SETTINGS)
             "CAST" -> Intent(Settings.ACTION_CAST_SETTINGS)
@@ -1119,6 +1121,7 @@ class SystemController(
             "DEVICE_ADMIN" -> Intent("android.settings.DEVICE_ADMIN_SETTINGS")
             "USAGE_ACCESS" -> Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
             "AIRPLANE_MODE" -> Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
+            "SYSTEM_UPDATE" -> Intent(Settings.ACTION_SYSTEM_UPDATE_SETTINGS)
             else -> Intent(Settings.ACTION_SETTINGS)
         }
         return try {
