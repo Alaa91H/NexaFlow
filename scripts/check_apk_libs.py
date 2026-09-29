@@ -4,10 +4,10 @@ Runs in CI after assembleRelease to catch two silent regressions:
 
 1. An unsupported ABI sneaking in (e.g. `lib/mips/` from an old vendor SDK).
    Unknown ABI directories FAIL the build.
-2. Emulator-only ABIs (x86, x86_64) shipping into a phone-oriented release.
-   They are legitimate for emulators, so they are reported with their exact
-   size as WARNINGS instead of failing — the numbers feed the bundletool
-   split-size comparison in the workflow.
+2. Emulator-only ABIs (x86, x86_64) shipping into a universal release.
+   They are supported and legitimate for emulator installs, so their exact
+   size is reported as informational evidence for the bundletool split-size
+   comparison in the workflow.
 
 Usage:
     python3 scripts/check_apk_libs.py path/to/app-release.apk
@@ -46,7 +46,7 @@ def audit(apk_path: str) -> int:
         for abi in sorted(per_abi):
             flag = ""
             if abi in EMULATOR_ONLY_ABIS:
-                flag = "  [WARN emulator-only - unnecessary on phones]"
+                flag = "  [INFO emulator-only ABI]"
             print(f"  {abi:12s} {per_abi[abi]:>9,} bytes{flag}")
         print(f"  {'TOTAL':12s} {total:>9,} bytes")
 
