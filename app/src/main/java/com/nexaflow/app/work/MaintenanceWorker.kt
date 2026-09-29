@@ -1,7 +1,6 @@
 package com.nexaflow.app.work
 
 import android.content.Context
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -9,9 +8,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.AppDatabase
-import com.nexaflow.data.repository.CanonicalWorkflowMigrationRunner
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.EntryPointAccessors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -25,19 +22,21 @@ import java.util.concurrent.TimeUnit
  * space even when the insert path is bypassed). Widget refresh is left to the
  * existing AUTOMATIONS_CHANGED broadcast path.
  */
-@HiltWorker
-class MaintenanceWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
-    private val database: AppDatabase,
-    private val canonicalMigrationRunner: CanonicalWorkflowMigrationRunner,
+class MaintenanceWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         return try {
+            val dependencies = EntryPointAccessors.fromApplication(
+                applicationContext,
+                WorkerDependenciesEntryPoint::class.java,
+            )
+            val database = dependencies.appDatabase()
             // One bounded migration batch per maintenance pass: never loop
             // indefinitely in WorkManager, and never block unrelated cleanup.
-            canonicalMigrationRunner.runNextBatch()
+            dependencies.canonicalWorkflowMigrationRunner().runNextBatch()
             val dao = database.executionDao()
             dao.pruneOlderThan(System.currentTimeMillis() - ExecutionDao.RETENTION_MS)
             dao.pruneExcess(ExecutionDao.RETAIN_LIMIT)
