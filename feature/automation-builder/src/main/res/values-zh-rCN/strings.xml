@@ -1272,4 +1272,7 @@
     <string name="sensor_invalid_range">上限必须大于或等于下限。</string>
     <string name="trigger_wear_event">Wear OS 手表</string>
     <string name="trigger_wear_event_sub">当 NexaFlow 手表连接或断开连接时运行任务</string>
+    <string name="option_tier_common">常用</string>
+    <string name="option_tier_advanced">高级</string>
+    <string name="option_tier_all">所有选项</string>
 </resources>
