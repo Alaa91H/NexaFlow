@@ -6,6 +6,7 @@ import com.nexaflow.core.logging.TraceReasons
 import com.nexaflow.domain.models.ExecutionRecord
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ExecutionDetailsExplanationTest {
@@ -93,6 +94,52 @@ class ExecutionDetailsExplanationTest {
         assertEquals("explain_action_failed", explanation?.explanationKey)
         assertEquals("fix_review_action_config", explanation?.fixKey)
         assertEquals("SYSTEM_WIFI: permission denied", explanation?.detail)
+    }
+
+    @Test
+    fun explanationShownByDetailsScreenIsSecretSafe() {
+        val record = ExecutionRecord(
+            id = "record-secret",
+            automationId = "task-1",
+            automationName = "Routine",
+            success = false,
+            message = "Failed",
+            executedAt = 1_000L,
+        )
+        val timeline = listOf(
+            ExecutionTimelineEntry(
+                id = record.id,
+                automationId = record.automationId,
+                automationName = record.automationName,
+                kind = "RUN",
+                success = false,
+                message = record.message,
+                startedAt = 1_000L,
+                durationMs = 5L,
+                runId = "run-secret",
+            ),
+            ExecutionTimelineEntry(
+                id = "trace-secret",
+                automationId = record.automationId,
+                automationName = "",
+                kind = "TRACE:GATE_BLOCKED",
+                success = false,
+                message = TraceReasons.CONFIGURATION_BLOCKED,
+                startedAt = 1_001L,
+                durationMs = 0L,
+                traceRunId = "run-secret",
+                traceSequence = 1,
+                tracePhase = TracePhase.GATE_BLOCKED,
+                traceReasonCode = TraceReasons.CONFIGURATION_BLOCKED,
+                traceDetail = "password=plain-secret",
+            ),
+        )
+
+        val explanation = explanationForRecord(record, timeline)
+
+        assertEquals("explain_configuration_blocked", explanation?.explanationKey)
+        assertTrue(explanation?.detail?.contains("plain-secret") == false)
+        assertTrue(explanation?.detail?.contains("[REDACTED]") == true)
     }
 
     @Test
