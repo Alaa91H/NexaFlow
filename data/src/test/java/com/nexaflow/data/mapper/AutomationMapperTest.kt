@@ -1,5 +1,6 @@
 package com.nexaflow.data.mapper
 
+import com.nexaflow.domain.canonical.CanonicalV3WriteState
 import com.nexaflow.domain.canonical.CanonicalWorkflowV3Codec
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -70,6 +71,27 @@ class AutomationMapperTest {
         assertEquals(automation.triggers.size, document.triggers.size)
         assertEquals(automation.actions.size, document.actions.size)
         assertTrue(document.triggers.all { it.node is com.nexaflow.domain.canonical.ObserveNode })
+        assertEquals(CanonicalV3WriteState.V3_READY.name, entity.canonicalWriteState)
+        assertEquals(null, entity.canonicalWriteErrorCode)
+    }
+
+    @Test
+    fun invalidCanonicalWriteDegradesExplicitlyWithoutLosingLegacyColumns() {
+        val invalid = automation.copy(
+            actions = listOf(
+                Action(ActionType.SYSTEM_BRIGHTNESS, config = mapOf("value" to "999"))
+            )
+        )
+        val entity = invalid.toEntity()
+
+        assertEquals(null, entity.canonicalWorkflowJson)
+        assertEquals(
+            CanonicalV3WriteState.LEGACY_ONLY_DEGRADED.name,
+            entity.canonicalWriteState
+        )
+        assertEquals("CANONICAL_VALIDATION_REJECTED", entity.canonicalWriteErrorCode)
+        assertTrue(entity.actionsJson.contains("SYSTEM_BRIGHTNESS"))
+        assertTrue(entity.actionsJson.contains("999"))
     }
 
     @Test
