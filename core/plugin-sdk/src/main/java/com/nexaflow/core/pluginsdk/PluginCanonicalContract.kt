@@ -148,6 +148,7 @@ object PluginCanonicalContract {
             when {
                 slot == null -> reasons += RefusalReason.UNKNOWN_SLOT
                 value.length > slot.maximumLength -> reasons += RefusalReason.SLOT_LENGTH_OVERFLOW
+                !valueMatches(slot.kind, value) -> reasons += RefusalReason.SLOT_TYPE_MISMATCH
             }
         }
         for (slot in schema.slots) {
@@ -156,6 +157,27 @@ object PluginCanonicalContract {
             }
         }
         return if (reasons.isEmpty()) CheckResult.Accepted else CheckResult.Refused(reasons.distinct())
+    }
+
+    private fun valueMatches(kind: PayloadKind, value: String): Boolean = when (kind) {
+        PayloadKind.STRING -> true
+        PayloadKind.BOOLEAN -> value == "true" || value == "false"
+        PayloadKind.INTEGER -> value.toLongOrNull() != null
+        PayloadKind.DOUBLE -> value.toDoubleOrNull()?.isFinite() == true
+        PayloadKind.STRING_LIST -> {
+            // Canonical list payloads use JSON-array syntax at this pure SDK
+            // boundary. The Android adapter may encode/decode Bundles outside
+            // this contract, but arbitrary comma splitting is not accepted.
+            val trimmed = value.trim()
+            trimmed.startsWith("[") && trimmed.endsWith("]") &&
+                runCatching {
+                    val body = trimmed.removePrefix("[").removeSuffix("]").trim()
+                    body.isEmpty() || body.split(",").all { element ->
+                        val item = element.trim()
+                        item.length >= 2 && item.startsWith(""") && item.endsWith(""")
+                    }
+                }.getOrDefault(false)
+        }
     }
 
     // ------------------------------------------------------------------
