@@ -16,6 +16,8 @@ object FamilyPhase18MediaNavigation {
     object Keys {
         const val PACKAGE = "package"
         const val QUERY = "query"
+        const val COMMAND = "command"
+        const val DESTINATION = "destination"
     }
 
     private val MEDIA_SESSION_TARGET = TargetId("core.media.active_session")
@@ -44,6 +46,29 @@ object FamilyPhase18MediaNavigation {
         "SYSTEM_STATUS_BAR_TOGGLE",
     )
 
+    private fun mediaCommandToken(legacyType: String): String = when (legacyType) {
+        "SYSTEM_MEDIA_PLAY_PAUSE" -> "PLAY_PAUSE"
+        "SYSTEM_MEDIA_NEXT" -> "NEXT"
+        "SYSTEM_MEDIA_PREVIOUS" -> "PREVIOUS"
+        "SYSTEM_MEDIA_STOP" -> "STOP"
+        "SYSTEM_MEDIA_FAST_FORWARD" -> "FAST_FORWARD"
+        "SYSTEM_MEDIA_REWIND" -> "REWIND"
+        "SYSTEM_MEDIA_PLAY_FROM_SEARCH" -> "PLAY_FROM_SEARCH"
+        else -> error("Unknown T18 media legacy type: $legacyType")
+    }
+
+    private fun navigationDestinationToken(legacyType: String): String = when (legacyType) {
+        "SYSTEM_GO_HOME" -> "HOME"
+        "SYSTEM_OPEN_RECENTS" -> "RECENTS"
+        "SYSTEM_OPEN_NOTIFICATIONS" -> "NOTIFICATIONS"
+        "SYSTEM_OPEN_QUICK_SETTINGS" -> "QUICK_SETTINGS"
+        "SYSTEM_OPEN_APP_DRAWER" -> "APP_DRAWER"
+        "SYSTEM_EXPAND_STATUS_BAR" -> "EXPAND_STATUS_BAR"
+        "SYSTEM_COLLAPSE_STATUS_BAR" -> "COLLAPSE_STATUS_BAR"
+        "SYSTEM_STATUS_BAR_TOGGLE" -> "STATUS_BAR_TOGGLE"
+        else -> error("Unknown T18 navigation legacy type: $legacyType")
+    }
+
     private class MediaRule(
         override val legacyType: String,
         private val base: LegacyMappingRule,
@@ -61,7 +86,12 @@ object FamilyPhase18MediaNavigation {
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
-            val arguments = mutableListOf<CanonicalArgument>()
+            val arguments = mutableListOf(
+                CanonicalArgument(
+                    CanonicalFieldId(Keys.COMMAND),
+                    EnumTokenValue("core.media.command", mediaCommandToken(legacyType)),
+                ),
+            )
 
             input.entry(Keys.PACKAGE)?.let {
                 arguments += CanonicalArgument(
@@ -97,7 +127,15 @@ object FamilyPhase18MediaNavigation {
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
-            val arguments = mutableListOf<CanonicalArgument>()
+            val arguments = mutableListOf(
+                CanonicalArgument(
+                    CanonicalFieldId(Keys.DESTINATION),
+                    EnumTokenValue(
+                        "core.system.navigation.destination",
+                        navigationDestinationToken(legacyType),
+                    ),
+                ),
+            )
             input.entry(Keys.PACKAGE)?.let {
                 // Home/recents app filters are strictly typed package ids.
                 arguments += CanonicalArgument(
@@ -179,10 +217,25 @@ object FamilyPhase18MediaNavigation {
         target = MEDIA_SESSION_TARGET,
         operation = OperationId("core.operation.invoke"),
         title = "Media control",
-        summaryTemplate = "Media {{session {sessionPackage}}}{{: {query}}}",
+        summaryTemplate = "Media {command}{{ session {sessionPackage}}}{{: {query}}}",
         securityClass = NodeSecurityClass.STANDARD,
         selectionMode = TargetSelectionMode.MULTI,
         fields = listOf(
+            NodeSchemaField(
+                id = CanonicalFieldId(Keys.COMMAND),
+                type = NodeFieldType.ENUM_TOKEN,
+                alwaysRequired = true,
+                enumType = "core.media.command",
+                allowedTokens = listOf(
+                    "PLAY_PAUSE",
+                    "NEXT",
+                    "PREVIOUS",
+                    "STOP",
+                    "FAST_FORWARD",
+                    "REWIND",
+                    "PLAY_FROM_SEARCH",
+                ),
+            ),
             NodeSchemaField(
                 id = CanonicalFieldId("sessionPackage"),
                 type = NodeFieldType.PACKAGE_ID,
@@ -208,10 +261,27 @@ object FamilyPhase18MediaNavigation {
         target = NAVIGATION_TARGET,
         operation = OperationId("core.operation.invoke"),
         title = "System navigation",
-        summaryTemplate = "Navigate",
+        summaryTemplate = "Navigate {destination}",
         securityClass = NodeSecurityClass.STANDARD,
         selectionMode = TargetSelectionMode.SINGLE,
-        fields = emptyList(),
+        fields = listOf(
+            NodeSchemaField(
+                id = CanonicalFieldId(Keys.DESTINATION),
+                type = NodeFieldType.ENUM_TOKEN,
+                alwaysRequired = true,
+                enumType = "core.system.navigation.destination",
+                allowedTokens = listOf(
+                    "HOME",
+                    "RECENTS",
+                    "NOTIFICATIONS",
+                    "QUICK_SETTINGS",
+                    "APP_DRAWER",
+                    "EXPAND_STATUS_BAR",
+                    "COLLAPSE_STATUS_BAR",
+                    "STATUS_BAR_TOGGLE",
+                ),
+            ),
+        ),
         capabilities = listOf(
             NodeSchemaCapability("core.capability.intent_launch"),
         ),
