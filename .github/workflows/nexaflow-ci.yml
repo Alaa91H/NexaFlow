@@ -276,6 +276,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: lint-report
+        if-no-files-found: ignore
         path: |
           app/build/reports/lint-results-debug.html
           app/build/reports/lint-results-debug.xml
