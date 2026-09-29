@@ -194,12 +194,15 @@ def main() -> int:
         ):
             if token not in builder:
                 problems.append(f"builder canonical product wiring missing {token!r}")
-        if "mutableStateOf<Int?>(0)" in builder and (
-            "expandedTriggerCategory" in builder or "expandedActionCategory" in builder
-        ):
-            problems.append(
-                "family-first picker must not auto-expand category zero on entry"
-            )
+        for state_name in ("expandedTriggerCategory", "expandedActionCategory"):
+            if re.search(
+                rf"{state_name}\\s+by\\s+rememberSaveable\\s*\\{{\\s*"
+                r"mutableStateOf<Int\\?>\\(0\\)",
+                builder,
+            ):
+                problems.append(
+                    f"family-first picker must not auto-expand category zero: {state_name}"
+                )
 
     if problems:
         print("CANONICAL_CONFIGURATOR: FAIL")
