@@ -90,12 +90,20 @@ object FamilyPhase19Connectivity {
         private val base: LegacyMappingRule,
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
-        override val consumedKeys: Set<String> = setOf("value")
+
+        private val primaryKey: String = when (legacyType) {
+            "SYSTEM_NETWORK_MODE", "SYSTEM_PRIVATE_DNS" -> "mode"
+            "SYSTEM_BLUETOOTH_DISCOVERABILITY" -> "timeoutSeconds"
+            "SYSTEM_WIFI_SLEEP_POLICY" -> "policy"
+            else -> error("Unknown connectivity value action: $legacyType")
+        }
+
+        override val consumedKeys: Set<String> = setOf(primaryKey)
         override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
-            val entry = input.entry("value") ?: return skeleton
+            val entry = input.entry(primaryKey) ?: return skeleton
             return SetValueNode(
                 id = skeleton.id,
                 target = skeleton.target,
