@@ -66,6 +66,29 @@ data class CanonicalEndBehaviorV3(
     val config: List<CanonicalLegacyEntryV3>,
 )
 
+@Serializable
+enum class CanonicalV3WriteState {
+    V3_READY,
+    V3_WITH_LEGACY_FALLBACK,
+    LEGACY_ONLY_DEGRADED,
+}
+
+data class CanonicalV3WriteResult(
+    val state: CanonicalV3WriteState,
+    val payload: String?,
+    /** Stable non-sensitive code only; never exception text or user config. */
+    val errorCode: String? = null,
+) {
+    init {
+        require((state == CanonicalV3WriteState.LEGACY_ONLY_DEGRADED) == (payload == null)) {
+            "degraded V3 writes must have no payload; successful writes must have one"
+        }
+        require((state == CanonicalV3WriteState.LEGACY_ONLY_DEGRADED) == (errorCode != null)) {
+            "only degraded V3 writes carry an error code"
+        }
+    }
+}
+
 /**
  * T27 production codec.
  *
@@ -93,8 +116,34 @@ object CanonicalWorkflowV3Codec {
     fun encode(automation: Automation): String =
         json.encodeToString(documentFor(automation))
 
+    fun prepareWrite(automation: Automation): CanonicalV3WriteResult =
+        try {
+            val document = documentFor(automation)
+            CanonicalV3WriteResult(
+                state = if (document.requiresLegacyFallback) {
+                    CanonicalV3WriteState.V3_WITH_LEGACY_FALLBACK
+                } else {
+                    CanonicalV3WriteState.V3_READY
+                },
+                payload = json.encodeToString(document),
+            )
+        } catch (_: IllegalArgumentException) {
+            CanonicalV3WriteResult(
+                state = CanonicalV3WriteState.LEGACY_ONLY_DEGRADED,
+                payload = null,
+                errorCode = "CANONICAL_VALIDATION_REJECTED",
+            )
+        } catch (_: Exception) {
+            CanonicalV3WriteResult(
+                state = CanonicalV3WriteState.LEGACY_ONLY_DEGRADED,
+                payload = null,
+                errorCode = "CANONICAL_PREPARATION_FAILED",
+            )
+        }
+
+    @Deprecated("Use prepareWrite so degradation is explicit and observable")
     fun encodeOrNull(automation: Automation): String? =
-        runCatching { encode(automation) }.getOrNull()
+        prepareWrite(automation).payload
 
     fun decode(payload: String): CanonicalWorkflowDocumentV3 =
         json.decodeFromString(CanonicalWorkflowDocumentV3.serializer(), payload)
