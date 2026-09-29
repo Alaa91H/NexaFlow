@@ -41,6 +41,10 @@ READINESS_GATES = (
     "check_canonical_device_matrix",
     "check_canonical_architecture_fitness",
     "check_canonical_legacy_retirement",
+    "check_canonical_plugin_conditions",
+    # NOTE: check_canonical_final_audit is deliberately NOT here — the final
+    # audit is the umbrella that runs this readiness gate itself; adding it
+    # would create an infinite mutual recursion between the two runners.
 )
 
 REQUIRED_INVENTORY_STATUSES = (
@@ -58,6 +62,8 @@ REQUIRED_INVENTORY_STATUSES = (
     "T37: **implemented**",
     "T38: **implemented**",
     "T39: **implemented**",
+    "T40: **implemented**",
+    "T41: **implemented**",
 )
 
 
@@ -133,7 +139,7 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_RELEASE_READINESS: OK — release candidate ready: all 26 "
+        "CANONICAL_RELEASE_READINESS: OK — release candidate ready: all 28 "
         "canonical gates pass on the current tree and are wired into CI, the "
         "inventory declares every T26+ phase implemented, the changelog "
         "carries an Unreleased section for release notes, and the working "

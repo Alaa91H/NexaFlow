@@ -431,8 +431,29 @@ types remain the storage compatibility surface (persisted rows and deep
 links must keep decoding every historical automation), while all canonical
 platform surfaces are legacy-free. The gate prints the exact count of
 contained files at audit time and fails if any new file outside containment
-starts referencing legacy types — the containment boundary can only shrink
-through explicit reviewed changes, never grow.
+starts referencing legacy types — the  containment boundary can only shrink
+  through explicit reviewed changes, never grow.
+- T40: **implemented** — Final canonical audit in
+  `scripts/check_canonical_final_audit.py`: one fail-closed verdict that
+  closes the migration record — every canonical gate (discovered, self
+  excluded) ships a unittest, stays wired into CI and passes on the
+  current tree; the Kotlin unit suites run in CI; and the inventory
+  carries a closure status for every phase T03-T39 plus the retirement
+  ledger. Covered by 3 unit tests and CI gate
+  `scripts/check_canonical_final_audit.py`.
+- T41: **implemented** — Plugin condition contract in
+  `core/plugin-sdk/.../PluginConditionContract.kt` (ecosystem contract
+  design): the plugin condition read is the pinned
+  `core.capability.plugin_condition_read` capability with
+  `core.operation.get_state` and a single persisted `pluginInstance`
+  argument — never a generic component invocation; the query gate fails
+  closed on instance approval, verified sender identity and active host
+  lifecycle; Locale ordered-broadcast result codes map onto the typed
+  five-state condition result; and `Unknown`, `Unavailable` and `Error`
+  never collapse into a boolean (the tri-state rule is structural, not
+  caller discipline). Pure SDK surface with no Android types or I/O.
+  Covered by 13 unit tests and CI gate
+  `scripts/check_canonical_plugin_conditions.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
