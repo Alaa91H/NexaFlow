@@ -512,12 +512,12 @@
     <string name="action_set_ringtone_sub">Choisir la sonnerie d’appel par défaut</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">Mode réseau</string>
-    <string name="state_on">Activé</string>
+    <string name="builder_state_on">Activé</string>
     <string name="network_mode">Mode réseau</string>
     <string name="network_mode_label">Génération réseau préférée</string>
     <string name="action_set_ringtone">Définir la sonnerie</string>
     <string name="battery_level_section">Niveau de batterie</string>
-    <string name="state_off">Désactivé</string>
+    <string name="builder_state_off">Désactivé</string>
     <string name="network_hotspot">Point d’accès</string>
     <string name="charging_state_section">État de charge</string>
     <string name="charging_no">Pas en charge</string><string name="trigger_cat_schedule">Planification</string>    <string name="trigger_cat_device">Appareil</string>    <string name="trigger_cat_connectivity">Connectivité</string>    <string name="trigger_cat_location">Localisation</string>    <string name="trigger_cat_apps">Applications</string>    <string name="trigger_cat_communication">Communication</string>
