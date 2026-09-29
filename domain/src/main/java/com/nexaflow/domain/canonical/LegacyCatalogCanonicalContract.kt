@@ -43,8 +43,8 @@ object LegacyCatalogCanonicalContractNormalizer {
                         ?.let(::NodeFieldDefault)
                 },
                 alwaysRequired = field.required,
-                minimum = field.minValue?.takeIf(::isWholeLong)?.toLong(),
-                maximum = field.maxValue?.takeIf(::isWholeLong)?.toLong(),
+                minimum = canonicalBound(field, field.minValue),
+                maximum = canonicalBound(field, field.maxValue),
                 enumType = if (field.valueType == NodeConfigValueType.ENUM) {
                     enumTypeId(definition.legacyTypeName, field.key)
                 } else {
@@ -302,6 +302,18 @@ object LegacyCatalogCanonicalContractNormalizer {
     private fun secretReferenceId(legacyType: String, key: String): String =
         ("legacy." + legacyType.lowercase() + "." +
             key.lowercase().replace(NON_ID_CHARS, "_")).take(128)
+
+    private fun canonicalBound(
+        field: NodeConfigField,
+        value: Double?,
+    ): Long? {
+        val bounded = value?.takeIf(::isWholeLong)?.toLong() ?: return null
+        return if (field.valueType == NodeConfigValueType.DURATION_SECONDS) {
+            Math.multiplyExact(bounded, 1000L)
+        } else {
+            bounded
+        }
+    }
 
     private fun isWholeLong(value: Double): Boolean =
         value.isFinite() && value == value.toLong().toDouble()
