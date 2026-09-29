@@ -7,8 +7,6 @@ import com.nexaflow.domain.canonical.FamilyPhase22Communication
 import com.nexaflow.domain.canonical.FamilyPhase23PowerSensors
 import com.nexaflow.domain.canonical.FamilyPhase24TimeLocation
 import com.nexaflow.domain.canonical.FamilyPhase25AdvancedExternal
-import com.nexaflow.domain.canonical.LegacyAdapterOutcome
-import com.nexaflow.domain.canonical.LegacyCanonicalAdapter
 import com.nexaflow.domain.canonical.LegacyCatalogCanonicalContractNormalizer
 import com.nexaflow.domain.canonical.LegacyMappingTable
 import com.nexaflow.domain.canonical.LegacyNodeInput
@@ -37,8 +35,8 @@ internal data class CanonicalBuilderSchemaBinding(
 
 internal object CanonicalBuilderSchemaBridge {
 
-    private val skeletonAdapter by lazy {
-        LegacyCanonicalAdapter(LegacyMappingTable.all())
+    private val skeletonRules by lazy {
+        LegacyMappingTable.all().associateBy { it.kind to it.legacyType }
     }
 
     private val genericFieldTypes = setOf(
@@ -176,15 +174,7 @@ internal object CanonicalBuilderSchemaBridge {
     private fun canonicalSkeleton(
         legacyType: String,
         kind: LegacyNodeKind,
-    ) = when (
-        val outcome = skeletonAdapter.canonicalize(
-            LegacyNodeInput(legacyType, kind, emptyList()),
-        )
-    ) {
-        is LegacyAdapterOutcome.Canonicalized -> outcome.node
-        is LegacyAdapterOutcome.Rejected -> error(
-            "T12 builder schema bridge cannot resolve $kind/$legacyType: " +
-                outcome.reason,
-        )
-    }
+    ) = skeletonRules[kind to legacyType]
+        ?.canonicalize(LegacyNodeInput(legacyType, kind, emptyList()))
+        ?: error("T12 builder schema bridge has no reviewed mapping for $kind/$legacyType")
 }
