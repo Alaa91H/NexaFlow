@@ -160,6 +160,8 @@ data class NodeSchemaField(
     val enumType: String? = null,
     /** For ENUM_TOKEN fields: the bounded token allowlist. */
     val allowedTokens: List<String> = emptyList(),
+    /** For COLLECTION fields: the exact element kind accepted by the list. */
+    val collectionElementKind: CanonicalValueKind? = null,
     /** Whether a typed expression may stand in for this field at runtime. */
     val expressionCapable: Boolean = false,
 ) {
@@ -172,6 +174,15 @@ data class NodeSchemaField(
         }
         require(allowedTokens.isEmpty() || type == NodeFieldType.ENUM_TOKEN) {
             "allowedTokens is only valid on ENUM_TOKEN fields"
+        }
+        require(collectionElementKind == null || type == NodeFieldType.COLLECTION) {
+            "collectionElementKind is only valid on COLLECTION fields"
+        }
+        require(collectionElementKind != CanonicalValueKind.COLLECTION) {
+            "nested collection element kinds are unsupported"
+        }
+        require(collectionElementKind != CanonicalValueKind.EXPRESSION) {
+            "collection elements cannot be expression containers"
         }
         require(!alwaysRequired || requiredWhen.isEmpty()) {
             "alwaysRequired and requiredWhen are mutually exclusive"
@@ -281,6 +292,15 @@ data class EnumTokenNotAllowed(
     val token: String,
     override val rule: String = "enum_token_not_allowed",
     override val message: String = "token $token is not allowed for field ${field.value}",
+) : NodeSchemaViolation
+
+data class CollectionElementKindMismatch(
+    val field: CanonicalFieldId,
+    val expected: CanonicalValueKind,
+    val actual: CanonicalValueKind,
+    override val rule: String = "collection_element_kind_mismatch",
+    override val message: String =
+        "field ${field.value} expects collection elements of kind $expected but got $actual",
 ) : NodeSchemaViolation
 
 
@@ -397,6 +417,16 @@ fun validateNodeValues(
             val notAllowed = field.allowedTokens.isNotEmpty() && token.token !in field.allowedTokens
             if (wrongType || notAllowed) {
                 violations += EnumTokenNotAllowed(field.id, token.token)
+            }
+        }
+        if (field.type == NodeFieldType.COLLECTION && field.collectionElementKind != null) {
+            val collection = value.value as CollectionValue
+            if (collection.elementKind != field.collectionElementKind) {
+                violations += CollectionElementKindMismatch(
+                    field = field.id,
+                    expected = field.collectionElementKind,
+                    actual = collection.elementKind,
+                )
             }
         }
     }
