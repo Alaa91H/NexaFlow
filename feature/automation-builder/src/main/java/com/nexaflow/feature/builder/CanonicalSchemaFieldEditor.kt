@@ -11,9 +11,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.canonical.BooleanValue
-import com.nexaflow.domain.canonical.CanonicalFieldId
 import com.nexaflow.domain.canonical.CanonicalValue
 import com.nexaflow.domain.canonical.DateValue
 import com.nexaflow.domain.canonical.DecimalValue
