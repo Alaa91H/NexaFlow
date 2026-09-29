@@ -2,6 +2,7 @@ package com.nexaflow.domain.canonical
 
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequirement
+import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -276,15 +277,15 @@ class CanonicalRuntimePipelineTest {
                 kind = NodeSchemaKind.ACTION,
             ).schema,
             config = emptyList(),
-            semantics = NodeSelectionSemantics(),
+            semantics = openSemantics,
             capabilityRequirement = CapabilityRequirement.Capability(
                 CapabilityId.SYSTEM_SETTING_WRITE,
             ),
         )
-        assertTrue(network.executableNode is SetValueNode)
+        assertTrue(network.node is SetValueNode)
         assertEquals(
             TextValue("AUTO"),
-            (network.executableNode as SetValueNode).value,
+            (network.node as SetValueNode).value,
         )
     }
 
