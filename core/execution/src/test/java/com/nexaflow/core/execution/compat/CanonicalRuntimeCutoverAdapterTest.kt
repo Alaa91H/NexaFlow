@@ -17,6 +17,7 @@ import com.nexaflow.domain.canonical.EnumTokenValue
 import com.nexaflow.domain.canonical.ExpressionValue
 import com.nexaflow.domain.canonical.IntegerValue
 import com.nexaflow.domain.canonical.TextValue
+import com.nexaflow.domain.canonical.TimeOfDayValue
 import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import com.nexaflow.domain.catalog.AutomationNodeDefinition
 import com.nexaflow.domain.catalog.NodeConfigField
