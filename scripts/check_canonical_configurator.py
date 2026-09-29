@@ -29,6 +29,9 @@ FORBIDDEN_CORE_PATTERNS = (
     r"Map\s*<\s*String\s*,\s*String\s*>",
 )
 
+# Compatibility alias used by the gate's mutation tests.
+FORBIDDEN_PATTERNS = FORBIDDEN_CORE_PATTERNS
+
 REQUIRED_CONSTRUCTS = (
     "NodeConfiguratorState",
     "NodeConfiguratorTab",
