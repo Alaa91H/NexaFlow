@@ -11,6 +11,9 @@ from scripts.check_canonical_legacy_retirement import (
     LEGACY_TYPE_PATTERN,
     RETIRED_ROOTS,
     WORKFLOW_POLICY_FILES,
+    EXECUTION_ENGINE,
+    COMPAT_DISPATCHER,
+    CANONICAL_UI_FILES,
     is_contained,
 )
 
@@ -49,6 +52,21 @@ class CanonicalLegacyRetirementGateTest(unittest.TestCase):
         self.assertFalse(
             is_contained("core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/X.kt")
         )
+
+    def test_product_control_plane_is_pinned_to_canonical_seams(self) -> None:
+        engine = EXECUTION_ENGINE.read_text(encoding="utf-8")
+        self.assertNotIn("handlerFor(action.type)", engine)
+        self.assertIn("CanonicalRuntimeCutoverAdapter", engine)
+        self.assertIn("CanonicalCompatibilityActionDispatcher", engine)
+        self.assertIn("canonicalCommand: AtomicCommand", engine)
+
+        dispatcher = COMPAT_DISPATCHER.read_text(encoding="utf-8")
+        self.assertIn("handlerFor(action.type)", dispatcher)
+        self.assertIn("canonicalCommand: AtomicCommand", dispatcher)
+
+        for path in CANONICAL_UI_FILES:
+            source = path.read_text(encoding="utf-8")
+            self.assertNotRegex(source, LEGACY_TYPE_PATTERN)
 
     def test_gate_script_passes_on_current_tree(self) -> None:
         import scripts.check_canonical_legacy_retirement as gate
