@@ -2,7 +2,6 @@ package com.nexaflow.domain.canonical
 
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehavior
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
