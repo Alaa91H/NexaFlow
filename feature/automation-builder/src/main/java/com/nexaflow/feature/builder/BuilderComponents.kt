@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -49,6 +50,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
@@ -512,6 +519,7 @@ private fun CatalogOptionRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .then(
                 if (rowSurface != null) {
                     Modifier
@@ -522,6 +530,15 @@ private fun CatalogOptionRow(
                     Modifier
                 }
             )
+            .semantics(mergeDescendants = true) {
+                role = if (isReady) Role.Checkbox else Role.Button
+                if (isReady) {
+                    selected = checked
+                }
+                if (!isReady && !isGrantable) {
+                    disabled()
+                }
+            }
             .clickable(
                 enabled = isReady || isGrantable,
                 onClick = if (isReady) onToggle else onBlockedClick
@@ -556,7 +573,8 @@ private fun CatalogOptionRow(
         if (isReady) {
             Checkbox(
                 checked = checked,
-                onCheckedChange = { onToggle() }
+                onCheckedChange = { onToggle() },
+                modifier = Modifier.clearAndSetSemantics { },
             )
         } else {
             StatusPill(
