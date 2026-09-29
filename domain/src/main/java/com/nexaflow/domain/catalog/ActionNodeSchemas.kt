@@ -163,7 +163,10 @@ internal object ActionNodeSchemas {
             enumField("pluginApproval", "approved"),
             enumField("pluginHighRiskApproval", "approved"),
             stringField("editActivity"),
-            jsonField("bundleJson"),
+            // Locale configuration is opaque provider state and may contain
+            // credentials unknown to NexaFlow. Canonical V3 stores only a
+            // secret reference; the provider boundary reloads the raw value.
+            secretField("bundleJson"),
             stringField("blurb")
         )
         ActionType.SYSTEM_VIBRATE -> schema(
