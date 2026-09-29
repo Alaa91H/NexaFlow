@@ -191,13 +191,16 @@ class CanonicalRuntimePipelineTest {
                         "SYSTEM_INSTALL_APK", "SYSTEM_UPDATE_GOOGLE_PLAY_APPS",
                     ) -> listOf(LegacyConfigEntry("packages", "com.example.app"))
                 rule.kind == LegacyNodeKind.ACTION &&
+                    rule.legacyType == "SYSTEM_RINGER_MODE" ->
+                    listOf(LegacyConfigEntry("mode", "NORMAL"))
+                rule.kind == LegacyNodeKind.ACTION &&
                     rule.legacyType in setOf(
                         "SYSTEM_NETWORK_MODE", "SYSTEM_PRIVATE_DNS",
                         "SYSTEM_BLUETOOTH_DISCOVERABILITY", "SYSTEM_WIFI_SLEEP_POLICY",
                         "SYSTEM_BRIGHTNESS", "SYSTEM_DISPLAY_DENSITY", "SYSTEM_FONT_SCALE",
                         "SYSTEM_SCREENSAVER_TIMEOUT", "SYSTEM_SCREEN_TIMEOUT",
                         "SYSTEM_HAPTIC_INTENSITY", "SYSTEM_RING_VOLUME", "SYSTEM_STREAM_VOLUME",
-                        "SYSTEM_VOLUME", "SYSTEM_RINGER_MODE", "SYSTEM_SET_RINGTONE",
+                        "SYSTEM_VOLUME", "SYSTEM_SET_RINGTONE",
                         "SYSTEM_SET_NOTIFICATION_TONE", "SYSTEM_CALL_VIBRATION",
                         "SYSTEM_VIBRATE_PATTERN", "SYSTEM_BATTERY_SAVER_THRESHOLD",
                         "SYSTEM_CHARGING_LIMIT", "SYSTEM_CHARGING_FEEDBACK",
