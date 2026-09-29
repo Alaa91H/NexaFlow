@@ -157,7 +157,7 @@ class WorkflowMigrationOrchestratorTest {
         val result = WorkflowMigrationOrchestrator.attemptBatch(
             batch = WorkflowMigrationOrchestrator.MigrationBatch(index = 0, ids = listOf("a", "b", "c", "d", "e")),
             itemsById = byId,
-            maxFailuresPerRun = 0,
+            maxFailuresPerRun = 1,
             attemptedAtEpochMs = 5L,
             convert = { item ->
                 if (item.id == "c") {
@@ -190,8 +190,8 @@ class WorkflowMigrationOrchestratorTest {
     fun degradedPreparationLandsAsLegacyOnlyNotFailed() {
         // A blank automation id is refused by the document constructor; the
         // T27 policy degrades that to a legacy-only save (the user edit still
-        // lands) — the orchestrator records DEGRADED, not FAILED, and does
-        // not count it against the failure threshold.
+        // lands) — the orchestrator records DEGRADED, keeps it retryable, and
+        // counts it against the rollout failure budget because V3 did not land.
         val poisoned = WorkflowMigrationOrchestrator.MigrationItem(
             id = "c",
             automation = item("c").automation.copy(id = ""),
@@ -298,9 +298,37 @@ class WorkflowMigrationOrchestratorTest {
 
         val progress = WorkflowMigrationOrchestrator.progress(items("a", "b", "c", "d"), journal)
         assertEquals(4, progress.total)
-        assertEquals(2, progress.settled)
+        assertEquals(1, progress.settled)
+        assertEquals(1, progress.degraded)
         assertEquals(1, progress.failed)
-        assertEquals(0.5, progress.fraction, 0.0001)
+        assertEquals(0.25, progress.fraction, 0.0001)
+    }
+
+    @Test
+    fun degradedRowsAreRetriedAndBlockCompletion() {
+        val degraded = WorkflowMigrationOrchestrator.MigrationJournal(
+            entries = listOf(
+                WorkflowMigrationOrchestrator.MigrationOutcome(
+                    id = "a",
+                    status = WorkflowMigrationOrchestrator.OutcomeStatus.DEGRADED_LEGACY_ONLY,
+                    reason = "v3_write_failed_fell_back_to_legacy_row_only",
+                ),
+            ),
+        )
+
+        val batches = WorkflowMigrationOrchestrator.planBatches(
+            items = items("a", "b"),
+            journal = degraded,
+            batchSize = 10,
+        )
+        assertEquals(listOf("a", "b"), batches.single().ids)
+
+        try {
+            WorkflowMigrationOrchestrator.declareMigrationComplete(items("a"), degraded)
+            throw AssertionError("Expected degraded row to block completion")
+        } catch (expected: IllegalArgumentException) {
+            assertTrue(expected.message!!.contains("unresolved"))
+        }
     }
 
     @Test
