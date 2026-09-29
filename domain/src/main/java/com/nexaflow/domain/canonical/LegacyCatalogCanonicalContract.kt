@@ -51,7 +51,7 @@ object LegacyCatalogCanonicalContractNormalizer {
                     null
                 },
                 allowedTokens = if (field.valueType == NodeConfigValueType.ENUM) {
-                    field.allowedValues.map { it.uppercase() }
+                    field.allowedValues.map(::canonicalEnumToken)
                 } else {
                     emptyList()
                 },
@@ -149,7 +149,7 @@ object LegacyCatalogCanonicalContractNormalizer {
             NodeConfigValueType.BOOLEAN -> BooleanValue(raw.toBooleanStrict())
             NodeConfigValueType.ENUM -> EnumTokenValue(
                 enumTypeId(legacyType, field.key),
-                raw.trim().uppercase(),
+                canonicalEnumToken(raw),
             )
             NodeConfigValueType.TIME -> {
                 val parts = raw.split(":")
@@ -293,6 +293,17 @@ object LegacyCatalogCanonicalContractNormalizer {
         else -> throw IllegalArgumentException(
             "legacy trigger ${node.primitive} has no predicate contract",
         )
+    }
+
+    /**
+     * Legacy catalogs occasionally use numeric display values for an enum
+     * (for example TIME.weekOfMonth = "1".."5"). Canonical EnumTokenValue
+     * intentionally requires a leading letter, so prefix only those numeric
+     * compatibility values while leaving already-valid semantic tokens intact.
+     */
+    private fun canonicalEnumToken(raw: String): String {
+        val token = raw.trim().uppercase()
+        return if (token.firstOrNull()?.isDigit() == true) "VALUE_$token" else token
     }
 
     private fun enumTypeId(legacyType: String, key: String): String =
