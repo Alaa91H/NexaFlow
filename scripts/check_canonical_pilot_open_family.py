@@ -11,6 +11,17 @@ TEST_FILE = ROOT / (
     "domain/src/test/java/com/nexaflow/domain/canonical/"
     "PilotOpenFamilyTest.kt"
 )
+DISCOVERY_FILE = ROOT / (
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+    "CanonicalDiscoveryPolicy.kt"
+)
+EDITOR_FILE = ROOT / (
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+    "ActionConfigEditor.kt"
+)
+CONTROLLER_FILE = ROOT / (
+    "core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt"
+)
 
 # The pilot may only refine reviewed mappings: no legacy enum references, no
 # raw config maps, no name-based guessing inside the family rules.
@@ -51,6 +62,9 @@ def main() -> int:
         problems.append(f"missing {FAMILY_FILE.relative_to(ROOT)}")
     if not TEST_FILE.is_file():
         problems.append(f"missing {TEST_FILE.relative_to(ROOT)}")
+    for product_file in (DISCOVERY_FILE, EDITOR_FILE, CONTROLLER_FILE):
+        if not product_file.is_file():
+            problems.append(f"missing {product_file.relative_to(ROOT)}")
 
     if FAMILY_FILE.is_file():
         source = FAMILY_FILE.read_text(encoding="utf-8")
@@ -66,6 +80,26 @@ def main() -> int:
         for case in REQUIRED_TEST_CASES:
             if f"fun {case}" not in test_source:
                 problems.append(f"PilotOpenFamilyTest.kt missing required test {case!r}")
+
+    # T17 is not closed by a domain adapter alone. New-workflow discovery
+    # must expose one Open Settings action, its editor must expose canonical
+    # page tokens, and runtime must accept the same tokens.
+    if DISCOVERY_FILE.is_file():
+        discovery = DISCOVERY_FILE.read_text(encoding="utf-8")
+        if discovery.count("ActionType.SYSTEM_OPEN_") < 28:
+            problems.append("T17 discovery policy does not retire the dedicated settings aliases")
+        if "ActionType.SYSTEM_OPEN_SETTINGS" in discovery:
+            problems.append("the unified SYSTEM_OPEN_SETTINGS action must remain discoverable")
+    if EDITOR_FILE.is_file():
+        editor = EDITOR_FILE.read_text(encoding="utf-8")
+        for token in ("ABOUT_PHONE", "SYSTEM_UPDATE", "APP_SETTINGS_LIST", "USAGE_ACCESS"):
+            if token not in editor:
+                problems.append(f"Open Settings editor missing canonical page token {token}")
+    if CONTROLLER_FILE.is_file():
+        controller = CONTROLLER_FILE.read_text(encoding="utf-8")
+        for token in ('"ABOUT_PHONE"', '"SYSTEM_UPDATE"', '"APP_SETTINGS_LIST"'):
+            if token not in controller:
+                problems.append(f"SystemController missing canonical settings token {token}")
 
     if problems:
         print("CANONICAL_PILOT_OPEN_FAMILY: FAIL")
