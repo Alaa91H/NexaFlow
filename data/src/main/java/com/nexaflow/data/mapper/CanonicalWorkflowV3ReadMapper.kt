@@ -133,8 +133,12 @@ internal object CanonicalWorkflowV3ReadMapper {
         val arguments = nodeArguments(persisted.node)
             .entries
             .associateBy { it.id.value }
+        // New V3 writes carry an explicit presence ledger. Older V3 payloads
+        // fall back to the legacy row's key set so dual-read remains lossless.
+        val suppliedKeys = persisted.suppliedConfigKeys?.toSet() ?: legacyConfig.keys
 
         definition.configuration.fields.forEach { field ->
+            if (field.key !in suppliedKeys) return@forEach
             val value = arguments[field.key]?.value ?: return@forEach
             if (field.sensitive || field.valueType == NodeConfigValueType.SECRET) {
                 require(value is SecretReferenceValue) {
@@ -168,7 +172,17 @@ internal object CanonicalWorkflowV3ReadMapper {
             NodeConfigValueType.INTEGER -> (value as? IntegerValue)?.value?.toString()
             NodeConfigValueType.DECIMAL -> (value as? DecimalValue)?.value
             NodeConfigValueType.BOOLEAN -> (value as? BooleanValue)?.value?.toString()
-            NodeConfigValueType.ENUM -> (value as? EnumTokenValue)?.token
+            NodeConfigValueType.ENUM -> (value as? EnumTokenValue)?.token?.let { token ->
+                // Numeric legacy enum display values are encoded canonically as
+                // VALUE_<n> because EnumTokenValue requires a leading letter.
+                // Reverse only when the catalog proves that <n> is a real
+                // legacy value, so native VALUE_* enums remain untouched.
+                val numericLegacy = token
+                    .takeIf { it.startsWith(NUMERIC_ENUM_PREFIX) }
+                    ?.removePrefix(NUMERIC_ENUM_PREFIX)
+                    ?.takeIf { it in field.allowedValues }
+                numericLegacy ?: token
+            }
             NodeConfigValueType.TIME -> (value as? TimeOfDayValue)?.let {
                 "%02d:%02d".format(it.minuteOfDay / 60, it.minuteOfDay % 60)
             }
@@ -196,6 +210,8 @@ internal object CanonicalWorkflowV3ReadMapper {
         is ObserveNode -> node.arguments
         else -> CanonicalArguments.EMPTY
     }
+
+    private const val NUMERIC_ENUM_PREFIX = "VALUE_"
 
     private inline fun <reified T : Enum<T>> enumValueOrThrow(
         raw: String,
