@@ -1,8 +1,60 @@
 # Changelog
 
+## [v3.91.0] - 2026-09-29
+
+### Added — Canonical automation platform becomes the single runtime path
+
+- Completed the canonical automation plan end to end (T39–T44). Legacy
+  `TriggerType`/`ActionType` are retired by **containment, not deletion**: the
+  enums remain the storage compatibility surface, while every canonical
+  platform surface (the canonical package, the workflow persistence
+  contracts, the plugin SDK contract) refuses new legacy-type references.
+  The retirement ledger records the contained file count at close and the
+  boundary can only shrink through explicit reviewed changes (T39).
+- Added the final canonical audit (T40): one fail-closed verdict proving
+  every canonical gate ships a unittest, stays wired into CI, passes on the
+  current tree, runs the Kotlin suites, and leaves a complete phase record
+  in the inventory.
+- Added the typed plugin condition contract (T41): a plugin condition read
+  is the pinned `core.capability.plugin_condition_read` capability with a
+  single persisted `pluginInstance` argument — never a generic component
+  invocation. The query gate fails closed on instance approval, verified
+  sender identity and an active host lifecycle, and Locale result codes map
+  onto a five-state typed result where `Unknown`, `Unavailable` and `Error`
+  are never coerced to a boolean.
+- Added the canonical platform reference guide (`docs/canonical-automation.md`)
+  linked from the documentation index, with the contracts table, the standing
+  guarantees and the explicit JVM-vs-device evidence boundary (T42).
+- Added a measured performance regression ledger (T43): three synthetic
+  worst-case probes (max-depth spine, wide fan-out, optimizer churn) run the
+  pure rewrite/measure pipeline with an exact platform-independent work
+  counter against a checked-in baseline; regressions are typed with baseline
+  and observation, and no clocks or randomness are involved.
+- Added the release closure gate (T44): the release ships as a verified
+  candidate while tagging stays an explicit, reviewed human act — the gate
+  pins the full readiness aggregate, the never-move-a-tag rule, tag hygiene
+  scoped to version tags, and the documented evidence boundary.
+
+### Fixed
+
+- Restored a missing import in the ADR gate unittest that the T40 review had
+  introduced; the full 44-gate canonical sweep and all 183 gate unittests now
+  pass together.
+
+### Verification and compatibility
+
+- The full gate sweep (44 canonical gates), the gate unittest suite (183
+  tests), `:domain` canonical suites and `:core:plugin-sdk` suites (33 tests)
+  all pass on the release commit; `git status` is clean.
+- CI executes the same gates on every push; results recorded in
+  `docs/VALIDATION.md` are JVM-local and never imply device certification.
+- The legacy surface remains frozen at 57 triggers + 176 actions = 233 node
+  kinds; no database schema migration is introduced; existing V1/V2/V3
+  automations remain readable and executable.
+
 ## [Unreleased]
 
-### Added — Canonical automation platform (T26–T41)
+## [v3.90.0] - 2026-09-26
 
 - The canonical automation platform is now the single runtime and
   configuration path: typed canonical AST and values, stable string
