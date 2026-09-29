@@ -172,6 +172,16 @@ class FamilyPhase21ApplicationsTest {
         val schema = FamilyPhase21Applications.uninstallSchema()
         assertTrue(schema.securityClass == NodeSecurityClass.DESTRUCTIVE)
         assertTrue(schema.capabilities.isNotEmpty())
+        val packages = CollectionValue(
+            CanonicalValueKind.PACKAGE_ID,
+            listOf(PackageIdValue("com.example.app")),
+        )
+        assertTrue(
+            validateNodeValues(
+                schema,
+                listOf(NodeFieldValue(CanonicalFieldId("packages"), packages)),
+            ).isEmpty(),
+        )
     }
 
     @Test
@@ -197,11 +207,12 @@ class FamilyPhase21ApplicationsTest {
             val config = when {
                 rule.kind == LegacyNodeKind.TRIGGER ->
                     listOf(LegacyConfigEntry("packages", "com.a.app"))
+                rule.legacyType == "SYSTEM_INSTALL_APK" ->
+                    listOf(LegacyConfigEntry("path", "/data/local/tmp/app.apk"))
                 rule.legacyType in setOf(
                     "SYSTEM_FORCE_STOP_APP",
                     "SYSTEM_UNINSTALL_APP",
                     "SYSTEM_CLEAR_APP_DATA",
-                    "SYSTEM_INSTALL_APK",
                     "SYSTEM_UPDATE_GOOGLE_PLAY_APPS",
                 ) -> listOf(LegacyConfigEntry("packages", "com.a.app"))
                 else -> listOf(LegacyConfigEntry("package", "com.example.app"))
