@@ -16,8 +16,8 @@ TEST_FILE = ROOT / (
 )
 
 PRODUCT_RUNTIME_FILE = ROOT / (
-    "domain/src/main/java/com/nexaflow/domain/canonical/"
-    "CanonicalProductRuntime.kt"
+    "core/execution/src/main/java/com/nexaflow/core/execution/compat/"
+    "CanonicalRuntimeCutoverAdapter.kt"
 )
 EXECUTION_ENGINE_FILE = ROOT / (
     "core/execution/src/main/java/com/nexaflow/core/execution/"
@@ -102,11 +102,11 @@ def main() -> int:
     if PRODUCT_RUNTIME_FILE.is_file():
         product = PRODUCT_RUNTIME_FILE.read_text(encoding="utf-8")
         for token in (
-            "CanonicalProductRuntime",
+            "CanonicalRuntimeCutoverAdapter",
             "prepareAction",
             "prepareTrigger",
-            "AtomicCommand",
-            "productCommandSemantics",
+            "CanonicalRuntimePipeline",
+            "planLegacy",
         ):
             if token not in product:
                 problems.append(f"CanonicalProductRuntime.kt missing {token!r}")
@@ -114,8 +114,8 @@ def main() -> int:
     if EXECUTION_ENGINE_FILE.is_file():
         engine = EXECUTION_ENGINE_FILE.read_text(encoding="utf-8")
         for token in (
-            "canonicalProductRuntime.prepareTrigger",
-            "canonicalProductRuntime.prepareAction",
+            "canonicalRuntimeCutover.prepareTrigger",
+            "canonicalRuntimeCutover.prepareAction",
             "canonicalCommand = canonicalAction.command",
             "canonicalCommand: AtomicCommand",
             "CommandIdempotency.IDEMPOTENT",
@@ -123,7 +123,7 @@ def main() -> int:
         ):
             if token not in engine:
                 problems.append(f"ExecutionEngine is not cut over: missing {token!r}")
-        if engine.index("canonicalProductRuntime.prepareTrigger") > engine.index("workflowAdmissionGate.evaluate"):
+        if engine.index("canonicalRuntimeCutover.prepareTrigger") > engine.index("workflowAdmissionGate.evaluate"):
             problems.append(
                 "canonical trigger admission must run before the legacy workflow admission/runtime path"
             )
@@ -135,10 +135,11 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_RUNTIME_CUTOVER: OK — domain pipeline plus product wiring: "
-        "ExecutionEngine canonicalizes triggers before admission and plans every "
-        "resolved side-effecting action to an AtomicCommand before compatibility "
-        "providers run; retry safety is driven by canonical idempotency"
+        "CANONICAL_RUNTIME_CUTOVER: OK — ExecutionEngine crosses the production "
+        "compatibility boundary into CanonicalRuntimePipeline.planLegacy before "
+        "admission/dispatch; catalog contracts become typed values, validation "
+        "runs before planning, AtomicCommand is mandatory, and retry safety is "
+        "driven by canonical idempotency"
     )
     return 0
 
