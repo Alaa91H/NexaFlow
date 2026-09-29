@@ -31,16 +31,16 @@ REQUIRED_CONSTRUCTS = (
 )
 
 REQUIRED_TEST_CASES = (
-    "pilotOverridesCoverExactlyTheGeneratedOpenFamily",
+    "pilotOverridesCoverExactlyTheSettingsLaunchers",
     "pilotAdapterKeepsEveryOtherRuleIntact",
-    "pageOpenActionsPreserveParityWithGeneratedTable",
-    "urlActionUpgradesToTypedUri",
-    "urlActionWithoutUrlIsRejected",
-    "appActionWithBogusPackageIsRejectedNotCoerced",
-    "unconsumedKeysStillRideAlong",
-    "schemaValidatesTypedPageTokens",
+    "settingsLaunchersInferTheirCanonicalPageWithoutLegacyConfig",
+    "genericOpenSettingsKeepsExplicitPageAndLegacyWifiDefault",
+    "settingsActionsPreserveReviewedTargetAndOperation",
+    "nonSettingsOpenActionsAreNotCapturedByThePilot",
+        "unconsumedKeysStillRideAlong",
+    "schemaValidatesEveryDeclaredPageToken",
     "familySemanticsAreSingleTarget",
-    "driftedTableFailsClosed",
+    "driftedSettingsTableFailsClosed",
 )
 
 
@@ -74,9 +74,9 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_PILOT_OPEN_FAMILY: OK — 41 SYSTEM_OPEN_* actions upgraded "
-        "with typed values over reviewed mappings, parity-pinned, lossless "
-        "and fail-closed, with mandatory T17 unit coverage"
+        "CANONICAL_PILOT_OPEN_FAMILY: OK — 29 real settings launchers collapse to "
+        "one typed Open(SettingsPage) contract; non-settings SYSTEM_OPEN_* nodes "
+        "stay outside the family, mappings are parity-pinned and fail-closed"
     )
     return 0
 
