@@ -224,14 +224,23 @@ fun Project.configureCoverage() {
         )
         sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
     }
+    // Capture all Project-owned values during configuration. Gradle 9.6
+    // deprecates Task.project access at execution time and Gradle 10 will
+    // reject it, so the task action below must operate only on immutable
+    // values/providers prepared here.
+    val coverageModulePath = path
+    val coverageTestSourceDir = layout.projectDirectory.dir("src/test")
+    val coverageReportFile = layout.buildDirectory.file("coverage/report.xml")
+    val coverageThreshold = strictJvmCoverageThresholds[coverageModulePath]
+
     tasks.register("coverageGate") {
         group = "verification"
         description = "Fails when this module's covered-line ratio is below the strict threshold."
         dependsOn(coverageTask)
         doLast {
-            val report = layout.buildDirectory.file("coverage/report.xml").get().asFile
-            if (!file("src/test").exists() || !report.exists()) {
-                println("COVERAGE_GATE: ${project.path} no unit-test source set — skipped")
+            val report = coverageReportFile.get().asFile
+            if (!coverageTestSourceDir.asFile.exists() || !report.exists()) {
+                println("COVERAGE_GATE: $coverageModulePath no unit-test source set — skipped")
                 return@doLast
             }
             val xml = report.readText()
@@ -241,34 +250,33 @@ fun Project.configureCoverage() {
             // counter at all — that is a pass by definition, not a failure.
             val counter = Regex("<counter type=\"LINE\" missed=\"(\\d+)\" covered=\"(\\d+)\"/>")
                 .findAll(xml).lastOrNull() ?: run {
-                println("COVERAGE_GATE: ${project.path} no executable code — skipped")
+                println("COVERAGE_GATE: $coverageModulePath no executable code — skipped")
                 return@doLast
             }
             val (missed, covered) = counter.destructured
             val total = covered.toInt() + missed.toInt()
             if (total == 0) {
-                throw GradleException("coverage report has zero measured lines for ${project.path}")
+                throw GradleException("coverage report has zero measured lines for $coverageModulePath")
             }
             val ratio = covered.toInt().toDouble() / total
-            val threshold = strictJvmCoverageThresholds[project.path]
-            if (threshold == null) {
+            if (coverageThreshold == null) {
                 println(
-                    "COVERAGE_REPORT: ${project.path} " +
+                    "COVERAGE_REPORT: $coverageModulePath " +
                         "${"%.1f".format(ratio * 100)}% (${covered}/${total}) — report-only"
                 )
                 return@doLast
             }
-            if (ratio < threshold) {
+            if (ratio < coverageThreshold) {
                 throw GradleException(
-                    "coverage gate FAILED for ${project.path}: " +
-                        "${"%.1f".format(ratio * 100)}% < ${"%.0f".format(threshold * 100)}% " +
+                    "coverage gate FAILED for $coverageModulePath: " +
+                        "${"%.1f".format(ratio * 100)}% < ${"%.0f".format(coverageThreshold * 100)}% " +
                         "(covered=$covered missed=$missed)"
                 )
             }
             println(
-                "COVERAGE_GATE: ${project.path} " +
+                "COVERAGE_GATE: $coverageModulePath " +
                     "${"%.1f".format(ratio * 100)}% >= " +
-                    "${"%.0f".format(threshold * 100)}% (${covered}/${total})"
+                    "${"%.0f".format(coverageThreshold * 100)}% (${covered}/${total})"
             )
         }
     }
