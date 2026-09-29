@@ -135,6 +135,9 @@ object CompatibilityGate {
         return actionOptions.mapNotNull { option ->
             val definition = AutomationNodeCatalog.definitionFor(option.actionType)
             if (definition.visibility != AutomationNodeVisibility.DISCOVERABLE) return@mapNotNull null
+            if (!CanonicalDiscoveryPolicy.isDiscoverableForNewWorkflow(option.actionType)) {
+                return@mapNotNull null
+            }
             if (!engine.isSupported(option.actionType, p)) return@mapNotNull null
             option to CommandRequirementCatalog.requirementFor(option.actionType)
         }
