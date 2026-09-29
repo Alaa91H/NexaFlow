@@ -71,11 +71,12 @@ object FamilyPhase19Connectivity {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.ENABLED)
-        override val requiredKeys: Set<String> = setOf(Keys.ENABLED)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
-            val enabled = LegacyValueParsers.parseBoolean(input.entry(Keys.ENABLED)!!)
+            val entry = input.entry(Keys.ENABLED) ?: return skeleton
+            val enabled = LegacyValueParsers.parseBoolean(entry)
             return SetStateNode(
                 id = skeleton.id,
                 target = skeleton.target,
@@ -90,14 +91,15 @@ object FamilyPhase19Connectivity {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf("value")
-        override val requiredKeys: Set<String> = setOf("value")
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val entry = input.entry("value") ?: return skeleton
             return SetValueNode(
                 id = skeleton.id,
                 target = skeleton.target,
-                value = LegacyValueParsers.parseText(input.entry("value")!!),
+                value = LegacyValueParsers.parseText(entry),
             )
         }
     }
@@ -108,6 +110,7 @@ object FamilyPhase19Connectivity {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.SSID, Keys.PASSWORD)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
