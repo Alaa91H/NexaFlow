@@ -77,7 +77,8 @@ class CanonicalRuntimeCutoverAdapter(
         return PreparedAction(
             node = planned.node.withRuntimeId(CanonicalNodeId(instanceId)),
             command = commands.single().copy(commandId = instanceId),
-            preservedConfig = planned.preservedConfig,
+            preservedConfig = LegacyCatalogCanonicalContractNormalizer
+                .sanitizedPreservedConfig(definition, planned.preservedConfig),
         )
     }
 
@@ -113,7 +114,8 @@ class CanonicalRuntimeCutoverAdapter(
         )
         return PreparedTrigger(
             node = planned.node.withRuntimeId(CanonicalNodeId(instanceId)),
-            preservedConfig = planned.preservedConfig,
+            preservedConfig = LegacyCatalogCanonicalContractNormalizer
+                .sanitizedPreservedConfig(definition, planned.preservedConfig),
         )
     }
 
