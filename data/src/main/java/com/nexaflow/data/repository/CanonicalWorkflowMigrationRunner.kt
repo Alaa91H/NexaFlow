@@ -142,8 +142,10 @@ class CanonicalWorkflowMigrationRunner @Inject constructor(
 
         rows.forEach { row ->
             when (row.writeStateOrNull()) {
-                CanonicalV3WriteState.V3_READY -> ready += 1
-                CanonicalV3WriteState.V3_WITH_LEGACY_FALLBACK -> fallback += 1
+                CanonicalV3WriteState.V3_READY ->
+                    if (row.canonicalWorkflowJson != null) ready += 1 else pending += 1
+                CanonicalV3WriteState.V3_WITH_LEGACY_FALLBACK ->
+                    if (row.canonicalWorkflowJson != null) fallback += 1 else pending += 1
                 CanonicalV3WriteState.LEGACY_ONLY_DEGRADED -> degraded += 1
                 null -> pending += 1
             }
