@@ -36,6 +36,8 @@ REQUIRED_TEST_CASES = (
     "familyOverridesCoverOnlyTableMembers",
     "familyAdapterKeepsTheFullTable",
     "mediaTargetsPreserveParityWithTheSkeletonTable",
+    "mediaCommandIdentitySurvivesCanonicalization",
+    "navigationDestinationIdentitySurvivesCanonicalization",
     "bogusSessionPackageIsRejectedNotCoerced",
     "searchRequiresQueryButPackageStaysOptional",
     "mediaMultiTargetSemanticsAreExecutable",
@@ -78,8 +80,8 @@ def main() -> int:
 
     print(
         "CANONICAL_FAMILY_MEDIA_NAVIGATION: OK — media transport and system "
-        "navigation upgrades over reviewed mappings, optional typed filters, "
-        "multi-target ordered media semantics, parity-pinned and idempotent"
+        "navigation preserve command/destination identity as typed enum tokens, "
+        "with typed filters, explicit semantics, parity and idempotency"
     )
     return 0
 
