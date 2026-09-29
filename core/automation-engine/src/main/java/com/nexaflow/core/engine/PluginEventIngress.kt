@@ -1,6 +1,7 @@
 package com.nexaflow.core.engine
 
 import com.nexaflow.core.execution.compat.TriggerSource
+import com.nexaflow.core.pluginsdk.PluginCanonicalContract
 import com.nexaflow.domain.events.EventPublishResult
 import com.nexaflow.domain.events.NexaFlowEvent
 import com.nexaflow.domain.events.NexaFlowEventBus
@@ -44,15 +45,40 @@ class PluginEventIngress(
         ) {
             return rejected("Plugin event identity is invalid")
         }
+        val canonicalEvent = runCatching {
+            PluginCanonicalContract.PluginEvent(
+                pluginId = senderPackage,
+                eventPayload = mapOf(
+                    KEY_COMPONENT to eventComponent,
+                    KEY_EVENT_ID to eventId,
+                ),
+            )
+        }.getOrElse {
+            return rejected("Plugin event identity is invalid")
+        }
+
         val matchingInstances = triggerIndex.bySource(TriggerSource.PLUGIN.sourceId)
             .flatMap { automation -> automation.triggers.map { automation to it } }
             .filter { (_, trigger) ->
-                trigger.type == TriggerType.PLUGIN_EVENT &&
-                    trigger.config[KEY_APPROVAL] == APPROVAL_VALUE &&
-                    trigger.config[KEY_PACKAGE] == senderPackage &&
-                    trigger.config[KEY_COMPONENT] == eventComponent &&
-                    trigger.config[KEY_INSTANCE]?.isNotBlank() == true &&
-                    (trigger.config[KEY_EVENT_ID].isNullOrBlank() || trigger.config[KEY_EVENT_ID] == eventId)
+                if (trigger.type != TriggerType.PLUGIN_EVENT ||
+                    trigger.config[KEY_APPROVAL] != APPROVAL_VALUE ||
+                    trigger.config[KEY_INSTANCE]?.isNotBlank() != true
+                ) {
+                    return@filter false
+                }
+                val configuredPackage = trigger.config[KEY_PACKAGE] ?: return@filter false
+                val configuredComponent = trigger.config[KEY_COMPONENT] ?: return@filter false
+                val filterPayload = buildMap {
+                    put(KEY_COMPONENT, configuredComponent)
+                    trigger.config[KEY_EVENT_ID]
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { put(KEY_EVENT_ID, it) }
+                }
+                PluginCanonicalContract.eventMatches(
+                    filterPluginId = configuredPackage,
+                    filterPayload = filterPayload,
+                    event = canonicalEvent,
+                )
             }
         if (matchingInstances.isEmpty()) {
             return rejected("No approved workflow trigger matches this plugin event")
