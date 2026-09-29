@@ -1438,10 +1438,21 @@ fun TriggerEditorCard(
                     onDismiss = { onExpandedChange(false) }
                 ) {
                     // A task card configures its already-selected trigger only.
-                    // Discovery and field editing now share the same T12 modal
-                    // shell; the specialized controls below are temporary field
-                    // renderers while family schemas take ownership.
-                    when (draft.type) {
+                    // Simple contracts render directly from the canonicalized
+                    // catalog schema. Platform pickers and advanced contracts
+                    // keep their specialized renderer as a compatibility seam.
+                    val canonicalBinding =
+                        CanonicalBuilderSchemaBridge.editingBindingForTrigger(draft.type)
+                    if (canonicalBinding != null) {
+                        CanonicalSchemaFieldEditor(
+                            binding = canonicalBinding,
+                            config = draft.config,
+                            onConfigChange = { updated ->
+                                onConfigChange(draft.copy(config = updated))
+                            },
+                        )
+                    } else {
+                        when (draft.type) {
                 TriggerType.TIME -> {
                     val rangeMode = draft.config["timeMode"] == "RANGE"
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -3301,6 +3312,7 @@ fun TriggerEditorCard(
                 // visible but cannot be changed to an unsafe partial config.
                 TriggerType.PLUGIN_EVENT ->
                     Text(text = stringResource(R.string.plugin_no_edit), style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
             }
