@@ -27,6 +27,7 @@ import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.rom.ShizukuShellBridge
 import com.nexaflow.feature.settings.UpdateVersion
+import com.nexaflow.data.repository.CanonicalWorkflowMigrationRunner
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -84,6 +85,10 @@ class NexaFlowApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var agentNetworkPreferences: AgentNetworkPreferences
 
+    /** Bounded, resumable migration of historical Room rows into canonical V3. */
+    @Inject
+    lateinit var canonicalMigrationRunner: CanonicalWorkflowMigrationRunner
+
     /**
      * WorkManager must construct MaintenanceWorker through Hilt (it has an
      * @AssistedInject constructor — the default factory would fail with "no
@@ -127,6 +132,13 @@ class NexaFlowApplication : Application(), Configuration.Provider {
         }
         runCatching { MaintenanceWorker.schedule(this) }
             .onFailure { Log.e(TAG, "Maintenance worker schedule failed", it) }
+        // Start one bounded batch immediately; the periodic maintenance worker
+        // continues later. This runs on the application background scope and
+        // never delays Application.onCreate or monitoring startup.
+        appScope.launch {
+            runCatching { canonicalMigrationRunner.runNextBatch() }
+                .onFailure { Log.e(TAG, "canonical V3 migration batch failed", it) }
+        }
         // Periodic location re-check (Settings > Location): schedule at the
         // user's chosen interval so location-triggered tasks keep verifying
         // even while the system location switch is off.
