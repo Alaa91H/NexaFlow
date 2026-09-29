@@ -1848,6 +1848,40 @@ fun AutomationBuilderScreen(
                                     }
                                 }
                             } else {
+                                val commonTriggers = AutomationOptionCatalog.commonTriggerOrder
+                                    .filter { it in visibleTriggers }
+                                if (commonTriggers.isNotEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.option_tier_common),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        commonTriggers.forEachIndexed { optionIndex, type ->
+                                            TriggerOptionRow(
+                                                type = type,
+                                                checked = type in selectedTriggerTypes,
+                                                alternatingIndex = optionIndex,
+                                                availability = triggerAvailabilityByType[type]
+                                                    ?: BuilderOptionAvailability.READY,
+                                                onBlockedClick = { requestGrantForTrigger(type) },
+                                                onSelect = {
+                                                    if (type in selectedTriggerTypes) {
+                                                        selectedTriggerTypes.remove(type)
+                                                    } else {
+                                                        selectedTriggerTypes.add(type)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Text(
+                                    text = stringResource(R.string.option_tier_all),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
                                 CategoryAccordion(
                                     tabs = triggerCategories.map { category ->
                                         stringResource(category.headerRes) to category.icon()
@@ -1858,7 +1892,10 @@ fun AutomationBuilderScreen(
                                     val category = triggerCategories[categoryIndex]
                                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                         visibleTriggers
-                                            .filter { triggerCategoryOf[it] == category }
+                                            .filter {
+                                                triggerCategoryOf[it] == category &&
+                                                    AutomationOptionCatalog.tierFor(it) != OptionTier.ADVANCED
+                                            }
                                             .forEachIndexed { optionIndex, type ->
                                                 TriggerOptionRow(
                                                     type = type,
@@ -1876,6 +1913,42 @@ fun AutomationBuilderScreen(
                                                     }
                                                 )
                                             }
+                                    }
+                                }
+
+                                val advancedTriggers = visibleTriggers.filter {
+                                    AutomationOptionCatalog.tierFor(it) == OptionTier.ADVANCED
+                                }
+                                if (advancedTriggers.isNotEmpty()) {
+                                    if (!showAdvancedTriggerOptions) {
+                                        TextButton(onClick = { showAdvancedTriggerOptions = true }) {
+                                            Text(stringResource(R.string.option_tier_advanced))
+                                        }
+                                    } else {
+                                        Text(
+                                            text = stringResource(R.string.option_tier_advanced),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            advancedTriggers.forEachIndexed { optionIndex, type ->
+                                                TriggerOptionRow(
+                                                    type = type,
+                                                    checked = type in selectedTriggerTypes,
+                                                    alternatingIndex = optionIndex,
+                                                    availability = triggerAvailabilityByType[type]
+                                                        ?: BuilderOptionAvailability.READY,
+                                                    onBlockedClick = { requestGrantForTrigger(type) },
+                                                    onSelect = {
+                                                        if (type in selectedTriggerTypes) {
+                                                            selectedTriggerTypes.remove(type)
+                                                        } else {
+                                                            selectedTriggerTypes.add(type)
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -2016,6 +2089,42 @@ fun AutomationBuilderScreen(
                                         }
                                     }
                                 } else {
+                                    val commonActions = AutomationOptionCatalog.commonActionOrder
+                                        .mapNotNull { type ->
+                                            visibleActions.firstOrNull { it.actionType == type }
+                                        }
+                                    if (commonActions.isNotEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.option_tier_common),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            commonActions.forEachIndexed { optionIndex, option ->
+                                                ActionOptionRow(
+                                                    option = option,
+                                                    checked = option.actionType in selectedActionTypes,
+                                                    alternatingIndex = optionIndex,
+                                                    availability = actionAvailabilityByType[option.actionType]
+                                                        ?: BuilderOptionAvailability.READY,
+                                                    onBlockedClick = { requestGrantForAction(option.actionType) },
+                                                    onToggle = {
+                                                        if (option.actionType in selectedActionTypes) {
+                                                            selectedActionTypes.remove(option.actionType)
+                                                        } else {
+                                                            selectedActionTypes.add(option.actionType)
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Text(
+                                        text = stringResource(R.string.option_tier_all),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
                                     CategoryAccordion(
                                         tabs = actionCategories.map { category ->
                                             stringResource(category.headerRes) to category.icon()
@@ -2026,6 +2135,10 @@ fun AutomationBuilderScreen(
                                         val category = actionCategories[categoryIndex]
                                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             optionsForActionCategory(category, visibleActions)
+                                                .filter {
+                                                    AutomationOptionCatalog.tierFor(it.actionType) !=
+                                                        OptionTier.ADVANCED
+                                                }
                                                 .forEachIndexed { optionIndex, option ->
                                                     ActionOptionRow(
                                                         option = option,
@@ -2043,6 +2156,43 @@ fun AutomationBuilderScreen(
                                                         }
                                                     )
                                                 }
+                                        }
+                                    }
+
+                                    val advancedActions = visibleActions.filter {
+                                        AutomationOptionCatalog.tierFor(it.actionType) ==
+                                            OptionTier.ADVANCED
+                                    }
+                                    if (advancedActions.isNotEmpty()) {
+                                        if (!showAdvancedActionOptions) {
+                                            TextButton(onClick = { showAdvancedActionOptions = true }) {
+                                                Text(stringResource(R.string.option_tier_advanced))
+                                            }
+                                        } else {
+                                            Text(
+                                                text = stringResource(R.string.option_tier_advanced),
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.SemiBold,
+                                            )
+                                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                advancedActions.forEachIndexed { optionIndex, option ->
+                                                    ActionOptionRow(
+                                                        option = option,
+                                                        checked = option.actionType in selectedActionTypes,
+                                                        alternatingIndex = optionIndex,
+                                                        availability = actionAvailabilityByType[option.actionType]
+                                                            ?: BuilderOptionAvailability.READY,
+                                                        onBlockedClick = { requestGrantForAction(option.actionType) },
+                                                        onToggle = {
+                                                            if (option.actionType in selectedActionTypes) {
+                                                                selectedActionTypes.remove(option.actionType)
+                                                            } else {
+                                                                selectedActionTypes.add(option.actionType)
+                                                            }
+                                                        }
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
