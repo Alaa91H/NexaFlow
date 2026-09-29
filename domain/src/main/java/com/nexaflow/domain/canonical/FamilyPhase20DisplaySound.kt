@@ -90,14 +90,15 @@ object FamilyPhase20DisplaySound {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.ENABLED)
-        override val requiredKeys: Set<String> = setOf(Keys.ENABLED)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val entry = input.entry(Keys.ENABLED) ?: return skeleton
             return SetStateNode(
                 id = skeleton.id,
                 target = skeleton.target,
-                state = LegacyValueParsers.parseBoolean(input.entry(Keys.ENABLED)!!),
+                state = LegacyValueParsers.parseBoolean(entry),
             )
         }
     }
@@ -108,11 +109,11 @@ object FamilyPhase20DisplaySound {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.VALUE)
-        override val requiredKeys: Set<String> = setOf(Keys.VALUE)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
-            val entry = input.entry(Keys.VALUE)!!
+            val entry = input.entry(Keys.VALUE) ?: return skeleton
             // Numeric settings upgrade to typed integers; enum-ish payloads
             // (ringer mode) stay as strict text tokens.
             val value = entry.rawValue.toLongOrNull()?.let { IntegerValue(it) }
@@ -222,7 +223,7 @@ object FamilyPhase20DisplaySound {
         ),
     )
 
-    /** The brightness schema with bounded percentage semantics. */
+    /** The brightness schema uses the persisted/runtime 0..255 integer scale. */
     fun brightnessSchema(): NodeSchema = NodeSchema(
         schemaId = "core.schema.display.brightness.set_value",
         kind = NodeSchemaKind.ACTION,
@@ -234,8 +235,10 @@ object FamilyPhase20DisplaySound {
         fields = listOf(
             NodeSchemaField(
                 id = CanonicalFieldId("level"),
-                type = NodeFieldType.PERCENTAGE,
+                type = NodeFieldType.INTEGER,
                 alwaysRequired = true,
+                minimum = 0,
+                maximum = 255,
             ),
         ),
         capabilities = listOf(
