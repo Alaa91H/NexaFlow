@@ -1013,6 +1013,8 @@ fun AutomationBuilderScreen(
     var actionSearchQuery by rememberSaveable { mutableStateOf("") }
     var showTriggerConfigurator by rememberSaveable { mutableStateOf(false) }
     var showActionConfigurator by rememberSaveable { mutableStateOf(false) }
+    var showAdvancedTriggerOptions by rememberSaveable { mutableStateOf(false) }
+    var showAdvancedActionOptions by rememberSaveable { mutableStateOf(false) }
     // Fixed multi-select catalogues. A choice is only materialised as a card
     // after the user presses the dedicated Add button below its catalogue.
     val selectedTriggerTypes = rememberSaveable(saver = TriggerTypeSelectionSaver) {
@@ -1783,6 +1785,7 @@ fun AutomationBuilderScreen(
                             selectedTriggerTypes.clear()
                             triggerSearchQuery = ""
                             expandedTriggerCategory = null
+                            showAdvancedTriggerOptions = false
                             showTriggerConfigurator = true
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -1948,6 +1951,7 @@ fun AutomationBuilderScreen(
                                 selectedActionTypes.clear()
                                 actionSearchQuery = ""
                                 expandedActionCategory = null
+                                showAdvancedActionOptions = false
                                 showActionConfigurator = true
                             },
                             modifier = Modifier.fillMaxWidth()
