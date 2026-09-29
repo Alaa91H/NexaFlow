@@ -79,6 +79,15 @@ def run_gate(gate: str) -> tuple[str, int]:
         text=True,
         timeout=120,
     )
+    if proc.returncode != 0:
+        # Preserve the aggregate verdict while exposing the underlying gate's
+        # actionable diagnostics before CI stops at T38.
+        output = "\n".join(
+            part.strip() for part in (proc.stdout, proc.stderr) if part.strip()
+        )
+        if output:
+            print(f"--- {gate} diagnostics ---")
+            print(output)
     return gate, proc.returncode
 
 
