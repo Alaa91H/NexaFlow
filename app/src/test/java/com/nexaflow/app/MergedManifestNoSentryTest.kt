@@ -31,9 +31,9 @@ import org.w3c.dom.Element
  *    (no rogue auto-initializer can break the DSN-less boot),
  *  - every initializer routed through androidx.startup carries the
  *    "androidx.startup" marker,
- *  - WorkManager does NOT auto-initialize — the app bootstraps it manually
- *    in [NexaFlowApplication], and a second auto-initializer is exactly the
- *    failure class this test exists to catch.
+ *  - WorkManager uses its supported default AndroidX Startup initializer;
+ *    workers resolve application singletons lazily through a Hilt EntryPoint,
+ *    so no custom WorkerFactory bootstrap is required.
  */
 @RunWith(RobolectricTestRunner::class)
 // The app targets SDK 37 but Robolectric 4.17 sandboxes for SDK 36+ need
@@ -72,7 +72,8 @@ class MergedManifestNoSentryTest {
     private val knownStartupInitializers = setOf(
         "androidx.emoji2.text.EmojiCompatInitializer",
         "androidx.lifecycle.ProcessLifecycleInitializer",
-        "androidx.profileinstaller.ProfileInstallerInitializer"
+        "androidx.profileinstaller.ProfileInstallerInitializer",
+        "androidx.work.WorkManagerInitializer"
     )
 
     private fun mergedManifestDocument(): org.w3c.dom.Document {
@@ -182,7 +183,7 @@ class MergedManifestNoSentryTest {
     }
 
     @Test
-    fun `startup initializers all route through one androidx startup provider and none auto-initialize WorkManager`() {
+    fun `startup initializers all route through one androidx startup provider`() {
         val doc = mergedManifestDocument()
         val startupProviders = providerElements(doc).filter {
             it.getAttribute("android:name") == "androidx.startup.InitializationProvider"
@@ -203,11 +204,9 @@ class MergedManifestNoSentryTest {
         val metadata = metaDataChildren(startup)
         val entries = metadata.associate { it.getAttribute("android:name") to it.getAttribute("android:value") }
 
-        // 1) Every initializer must be declared with the "androidx.startup"
-        //    marker — that routes it through the dispatcher where the app's
-        //    tools:node="remove" overrides apply. A provider-style direct
-        //    initializer would surface here as a different marker or as a
-        //    separate <provider> (caught by the allowlist test).
+        // Every initializer must be declared with the "androidx.startup"
+        // marker. Worker dependencies are resolved lazily from the application
+        // graph, so WorkManager can safely use its default initializer too.
         val misMarked = entries.filter { (name, value) ->
             (name in knownStartupInitializers ||
                 name.endsWith("Initializer") ||
@@ -220,14 +219,9 @@ class MergedManifestNoSentryTest {
             misMarked.isEmpty()
         )
 
-        // 2) WorkManager must NOT auto-initialize via androidx.startup. App
-        //    Startup only discovers metadata whose value equals
-        //    "androidx.startup"; the app overrides WorkManager's marker with a
-        //    non-discoverable value and supplies Configuration.Provider itself.
         assertEquals(
-            "WorkManager initializer must remain explicitly disabled in " +
-                "androidx.startup metadata",
-            "nexaflow.disabled",
+            "WorkManager must use the supported AndroidX Startup path",
+            "androidx.startup",
             entries["androidx.work.WorkManagerInitializer"]
         )
     }
