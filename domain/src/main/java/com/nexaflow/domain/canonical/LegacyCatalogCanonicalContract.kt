@@ -239,6 +239,7 @@ object LegacyCatalogCanonicalContractNormalizer {
             alwaysRequired = true,
             enumType = enum?.enumType,
             allowedTokens = enum?.let { listOf(it.token) }.orEmpty(),
+            collectionElementKind = (raw as? CollectionValue)?.elementKind,
             expressionCapable = raw is ExpressionValue,
         )
     }
