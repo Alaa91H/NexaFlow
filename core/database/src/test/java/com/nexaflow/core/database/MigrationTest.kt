@@ -84,10 +84,13 @@ class MigrationTest {
             listOf(Migrations.MIGRATION_21_22)
         )
         migrated.prepare(
-            "SELECT canonicalWorkflowJson FROM automations WHERE id='v3-ready'"
+            "SELECT canonicalWorkflowJson, canonicalWriteState, canonicalWriteErrorCode " +
+                "FROM automations WHERE id='v3-ready'"
         ).use {
             assertTrue(it.step())
             assertTrue(it.isNull(0))
+            assertEquals("LEGACY_ONLY", it.getText(1))
+            assertTrue(it.isNull(2))
         }
         migrated.execSQL(
             "UPDATE automations SET canonicalWorkflowJson='{\"schemaVersion\":3}' " +
