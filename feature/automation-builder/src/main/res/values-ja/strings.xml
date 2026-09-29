@@ -512,12 +512,12 @@
     <string name="action_set_ringtone_sub">デフォルトの着信音を選択</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">ネットワークモード</string>
-    <string name="state_on">オン</string>
+    <string name="builder_state_on">オン</string>
     <string name="network_mode">ネットワークモード</string>
     <string name="network_mode_label">優先ネットワーク世代</string>
     <string name="action_set_ringtone">着信音を設定</string>
     <string name="battery_level_section">バッテリー残量</string>
-    <string name="state_off">オフ</string>
+    <string name="builder_state_off">オフ</string>
     <string name="network_hotspot">ホットスポット</string>
     <string name="charging_state_section">充電状態</string>
     <string name="charging_no">充電なし</string><string name="trigger_cat_schedule">スケジュール</string>    <string name="trigger_cat_device">デバイス</string>    <string name="trigger_cat_connectivity">接続</string>    <string name="trigger_cat_location">場所</string>    <string name="trigger_cat_apps">アプリ</string>    <string name="trigger_cat_communication">通信</string>
