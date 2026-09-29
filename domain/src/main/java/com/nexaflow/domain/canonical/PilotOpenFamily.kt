@@ -24,36 +24,41 @@ object PilotOpenFamily {
      * Exhaustive T17 compatibility ledger. Keys are persisted legacy names;
      * values are the stable page tokens consumed by the canonical schema.
      */
-    internal val legacyPageMappings: Map<String, String> = linkedMapOf(
-        "SYSTEM_OPEN_SETTINGS" to "WIFI",
-        "SYSTEM_OPEN_ABOUT_PHONE" to "ABOUT_PHONE",
-        "SYSTEM_OPEN_ACCESSIBILITY_SETTINGS" to "ACCESSIBILITY",
-        "SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS" to "AIRPLANE_MODE",
-        "SYSTEM_OPEN_APP_SETTINGS_LIST" to "APP_SETTINGS_LIST",
-        "SYSTEM_OPEN_BATTERY_SETTINGS" to "BATTERY",
-        "SYSTEM_OPEN_BLUETOOTH_SETTINGS" to "BLUETOOTH",
-        "SYSTEM_OPEN_CAST_SETTINGS" to "CAST",
-        "SYSTEM_OPEN_DATA_SAVER_SETTINGS" to "DATA_SAVER",
-        "SYSTEM_OPEN_DATA_USAGE_SETTINGS" to "DATA_USAGE",
-        "SYSTEM_OPEN_DATE_SETTINGS" to "DATE",
-        "SYSTEM_OPEN_DEFAULT_APPS_SETTINGS" to "DEFAULT_APPS",
-        "SYSTEM_OPEN_DEVELOPER_SETTINGS" to "DEVELOPER",
-        "SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS" to "DEVICE_ADMIN",
-        "SYSTEM_OPEN_DISPLAY_SETTINGS" to "DISPLAY",
-        "SYSTEM_OPEN_INPUT_METHOD_SETTINGS" to "INPUT_METHOD",
-        "SYSTEM_OPEN_LOCATION_SETTINGS" to "LOCATION",
-        "SYSTEM_OPEN_NETWORK_SETTINGS" to "NETWORK",
-        "SYSTEM_OPEN_NFC_SETTINGS" to "NFC",
-        "SYSTEM_OPEN_NOTIFICATION_SETTINGS" to "NOTIFICATION",
-        "SYSTEM_OPEN_PRINT_SETTINGS" to "PRINT",
-        "SYSTEM_OPEN_PRIVACY_SETTINGS" to "PRIVACY",
-        "SYSTEM_OPEN_SECURITY_SETTINGS" to "SECURITY",
-        "SYSTEM_OPEN_SOUND_SETTINGS" to "SOUND",
-        "SYSTEM_OPEN_STORAGE_SETTINGS" to "STORAGE",
-        "SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS" to "SYSTEM_UPDATE",
-        "SYSTEM_OPEN_USAGE_ACCESS_SETTINGS" to "USAGE_ACCESS",
-        "SYSTEM_OPEN_VPN_SETTINGS" to "VPN",
-        "SYSTEM_OPEN_WIFI_SETTINGS" to "WIFI",
+    internal data class LegacySettingsPageMapping(
+        val legacyType: String,
+        val pageToken: String,
+    )
+
+    internal val legacyPageMappings: List<LegacySettingsPageMapping> = listOf(
+        LegacySettingsPageMapping("SYSTEM_OPEN_SETTINGS", "WIFI"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_ABOUT_PHONE", "ABOUT_PHONE"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_ACCESSIBILITY_SETTINGS", "ACCESSIBILITY"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS", "AIRPLANE_MODE"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_APP_SETTINGS_LIST", "APP_SETTINGS_LIST"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_BATTERY_SETTINGS", "BATTERY"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_BLUETOOTH_SETTINGS", "BLUETOOTH"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_CAST_SETTINGS", "CAST"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_DATA_SAVER_SETTINGS", "DATA_SAVER"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_DATA_USAGE_SETTINGS", "DATA_USAGE"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_DATE_SETTINGS", "DATE"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_DEFAULT_APPS_SETTINGS", "DEFAULT_APPS"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_DEVELOPER_SETTINGS", "DEVELOPER"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS", "DEVICE_ADMIN"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_DISPLAY_SETTINGS", "DISPLAY"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_INPUT_METHOD_SETTINGS", "INPUT_METHOD"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_LOCATION_SETTINGS", "LOCATION"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_NETWORK_SETTINGS", "NETWORK"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_NFC_SETTINGS", "NFC"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_NOTIFICATION_SETTINGS", "NOTIFICATION"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_PRINT_SETTINGS", "PRINT"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_PRIVACY_SETTINGS", "PRIVACY"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_SECURITY_SETTINGS", "SECURITY"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_SOUND_SETTINGS", "SOUND"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_STORAGE_SETTINGS", "STORAGE"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS", "SYSTEM_UPDATE"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_USAGE_ACCESS_SETTINGS", "USAGE_ACCESS"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_VPN_SETTINGS", "VPN"),
+        LegacySettingsPageMapping("SYSTEM_OPEN_WIFI_SETTINGS", "WIFI"),
     )
 
     private class SettingsPageRule(
@@ -99,21 +104,25 @@ object PilotOpenFamily {
         table: List<LegacyMappingRule> = LegacyMappingTable.all(),
     ): List<LegacyMappingRule> {
         val generated = table
-            .filter { it.kind == LegacyNodeKind.ACTION && it.legacyType in legacyPageMappings }
+            .filter {
+                it.kind == LegacyNodeKind.ACTION &&
+                    legacyPageMappings.any { mapping -> mapping.legacyType == it.legacyType }
+            }
             .associateBy { it.legacyType }
 
-        val missing = legacyPageMappings.keys - generated.keys
-        val unexpected = generated.keys - legacyPageMappings.keys
+        val expectedTypes = legacyPageMappings.mapTo(linkedSetOf()) { it.legacyType }
+        val missing = expectedTypes - generated.keys
+        val unexpected = generated.keys - expectedTypes
         if (missing.isNotEmpty() || unexpected.isNotEmpty()) {
             throw IllegalStateException(
                 "T17 settings table drift: missing=$missing unexpected=$unexpected",
             )
         }
-        return legacyPageMappings.map { (legacyType, page) ->
+        return legacyPageMappings.map { mapping ->
             SettingsPageRule(
-                legacyType = legacyType,
-                base = generated.getValue(legacyType),
-                fixedPage = page,
+                legacyType = mapping.legacyType,
+                base = generated.getValue(mapping.legacyType),
+                fixedPage = mapping.pageToken,
             )
         }
     }
@@ -143,7 +152,7 @@ object PilotOpenFamily {
                 alwaysRequired = true,
                 default = NodeFieldDefault.ofEnumToken("core.system.settings", "WIFI"),
                 enumType = "core.system.settings",
-                allowedTokens = legacyPageMappings.values.distinct().sorted(),
+                allowedTokens = legacyPageMappings.map { it.pageToken }.distinct().sorted(),
             ),
         ),
         capabilities = listOf(
