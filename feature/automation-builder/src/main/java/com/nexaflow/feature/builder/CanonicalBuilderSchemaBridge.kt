@@ -44,10 +44,8 @@ internal object CanonicalBuilderSchemaBridge {
     private val genericFieldTypes = setOf(
         NodeConfigValueType.STRING,
         NodeConfigValueType.INTEGER,
-        NodeConfigValueType.DECIMAL,
         NodeConfigValueType.BOOLEAN,
         NodeConfigValueType.ENUM,
-        NodeConfigValueType.DURATION_SECONDS,
         NodeConfigValueType.URL,
     )
 
