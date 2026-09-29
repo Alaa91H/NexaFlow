@@ -5,8 +5,6 @@ import android.app.Application
 import android.os.Bundle
 import android.os.StrictMode
 import android.util.Log
-import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.Configuration
 import com.nexaflow.app.work.LocationCheckScheduler
 import com.nexaflow.app.work.MaintenanceWorker
 import com.nexaflow.app.work.UpdateCheckScheduler
@@ -37,16 +35,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltAndroidApp
-class NexaFlowApplication : Application(), Configuration.Provider {
+class NexaFlowApplication : Application() {
 
     @Inject
     lateinit var scheduler: AutomationScheduler
 
     @Inject
     lateinit var sentryReporter: SentryReporter
-
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
 
     @Inject
     lateinit var locationPreferences: LocationPreferences
@@ -88,17 +83,6 @@ class NexaFlowApplication : Application(), Configuration.Provider {
     /** Bounded, resumable migration of historical Room rows into canonical V3. */
     @Inject
     lateinit var canonicalMigrationRunner: CanonicalWorkflowMigrationRunner
-
-    /**
-     * WorkManager must construct MaintenanceWorker through Hilt (it has an
-     * @AssistedInject constructor — the default factory would fail with "no
-     * default constructor"). The default androidx.startup initializer is
-     * removed in the manifest so this configuration is the one used.
-     */
-    override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
 
     override fun onCreate() {
         super.onCreate()
