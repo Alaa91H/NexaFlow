@@ -23,6 +23,10 @@ EXECUTION_ENGINE_FILE = ROOT / (
     "core/execution/src/main/java/com/nexaflow/core/execution/"
     "ExecutionEngine.kt"
 )
+PRODUCT_TEST_FILE = ROOT / (
+    "core/execution/src/test/java/com/nexaflow/core/execution/compat/"
+    "CanonicalRuntimeCutoverAdapterTest.kt"
+)
 PIPELINE_FILES = (
     MAIN_FILE,
     ROOT / (CANONICAL_DIR + "ExecutionPlanner.kt"),
@@ -95,7 +99,7 @@ def main() -> int:
     # Product cutover evidence: the pure domain pipeline is not sufficient.
     # The actual execution engine must cross the canonical boundary before any
     # handler side effect, and retry policy must consume canonical idempotency.
-    for path in (PRODUCT_RUNTIME_FILE, EXECUTION_ENGINE_FILE):
+    for path in (PRODUCT_RUNTIME_FILE, EXECUTION_ENGINE_FILE, PRODUCT_TEST_FILE):
         if not path.is_file():
             problems.append(f"missing product runtime wiring {path.relative_to(ROOT)}")
 
@@ -110,6 +114,20 @@ def main() -> int:
         ):
             if token not in product:
                 problems.append(f"CanonicalProductRuntime.kt missing {token!r}")
+
+    if PRODUCT_TEST_FILE.is_file():
+        product_tests = PRODUCT_TEST_FILE.read_text(encoding="utf-8")
+        for case in (
+            "ringerModeUsesRealModeKeyAndDeclaredDefault",
+            "alarmUsesHourMinuteInsteadOfInventedTimeKey",
+            "waitUsesCatalogSecondsDefaultAsTypedDuration",
+            "installApkUsesPathContract",
+            "mediaTransportIdentitySurvivesIntoAtomicCommand",
+            "expressionCapableBrightnessPromotesTypedExpressionIntoPayload",
+            "invalidBrightnessIsRejectedBeforePlanning",
+        ):
+            if f"fun {case}" not in product_tests:
+                problems.append(f"CanonicalRuntimeCutoverAdapterTest missing {case!r}")
 
     if EXECUTION_ENGINE_FILE.is_file():
         engine = EXECUTION_ENGINE_FILE.read_text(encoding="utf-8")
