@@ -7,18 +7,27 @@ import com.nexaflow.domain.canonical.FamilyPhase22Communication
 import com.nexaflow.domain.canonical.FamilyPhase23PowerSensors
 import com.nexaflow.domain.canonical.FamilyPhase24TimeLocation
 import com.nexaflow.domain.canonical.FamilyPhase25AdvancedExternal
+import com.nexaflow.domain.canonical.LegacyAdapterOutcome
+import com.nexaflow.domain.canonical.LegacyCanonicalAdapter
+import com.nexaflow.domain.canonical.LegacyCatalogCanonicalContractNormalizer
+import com.nexaflow.domain.canonical.LegacyMappingTable
+import com.nexaflow.domain.canonical.LegacyNodeInput
+import com.nexaflow.domain.canonical.LegacyNodeKind
 import com.nexaflow.domain.canonical.NodeSchema
+import com.nexaflow.domain.canonical.NodeSchemaKind
 import com.nexaflow.domain.canonical.PilotOpenFamily
+import com.nexaflow.domain.catalog.AutomationNodeCatalog
+import com.nexaflow.domain.catalog.NodeConfigValueType
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 
 /**
- * Product bridge from the append-only V1/V2 enum surface to the canonical
- * schemas already implemented by T17-T25.
+ * Product compatibility bridge from the append-only V1/V2 enum surface to
+ * canonical schemas.
  *
- * This bridge contains no rendering logic. It exists only while the persisted
- * legacy enum names remain readable; the schema remains the source of truth
- * for field type, bounds, defaults, visibility and validation.
+ * It is the ONLY builder file allowed to translate persisted enum identities.
+ * Rendering is enum-free: [CanonicalSchemaFieldEditor] consumes only
+ * [CanonicalBuilderSchemaBinding]/[NodeSchema].
  */
 internal data class CanonicalBuilderSchemaBinding(
     val schema: NodeSchema,
@@ -27,6 +36,20 @@ internal data class CanonicalBuilderSchemaBinding(
 )
 
 internal object CanonicalBuilderSchemaBridge {
+
+    private val skeletonAdapter by lazy {
+        LegacyCanonicalAdapter(LegacyMappingTable.all())
+    }
+
+    private val genericFieldTypes = setOf(
+        NodeConfigValueType.STRING,
+        NodeConfigValueType.INTEGER,
+        NodeConfigValueType.DECIMAL,
+        NodeConfigValueType.BOOLEAN,
+        NodeConfigValueType.ENUM,
+        NodeConfigValueType.DURATION_SECONDS,
+        NodeConfigValueType.URL,
+    )
 
     fun forAction(type: ActionType): CanonicalBuilderSchemaBinding? = when (type) {
         ActionType.SYSTEM_OPEN_SETTINGS -> CanonicalBuilderSchemaBinding(
@@ -71,8 +94,7 @@ internal object CanonicalBuilderSchemaBridge {
             FamilyPhase20DisplaySound.ringerModeSchema(),
         )
         ActionType.SYSTEM_BRIGHTNESS -> CanonicalBuilderSchemaBinding(
-            FamilyPhase20DisplaySound.brightnessSchema(),
-            legacyKeys = mapOf("level" to "value"),
+            catalogBindingForAction(type).schema,
         )
         ActionType.SYSTEM_SEND_SMS -> CanonicalBuilderSchemaBinding(
             FamilyPhase22Communication.smsSchema(),
@@ -88,17 +110,27 @@ internal object CanonicalBuilderSchemaBridge {
     }
 
     /**
-     * Only bindings whose canonical schema models the complete current editor
-     * contract may replace the legacy field renderer. Partial schemas stay
-     * observable through [forAction] but never hide legacy options.
+     * Complete canonical contracts replace handwritten field UIs when every
+     * legacy field is representable by the generic renderer. Specialized
+     * pickers remain for package/secret/JSON/coordinate/time/date contracts
+     * and for explicit ADVANCED product surfaces.
      */
-    fun editingBindingForAction(type: ActionType): CanonicalBuilderSchemaBinding? = when (type) {
-        ActionType.SYSTEM_OPEN_SETTINGS,
-        ActionType.SYSTEM_RINGER_MODE,
-        ActionType.SYSTEM_BRIGHTNESS,
-        ActionType.SYSTEM_SEND_SMS,
-        ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> forAction(type)
-        else -> null
+    fun editingBindingForAction(type: ActionType): CanonicalBuilderSchemaBinding? {
+        when (type) {
+            ActionType.SYSTEM_OPEN_SETTINGS,
+            ActionType.SYSTEM_RINGER_MODE,
+            ActionType.SYSTEM_BRIGHTNESS,
+            ActionType.SYSTEM_SEND_SMS,
+            ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> return forAction(type)
+            else -> Unit
+        }
+
+        if (AutomationOptionCatalog.tierFor(type) == OptionTier.ADVANCED) return null
+        val definition = AutomationNodeCatalog.definitionFor(type)
+        if (definition.configuration.fields.any { it.valueType !in genericFieldTypes }) {
+            return null
+        }
+        return catalogBindingForAction(type)
     }
 
     fun forTrigger(type: TriggerType): CanonicalBuilderSchemaBinding? = when (type) {
@@ -106,5 +138,55 @@ internal object CanonicalBuilderSchemaBridge {
             FamilyPhase24TimeLocation.scheduleSchema(),
         )
         else -> null
+    }
+
+    fun editingBindingForTrigger(type: TriggerType): CanonicalBuilderSchemaBinding? {
+        if (AutomationOptionCatalog.tierFor(type) == OptionTier.ADVANCED) return null
+        val definition = AutomationNodeCatalog.definitionFor(type)
+        if (definition.configuration.fields.any { it.valueType !in genericFieldTypes }) {
+            return null
+        }
+        return catalogBindingForTrigger(type)
+    }
+
+    private fun catalogBindingForAction(type: ActionType): CanonicalBuilderSchemaBinding {
+        val definition = AutomationNodeCatalog.definitionFor(type)
+        val node = canonicalSkeleton(type.name, LegacyNodeKind.ACTION)
+        return CanonicalBuilderSchemaBinding(
+            LegacyCatalogCanonicalContractNormalizer.normalize(
+                definition = definition,
+                node = node,
+                config = emptyList(),
+                kind = NodeSchemaKind.ACTION,
+            ).schema,
+        )
+    }
+
+    private fun catalogBindingForTrigger(type: TriggerType): CanonicalBuilderSchemaBinding {
+        val definition = AutomationNodeCatalog.definitionFor(type)
+        val node = canonicalSkeleton(type.name, LegacyNodeKind.TRIGGER)
+        return CanonicalBuilderSchemaBinding(
+            LegacyCatalogCanonicalContractNormalizer.normalize(
+                definition = definition,
+                node = node,
+                config = emptyList(),
+                kind = NodeSchemaKind.TRIGGER,
+            ).schema,
+        )
+    }
+
+    private fun canonicalSkeleton(
+        legacyType: String,
+        kind: LegacyNodeKind,
+    ) = when (
+        val outcome = skeletonAdapter.canonicalize(
+            LegacyNodeInput(legacyType, kind, emptyList()),
+        )
+    ) {
+        is LegacyAdapterOutcome.Canonicalized -> outcome.node
+        is LegacyAdapterOutcome.Rejected -> error(
+            "T12 builder schema bridge cannot resolve $kind/$legacyType: " +
+                outcome.reason,
+        )
     }
 }
