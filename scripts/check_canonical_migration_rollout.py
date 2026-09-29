@@ -145,11 +145,13 @@ def main() -> int:
     if MAINTENANCE_WORKER_FILE.is_file():
         maintenance = MAINTENANCE_WORKER_FILE.read_text(encoding="utf-8")
         for token in (
-            "CanonicalWorkflowMigrationRunner",
-            "canonicalMigrationRunner.runNextBatch()",
+            "WorkerDependenciesEntryPoint",
+            "dependencies.canonicalWorkflowMigrationRunner().runNextBatch()",
         ):
             if token not in maintenance:
-                problems.append(f"maintenance is missing canonical migration invocation {token!r}")
+                problems.append(
+                    f"maintenance is missing canonical migration invocation {token!r}"
+                )
 
     if problems:
         print("CANONICAL_MIGRATION_ROLLOUT: FAIL")
@@ -162,7 +164,8 @@ def main() -> int:
         "deterministic batches with canonicalWriteState as the durable journal, "
         "CAS protects concurrent edits, degraded rows remain retryable, and "
         "canonical graph completion is distinct from legacy-retirement readiness "
-        "when secret fallback is still required"
+        "when secret fallback is still required; startup and periodic maintenance "
+        "both invoke the same resumable runner"
     )
     return 0
 
