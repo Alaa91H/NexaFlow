@@ -180,12 +180,15 @@ internal object ActionNodeSchemas {
         ActionType.SYSTEM_SET_SETTING -> schema(
             enumField("namespace", "SYSTEM", "SECURE", "GLOBAL", default = "GLOBAL"),
             stringField("key", required = true),
-            stringField("value", expressionCapable = true)
+            // Runtime historically writes an empty string when value is absent.
+            // Declare it so canonical validation/planning owns the default.
+            stringField("value", default = "", expressionCapable = true)
         )
         ActionType.ROM_CUSTOM_SETTING -> schema(
             enumField("namespace", "SYSTEM", "SECURE", "GLOBAL", default = "SECURE"),
             stringField("key", required = true),
-            stringField("value", expressionCapable = true)
+            // Same explicit legacy-compatible default as SYSTEM_SET_SETTING.
+            stringField("value", default = "", expressionCapable = true)
         )
         ActionType.SYSTEM_SCREENSHOT -> schema(
             stringField("filename", expressionCapable = true)
