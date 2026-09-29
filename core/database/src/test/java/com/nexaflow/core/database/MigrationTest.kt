@@ -65,6 +65,43 @@ class MigrationTest {
         migrated.close()
     }
 
+    @Test fun migrate21To22AddsNullableCanonicalWorkflowPayload() {
+        helper.createDatabase(21).apply {
+            execSQL(
+                "INSERT INTO automations " +
+                    "(id,name,description,icon,iconColor,backgroundColor,category,priority,enabled," +
+                    "showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson," +
+                    "revertOnExit,cooldownSeconds,workflowVersion,maintenanceJson,deepLinkToken," +
+                    "triggerMatch,createdAt,updatedAt) VALUES " +
+                    "('v3-ready','Task','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]'," +
+                    "0,10,2,NULL,NULL,'ANY',100,200)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(
+            22,
+            listOf(Migrations.MIGRATION_21_22)
+        )
+        migrated.prepare(
+            "SELECT canonicalWorkflowJson FROM automations WHERE id='v3-ready'"
+        ).use {
+            assertTrue(it.step())
+            assertTrue(it.isNull(0))
+        }
+        migrated.execSQL(
+            "UPDATE automations SET canonicalWorkflowJson='{\"schemaVersion\":3}' " +
+                "WHERE id='v3-ready'"
+        )
+        migrated.prepare(
+            "SELECT canonicalWorkflowJson FROM automations WHERE id='v3-ready'"
+        ).use {
+            assertTrue(it.step())
+            assertTrue(it.getText(0).contains("\"schemaVersion\":3"))
+        }
+        migrated.close()
+    }
+
     @Test fun migrate19To20DefaultsExistingTasksToAny() {
         helper.createDatabase(19).apply {
             execSQL("INSERT INTO automations (id,name,description,icon,iconColor,backgroundColor,category,priority,enabled,showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson,revertOnExit,cooldownSeconds,workflowVersion,maintenanceJson,deepLinkToken,createdAt,updatedAt) VALUES ('logic','Legacy Task','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]',0,10,1,NULL,NULL,1,2)")
@@ -91,10 +128,10 @@ class MigrationTest {
         migrated.close()
     }
 
-    @Test fun historicalChainsReach21() {
-        for (version in listOf(1, 12, 16, 18, 19, 20)) {
+    @Test fun historicalChainsReach22() {
+        for (version in listOf(1, 12, 16, 18, 19, 20, 21)) {
             helper.createDatabase(version).close()
-            helper.runMigrationsAndValidate(21, Migrations.ALL).close()
+            helper.runMigrationsAndValidate(22, Migrations.ALL).close()
             dbFile.delete()
         }
     }
