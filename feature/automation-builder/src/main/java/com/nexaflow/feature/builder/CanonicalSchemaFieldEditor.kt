@@ -9,7 +9,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.canonical.BooleanValue
@@ -52,11 +56,14 @@ internal fun CanonicalSchemaFieldEditor(
             raw?.let { parseCanonicalField(field, it) }?.let { NodeFieldValue(field.id, it) }
         }
     }
-    val disclosure = remember(schema.schemaId, config["_canonicalDisclosure"]) {
-        val level = runCatching {
-            NodeSchemaLevel.valueOf(config["_canonicalDisclosure"] ?: NodeSchemaLevel.BASIC.name)
-        }.getOrDefault(NodeSchemaLevel.BASIC)
-        DisclosureState(level)
+    var disclosureLevelName by rememberSaveable(schema.schemaId) {
+        mutableStateOf(NodeSchemaLevel.BASIC.name)
+    }
+    val disclosure = remember(schema.schemaId, disclosureLevelName) {
+        DisclosureState(
+            runCatching { NodeSchemaLevel.valueOf(disclosureLevelName) }
+                .getOrDefault(NodeSchemaLevel.BASIC),
+        )
     }
     val state = remember(schema.schemaId, values, disclosure) {
         NodeConfiguratorState(schema = schema, values = values, disclosure = disclosure)
@@ -87,9 +94,7 @@ internal fun CanonicalSchemaFieldEditor(
         }
         if (nextLevel != null && schema.fields.any { it.level == nextLevel }) {
             TextButton(
-                onClick = {
-                    onConfigChange(config + ("_canonicalDisclosure" to nextLevel.name))
-                }
+                onClick = { disclosureLevelName = nextLevel.name }
             ) {
                 Text(text = nextLevel.name)
             }
@@ -197,6 +202,9 @@ private fun parseCanonicalField(field: NodeSchemaField, raw: String): CanonicalV
                 requireNotNull(field.enumType),
                 raw,
             )
+            NodeFieldType.JSON,
+            NodeFieldType.COORDINATE,
+            NodeFieldType.COLLECTION,
             NodeFieldType.SECRET_REFERENCE -> null
         }
     }.getOrNull()
