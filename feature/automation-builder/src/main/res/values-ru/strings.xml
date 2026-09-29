@@ -512,12 +512,12 @@
     <string name="action_set_ringtone_sub">Выбрать рингтон звонков по умолчанию</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">Режим сети</string>
-    <string name="state_on">Вкл</string>
+    <string name="builder_state_on">Вкл</string>
     <string name="network_mode">Режим сети</string>
     <string name="network_mode_label">Предпочитаемое поколение сети</string>
     <string name="action_set_ringtone">Установить рингтон</string>
     <string name="battery_level_section">Уровень заряда</string>
-    <string name="state_off">Выкл</string>
+    <string name="builder_state_off">Выкл</string>
     <string name="network_hotspot">Точка доступа</string>
     <string name="charging_state_section">Состояние зарядки</string>
     <string name="charging_no">Не заряжается</string><string name="trigger_cat_schedule">Расписание</string>    <string name="trigger_cat_device">Устройство</string>    <string name="trigger_cat_connectivity">Подключение</string>    <string name="trigger_cat_location">Местоположение</string>    <string name="trigger_cat_apps">Приложения</string>    <string name="trigger_cat_communication">Связь</string>
