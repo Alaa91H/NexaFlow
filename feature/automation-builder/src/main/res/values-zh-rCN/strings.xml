@@ -512,12 +512,12 @@
     <string name="action_set_ringtone_sub">选择默认来电铃声</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">网络模式</string>
-    <string name="state_on">开启</string>
+    <string name="builder_state_on">开启</string>
     <string name="network_mode">网络模式</string>
     <string name="network_mode_label">首选网络制式</string>
     <string name="action_set_ringtone">设置铃声</string>
     <string name="battery_level_section">电池电量</string>
-    <string name="state_off">关闭</string>
+    <string name="builder_state_off">关闭</string>
     <string name="network_hotspot">热点</string>
     <string name="charging_state_section">充电状态</string>
     <string name="charging_no">未充电</string><string name="trigger_cat_schedule">计划</string>    <string name="trigger_cat_device">设备</string>    <string name="trigger_cat_connectivity">连接</string>    <string name="trigger_cat_location">位置</string>    <string name="trigger_cat_apps">应用</string>    <string name="trigger_cat_communication">通信</string>
