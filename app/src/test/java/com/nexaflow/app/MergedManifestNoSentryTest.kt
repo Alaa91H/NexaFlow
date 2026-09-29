@@ -19,15 +19,16 @@ import org.w3c.dom.Element
  * automatic initialization on every app start. Sentry then throws "DSN is
  * required" and force-closes the app when no NEXAFLOW_SENTRY_DSN was baked
  * into the build — before Application.onCreate even runs. The manifest
- * removes both providers with tools:node="remove", so a DSN-less build must
- * boot.
+ * keeps both library providers explicitly disabled and sets
+ * io.sentry.auto-init=false, so a DSN-less build must boot without any Sentry
+ * code running before the user's opt-in.
  *
  * This test verifies the guarantee against the REAL merged manifest file
  * (Robolectric's queryContentProviders returns an empty registry here, so a
  * runtime query can only assert absence vacuously — parsing the merged
  * manifest itself is the authoritative check):
- *  - every <provider> is a known-safe one (no rogue auto-initializer that
- *    could break the DSN-less boot),
+ *  - every <provider> is known and any Sentry provider is explicitly disabled
+ *    (no rogue auto-initializer can break the DSN-less boot),
  *  - every initializer routed through androidx.startup carries the
  *    "androidx.startup" marker,
  *  - WorkManager does NOT auto-initialize — the app bootstraps it manually
@@ -40,8 +41,8 @@ import org.w3c.dom.Element
 // run them on 35 (the newest SDK that supports Java 17).
 class MergedManifestNoSentryTest {
 
-    /** Provider names that must be gone: crash the DSN-less build at boot. */
-    private val forbiddenProviders = setOf(
+    /** Sentry providers may be merged, but Android must never instantiate them. */
+    private val sentryProviders = setOf(
         "io.sentry.android.core.SentryInitProvider",
         "io.sentry.android.core.SentryPerformanceProvider"
     )
@@ -58,9 +59,13 @@ class MergedManifestNoSentryTest {
         // Plain AndroidX FileProvider; purely declarative, no init code.
         "androidx.core.content.FileProvider",
         // The androidx.startup dispatcher; its initializer list is asserted
-        // separately below (all must route through androidx.startup and none
-        // may auto-initialize WorkManager).
-        "androidx.startup.InitializationProvider"
+        // separately below (all must route through androidx.startup and
+        // WorkManager's marker is explicitly disabled).
+        "androidx.startup.InitializationProvider",
+        // Sentry providers are retained only as disabled declarations so the
+        // manifest merger stays warning-free in both app and unit-test APKs.
+        "io.sentry.android.core.SentryInitProvider",
+        "io.sentry.android.core.SentryPerformanceProvider"
     )
 
     /** Initializers the startup dispatcher may run (all safe without a DSN). */
@@ -102,6 +107,16 @@ class MergedManifestNoSentryTest {
             .filter { it.tagName == "meta-data" }
     }
 
+    private fun applicationMetaData(doc: org.w3c.dom.Document): Map<String, String> {
+        val application = doc.getElementsByTagName("application").item(0) as Element
+        return (0 until application.childNodes.length)
+            .mapNotNull { application.childNodes.item(it) as? Element }
+            .filter { it.tagName == "meta-data" }
+            .associate {
+                it.getAttribute("android:name") to it.getAttribute("android:value")
+            }
+    }
+
     @Test
     fun `READ_PHONE_STATE remains unbounded in the merged manifest`() {
         val doc = mergedManifestDocument()
@@ -120,25 +135,26 @@ class MergedManifestNoSentryTest {
     }
 
     @Test
-    fun `sentry auto-init providers are stripped from the merged manifest`() {
+    fun `sentry auto-init providers are disabled in the merged manifest`() {
         val doc = mergedManifestDocument()
-        val providerNames = providerElements(doc)
-            .map { it.getAttribute("android:name") }
-            .filter { it.isNotBlank() }
-            .joinToString()
+        val providers = providerElements(doc)
+            .associateBy { it.getAttribute("android:name") }
 
-        forbiddenProviders.forEach { forbidden ->
-            assertFalse(
-                "$forbidden must be removed from the merged manifest " +
-                    "(it force-closes DSN-less builds); found providers: $providerNames",
-                providerNames.contains(forbidden)
+        sentryProviders.forEach { name ->
+            val provider = providers[name]
+                ?: throw AssertionError("$name missing from merged manifest")
+            assertEquals(
+                "$name must stay disabled until SentryReporter performs the opt-in init",
+                "false",
+                provider.getAttribute("android:enabled")
             )
         }
 
-        // Belt and braces: nothing Sentry-* may survive the merge anywhere.
-        assertFalse(
-            "No Sentry provider may survive manifest merging; found: $providerNames",
-            providerNames.contains("Sentry")
+        val appMetadata = applicationMetaData(doc)
+        assertEquals(
+            "Sentry manifest auto-init must remain disabled",
+            "false",
+            appMetadata["io.sentry.auto-init"]
         )
     }
 
@@ -204,33 +220,27 @@ class MergedManifestNoSentryTest {
             misMarked.isEmpty()
         )
 
-        // 2) WorkManager must NOT auto-initialize via androidx.startup — the
-        //    app removes WorkManagerInitializer and bootstraps WorkManager
-        //    manually in NexaFlowApplication. A second auto-initializer here
-        //    is the same failure class as Sentry: it would init before the
-        //    Application and could break the DSN-less boot.
-        assertFalse(
-            "androidx.work.WorkManagerInitializer must be removed from the " +
-                "startup metadata (the app initializes WorkManager manually " +
-                "in NexaFlowApplication); found: ${entries.keys.joinToString()}",
-            entries.containsKey("androidx.work.WorkManagerInitializer")
+        // 2) WorkManager must NOT auto-initialize via androidx.startup. App
+        //    Startup only discovers metadata whose value equals
+        //    "androidx.startup"; the app overrides WorkManager's marker with a
+        //    non-discoverable value and supplies Configuration.Provider itself.
+        assertEquals(
+            "WorkManager initializer must remain explicitly disabled in " +
+                "androidx.startup metadata",
+            "nexaflow.disabled",
+            entries["androidx.work.WorkManagerInitializer"]
         )
     }
 
     @Test
-    fun `no sentry provider is registered in the runtime package manager`() {
-        // Kept from the original test: documents the Robolectric-visible
-        // state. Robolectric's provider registry is empty here, so absence
-        // assertions hold trivially — the authoritative checks above parse
-        // the merged manifest file itself.
+    fun `runtime package manager never exposes an enabled sentry provider`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val providers = context.packageManager.queryContentProviders(null, 0, 0).orEmpty()
-        val providerNames = providers.map { it.name }.joinToString()
-        forbiddenProviders.forEach { forbidden ->
-            assertFalse(
-                "$forbidden must not be registered at runtime; found: $providerNames",
-                providerNames.contains(forbidden)
-            )
-        }
+        val sentry = providers.filter { it.name in sentryProviders }
+        assertTrue(
+            "Robolectric/runtime package manager must not expose an enabled " +
+                "Sentry provider before opt-in",
+            sentry.none { it.enabled }
+        )
     }
 }
