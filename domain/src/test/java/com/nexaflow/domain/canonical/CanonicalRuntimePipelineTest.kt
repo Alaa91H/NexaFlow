@@ -277,9 +277,9 @@ class CanonicalRuntimePipelineTest {
             ).schema,
             config = emptyList(),
             semantics = NodeSelectionSemantics(),
-            capabilityRequirement = FamilyPhase19Connectivity
-                .stateWriteProviders()
-                .copy(operation = OperationId("core.operation.set_value")),
+            capabilityRequirement = CapabilityRequirement.Capability(
+                CapabilityId.SYSTEM_SETTING_WRITE,
+            ),
         )
         assertTrue(network.executableNode is SetValueNode)
         assertEquals(
