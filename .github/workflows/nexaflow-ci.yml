@@ -50,7 +50,6 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Auto-fix resource hygiene (orphans, duplicates, balance)
@@ -306,13 +305,11 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
     - name: Set up JDK 21 for unit-test toolchain
       uses: actions/setup-java@v5
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Enforce configured coverage policy
@@ -447,13 +444,11 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
     - name: Set up JDK 21 for unit-test toolchain
       uses: actions/setup-java@v5
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Generate and print Room schema 21 for review
@@ -650,21 +645,25 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: nexaflow-debug-apk
+        if-no-files-found: error
         path: app/build/outputs/apk/debug/app-debug.apk
     - name: Upload Release APK
       uses: actions/upload-artifact@v7
       with:
         name: nexaflow-release-apk
+        if-no-files-found: error
         path: app/build/outputs/apk/release/app-release.apk
     - name: Upload Watch Release APK
       uses: actions/upload-artifact@v7
       with:
         name: nexaflow-wear-release-apk
+        if-no-files-found: error
         path: wear/build/outputs/apk/release/wear-release.apk
     - name: Upload Release AAB
       uses: actions/upload-artifact@v7
       with:
         name: nexaflow-release-aab
+        if-no-files-found: error
         path: app/build/outputs/bundle/release/app-release.aab
 
   release:
