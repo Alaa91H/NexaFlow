@@ -71,6 +71,42 @@ class PluginEventIngressTest {
     }
 
     @Test
+    fun hundredEventBurstIsBoundedAtIngressWithoutUnboundedQueueGrowth() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val index = TriggerIndex(kotlinx.coroutines.flow.MutableStateFlow(listOf(pluginAutomation())))
+        val indexJob = scope.launch { index.start() }
+        awaitIndexed(index)
+        val bus = InMemoryNexaFlowEventBus(scope)
+        val ingress = PluginEventIngress(
+            triggerIndex = index,
+            eventBus = bus,
+            nowMs = { 10_000L },
+            maxEventsPerWindow = 30,
+        )
+
+        val results = (0 until 100).map { sequence ->
+            ingress.publish(
+                senderPackage = "com.example.plugin",
+                eventComponent = "com.example.plugin.EditActivity",
+                eventId = "changed",
+                correlationId = "burst-$sequence",
+                payload = JsonObject(mapOf("sequence" to JsonPrimitive(sequence))),
+            )
+        }
+
+        assertEquals(30, results.count { it.accepted })
+        assertEquals(70, results.count { !it.accepted })
+        assertTrue(
+            results.drop(30).all {
+                it.reason.orEmpty().contains("rate limit", ignoreCase = true)
+            },
+        )
+
+        bus.close()
+        indexJob.cancel()
+    }
+
+    @Test
     fun unapprovedOrMismatchedEventDoesNotReachTheBus() = runBlocking {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val index = TriggerIndex(kotlinx.coroutines.flow.MutableStateFlow(listOf(pluginAutomation())))
