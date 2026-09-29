@@ -83,6 +83,24 @@ WORKFLOW_POLICY_FILES = (
     "WorkflowMigrationOrchestrator.kt",
 )
 
+EXECUTION_ENGINE = ROOT / (
+    "core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt"
+)
+COMPAT_DISPATCHER = ROOT / (
+    "core/execution/src/main/java/com/nexaflow/core/execution/compat/"
+    "CanonicalCompatibilityActionDispatcher.kt"
+)
+CANONICAL_UI_FILES = (
+    ROOT / (
+        "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+        "NodeConfiguratorSheet.kt"
+    ),
+    ROOT / (
+        "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+        "CanonicalSchemaFieldEditor.kt"
+    ),
+)
+
 
 def is_contained(relative_path: str) -> bool:
     return any(relative_path.startswith(prefix) for prefix in CONTAINED_ROOTS)
@@ -155,7 +173,56 @@ def main() -> int:
                 f"{relative} references legacy types outside containment"
             )
 
-    # 4. The inventory must carry the retirement ledger (T39 status).
+    # 4. Product control-plane retirement. Legacy storage/monitor/provider
+    # payloads remain readable, but the user-facing canonical editor and the
+    # execution orchestrator may no longer make decisions by legacy type.
+    for path in CANONICAL_UI_FILES:
+        if not path.is_file():
+            problems.append(f"missing canonical UI surface {path.relative_to(ROOT)}")
+            continue
+        source = strip_comments(path.read_text(encoding="utf-8", errors="replace"))
+        if LEGACY_TYPE_PATTERN.search(source):
+            problems.append(
+                f"{path.relative_to(ROOT)} leaks legacy types into canonical UI"
+            )
+
+    if not EXECUTION_ENGINE.is_file():
+        problems.append(f"missing {EXECUTION_ENGINE.relative_to(ROOT)}")
+    else:
+        engine = strip_comments(
+            EXECUTION_ENGINE.read_text(encoding="utf-8", errors="replace")
+        )
+        if "handlerFor(action.type)" in engine:
+            problems.append(
+                "ExecutionEngine still selects legacy handlers by ActionType"
+            )
+        for token in (
+            "CanonicalRuntimeCutoverAdapter",
+            "CanonicalCompatibilityActionDispatcher",
+            "canonicalCommand: AtomicCommand",
+        ):
+            if token not in engine:
+                problems.append(
+                    f"ExecutionEngine missing canonical retirement boundary {token!r}"
+                )
+
+    if not COMPAT_DISPATCHER.is_file():
+        problems.append(f"missing {COMPAT_DISPATCHER.relative_to(ROOT)}")
+    else:
+        dispatcher = COMPAT_DISPATCHER.read_text(
+            encoding="utf-8", errors="replace"
+        )
+        for token in (
+            "handlerFor(action.type)",
+            "canonicalCommand: AtomicCommand",
+            "executionContext.nodeId == canonicalCommand.commandId",
+        ):
+            if token not in dispatcher:
+                problems.append(
+                    f"compatibility dispatcher missing containment invariant {token!r}"
+                )
+
+    # 5. The inventory must carry the retirement ledger (T39 status).
     if INVENTORY.is_file():
         inventory = INVENTORY.read_text(encoding="utf-8")
         if "T39: **implemented**" not in inventory:
@@ -172,12 +239,12 @@ def main() -> int:
         return 1
 
     print(
-        f"CANONICAL_LEGACY_RETIREMENT: OK — legacy types retired by "
-        f"containment: the canonical packages, workflow persistence "
-        f"contracts and plugin SDK contract are legacy-free, every "
-        f"remaining reference sits inside a reviewed containment zone, and "
-        f"the retirement ledger ({contained_count} contained files) is "
-        f"recorded in the inventory"
+        f"CANONICAL_LEGACY_RETIREMENT: OK — legacy types are excluded from "
+        f"canonical UI and runtime control-plane decisions; handler selection "
+        f"is isolated behind an AtomicCommand-gated compatibility dispatcher, "
+        f"canonical/workflow/plugin contracts stay legacy-free, and the "
+        f"remaining storage/ingress/provider compatibility footprint "
+        f"({contained_count} contained files) is ledgered"
     )
     return 0
 
