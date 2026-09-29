@@ -3,6 +3,7 @@ package com.nexaflow.core.execution.capability
 import android.content.Context
 import com.nexaflow.core.execution.plugin.PluginFireClient
 import com.nexaflow.core.pluginsdk.LocaleContract
+import com.nexaflow.core.pluginsdk.PluginCanonicalContract
 import com.nexaflow.core.pluginsdk.PluginCompatibilityStatus
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
@@ -191,9 +192,6 @@ class PluginCapabilityBackend(
             it.type == ActionType.PLUGIN_FIRE && it.config[KEY_INSTANCE] == expectedInstance
         } ?: return ResolvedPluginAction(error = "Configured plugin action is no longer available")
         val config = action.config
-        if (config[KEY_APPROVAL] != APPROVAL_VALUE) {
-            return ResolvedPluginAction(error = "Plugin action has not been approved by the user")
-        }
         val packageName = config[KEY_PACKAGE]
         val receiver = config[KEY_RECEIVER]
         if (packageName.isNullOrBlank() || receiver.isNullOrBlank()) {
@@ -211,8 +209,33 @@ class PluginCapabilityBackend(
                 it.packageName == packageName &&
                 it.receiver?.className == receiver
         } ?: return ResolvedPluginAction(error = "Configured plugin is not installed or visible")
-        if (descriptor.compatibility != PluginCompatibilityStatus.COMPATIBLE) {
-            return ResolvedPluginAction(error = "Configured plugin is not currently compatible")
+        val canonicalCheck = PluginCanonicalContract.checkInvocation(
+            invocation = PluginCanonicalContract.PluginInvocation(
+                // Canonical plugin identity is the package. The opaque
+                // pluginInstance remains a config reference and may contain ':'.
+                pluginId = packageName,
+                payload = mapOf(
+                    PluginCanonicalContract.ARG_CONFIG_REF to expectedInstance,
+                ),
+            ),
+            schema = PluginCanonicalContract.CONFIG_REFERENCE_SCHEMA,
+            host = PluginCanonicalContract.HostState(
+                lifecycleActive =
+                    descriptor.compatibility == PluginCompatibilityStatus.COMPATIBLE,
+                trustGranted = config[KEY_APPROVAL] == APPROVAL_VALUE,
+            ),
+        )
+        if (canonicalCheck is PluginCanonicalContract.CheckResult.Refused) {
+            val reasons = canonicalCheck.reasons
+            val message = when {
+                PluginCanonicalContract.RefusalReason.TRUST_NOT_GRANTED in reasons ->
+                    "Plugin action has not been approved by the user"
+                PluginCanonicalContract.RefusalReason.LIFECYCLE_NOT_ACTIVE in reasons ->
+                    "Configured plugin is not currently compatible"
+                else ->
+                    "Plugin invocation failed canonical contract validation"
+            }
+            return ResolvedPluginAction(error = message)
         }
         return ResolvedPluginAction(action = action)
     }
