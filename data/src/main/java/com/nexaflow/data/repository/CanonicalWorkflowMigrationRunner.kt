@@ -82,18 +82,19 @@ class CanonicalWorkflowMigrationRunner @Inject constructor(
                 state == CanonicalV3WriteState.V3_WITH_LEGACY_FALLBACK
 
             if (!success) {
+                // Persist the typed degradation state/error only if the row did
+                // not change since this snapshot. A concurrent edit is not a
+                // migration failure; the newer row is retried on a fresh pass.
+                val committed = automationDao.compareAndSetAutomation(
+                    automation = prepared,
+                    expectedRevision = row.updatedAt,
+                )
+                if (!committed) {
+                    conflicted += 1
+                    continue
+                }
                 failures += 1
                 degraded += 1
-                // Persist the typed degradation state/error only if the row did
-                // not change since this snapshot. It remains pending.
-                if (!automationDao.compareAndSetAutomation(
-                        automation = prepared,
-                        expectedRevision = row.updatedAt,
-                    )
-                ) {
-                    conflicted += 1
-                    degraded -= 1
-                }
                 if (failures > maxFailuresPerRun) {
                     aborted = true
                     break
