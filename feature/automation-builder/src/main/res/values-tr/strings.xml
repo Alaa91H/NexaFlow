@@ -512,12 +512,12 @@
     <string name="action_set_ringtone_sub">Varsayılan arama zil sesini seç</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">Ağ modu</string>
-    <string name="state_on">Açık</string>
+    <string name="builder_state_on">Açık</string>
     <string name="network_mode">Ağ modu</string>
     <string name="network_mode_label">Tercih edilen ağ nesli</string>
     <string name="action_set_ringtone">Zil sesini ayarla</string>
     <string name="battery_level_section">Pil seviyesi</string>
-    <string name="state_off">Kapalı</string>
+    <string name="builder_state_off">Kapalı</string>
     <string name="network_hotspot">Etkin nokta</string>
     <string name="charging_state_section">Şarj durumu</string>
     <string name="charging_no">Şarj olmuyor</string><string name="trigger_cat_schedule">Zamanlama</string>    <string name="trigger_cat_device">Cihaz</string>    <string name="trigger_cat_connectivity">Bağlantı</string>    <string name="trigger_cat_location">Konum</string>    <string name="trigger_cat_apps">Uygulamalar</string>    <string name="trigger_cat_communication">İletişim</string>
