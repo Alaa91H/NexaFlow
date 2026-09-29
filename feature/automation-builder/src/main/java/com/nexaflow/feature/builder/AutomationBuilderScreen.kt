@@ -995,6 +995,8 @@ fun AutomationBuilderScreen(
     var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(0) }
     var triggerSearchQuery by rememberSaveable { mutableStateOf("") }
     var actionSearchQuery by rememberSaveable { mutableStateOf("") }
+    var showTriggerConfigurator by rememberSaveable { mutableStateOf(false) }
+    var showActionConfigurator by rememberSaveable { mutableStateOf(false) }
     // Fixed multi-select catalogues. A choice is only materialised as a card
     // after the user presses the dedicated Add button below its catalogue.
     val selectedTriggerTypes = rememberSaveable(saver = TriggerTypeSelectionSaver) {
@@ -1760,84 +1762,105 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(text = stringResource(R.string.section_when))
-                    // Discovery starts with search and the category browser below.
-                    // Do not render a second "common" option list above search:
-                    // it duplicates the same selectable rows and wastes vertical space.
-                    OutlinedTextField(
-                        value = triggerSearchQuery,
-                        onValueChange = { triggerSearchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.search)) }
-                    )
-                    val visibleTriggers = remember(supportedTriggers, triggerSearchQuery, configurationContext) {
-                        if (triggerSearchQuery.isBlank()) {
-                            supportedTriggers
-                        } else {
-                            supportedTriggers.filter { type ->
-                                configurationContext.getString(type.labelRes())
-                                    .contains(triggerSearchQuery, ignoreCase = true)
-                            }
-                        }
-                    }
-                    if (triggerSearchQuery.isNotBlank()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            visibleTriggers.forEachIndexed { optionIndex, type ->
-                                TriggerOptionRow(
-                                    type = type,
-                                    checked = type in selectedTriggerTypes,
-                                    alternatingIndex = optionIndex,
-                                    availability = triggerAvailabilityByType[type] ?: BuilderOptionAvailability.READY,
-                                    onBlockedClick = { requestGrantForTrigger(type) },
-                                    onSelect = {
-                                        if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
-                                        else selectedTriggerTypes.add(type)
-                                    }
-                                )
-                            }
-                        }
-                    } else CategoryAccordion(
-                        tabs = triggerCategories.map { category ->
-                            stringResource(category.headerRes) to category.icon()
-                        },
-                        expandedIndex = expandedTriggerCategory,
-                        onExpandedChange = { expandedTriggerCategory = it }
-                    ) { index ->
-                        val category = triggerCategories[index]
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            visibleTriggers
-                                .filter { triggerCategoryOf[it] == category }
-                                .forEachIndexed { optionIndex, type ->
-                                    TriggerOptionRow(
-                                        type = type,
-                                        checked = type in selectedTriggerTypes,
-                                        alternatingIndex = optionIndex,
-                                        availability = triggerAvailabilityByType[type] ?: BuilderOptionAvailability.READY,
-                                        onBlockedClick = { requestGrantForTrigger(type) },
-                                        onSelect = {
-                                            if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
-                                            else selectedTriggerTypes.add(type)
-                                        }
-                                    )
-                                }
-                        }
-                    }
                     Button(
                         onClick = {
-                            selectedTriggerTypes.forEach { type ->
-                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                            }
-                            expandedTriggerIndex = triggers.lastIndex.takeIf { it >= 0 }
                             selectedTriggerTypes.clear()
+                            triggerSearchQuery = ""
+                            expandedTriggerCategory = 0
+                            showTriggerConfigurator = true
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = selectedTriggerTypes.isNotEmpty()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(imageVector = Icons.Filled.Add, contentDescription = null)
                         Text(
                             text = stringResource(R.string.add_trigger),
                             modifier = Modifier.padding(start = 8.dp)
                         )
+                    }
+                    if (showTriggerConfigurator) {
+                        NodeConfiguratorSheet(
+                            title = stringResource(R.string.section_when),
+                            searchQuery = triggerSearchQuery,
+                            onSearchQueryChange = { triggerSearchQuery = it },
+                            selectedCount = selectedTriggerTypes.size,
+                            confirmLabel = stringResource(R.string.add_trigger),
+                            confirmEnabled = selectedTriggerTypes.isNotEmpty(),
+                            onConfirm = {
+                                selectedTriggerTypes.forEach { type ->
+                                    triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                }
+                                expandedTriggerIndex = triggers.lastIndex.takeIf { it >= 0 }
+                                selectedTriggerTypes.clear()
+                                showTriggerConfigurator = false
+                            },
+                            onDismiss = {
+                                selectedTriggerTypes.clear()
+                                showTriggerConfigurator = false
+                            }
+                        ) {
+                            val visibleTriggers = if (triggerSearchQuery.isBlank()) {
+                                supportedTriggers
+                            } else {
+                                supportedTriggers.filter { type ->
+                                    configurationContext.getString(type.labelRes())
+                                        .contains(triggerSearchQuery, ignoreCase = true) ||
+                                        configurationContext.getString(type.descRes())
+                                            .contains(triggerSearchQuery, ignoreCase = true)
+                                }
+                            }
+                            if (triggerSearchQuery.isNotBlank()) {
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    visibleTriggers.forEachIndexed { optionIndex, type ->
+                                        TriggerOptionRow(
+                                            type = type,
+                                            checked = type in selectedTriggerTypes,
+                                            alternatingIndex = optionIndex,
+                                            availability = triggerAvailabilityByType[type]
+                                                ?: BuilderOptionAvailability.READY,
+                                            onBlockedClick = { requestGrantForTrigger(type) },
+                                            onSelect = {
+                                                if (type in selectedTriggerTypes) {
+                                                    selectedTriggerTypes.remove(type)
+                                                } else {
+                                                    selectedTriggerTypes.add(type)
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            } else {
+                                CategoryAccordion(
+                                    tabs = triggerCategories.map { category ->
+                                        stringResource(category.headerRes) to category.icon()
+                                    },
+                                    expandedIndex = expandedTriggerCategory,
+                                    onExpandedChange = { expandedTriggerCategory = it }
+                                ) { categoryIndex ->
+                                    val category = triggerCategories[categoryIndex]
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        visibleTriggers
+                                            .filter { triggerCategoryOf[it] == category }
+                                            .forEachIndexed { optionIndex, type ->
+                                                TriggerOptionRow(
+                                                    type = type,
+                                                    checked = type in selectedTriggerTypes,
+                                                    alternatingIndex = optionIndex,
+                                                    availability = triggerAvailabilityByType[type]
+                                                        ?: BuilderOptionAvailability.READY,
+                                                    onBlockedClick = { requestGrantForTrigger(type) },
+                                                    onSelect = {
+                                                        if (type in selectedTriggerTypes) {
+                                                            selectedTriggerTypes.remove(type)
+                                                        } else {
+                                                            selectedTriggerTypes.add(type)
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                    }
+                                }
+                            }
+                        }
                     }
                     triggers.forEachIndexed { index, draft ->
                 val triggerDragging = triggerDrag.draggedIndex == index
@@ -1904,87 +1927,106 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
                             SectionHeader(text = stringResource(R.string.section_actions))
-                        // Discovery starts with search and the category browser below.
-                        // Do not render a second "common" option list above search:
-                        // it duplicates the same selectable rows and wastes vertical space.
-                        OutlinedTextField(
-                            value = actionSearchQuery,
-                            onValueChange = { actionSearchQuery = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            label = { Text(stringResource(R.string.search)) }
-                        )
-                        val visibleActions = remember(supportedActions, actionSearchQuery, configurationContext) {
-                            if (actionSearchQuery.isBlank()) {
-                                supportedActions
-                            } else {
-                                supportedActions.filter { option ->
-                                    configurationContext.getString(option.titleRes)
-                                        .contains(actionSearchQuery, ignoreCase = true) ||
-                                        configurationContext.getString(option.subtitleRes)
-                                            .contains(actionSearchQuery, ignoreCase = true)
-                                }
-                            }
-                        }
-                        if (actionSearchQuery.isNotBlank()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                visibleActions.forEachIndexed { optionIndex, option ->
-                                    ActionOptionRow(
-                                        option = option,
-                                        checked = option.actionType in selectedActionTypes,
-                                        alternatingIndex = optionIndex,
-                                        availability = actionAvailabilityByType[option.actionType] ?: BuilderOptionAvailability.READY,
-                                        onBlockedClick = { requestGrantForAction(option.actionType) },
-                                        onToggle = {
-                                            if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
-                                            else selectedActionTypes.add(option.actionType)
-                                        }
-                                    )
-                                }
-                            }
-                        } else CategoryAccordion(
-                            tabs = actionCategories.map { category ->
-                                stringResource(category.headerRes) to category.icon()
-                            },
-                            expandedIndex = expandedActionCategory,
-                            onExpandedChange = { expandedActionCategory = it }
-                        ) { index ->
-                            val category = actionCategories[index]
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                optionsForActionCategory(category, visibleActions)
-                                    .forEachIndexed { optionIndex, option ->
-                                        ActionOptionRow(
-                                            option = option,
-                                            checked = option.actionType in selectedActionTypes,
-                                            alternatingIndex = optionIndex,
-                                            availability = actionAvailabilityByType[option.actionType] ?: BuilderOptionAvailability.READY,
-                                            onBlockedClick = { requestGrantForAction(option.actionType) },
-                                            onToggle = {
-                                                if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
-                                                else selectedActionTypes.add(option.actionType)
-                                            }
-                                        )
-                                    }
-                            }
-                        }
                         Button(
                             onClick = {
-                                selectedActionTypes.forEach { type ->
-                                    supportedActions.firstOrNull { it.actionType == type }?.let { option ->
-                                        actionDrafts.add(ActionDraft(option = option))
-                                    }
-                                }
-                                expandedActionCardId = actionDrafts.lastOrNull()?.id
                                 selectedActionTypes.clear()
+                                actionSearchQuery = ""
+                                expandedActionCategory = 0
+                                showActionConfigurator = true
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = selectedActionTypes.isNotEmpty()
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(imageVector = Icons.Filled.Add, contentDescription = null)
                             Text(
                                 text = stringResource(R.string.add_action),
                                 modifier = Modifier.padding(start = 8.dp)
                             )
+                        }
+                        if (showActionConfigurator) {
+                            NodeConfiguratorSheet(
+                                title = stringResource(R.string.section_actions),
+                                searchQuery = actionSearchQuery,
+                                onSearchQueryChange = { actionSearchQuery = it },
+                                selectedCount = selectedActionTypes.size,
+                                confirmLabel = stringResource(R.string.add_action),
+                                confirmEnabled = selectedActionTypes.isNotEmpty(),
+                                onConfirm = {
+                                    selectedActionTypes.forEach { type ->
+                                        supportedActions.firstOrNull { it.actionType == type }?.let { option ->
+                                            actionDrafts.add(ActionDraft(option = option))
+                                        }
+                                    }
+                                    expandedActionCardId = actionDrafts.lastOrNull()?.id
+                                    selectedActionTypes.clear()
+                                    showActionConfigurator = false
+                                },
+                                onDismiss = {
+                                    selectedActionTypes.clear()
+                                    showActionConfigurator = false
+                                }
+                            ) {
+                                val visibleActions = if (actionSearchQuery.isBlank()) {
+                                    supportedActions
+                                } else {
+                                    supportedActions.filter { option ->
+                                        configurationContext.getString(option.titleRes)
+                                            .contains(actionSearchQuery, ignoreCase = true) ||
+                                            configurationContext.getString(option.subtitleRes)
+                                                .contains(actionSearchQuery, ignoreCase = true)
+                                    }
+                                }
+                                if (actionSearchQuery.isNotBlank()) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        visibleActions.forEachIndexed { optionIndex, option ->
+                                            ActionOptionRow(
+                                                option = option,
+                                                checked = option.actionType in selectedActionTypes,
+                                                alternatingIndex = optionIndex,
+                                                availability = actionAvailabilityByType[option.actionType]
+                                                    ?: BuilderOptionAvailability.READY,
+                                                onBlockedClick = { requestGrantForAction(option.actionType) },
+                                                onToggle = {
+                                                    if (option.actionType in selectedActionTypes) {
+                                                        selectedActionTypes.remove(option.actionType)
+                                                    } else {
+                                                        selectedActionTypes.add(option.actionType)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    CategoryAccordion(
+                                        tabs = actionCategories.map { category ->
+                                            stringResource(category.headerRes) to category.icon()
+                                        },
+                                        expandedIndex = expandedActionCategory,
+                                        onExpandedChange = { expandedActionCategory = it }
+                                    ) { categoryIndex ->
+                                        val category = actionCategories[categoryIndex]
+                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            optionsForActionCategory(category, visibleActions)
+                                                .forEachIndexed { optionIndex, option ->
+                                                    ActionOptionRow(
+                                                        option = option,
+                                                        checked = option.actionType in selectedActionTypes,
+                                                        alternatingIndex = optionIndex,
+                                                        availability = actionAvailabilityByType[option.actionType]
+                                                            ?: BuilderOptionAvailability.READY,
+                                                        onBlockedClick = { requestGrantForAction(option.actionType) },
+                                                        onToggle = {
+                                                            if (option.actionType in selectedActionTypes) {
+                                                                selectedActionTypes.remove(option.actionType)
+                                                            } else {
+                                                                selectedActionTypes.add(option.actionType)
+                                                            }
+                                                        }
+                                                    )
+                                                }
+                                        }
+                                    }
+                                }
+                            }
                         }
                         actionDrafts.forEachIndexed { index, draft ->
                             key(draft.id) {
