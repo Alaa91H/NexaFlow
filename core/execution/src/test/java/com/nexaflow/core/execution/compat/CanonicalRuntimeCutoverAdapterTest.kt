@@ -163,11 +163,18 @@ class CanonicalRuntimeCutoverAdapterTest {
         ActionType.entries.forEachIndexed { index, type ->
             val definition = AutomationNodeCatalog.definitionFor(type)
             val config = sampleConfig(definition)
-            val prepared = cutover.prepareAction(
-                Action(type, config),
-                runId = "matrix-action-$index",
-                instanceId = "v3.action.$index",
-            )
+            val prepared = runCatching {
+                cutover.prepareAction(
+                    Action(type, config),
+                    runId = "matrix-action-$index",
+                    instanceId = "v3.action.$index",
+                )
+            }.getOrElse { failure ->
+                throw AssertionError(
+                    "canonical action matrix rejected ${type.name}: ${failure.message}",
+                    failure,
+                )
+            }
             val base = baseAdapter.canonicalize(
                 LegacyNodeInput(
                     legacyType = type.name,
@@ -185,11 +192,18 @@ class CanonicalRuntimeCutoverAdapterTest {
         TriggerType.entries.forEachIndexed { index, type ->
             val definition = AutomationNodeCatalog.definitionFor(type)
             val config = sampleConfig(definition)
-            val prepared = cutover.prepareTrigger(
-                Trigger(type, config),
-                runId = "matrix-trigger-$index",
-                instanceId = "v3.trigger.$index",
-            )
+            val prepared = runCatching {
+                cutover.prepareTrigger(
+                    Trigger(type, config),
+                    runId = "matrix-trigger-$index",
+                    instanceId = "v3.trigger.$index",
+                )
+            }.getOrElse { failure ->
+                throw AssertionError(
+                    "canonical trigger matrix rejected ${type.name}: ${failure.message}",
+                    failure,
+                )
+            }
             val base = baseAdapter.canonicalize(
                 LegacyNodeInput(
                     legacyType = type.name,
