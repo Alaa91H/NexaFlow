@@ -42,7 +42,10 @@ fun AutomationEntity.toDomain(): Automation {
     if (state == CanonicalV3WriteState.LEGACY_ONLY_DEGRADED) return legacy
 
     return runCatching {
-        CanonicalWorkflowV3Codec.decodeToAutomation(payload, legacy)
+        CanonicalWorkflowV3ReadMapper.toAutomation(
+            CanonicalWorkflowV3Codec.decode(payload),
+            legacy,
+        )
     }.getOrDefault(legacy)
 }
 
