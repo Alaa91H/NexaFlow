@@ -306,6 +306,16 @@ and reviewed before T01 may close:
   writes. Pure domain; the runner supplies clocks and executes planned
   decisions. Covered by 11 unit tests and CI gate
   `scripts/check_canonical_migration_rollout.py`.
+- T29: **implemented** — Safe consolidation optimizer in
+  `domain/.../canonical/CanonicalConsolidationOptimizer.kt`: pure
+  deterministic AST-to-AST rewrite with two execution-equivalent rules —
+  adjacent identical desired-state rewrites collapse keep-last (expressions
+  and non-adjacent duplicates are never touched) and adjacent waits merge
+  to the exact overflow-checked sum. Node ids stay unique, the result
+  re-validates against the AST contract, branches are optimized
+  recursively, and optimization is idempotent with a deterministic removal
+  report. Covered by 13 unit tests and CI gate
+  `scripts/check_canonical_consolidation_optimizer.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
