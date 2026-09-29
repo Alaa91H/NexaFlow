@@ -51,7 +51,8 @@ REQUIRED_CONSTRUCTS = (
 
 REQUIRED_PRODUCT_WIRING = {
     BACKEND_FILE: (
-        "PluginCapabilityCatalog.descriptors",
+        "object PluginCapabilityCatalog",
+        "fun descriptors()",
         "PluginCanonicalContract.checkInvocation",
         "PluginCanonicalContract.CONFIG_REFERENCE_SCHEMA",
         "PluginCanonicalContract.ARG_CONFIG_REF",
@@ -67,6 +68,8 @@ REQUIRED_TEST_CASES = (
     "eventMatchesOnPluginIdAndExactFilterEntries",
     "eventMatcherRefusesInvalidFilterIdsInsteadOfThrowing",
     "eventConstructorRejectsInvalidPluginIds",
+    "configReferenceSchemaAcceptsOpaqueInstanceWithoutTreatingItAsPluginId",
+    "configReferenceSchemaRejectsOversizedOpaqueInstance",
     "validPayloadIsAccepted",
     "unknownAndMissingSlotsAreTypedRefusals",
     "slotLengthOverflowIsATypedRefusal",
