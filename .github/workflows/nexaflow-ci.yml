@@ -307,7 +307,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Enforce configured coverage policy
-      run: ./gradlew coverageGate --continue --no-configuration-cache --no-parallel --max-workers=2 --console=plain
+      run: ./gradlew coverageGate --continue --no-configuration-cache --no-parallel --max-workers=2 --no-daemon --stacktrace --console=plain
     - name: Upload coverage reports
       if: always()
       uses: actions/upload-artifact@v7
@@ -454,7 +454,7 @@ jobs:
         cat core/database/schemas/com.nexaflow.core.database.AppDatabase/21.json
         echo "=== ROOM_SCHEMA_21_END ==="
     - name: Run unit tests
-      run: ./gradlew testDebugUnitTest
+      run: ./gradlew testDebugUnitTest --no-daemon --stacktrace --console=plain
     - name: Restore release signing keystore (when configured)
       env:
         KEYSTORE_B64: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 }}
