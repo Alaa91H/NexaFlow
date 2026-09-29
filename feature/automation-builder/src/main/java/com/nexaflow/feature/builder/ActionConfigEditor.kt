@@ -630,13 +630,35 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_OPEN_SETTINGS -> {
             val pages = listOf(
+                "SETTINGS" to stringResource(R.string.action_open_settings),
                 "WIFI" to stringResource(R.string.settings_wifi),
                 "BLUETOOTH" to stringResource(R.string.settings_bluetooth),
                 "LOCATION" to stringResource(R.string.settings_location),
-                "SOUND" to stringResource(R.string.settings_sound),
+                "NETWORK" to stringResource(R.string.settings_network),
+                "NFC" to stringResource(R.string.settings_nfc),
+                "AIRPLANE_MODE" to stringResource(R.string.settings_airplane),
+                "DATA_USAGE" to stringResource(R.string.settings_data_usage),
+                "DATA_SAVER" to stringResource(R.string.settings_data_saver),
+                "VPN" to stringResource(R.string.settings_vpn),
                 "DISPLAY" to stringResource(R.string.settings_display),
+                "SOUND" to stringResource(R.string.settings_sound),
                 "BATTERY" to stringResource(R.string.settings_battery),
-                "NOTIFICATION" to stringResource(R.string.settings_notification)
+                "STORAGE" to stringResource(R.string.settings_storage),
+                "SECURITY" to stringResource(R.string.settings_security),
+                "PRIVACY" to stringResource(R.string.settings_privacy),
+                "ACCESSIBILITY" to stringResource(R.string.settings_accessibility),
+                "APP_SETTINGS_LIST" to stringResource(R.string.settings_apps),
+                "DEFAULT_APPS" to stringResource(R.string.settings_default_apps),
+                "ABOUT_PHONE" to stringResource(R.string.settings_about),
+                "DEVELOPER" to stringResource(R.string.settings_developer),
+                "DEVICE_ADMIN" to stringResource(R.string.settings_device_admin),
+                "USAGE_ACCESS" to stringResource(R.string.settings_usage_access),
+                "INPUT_METHOD" to stringResource(R.string.settings_input_method),
+                "DATE" to stringResource(R.string.settings_date),
+                "PRINT" to stringResource(R.string.settings_print),
+                "CAST" to stringResource(R.string.settings_cast),
+                "NOTIFICATION" to stringResource(R.string.settings_notifications),
+                "SYSTEM_UPDATE" to stringResource(R.string.action_system_update)
             )
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
