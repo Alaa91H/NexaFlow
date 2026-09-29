@@ -27,6 +27,7 @@ import com.nexaflow.domain.canonical.DecimalValue
 import com.nexaflow.domain.canonical.DisclosureState
 import com.nexaflow.domain.canonical.DurationValue
 import com.nexaflow.domain.canonical.EnumTokenValue
+import com.nexaflow.domain.canonical.ExpressionValue
 import com.nexaflow.domain.canonical.IntegerValue
 import com.nexaflow.domain.canonical.JsonValue
 import com.nexaflow.domain.canonical.NodeConfiguratorState
@@ -187,6 +188,9 @@ private fun CanonicalFieldControl(
 
 private fun parseCanonicalField(field: NodeSchemaField, raw: String): CanonicalValue? =
     runCatching {
+        if (field.expressionCapable && EXPRESSION_MARKER.containsMatchIn(raw)) {
+            return@runCatching ExpressionValue(raw, canonicalKindFor(field.type))
+        }
         when (field.type) {
             NodeFieldType.BOOLEAN -> BooleanValue(raw.toBooleanStrict())
             NodeFieldType.INTEGER -> IntegerValue(raw.toLong())
@@ -248,6 +252,28 @@ private fun canonicalValueToLegacy(value: CanonicalValue): String = when (value)
     is com.nexaflow.domain.canonical.SecretReferenceValue -> ""
     is com.nexaflow.domain.canonical.ExpressionValue -> value.source
 }
+
+private fun canonicalKindFor(type: NodeFieldType): CanonicalValueKind = when (type) {
+    NodeFieldType.BOOLEAN -> CanonicalValueKind.BOOLEAN
+    NodeFieldType.INTEGER -> CanonicalValueKind.INTEGER
+    NodeFieldType.DECIMAL -> CanonicalValueKind.DECIMAL
+    NodeFieldType.TEXT -> CanonicalValueKind.TEXT
+    NodeFieldType.PERCENTAGE -> CanonicalValueKind.PERCENTAGE
+    NodeFieldType.DURATION_MS -> CanonicalValueKind.DURATION_MS
+    NodeFieldType.TIMESTAMP_MS -> CanonicalValueKind.TIMESTAMP_MS
+    NodeFieldType.TIME_OF_DAY -> CanonicalValueKind.TIME_OF_DAY
+    NodeFieldType.DATE -> CanonicalValueKind.DATE
+    NodeFieldType.TIMEZONE_ID -> CanonicalValueKind.TIMEZONE_ID
+    NodeFieldType.PACKAGE_ID -> CanonicalValueKind.PACKAGE_ID
+    NodeFieldType.URI -> CanonicalValueKind.URI
+    NodeFieldType.COORDINATE -> CanonicalValueKind.COORDINATE
+    NodeFieldType.ENUM_TOKEN -> CanonicalValueKind.ENUM_TOKEN
+    NodeFieldType.JSON -> CanonicalValueKind.JSON
+    NodeFieldType.COLLECTION -> CanonicalValueKind.COLLECTION
+    NodeFieldType.SECRET_REFERENCE -> CanonicalValueKind.SECRET_REFERENCE
+}
+
+private val EXPRESSION_MARKER = Regex("%(?:CTX\\.|[A-Za-z_])")
 
 private fun parseCollectionElement(
     kind: CanonicalValueKind,
