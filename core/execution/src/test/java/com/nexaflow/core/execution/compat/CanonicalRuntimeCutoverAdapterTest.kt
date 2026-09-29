@@ -159,6 +159,42 @@ class CanonicalRuntimeCutoverAdapterTest {
     }
 
     @Test
+    fun chargerEventTriggerPassesCanonicalAdmissionWithRealEventKey() {
+        val prepared = cutover.prepareTrigger(
+            Trigger(TriggerType.CHARGER, mapOf("event" to "CONNECTED")),
+            runId = "trigger-charger",
+            instanceId = "v3.trigger.charger",
+        )
+        val node = prepared.node as ObserveNode
+        assertEquals("v3.trigger.charger", node.id.value)
+        assertEquals(
+            EnumTokenValue("compat.charger.event", "CONNECTED"),
+            node.arguments[CanonicalFieldId("event")],
+        )
+    }
+
+    @Test
+    fun timeRangeTriggerPassesCanonicalAdmissionWithRealRangeKeys() {
+        val prepared = cutover.prepareTrigger(
+            Trigger(
+                TriggerType.TIME,
+                mapOf(
+                    "timeMode" to "RANGE",
+                    "rangeStart" to "22:00",
+                    "rangeEnd" to "07:00",
+                ),
+            ),
+            runId = "trigger-time-range",
+            instanceId = "v3.trigger.time",
+        )
+        val node = prepared.node as ObserveNode
+        assertEquals("v3.trigger.time", node.id.value)
+        assertEquals(TextValue("RANGE"), node.arguments[CanonicalFieldId("timeMode")])
+        assertEquals(TimeOfDayValue(22 * 60), node.arguments[CanonicalFieldId("rangeStart")])
+        assertEquals(TimeOfDayValue(7 * 60), node.arguments[CanonicalFieldId("rangeEnd")])
+    }
+
+    @Test
     fun all233CatalogContractsValidateAndPreserveReviewedIdentity() {
         ActionType.entries.forEachIndexed { index, type ->
             val definition = AutomationNodeCatalog.definitionFor(type)
