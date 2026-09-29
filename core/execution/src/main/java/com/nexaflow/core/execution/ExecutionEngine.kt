@@ -36,6 +36,7 @@ import com.nexaflow.domain.canonical.AtomicCommand
 import com.nexaflow.core.execution.compat.CanonicalCompatibilityActionDispatcher
 import com.nexaflow.core.execution.compat.CanonicalRuntimeCutoverAdapter
 import com.nexaflow.domain.canonical.CommandIdempotency
+import com.nexaflow.domain.canonical.FaultInjectionController
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.models.Action
@@ -55,6 +56,9 @@ import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.RuntimeValueCodec
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -118,6 +122,14 @@ class ExecutionEngine(
      */
     private val canonicalRuntimeCutover: CanonicalRuntimeCutoverAdapter =
         CanonicalRuntimeCutoverAdapter(),
+    /**
+     * T32 deterministic fault seam. Production is disabled; tests/device
+     * diagnostics can target the exact canonical command before provider I/O.
+     */
+    private val faultInjectionGate: CanonicalFaultInjectionGate =
+        CanonicalFaultInjectionGate.DISABLED,
+    /** Bounded timeout used only for injected HANG faults. */
+    private val faultInjectionHangTimeoutMs: Long = 1_000L,
     /** Test seam for deterministic snapshot-capture failure coverage. */
     private val snapshotCapture: () -> DeviceStateSnapshot = { DeviceStateSnapshot.capture(context) },
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
@@ -816,18 +828,22 @@ class ExecutionEngine(
                 } else {
                     while (true) {
                         currentAttempt++
-                        result = executeAction(
-                            resolved,
-                            controller,
-                            notif,
-                            channel,
-                            automation.id,
-                            automation.revertOnExit,
-                            payloadContext,
-                            dataRuntime,
-                            executionId = payloadContext.runId,
-                            canonicalCommand = canonicalAction.command,
-                        )
+                        result = executeCanonicalCommandWithFaultInjection(
+                            command = canonicalAction.command,
+                        ) {
+                            executeAction(
+                                resolved,
+                                controller,
+                                notif,
+                                channel,
+                                automation.id,
+                                automation.revertOnExit,
+                                payloadContext,
+                                dataRuntime,
+                                executionId = payloadContext.runId,
+                                canonicalCommand = canonicalAction.command,
+                            )
+                        }
                         // UNKNOWN means the backend may already have applied the
                         // side effect. Never blind-retry it: preserve the durable
                         // ACTION_UNKNOWN checkpoint and let reconciliation decide.
@@ -1492,6 +1508,47 @@ class ExecutionEngine(
         }.getOrDefault(emptyList())
         if (globals.isEmpty()) return builtins
         return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
+    }
+
+    /**
+     * T32 fault boundary over the real canonical command. ACTION_STARTED is
+     * already durable when this runs, so injected timeout/cancellation drives
+     * the same recovery state machine as a real provider interruption.
+     */
+    private suspend fun executeCanonicalCommandWithFaultInjection(
+        command: AtomicCommand,
+        dispatch: suspend () -> SystemControlResult,
+    ): SystemControlResult = when (val decision = faultInjectionGate.decide(command)) {
+        FaultInjectionController.Decision.Pass,
+        is FaultInjectionController.Decision.Refused -> dispatch()
+
+        is FaultInjectionController.Decision.Inject -> when (decision.action) {
+            FaultInjectionController.FaultAction.FAIL -> SystemControlResult.fail(
+                message = "Injected fault: ${decision.errorLabel}",
+                executionChannel = "FAULT_INJECTION",
+                errorCode = "FAULT_INJECTED",
+            )
+
+            FaultInjectionController.FaultAction.HANG -> try {
+                withTimeout(faultInjectionHangTimeoutMs.coerceAtLeast(1L)) {
+                    awaitCancellation()
+                }
+            } catch (_: TimeoutCancellationException) {
+                SystemControlResult.fail(
+                    message = "Injected timeout: ${decision.errorLabel}",
+                    executionChannel = "FAULT_INJECTION",
+                    errorCode = "FAULT_TIMEOUT",
+                    outcomeUncertain = true,
+                )
+            }
+
+            FaultInjectionController.FaultAction.STALL -> {
+                // Deliberately suspend until the owning run is cancelled. The
+                // outer cancellation handler persists ACTION_UNKNOWN in a
+                // NonCancellable context, exactly like process/service death.
+                awaitCancellation()
+            }
+        }
     }
 
     /**
