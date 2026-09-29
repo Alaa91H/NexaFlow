@@ -14,6 +14,14 @@ on:
 
 permissions: {}
 
+# Keep checkout's internal `git init` warning-free. This only disables
+# Git's default-branch-name advice; compiler, Gradle, lint and test warnings
+# remain visible and gated normally.
+env:
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: advice.defaultBranchName
+  GIT_CONFIG_VALUE_0: "false"
+
 # Concurrency belongs to the whole workflow, not individual jobs. With
 # per-job concurrency an older run can finish lint later, start its build, and
 # cancel the build of a newer commit. The newest run for the same event/ref now
@@ -314,7 +322,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: coverage-reports
-        if-no-files-found: warn
+        if-no-files-found: ignore
         path: |
           **/build/coverage/report.xml
           **/build/coverage/html/**
