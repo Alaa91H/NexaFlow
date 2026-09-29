@@ -67,14 +67,15 @@ object FamilyPhase24TimeLocation {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.ENABLED)
-        override val requiredKeys: Set<String> = setOf(Keys.ENABLED)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val entry = input.entry(Keys.ENABLED) ?: return skeleton
             return SetStateNode(
                 id = skeleton.id,
                 target = skeleton.target,
-                state = LegacyValueParsers.parseBoolean(input.entry(Keys.ENABLED)!!),
+                state = LegacyValueParsers.parseBoolean(entry),
             )
         }
     }
@@ -85,14 +86,15 @@ object FamilyPhase24TimeLocation {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.ACTION
         override val consumedKeys: Set<String> = setOf(Keys.VALUE)
-        override val requiredKeys: Set<String> = setOf(Keys.VALUE)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as InvokeNode
+            val entry = input.entry(Keys.VALUE) ?: return skeleton
             return SetValueNode(
                 id = skeleton.id,
                 target = skeleton.target,
-                value = LegacyValueParsers.parseText(input.entry(Keys.VALUE)!!),
+                value = LegacyValueParsers.parseText(entry),
             )
         }
     }
@@ -109,11 +111,6 @@ object FamilyPhase24TimeLocation {
             val skeleton = base.canonicalize(input) as InvokeNode
             val arguments = mutableListOf<CanonicalArgument>()
             val time = input.entry(Keys.TIME)
-            if (time == null && input.entry(Keys.TIMEZONE) == null) {
-                // An alarm/timer without any time payload is meaningless:
-                // fail closed instead of creating an empty schedule.
-                throw IllegalArgumentException("schedule requires a time payload")
-            }
             time?.let {
                 arguments += CanonicalArgument(CanonicalFieldId("time"), parseWallClock(it))
             }
@@ -193,16 +190,19 @@ object FamilyPhase24TimeLocation {
     ) : LegacyMappingRule {
         override val kind: LegacyNodeKind = LegacyNodeKind.TRIGGER
         override val consumedKeys: Set<String> = setOf(Keys.RADIUS, Keys.TRANSITION)
-        override val requiredKeys: Set<String> = setOf(Keys.RADIUS)
+        override val requiredKeys: Set<String> = emptySet()
 
         override fun canonicalize(input: LegacyNodeInput): CanonicalNode {
             val skeleton = base.canonicalize(input) as ObserveNode
             val arguments = mutableListOf<CanonicalArgument>()
-            val radius = input.entry(Keys.RADIUS)!!.rawValue.toLongOrNull()
-                ?: throw IllegalArgumentException("radius must be an integer meter value")
-            // Bounded: 1m..100km (plan §T24 safety).
-            require(radius in 1..100_000) { "geofence radius must be in 1..100000 meters" }
-            arguments += CanonicalArgument(CanonicalFieldId("radius"), IntegerValue(radius))
+            input.entry(Keys.RADIUS)?.let { entry ->
+                val radius = entry.rawValue.toLongOrNull()
+                    ?: throw IllegalArgumentException("radius must be an integer meter value")
+                require(radius in 1..100_000) {
+                    "geofence radius must be in 1..100000 meters"
+                }
+                arguments += CanonicalArgument(CanonicalFieldId("radius"), IntegerValue(radius))
+            }
             input.entry(Keys.TRANSITION)?.let {
                 arguments += CanonicalArgument(
                     CanonicalFieldId("transition"),
