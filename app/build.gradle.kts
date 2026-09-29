@@ -227,8 +227,6 @@ dependencies {
     // Navigation Compose
     implementation(libs.androidx.navigation.navigation.compose)
     implementation(libs.androidx.work.work.runtime.ktx)
-    implementation(libs.androidx.hilt.hilt.work)
-    ksp(libs.androidx.hilt.hilt.compiler)
     // Crash/ANR reporting, opt-in only (see PrivacyPreferences). The NDK
     // artifact is excluded: NexaFlow is pure Kotlin/Java, so native crash
     // handling is unnecessary and its .so files break 16 KB page alignment.
