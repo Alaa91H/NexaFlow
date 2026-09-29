@@ -316,6 +316,16 @@ and reviewed before T01 may close:
   recursively, and optimization is idempotent with a deterministic removal
   report. Covered by 13 unit tests and CI gate
   `scripts/check_canonical_consolidation_optimizer.py`.
+- T30: **implemented** — Diagnostics UI model in
+  `domain/.../canonical/CanonicalDiagnosticsModel.kt`: the pure
+  presentation layer behind the diagnostics screen — deterministic,
+  display-ready rows with stable machine codes over the cutover (T26),
+  persistence/migration (T27/T28) and optimizer (T29) surfaces.
+  Secret-reference payloads render as a fixed label (never their reference
+  id), every section is capped with an exact overflow count, and the model
+  carries no Android/Compose coupling so Compose, logs and exports render
+  one identical fact. Covered by 9 unit tests and CI gate
+  `scripts/check_canonical_diagnostics_model.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

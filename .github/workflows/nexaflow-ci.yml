@@ -186,6 +186,10 @@ jobs:
       run: python3 scripts/check_canonical_consolidation_optimizer.py
     - name: Test consolidation optimizer gate
       run: python3 -m unittest scripts.tests.test_check_canonical_consolidation_optimizer
+    - name: Diagnostics UI model (T30)
+      run: python3 scripts/check_canonical_diagnostics_model.py
+    - name: Test diagnostics model gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_diagnostics_model
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags
