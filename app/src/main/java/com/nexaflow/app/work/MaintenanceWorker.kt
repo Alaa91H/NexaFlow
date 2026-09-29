@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.AppDatabase
+import com.nexaflow.data.repository.CanonicalWorkflowMigrationRunner
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
@@ -28,11 +29,15 @@ import java.util.concurrent.TimeUnit
 class MaintenanceWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val database: AppDatabase
+    private val database: AppDatabase,
+    private val canonicalMigrationRunner: CanonicalWorkflowMigrationRunner,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         return try {
+            // One bounded migration batch per maintenance pass: never loop
+            // indefinitely in WorkManager, and never block unrelated cleanup.
+            canonicalMigrationRunner.runNextBatch()
             val dao = database.executionDao()
             dao.pruneOlderThan(System.currentTimeMillis() - ExecutionDao.RETENTION_MS)
             dao.pruneExcess(ExecutionDao.RETAIN_LIMIT)
