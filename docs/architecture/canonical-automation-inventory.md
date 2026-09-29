@@ -475,6 +475,16 @@ starts referencing legacy types — the  containment boundary can only shrink
   the baseline is an explicit reviewed change. No clocks, no randomness.
   Covered by 7 unit tests and CI gate
   `scripts/check_canonical_perf_regression.py`.
+- T44: **implemented** — Release closure in
+  `scripts/check_canonical_release_closure.py`: the closing verdict of the
+  canonical plan. The release ships as a verified candidate and the tag
+  stays an explicit, reviewed act — the gate pins the readiness aggregate
+  (every canonical gate green on a clean tree, changelog ready), the
+  explicit-tagging and never-move-a-tag rules in RELEASING.md, tag hygiene
+  scoped to version tags only, the documented JVM-vs-device evidence
+  boundary, and the closing milestones T42/T43 in this record.
+  Covered by 3 unit tests and CI gate
+  `scripts/check_canonical_release_closure.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.

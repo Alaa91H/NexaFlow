@@ -44,9 +44,9 @@ READINESS_GATES = (
     "check_canonical_plugin_conditions",
     "check_canonical_docs_closure",
     "check_canonical_perf_regression",
-    # NOTE: check_canonical_final_audit is deliberately NOT here — the final
-    # audit is the umbrella that runs this readiness gate itself; adding it
-    # would create an infinite mutual recursion between the two runners.
+    # NOTE: check_canonical_final_audit and check_canonical_release_closure
+    # are deliberately NOT here — both of them run this readiness gate as
+    # their first check; adding either would create infinite recursion.
 )
 
 REQUIRED_INVENTORY_STATUSES = (
@@ -68,6 +68,7 @@ REQUIRED_INVENTORY_STATUSES = (
     "T41: **implemented**",
     "T42: **implemented**",
     "T43: **implemented**",
+    "T44: **implemented**",
 )
 
 
