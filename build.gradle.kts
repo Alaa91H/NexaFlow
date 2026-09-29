@@ -27,6 +27,21 @@ plugins {
 // of them so one `./gradlew detekt` gates the whole codebase.
 val detektConfigDir = rootProject.file("config/detekt")
 subprojects {
+    // Always emit actionable failure diagnostics in CI. This keeps the
+    // zero-warning/zero-failure policy strict while avoiding blind reruns that
+    // only report a test name and line number.
+    tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+        testLogging {
+            events("failed")
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
+    }
+}
+
+subprojects {
     apply(plugin = "dev.detekt")
     extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         config.setFrom(files("$detektConfigDir/detekt.yml"))
