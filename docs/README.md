@@ -13,6 +13,7 @@ Historical reports are preserved rather than rewritten as if their observations 
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Current guide / evidence |
 | [AUTOMATION_ENGINE_AUDIT_2026.md](AUTOMATION_ENGINE_AUDIT_2026.md) | Historical / topic reference |
 | [AUTOMATION_IPAAS_ARCHITECTURE.md](AUTOMATION_IPAAS_ARCHITECTURE.md) | Historical / topic reference |
+| [canonical-automation.md](canonical-automation.md) | Current guide / evidence |
 | [CAPABILITY_CATALOG.md](CAPABILITY_CATALOG.md) | Current guide / evidence |
 | [CONFIGURATION.md](CONFIGURATION.md) | Current guide / evidence |
 | [ENTERPRISE_ARCHITECTURE_REPORT.md](ENTERPRISE_ARCHITECTURE_REPORT.md) | Historical / topic reference |

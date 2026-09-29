@@ -2,6 +2,16 @@
 
 Status: local integration checks passed. CI and publication are still pending until the commit, push, tag and release workflow complete.
 
+## Canonical platform gates (local, 2026-09-29)
+
+The canonical automation platform (T05–T41) is verified by deterministic gates, run locally on the closing commits of each phase and re-runnable at any time:
+
+- `python3 scripts/check_canonical_final_audit.py` — the closing audit: every canonical gate ships a unittest, stays wired into CI and passes on the current tree; the inventory closes every phase T05–T39 with the retirement ledger. Passed with all 40 gates green.
+- `python3 scripts/check_canonical_release_readiness.py` — every canonical gate passes, the T26+ statuses are recorded, the changelog carries an Unreleased section and the working tree is clean. Passed on the closing commits.
+- `./gradlew :domain:testDebugUnitTest --tests "com.nexaflow.domain.canonical.*" --console=plain` and `./gradlew :core:plugin-sdk:testDebugUnitTest --tests "com.nexaflow.core.pluginsdk.*" --console=plain` — the canonical model and plugin SDK suites. Passed (plugin-sdk: 33 tests including the 13 T41 condition-contract tests).
+
+These are JVM-local results. Device/OEM behavior remains governed by the standing rule: do not infer device results from JVM tests; physical-device evidence is recorded in the dated sections below.
+
 The candidate combines published v3.73 main with preserved local work, then applies the supplied external-ingress audit and data/sensor/HTTP improvements. Original local work is retained in the `codex/security-audit-snapshot` branch; the release integration is in `codex/security-capability-release`.
 
 Local checks run on 2026-09-17:

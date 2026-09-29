@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added — Canonical automation platform (T26–T41)
+
+- The canonical automation platform is now the single runtime and
+  configuration path: typed canonical AST and values, stable string
+  identities, the 233/233 reviewed legacy mapping, single-path cutover with
+  typed refusals, dual-read/V3-write persistence with a controlled migration
+  rollout, a safe consolidation optimizer, diagnostics/security/
+  accessibility/device-matrix models, performance budgets, deterministic
+  fault injection, a pure plugin SDK surface and a typed plugin condition
+  contract where `Unknown` is never coerced to `FALSE`.
+- Every phase ships a deterministic CI gate under `scripts/check_canonical_*.py`
+  with a unittest; the final audit (T40) closes the migration record.
+- New current guide: `docs/canonical-automation.md`; the phase record with
+  the T39 retirement ledger lives in `docs/architecture/canonical-automation-inventory.md`.
+
 ### Fixed — Generated documentation drift
 
 - Regenerated `docs/CAPABILITY_CATALOG.md` from source: the catalog now records

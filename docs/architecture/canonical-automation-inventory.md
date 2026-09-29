@@ -454,6 +454,16 @@ starts referencing legacy types — the  containment boundary can only shrink
   caller discipline). Pure SDK surface with no Android types or I/O.
   Covered by 13 unit tests and CI gate
   `scripts/check_canonical_plugin_conditions.py`.
+- T42: **implemented** — Documentation closure in
+  `docs/canonical-automation.md` (current reference guide linked from the
+  docs index): the single runtime path, the contracts table (T05-T41),
+  the standing guarantees (no generic shell, secrets never exposed,
+  Unknown is not false, legacy retired by containment), gate verification
+  and the explicit JVM-vs-device evidence boundary. CHANGELOG records the
+  platform milestone under Unreleased and VALIDATION records the local
+  gate evidence with the device-evidence rule intact. The gate
+  `scripts/check_canonical_docs_closure.py` pins all of it fail-closed.
+  Covered by 3 unit tests and the same CI gate.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
