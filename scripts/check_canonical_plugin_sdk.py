@@ -14,6 +14,14 @@ TEST_FILE = ROOT / (
     "core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/"
     "PluginCanonicalContractTest.kt"
 )
+BACKEND_FILE = ROOT / (
+    "core/execution/src/main/java/com/nexaflow/core/execution/capability/"
+    "PluginCapabilityBackend.kt"
+)
+EVENT_INGRESS_FILE = ROOT / (
+    "core/automation-engine/src/main/java/com/nexaflow/core/engine/"
+    "PluginEventIngress.kt"
+)
 
 FORBIDDEN_PATTERNS = (
     r"android\.content\.Intent",
@@ -40,6 +48,19 @@ REQUIRED_CONSTRUCTS = (
     "RefusalReason",
     "TRUST_NOT_GRANTED",
 )
+
+REQUIRED_PRODUCT_WIRING = {
+    BACKEND_FILE: (
+        "PluginCapabilityCatalog.descriptors",
+        "PluginCanonicalContract.checkInvocation",
+        "PluginCanonicalContract.CONFIG_REFERENCE_SCHEMA",
+        "PluginCanonicalContract.ARG_CONFIG_REF",
+    ),
+    EVENT_INGRESS_FILE: (
+        "PluginCanonicalContract.PluginEvent",
+        "PluginCanonicalContract.eventMatches",
+    ),
+}
 
 REQUIRED_TEST_CASES = (
     "canonicalIdentitiesMatchThePinnedTableEntries",
@@ -82,6 +103,17 @@ def main() -> int:
         for case in REQUIRED_TEST_CASES:
             if f"fun {case}" not in test_source:
                 problems.append(f"PluginCanonicalContractTest.kt missing {case!r}")
+
+    for wiring_file, required_tokens in REQUIRED_PRODUCT_WIRING.items():
+        if not wiring_file.is_file():
+            problems.append(f"missing {wiring_file.relative_to(ROOT)}")
+            continue
+        wiring_source = wiring_file.read_text(encoding="utf-8")
+        for token in required_tokens:
+            if token not in wiring_source:
+                problems.append(
+                    f"{wiring_file.relative_to(ROOT)} missing product wiring {token!r}"
+                )
 
     if problems:
         print("CANONICAL_PLUGIN_SDK: FAIL")
