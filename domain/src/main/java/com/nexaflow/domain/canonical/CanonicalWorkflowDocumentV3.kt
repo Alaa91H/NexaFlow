@@ -50,6 +50,12 @@ data class CanonicalPersistedNodeV3(
     val sourceType: String,
     val node: CanonicalNode,
     val preservedConfig: List<CanonicalLegacyEntryV3> = emptyList(),
+    /**
+     * Presence ledger for compatibility rehydration. Keys are non-secret
+     * metadata only; raw values remain in the typed node or protected legacy
+     * fallback. Null means an older V3 payload written before this ledger.
+     */
+    val suppliedConfigKeys: List<String>? = null,
     val endBehavior: CanonicalEndBehaviorV3? = null,
     val legacyFallbackRequired: Boolean = false,
 )
@@ -247,6 +253,7 @@ object CanonicalWorkflowV3Codec {
             preservedConfig = safePreserved.map {
                 CanonicalLegacyEntryV3(it.key, it.rawValue)
             },
+            suppliedConfigKeys = config.map { it.key }.distinct().sorted(),
             endBehavior = endBehavior?.toCanonicalCompatibility(),
             legacyFallbackRequired = contract.containsLegacySecretMaterial,
         )
