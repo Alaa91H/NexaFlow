@@ -1051,7 +1051,7 @@ private fun triggerSummary(draft: TriggerDraft): String {
                     "5G" -> stringResource(R.string.network_mode_5g)
                     else -> stringResource(R.string.network_mode_4g)
                 }
-                network == "HOTSPOT" -> if (state == "ON") stringResource(R.string.state_on) else stringResource(R.string.state_off)
+                network == "HOTSPOT" -> if (state == "ON") stringResource(R.string.builder_state_on) else stringResource(R.string.builder_state_off)
                 state == "CONNECTED" -> stringResource(R.string.state_connected)
                 else -> stringResource(R.string.state_disconnected)
             }
@@ -1059,9 +1059,9 @@ private fun triggerSummary(draft: TriggerDraft): String {
         }
         TriggerType.HOTSPOT -> {
             val state = if ((c["state"] ?: "ON") == "ON") {
-                stringResource(R.string.state_on)
+                stringResource(R.string.builder_state_on)
             } else {
-                stringResource(R.string.state_off)
+                stringResource(R.string.builder_state_off)
             }
             "${stringResource(R.string.network_hotspot)} · $state"
         }
@@ -1180,11 +1180,11 @@ private fun triggerSummary(draft: TriggerDraft): String {
             else -> stringResource(R.string.state_connected)
         }
         TriggerType.AIRPLANE_MODE ->
-            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.builder_state_on)
+            else stringResource(R.string.builder_state_off)
         TriggerType.DARK_MODE ->
-            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.builder_state_on)
+            else stringResource(R.string.builder_state_off)
         TriggerType.CALL_STATE -> when (c["event"] ?: "INCOMING") {
             "OUTGOING" -> stringResource(R.string.call_outgoing)
             "ENDED" -> stringResource(R.string.call_ended)
@@ -1222,8 +1222,8 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.USB_CONNECTED, TriggerType.HDMI_CONNECTED, TriggerType.ETHERNET_CONNECTED,
         TriggerType.VPN_CONNECTED, TriggerType.DND_STATE, TriggerType.STAY_AWAKE_STATE,
         TriggerType.AUTO_BRIGHTNESS_STATE, TriggerType.DATA_ROAMING_STATE ->
-            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.builder_state_on)
+            else stringResource(R.string.builder_state_off)
         TriggerType.BRIGHTNESS_LEVEL -> {
             val direction = if ((c["direction"] ?: "ABOVE") == "ABOVE") {
                 stringResource(R.string.volume_above)
@@ -1244,9 +1244,9 @@ private fun triggerSummary(draft: TriggerDraft): String {
             if ((c["state"] ?: "LOCKED") == "LOCKED") stringResource(R.string.device_locked)
             else stringResource(R.string.device_unlocked)
         TriggerType.LOCATION_STATE -> when ((c["mode"] ?: "ON").uppercase()) {
-            "OFF" -> stringResource(R.string.state_off)
-            "ON", "HIGH", "SENSORS", "BATTERY" -> stringResource(R.string.state_on)
-            else -> stringResource(R.string.state_on)
+            "OFF" -> stringResource(R.string.builder_state_off)
+            "ON", "HIGH", "SENSORS", "BATTERY" -> stringResource(R.string.builder_state_on)
+            else -> stringResource(R.string.builder_state_on)
         }
         TriggerType.SCREEN_ROTATION_STATE ->
             if ((c["state"] ?: "PORTRAIT") == "PORTRAIT") stringResource(R.string.rotation_portrait)
@@ -1841,8 +1841,8 @@ fun TriggerEditorCard(
                         OptionChips(
                             options = listOf("ON", "OFF"),
                             labels = mapOf(
-                                "ON" to stringResource(R.string.state_on),
-                                "OFF" to stringResource(R.string.state_off)
+                                "ON" to stringResource(R.string.builder_state_on),
+                                "OFF" to stringResource(R.string.builder_state_off)
                             ),
                             selected = draft.config["state"] ?: "ON",
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
@@ -1874,8 +1874,8 @@ fun TriggerEditorCard(
                             "HOTSPOT" -> OptionChips(
                                 options = listOf("ON", "OFF"),
                                 labels = mapOf(
-                                    "ON" to stringResource(R.string.state_on),
-                                    "OFF" to stringResource(R.string.state_off)
+                                    "ON" to stringResource(R.string.builder_state_on),
+                                    "OFF" to stringResource(R.string.builder_state_off)
                                 ),
                                 selected = draft.config["state"] ?: "ON",
                                 onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
@@ -2920,8 +2920,8 @@ fun TriggerEditorCard(
                     OptionChips(
                         options = listOf("ON", "OFF"),
                         labels = mapOf(
-                            "ON" to stringResource(R.string.state_on),
-                            "OFF" to stringResource(R.string.state_off)
+                            "ON" to stringResource(R.string.builder_state_on),
+                            "OFF" to stringResource(R.string.builder_state_off)
                         ),
                         selected = draft.config["state"] ?: "ON",
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
@@ -2932,8 +2932,8 @@ fun TriggerEditorCard(
                     OptionChips(
                         options = listOf("ON", "OFF"),
                         labels = mapOf(
-                            "ON" to stringResource(R.string.state_on),
-                            "OFF" to stringResource(R.string.state_off)
+                            "ON" to stringResource(R.string.builder_state_on),
+                            "OFF" to stringResource(R.string.builder_state_off)
                         ),
                         selected = draft.config["state"] ?: "ON",
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
@@ -3027,8 +3027,8 @@ fun TriggerEditorCard(
                     OptionChips(
                         options = listOf("ON", "OFF"),
                         labels = mapOf(
-                            "ON" to stringResource(R.string.state_on),
-                            "OFF" to stringResource(R.string.state_off)
+                            "ON" to stringResource(R.string.builder_state_on),
+                            "OFF" to stringResource(R.string.builder_state_off)
                         ),
                         selected = draft.config["state"] ?: "ON",
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
@@ -3093,8 +3093,8 @@ fun TriggerEditorCard(
                     OptionChips(
                         options = listOf("ON", "OFF"),
                         labels = mapOf(
-                            "ON" to stringResource(R.string.state_on),
-                            "OFF" to stringResource(R.string.state_off)
+                            "ON" to stringResource(R.string.builder_state_on),
+                            "OFF" to stringResource(R.string.builder_state_off)
                         ),
                         selected = when (draft.config["mode"]?.uppercase()) {
                             "OFF" -> "OFF"
@@ -3192,8 +3192,8 @@ fun TriggerEditorCard(
                     OptionChips(
                         options = listOf("ON", "OFF"),
                         labels = mapOf(
-                            "ON" to stringResource(R.string.state_on),
-                            "OFF" to stringResource(R.string.state_off)
+                            "ON" to stringResource(R.string.builder_state_on),
+                            "OFF" to stringResource(R.string.builder_state_off)
                         ),
                         selected = draft.config["state"] ?: "ON",
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
