@@ -124,6 +124,20 @@ class RunExplainerTest {
     }
 
     @Test
+    fun explanationRedactsDetailBeforeUiEvenForUntrustedTrace() {
+        val explanation = RunExplainer.explainEvent(
+            event(
+                TracePhase.GATE_BLOCKED,
+                TraceReasons.CONFIGURATION_BLOCKED,
+                detail = "token=supersecret123",
+            ),
+        )
+
+        assertTrue(explanation.detail?.contains("supersecret123") == false)
+        assertTrue(explanation.detail?.contains("[REDACTED]") == true)
+    }
+
+    @Test
     fun reportIsPrivacySafeAndStructured() {
         val report = RunExplainer.buildReport(
             runId = "run-9",
