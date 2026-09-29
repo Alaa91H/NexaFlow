@@ -2,13 +2,14 @@ package com.nexaflow.data.mapper
 
 import com.nexaflow.core.database.AutomationEntity
 import com.nexaflow.core.database.Converters
+import com.nexaflow.domain.canonical.CanonicalV3WriteState
 import com.nexaflow.domain.canonical.CanonicalWorkflowV3Codec
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerMatchMode
 
 fun AutomationEntity.toDomain(): Automation {
     val converters = Converters()
-    return Automation(
+    val legacy = Automation(
         id = id,
         name = name,
         description = description,
@@ -33,6 +34,16 @@ fun AutomationEntity.toDomain(): Automation {
         triggerMatch = runCatching { TriggerMatchMode.valueOf(triggerMatch) }
             .getOrDefault(TriggerMatchMode.ANY)
     )
+
+    val payload = canonicalWorkflowJson ?: return legacy
+    val state = runCatching { CanonicalV3WriteState.valueOf(canonicalWriteState) }
+        .getOrNull()
+        ?: return legacy
+    if (state == CanonicalV3WriteState.LEGACY_ONLY_DEGRADED) return legacy
+
+    return runCatching {
+        CanonicalWorkflowV3Codec.decodeToAutomation(payload, legacy)
+    }.getOrDefault(legacy)
 }
 
 fun Automation.toEntity(): AutomationEntity {
