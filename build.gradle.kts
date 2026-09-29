@@ -31,8 +31,19 @@ subprojects {
     // zero-warning/zero-failure policy strict while avoiding blind reruns that
     // only report a test name and line number.
     tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+        // A deadlocked Robolectric/JVM test must never leave CI running
+        // indefinitely. The timeout is per module Test task, not for the whole
+        // multi-module verification build, so healthy suites keep their normal
+        // runtime while one stuck module fails with actionable diagnostics.
+        timeout.set(java.time.Duration.ofMinutes(10))
         testLogging {
-            events("failed")
+            events(
+                if (System.getenv("CI").equals("true", ignoreCase = true)) {
+                    setOf("started", "failed", "skipped")
+                } else {
+                    setOf("failed")
+                }
+            )
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
             showExceptions = true
             showCauses = true
