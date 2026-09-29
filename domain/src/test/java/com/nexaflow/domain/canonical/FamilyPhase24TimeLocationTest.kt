@@ -58,15 +58,36 @@ class FamilyPhase24TimeLocationTest {
     }
 
     @Test
-    fun bogusWallClockIsRejected() {
-        // Scheduling without any time payload is not an alarm: the family
-        // fails closed when both time and timezone are absent.
-        val outcome = familyAdapter.canonicalize(
+    fun alarmUsesPersistedHourMinuteContractAndRejectsOutOfRangeValues() {
+        val defaulted = familyAdapter.canonicalize(
             LegacyNodeInput("SYSTEM_SET_ALARM", LegacyNodeKind.ACTION, emptyList()),
+        )
+        assertTrue(defaulted is LegacyAdapterOutcome.Canonicalized)
+
+        val configured = familyAdapter.canonicalize(
+            LegacyNodeInput(
+                "SYSTEM_SET_ALARM",
+                LegacyNodeKind.ACTION,
+                listOf(
+                    LegacyConfigEntry("hour", "7"),
+                    LegacyConfigEntry("minute", "30"),
+                ),
+            ),
+        ) as LegacyAdapterOutcome.Canonicalized
+        val node = configured.node as InvokeNode
+        assertEquals(IntegerValue(7), node.arguments[CanonicalFieldId("hour")])
+        assertEquals(IntegerValue(30), node.arguments[CanonicalFieldId("minute")])
+
+        val invalid = familyAdapter.canonicalize(
+            LegacyNodeInput(
+                "SYSTEM_SET_ALARM",
+                LegacyNodeKind.ACTION,
+                listOf(LegacyConfigEntry("hour", "25")),
+            ),
         )
         assertEquals(
             LegacyAdapterRejection.UNPARSABLE_CONFIG_VALUE,
-            (outcome as LegacyAdapterOutcome.Rejected).reason,
+            (invalid as LegacyAdapterOutcome.Rejected).reason,
         )
     }
 
@@ -190,7 +211,16 @@ class FamilyPhase24TimeLocationTest {
     fun canonicalizationRemainsIdempotent() {
         for (rule in overrides()) {
             val config = when {
-                rule.legacyType in setOf("SYSTEM_SET_ALARM", "TIME") -> listOf(
+                rule.legacyType == "SYSTEM_SET_ALARM" -> listOf(
+                    LegacyConfigEntry("hour", "8"),
+                    LegacyConfigEntry("minute", "0"),
+                )
+                rule.legacyType == "SYSTEM_SET_TIMER" -> listOf(
+                    LegacyConfigEntry("seconds", "300"),
+                    LegacyConfigEntry("message", "Timer"),
+                    LegacyConfigEntry("skipUi", "false"),
+                )
+                rule.legacyType == "TIME" -> listOf(
                     LegacyConfigEntry("time", "08:00"),
                     LegacyConfigEntry("timezone", "Europe/Berlin"),
                 )
