@@ -22,6 +22,13 @@ EVENT_INGRESS_FILE = ROOT / (
     "core/automation-engine/src/main/java/com/nexaflow/core/engine/"
     "PluginEventIngress.kt"
 )
+APP_MODULE_FILE = ROOT / "app/src/main/java/com/nexaflow/app/di/AppModule.kt"
+ACTION_SCHEMA_FILE = ROOT / (
+    "domain/src/main/java/com/nexaflow/domain/catalog/ActionNodeSchemas.kt"
+)
+TRIGGER_SCHEMA_FILE = ROOT / (
+    "domain/src/main/java/com/nexaflow/domain/catalog/TriggerNodeSchemas.kt"
+)
 
 FORBIDDEN_PATTERNS = (
     r"android\.content\.Intent",
@@ -60,6 +67,22 @@ REQUIRED_PRODUCT_WIRING = {
     EVENT_INGRESS_FILE: (
         "PluginCanonicalContract.PluginEvent",
         "PluginCanonicalContract.eventMatches",
+    ),
+    APP_MODULE_FILE: (
+        "PluginCapabilityCatalog.descriptors()",
+        "PluginCapabilityBackend(",
+    ),
+    ACTION_SCHEMA_FILE: (
+        "ActionType.PLUGIN_FIRE",
+        'secretField("bundleJson")',
+        'stringField("pluginInstance")',
+        'enumField("pluginApproval", "approved")',
+    ),
+    TRIGGER_SCHEMA_FILE: (
+        "TriggerType.PLUGIN_EVENT",
+        'packageField("package")',
+        'stringField("pluginInstance")',
+        'enumField("pluginApproval", "approved")',
     ),
 }
 
