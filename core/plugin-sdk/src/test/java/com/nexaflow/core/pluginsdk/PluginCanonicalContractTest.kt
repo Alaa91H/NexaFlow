@@ -41,6 +41,7 @@ class PluginCanonicalContractTest {
         )
         assertEquals("core.operation.invoke", PluginCanonicalContract.OPERATION_INVOKE)
         assertEquals("pluginId", PluginCanonicalContract.ARG_PLUGIN_ID)
+        assertEquals("configRef", PluginCanonicalContract.ARG_CONFIG_REF)
     }
 
     // ------------------------------------------------------------------
@@ -103,6 +104,24 @@ class PluginCanonicalContractTest {
     // ------------------------------------------------------------------
     // Payload validation
     // ------------------------------------------------------------------
+
+    @Test
+    fun configReferenceSchemaAcceptsOpaqueInstanceWithoutTreatingItAsPluginId() {
+        val opaqueInstance = "plugin:550e8400-e29b-41d4-a716-446655440000"
+        assertEquals(
+            PluginCanonicalContract.CheckResult.Accepted,
+            PluginCanonicalContract.checkInvocation(
+                invocation = PluginCanonicalContract.PluginInvocation(
+                    pluginId = "com.example.plugin",
+                    payload = mapOf(
+                        PluginCanonicalContract.ARG_CONFIG_REF to opaqueInstance,
+                    ),
+                ),
+                schema = PluginCanonicalContract.CONFIG_REFERENCE_SCHEMA,
+                host = host(),
+            ),
+        )
+    }
 
     @Test
     fun validPayloadIsAccepted() {
