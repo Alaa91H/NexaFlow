@@ -56,11 +56,16 @@ object RunExplainer {
     )
 
     /** Explains a single event by its canonical reason code. */
-    fun explainEvent(event: ExecutionTraceEvent): Explanation = when (event.reasonCode) {
+    fun explainEvent(event: ExecutionTraceEvent): Explanation {
+        // Defense in depth: recorder rows are already redacted, but explanations
+        // may also be built from imported/legacy/test trace events. The UI must
+        // never depend on the provenance of an event to keep details secret-safe.
+        val safeDetail = SecretRedactor.redact(event.detail)
+        return when (event.reasonCode) {
         TraceReasons.CONSTRAINT_BLOCKED -> Explanation(
             explanationKey = "explain_constraint_blocked",
             fixKey = "fix_review_constraints",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
         TraceReasons.TRIGGER_AND_UNSATISFIED,
@@ -70,47 +75,47 @@ object RunExplainer {
         TraceReasons.TRIGGER_SEMANTICS_REVIEW_REQUIRED -> Explanation(
             explanationKey = "explain_trigger_all_blocked",
             fixKey = "fix_check_all_conditions",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.CAPABILITY_BLOCKED -> Explanation(
             explanationKey = "explain_capability_blocked",
             fixKey = "fix_grant_capability",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.CONFIGURATION_BLOCKED -> Explanation(
             explanationKey = "explain_configuration_blocked",
             fixKey = "fix_review_task_configuration",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.ADMISSION_REJECTED -> Explanation(
             explanationKey = "explain_admission_rejected",
             fixKey = "fix_check_running_state",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.MAINTENANCE_WAITING -> Explanation(
             explanationKey = "explain_maintenance_waiting",
             fixKey = null,
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.MAINTENANCE_DUPLICATE -> Explanation(
             explanationKey = "explain_maintenance_duplicate",
             fixKey = null,
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.ACTION_FAILED -> Explanation(
             explanationKey = "explain_action_failed",
             fixKey = "fix_review_action_config",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.VERIFICATION_FAILED -> Explanation(
             explanationKey = "explain_verification_failed",
             fixKey = "fix_retry_or_review",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.OUTCOME_UNCERTAIN -> Explanation(
             explanationKey = "explain_outcome_uncertain",
             fixKey = "fix_review_device_state",
-            detail = event.detail,
+            detail = safeDetail,
         )
         TraceReasons.RUN_COMPLETED -> Explanation(
             explanationKey = "explain_run_completed",
@@ -119,9 +124,10 @@ object RunExplainer {
         TraceReasons.RUN_FAILED -> Explanation(
             explanationKey = "explain_run_failed",
             fixKey = "fix_open_history",
-            detail = event.detail,
+            detail = safeDetail,
         )
-        else -> Explanation.fallback(event.reasonCode, event.detail)
+        else -> Explanation.fallback(event.reasonCode, safeDetail)
+        }
     }
 
     /**
