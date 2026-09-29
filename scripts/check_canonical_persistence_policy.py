@@ -23,6 +23,14 @@ ENTITY_FILE = ROOT / "core/database/src/main/java/com/nexaflow/core/database/Aut
 DATABASE_FILE = ROOT / "core/database/src/main/java/com/nexaflow/core/database/AppDatabase.kt"
 MIGRATIONS_FILE = ROOT / "core/database/src/main/java/com/nexaflow/core/database/Migrations.kt"
 MAPPER_FILE = ROOT / "data/src/main/java/com/nexaflow/data/mapper/AutomationMapper.kt"
+NORMALIZER_FILE = ROOT / (
+    "domain/src/main/java/com/nexaflow/domain/canonical/"
+    "LegacyCatalogCanonicalContract.kt"
+)
+V3_TEST_FILE = ROOT / (
+    "domain/src/test/java/com/nexaflow/domain/canonical/"
+    "CanonicalWorkflowDocumentV3Test.kt"
+)
 
 FORBIDDEN_PATTERNS = (
     r"\bTriggerType\b",
@@ -91,7 +99,15 @@ def main() -> int:
 
     # Product closure: the policy must be wired to Room and the production
     # mapper, not merely modeled in a domain-only policy object.
-    for path in (V3_DOCUMENT_FILE, ENTITY_FILE, DATABASE_FILE, MIGRATIONS_FILE, MAPPER_FILE):
+    for path in (
+        V3_DOCUMENT_FILE,
+        NORMALIZER_FILE,
+        V3_TEST_FILE,
+        ENTITY_FILE,
+        DATABASE_FILE,
+        MIGRATIONS_FILE,
+        MAPPER_FILE,
+    ):
         if not path.is_file():
             problems.append(f"missing production V3 wiring {path.relative_to(ROOT)}")
 
@@ -100,24 +116,68 @@ def main() -> int:
         for token in (
             "CanonicalWorkflowDocumentV3",
             "CanonicalWorkflowV3Codec",
-            "CanonicalRuntimePipeline.defaultAdapter",
+            "CanonicalRuntimePipeline",
+            "LegacyCatalogCanonicalContractNormalizer",
+            "planLegacy",
+            "requiresLegacyFallback",
+            "CanonicalV3WriteState",
+            "prepareWrite",
             "schemaVersion",
         ):
             if token not in v3:
                 problems.append(f"CanonicalWorkflowDocumentV3.kt missing {token!r}")
 
-    if ENTITY_FILE.is_file() and "canonicalWorkflowJson" not in ENTITY_FILE.read_text(encoding="utf-8"):
-        problems.append("AutomationEntity does not persist canonicalWorkflowJson")
+    if ENTITY_FILE.is_file():
+        entity = ENTITY_FILE.read_text(encoding="utf-8")
+        for token in (
+            "canonicalWorkflowJson",
+            "canonicalWriteState",
+            "canonicalWriteErrorCode",
+        ):
+            if token not in entity:
+                problems.append(f"AutomationEntity missing production V3 column {token!r}")
     if DATABASE_FILE.is_file() and "version = 22" not in DATABASE_FILE.read_text(encoding="utf-8"):
         problems.append("AppDatabase is not bumped to canonical V3 schema version 22")
     if MIGRATIONS_FILE.is_file():
         migrations = MIGRATIONS_FILE.read_text(encoding="utf-8")
-        if "MIGRATION_21_22" not in migrations or "canonicalWorkflowJson" not in migrations:
-            problems.append("Room migration 21->22 does not add canonicalWorkflowJson")
+        for token in (
+            "MIGRATION_21_22",
+            "canonicalWorkflowJson",
+            "canonicalWriteState",
+            "canonicalWriteErrorCode",
+        ):
+            if token not in migrations:
+                problems.append(f"Room migration 21->22 missing {token!r}")
     if MAPPER_FILE.is_file():
         mapper = MAPPER_FILE.read_text(encoding="utf-8")
-        if "CanonicalWorkflowV3Codec.encodeOrNull(this)" not in mapper:
-            problems.append("production AutomationMapper does not write canonical V3")
+        for token in (
+            "CanonicalWorkflowV3Codec.prepareWrite(this)",
+            "canonicalWrite.payload",
+            "canonicalWrite.state.name",
+            "canonicalWrite.errorCode",
+        ):
+            if token not in mapper:
+                problems.append(f"production AutomationMapper missing V3 write wiring {token!r}")
+
+    if NORMALIZER_FILE.is_file():
+        normalizer = NORMALIZER_FILE.read_text(encoding="utf-8")
+        for token in (
+            "LegacyCatalogCanonicalContractNormalizer",
+            "containsLegacySecretMaterial",
+            "sanitizedPreservedConfig",
+        ):
+            if token not in normalizer:
+                problems.append(f"shared canonical normalizer missing {token!r}")
+
+    if V3_TEST_FILE.is_file():
+        v3_tests = V3_TEST_FILE.read_text(encoding="utf-8")
+        for case in (
+            "v3UsesCatalogTypedDefaultsLikeTheRuntime",
+            "rawWifiPasswordNeverEntersCanonicalJsonAndFallbackIsExplicit",
+            "validatedBrightnessBoundsApplyToV3WritesToo",
+        ):
+            if f"fun {case}" not in v3_tests:
+                problems.append(f"CanonicalWorkflowDocumentV3Test missing {case!r}")
 
     if problems:
         print("CANONICAL_PERSISTENCE_POLICY: FAIL")
@@ -126,10 +186,11 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_PERSISTENCE_POLICY: OK — policy plus production Room wiring: "
-        "typed Canonical V3 payloads are emitted by AutomationMapper, persisted "
-        "by schema 22 with a lossless 21->22 migration, while legacy columns "
-        "remain the controlled rollback/read fallback"
+        "CANONICAL_PERSISTENCE_POLICY: OK — runtime and V3 share one typed "
+        "catalog normalizer and planLegacy validation path; Room schema 22 "
+        "persists payload plus explicit write/degradation state, raw secrets "
+        "are excluded from V3, and legacy columns remain the controlled "
+        "rollback/secret fallback until retirement is proven safe"
     )
     return 0
 
