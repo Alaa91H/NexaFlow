@@ -1254,7 +1254,7 @@ class ExecutionEngine(
                         EndMode.LEAVE -> null
                         EndMode.REVERT -> snapshot?.restoreSetting(context, action)
                             ?: SystemControlResult.fail("No captured state to restore for ${action.type.name}")
-                        EndMode.RERUN -> executeAction(
+                        EndMode.RERUN -> executeCanonicalCompatibilityAction(
                             action = resolveAction(action, variables),
                             controller = controller,
                             notif = notif,
@@ -1262,9 +1262,9 @@ class ExecutionEngine(
                             automationId = automation.id,
                             revertOnExit = automation.revertOnExit,
                             executionId = exitExecutionId,
-                            nodeId = "end:$actionIndex"
+                            instanceId = "v3.end.$actionIndex"
                         )
-                        EndMode.SET_VALUE -> executeAction(
+                        EndMode.SET_VALUE -> executeCanonicalCompatibilityAction(
                             action = resolveAction(action.withConfig(behavior.config), variables),
                             controller = controller,
                             notif = notif,
@@ -1272,7 +1272,7 @@ class ExecutionEngine(
                             automationId = automation.id,
                             revertOnExit = automation.revertOnExit,
                             executionId = exitExecutionId,
-                            nodeId = "end:$actionIndex"
+                            instanceId = "v3.end.$actionIndex"
                         )
                     } ?: return@forEachIndexed
                     add(
@@ -1292,7 +1292,7 @@ class ExecutionEngine(
                 // The explicitly configured exit actions run last.
                 automation.exitActions.forEachIndexed { exitIndex, action ->
                     val actionStartedAt = epochMillis.now()
-                    val result = executeAction(
+                    val result = executeCanonicalCompatibilityAction(
                         action = resolveAction(action, variables),
                         controller = controller,
                         notif = notif,
@@ -1300,7 +1300,7 @@ class ExecutionEngine(
                         automationId = automation.id,
                         revertOnExit = automation.revertOnExit,
                         executionId = exitExecutionId,
-                        nodeId = "exit:$exitIndex"
+                        instanceId = "v3.exit.$exitIndex"
                     )
                     add(
                         ActionExecutionResult(
@@ -1485,6 +1485,48 @@ class ExecutionEngine(
         }.getOrDefault(emptyList())
         if (globals.isEmpty()) return builtins
         return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
+    }
+
+    /**
+     * T26/T39 compatibility-provider bridge for exit/end actions. Canonical
+     * planning is mandatory; the historical Action object is only the provider
+     * payload until every backend accepts AtomicCommand directly.
+     */
+    private suspend fun executeCanonicalCompatibilityAction(
+        action: Action,
+        controller: SystemController,
+        notif: NotificationSettings,
+        channel: ExecutionProvider?,
+        automationId: String,
+        executionId: String,
+        instanceId: String,
+        revertOnExit: Boolean = false,
+        runContext: WorkflowRunContext? = null,
+        dataRuntime: ScopedDataRuntime? = null,
+    ): SystemControlResult {
+        val prepared = runCatching {
+            canonicalProductRuntime.prepareAction(
+                sourceType = action.type.name,
+                config = action.config,
+                instanceId = instanceId,
+            )
+        }.getOrElse { failure ->
+            return SystemControlResult.fail(
+                "Canonical runtime refused action: ${failure.message.orEmpty().take(200)}"
+            )
+        }
+        return executeAction(
+            action = action,
+            controller = controller,
+            notif = notif,
+            channel = channel,
+            automationId = automationId,
+            revertOnExit = revertOnExit,
+            runContext = runContext,
+            dataRuntime = dataRuntime,
+            executionId = executionId,
+            nodeId = prepared.command.commandId,
+        )
     }
 
     private suspend fun executeAction(
