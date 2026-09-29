@@ -174,6 +174,10 @@ jobs:
       run: python3 scripts/check_canonical_runtime_cutover.py
     - name: Test canonical runtime cutover gate
       run: python3 -m unittest scripts.tests.test_check_canonical_runtime_cutover
+    - name: Persistence policy dual-read/V3-write (T27)
+      run: python3 scripts/check_canonical_persistence_policy.py
+    - name: Test persistence policy gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_persistence_policy
     - name: Runtime configuration contract audit
       run: python3 scripts/check_node_contracts.py
     - name: Tag hygiene (tag ↔ changelog entry) on version tags

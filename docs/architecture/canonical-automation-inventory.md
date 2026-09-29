@@ -284,6 +284,17 @@ and reviewed before T01 may close:
   longer inherit required keys (MapsRule, HttpRule, PowerRule,
   PluginTriggerRule, PrivilegedCommandRule fixed). Covered by 9 unit tests
   (283 total) and CI gate `scripts/check_canonical_runtime_cutover.py`.
+- T27: **implemented** — Persistence policy (dual-read / V3-write) in
+  `domain/.../workflow/WorkflowPersistencePolicy.kt`: every save persists
+  the versioned `WorkflowDocumentV1` row plus the lossless legacy snapshot
+  (rollback path); failed V3 preparation degrades to the legacy row with a
+  typed warning so a persistence hiccup never loses a user edit; `V3_ONLY`
+  is refused until the legacy migration is declared complete (fail closed).
+  Reads serve the document as authoritative, merging the snapshot's
+  unmodeled fields (`deepLinkToken` never rides the document), with typed
+  fallback reasons for corrupt or future-version payloads — never
+  fabricated defaults. Pure domain (no Room/clock coupling). Covered by 13
+  unit tests and CI gate `scripts/check_canonical_persistence_policy.py`.
 
 T01 is closed. No T02 implementation may redefine these legacy meanings without
 an explicit reviewed change to the semantic inventory contract.
