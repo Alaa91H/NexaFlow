@@ -37,6 +37,7 @@ fun AutomationEntity.toDomain(): Automation {
 
 fun Automation.toEntity(): AutomationEntity {
     val converters = Converters()
+    val canonicalWrite = CanonicalWorkflowV3Codec.prepareWrite(this)
     return AutomationEntity(
         id = id,
         name = name,
@@ -58,10 +59,12 @@ fun Automation.toEntity(): AutomationEntity {
         maintenanceJson = converters.fromMaintenanceProfile(maintenanceProfile),
         deepLinkToken = deepLinkToken,
         triggerMatch = triggerMatch.name,
-        // T27 product wiring: every production save attempts a typed
-        // canonical V3 write. Null is an explicit dual-write degradation;
-        // the historical columns remain the rollback/read fallback.
-        canonicalWorkflowJson = CanonicalWorkflowV3Codec.encodeOrNull(this),
+        // T27 product wiring: every production save records both the payload
+        // (when valid) and an explicit write state. A null payload can no
+        // longer masquerade as an unexplained/pre-V3 row.
+        canonicalWorkflowJson = canonicalWrite.payload,
+        canonicalWriteState = canonicalWrite.state.name,
+        canonicalWriteErrorCode = canonicalWrite.errorCode,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
