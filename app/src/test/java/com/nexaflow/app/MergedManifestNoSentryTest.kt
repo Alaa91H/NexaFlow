@@ -103,6 +103,23 @@ class MergedManifestNoSentryTest {
     }
 
     @Test
+    fun `READ_PHONE_STATE remains unbounded in the merged manifest`() {
+        val doc = mergedManifestDocument()
+        val permissions = doc.getElementsByTagName("uses-permission")
+        val readPhoneState = (0 until permissions.length)
+            .map { permissions.item(it) as Element }
+            .singleOrNull {
+                it.getAttribute("android:name") == "android.permission.READ_PHONE_STATE"
+            }
+            ?: throw AssertionError("READ_PHONE_STATE missing from merged manifest")
+
+        assertFalse(
+            "READ_PHONE_STATE must not regain maxSdkVersion from a transitive manifest",
+            readPhoneState.hasAttribute("android:maxSdkVersion")
+        )
+    }
+
+    @Test
     fun `sentry auto-init providers are stripped from the merged manifest`() {
         val doc = mergedManifestDocument()
         val providerNames = providerElements(doc)
