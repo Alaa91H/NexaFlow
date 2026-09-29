@@ -188,8 +188,18 @@ internal object TriggerNodeSchemas {
             stringField("watchInstallId"),
             enumField("state", "CONNECTED", "DISCONNECTED", default = "CONNECTED")
         )
-        TriggerType.BOOT_COMPLETED,
-        TriggerType.PLUGIN_EVENT -> NodeConfigurationSchema()
+        TriggerType.BOOT_COMPLETED -> NodeConfigurationSchema()
+        TriggerType.PLUGIN_EVENT -> schema(
+            // Product storage keys are explicit here even though the trigger
+            // is created only by the verified plugin configuration path.
+            packageField("package"),
+            stringField("eventComponent"),
+            stringField("pluginInstance"),
+            enumField("pluginApproval", "approved"),
+            stringField("pluginEventId"),
+            // Legacy T31 draft key remains readable during cutover.
+            stringField("plugin_id")
+        )
     }
 
 
