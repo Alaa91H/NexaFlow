@@ -29,7 +29,7 @@ class CanonicalProductRuntime(
 
     fun prepareAction(
         sourceType: String,
-        config: Map<String, String>,
+        config: List<LegacyConfigEntry>,
         instanceId: String,
     ): PreparedAction {
         val canonicalized = canonicalize(
@@ -60,7 +60,7 @@ class CanonicalProductRuntime(
 
     fun prepareTrigger(
         sourceType: String,
-        config: Map<String, String>,
+        config: List<LegacyConfigEntry>,
         instanceId: String,
     ): PreparedTrigger {
         val canonicalized = canonicalize(
@@ -87,15 +87,13 @@ class CanonicalProductRuntime(
     private fun canonicalize(
         sourceType: String,
         kind: LegacyNodeKind,
-        config: Map<String, String>,
+        config: List<LegacyConfigEntry>,
     ): LegacyAdapterOutcome.Canonicalized {
         val outcome = adapter.canonicalize(
             LegacyNodeInput(
                 legacyType = sourceType,
                 kind = kind,
-                config = config.entries
-                    .sortedBy { it.key }
-                    .map { LegacyConfigEntry(it.key, it.value) },
+                config = config,
             ),
         )
         return outcome as? LegacyAdapterOutcome.Canonicalized
