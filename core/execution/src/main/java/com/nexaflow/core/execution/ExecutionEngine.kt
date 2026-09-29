@@ -33,6 +33,7 @@ import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.canonical.AtomicCommand
+import com.nexaflow.core.execution.compat.CanonicalCompatibilityActionDispatcher
 import com.nexaflow.core.execution.compat.CanonicalRuntimeCutoverAdapter
 import com.nexaflow.domain.canonical.CommandIdempotency
 import com.nexaflow.domain.capability.PrivilegeSnapshot
@@ -146,6 +147,10 @@ class ExecutionEngine(
         epochMillis = epochMillis,
         traceRecorder = traceRecorder,
     )
+    /** The only remaining ActionType-based provider dispatch boundary. */
+    private val compatibilityActionDispatcher =
+        CanonicalCompatibilityActionDispatcher(actionRegistry)
+
     private val manualAdmissionEvaluator = ManualAdmissionEvaluator(
         context = context,
         capabilityExecutionService = capabilityExecutionService,
@@ -1556,74 +1561,23 @@ class ExecutionEngine(
             return capabilityResult.toSystemControlResult()
         }
 
-        val handler = actionRegistry.handlerFor(action.type)
-            ?: return SystemControlResult.fail("No handler registered for ${action.type}")
-        return try {
-            var result = handler.execute(
-                action,
-                ActionExecutionContext(
-                    appContext = context,
-                    controller = controller,
-                    notificationSettings = notif,
-                    channel = channel,
-                    automationId = automationId,
-                    executionId = executionId,
-                    nodeId = canonicalCommand.commandId,
-                    revertOnExit = revertOnExit,
-                    runContext = runContext,
-                    dataRuntime = dataRuntime,
-                    capabilityService = capabilityExecutionService
-                )
-            )
-            if (!result.success && result.message.contains("No elevated runtime")) {
-                // A grant may have landed between the last probe and this run.
-                // refreshAndProbe bypasses the storm-spacing guard deliberately:
-                // the previous "no root" answer is known stale, so one extra
-                // su spawn is the price of not hiding a fresh grant. When the
-                // re-probe flips to granted, retry the action exactly once —
-                // the previous run never reached the elevated runtime, so no
-                // side effect can have started (safe to re-execute).
-                val reProbed = try {
-                    com.nexaflow.core.rom.SystemAppStatusDetector.refreshAndProbe()
-                } catch (_: Throwable) {
-                    com.nexaflow.core.rom.PrivilegedRunner.isRootAvailable()
-                }
-                if (reProbed) {
-                    result = try {
-                        handler.execute(
-                            action,
-                            ActionExecutionContext(
-                                appContext = context,
-                                controller = controller,
-                                notificationSettings = notif,
-                                channel = channel,
-                                automationId = automationId,
-                                executionId = executionId,
-                                nodeId = canonicalCommand.commandId,
-                                revertOnExit = revertOnExit,
-                                runContext = runContext,
-                                dataRuntime = dataRuntime,
-                                capabilityService = capabilityExecutionService
-                            )
-                        )
-                    } catch (failure: Throwable) {
-                        SystemControlResult.fail(failure.message ?: "Action execution failed")
-                    }
-                }
-                // Never emit dynamic errors, configuration keys or values to logcat.
-                android.util.Log.w("ExecutionEngine", "elevated action failed type=${action.type}")
-            }
-            result
-        } catch (cancellation: CancellationException) {
-            // Cancellation is control flow, not an action failure. Preserve the
-            // caller's structured-concurrency contract.
-            throw cancellation
-        } catch (failure: Throwable) {
-            // Extension and OEM handlers run outside the engine's trust boundary.
-            // Convert an unexpected failure into a normal action result so the
-            // automation is recorded and its one-shot exit lifecycle remains valid.
-            SystemControlResult.fail(failure.message ?: "Action execution failed")
-        }
+        return compatibilityActionDispatcher.dispatch(
+            action = action,
+            canonicalCommand = canonicalCommand,
+            executionContext = ActionExecutionContext(
+                appContext = context,
+                controller = controller,
+                notificationSettings = notif,
+                channel = channel,
+                automationId = automationId,
+                executionId = executionId,
+                nodeId = canonicalCommand.commandId,
+                revertOnExit = revertOnExit,
+                runContext = runContext,
+                dataRuntime = dataRuntime,
+                capabilityService = capabilityExecutionService,
+            ),
+        )
     }
 
     /**
