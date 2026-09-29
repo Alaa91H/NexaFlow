@@ -152,7 +152,9 @@ object PilotOpenFamily {
                 alwaysRequired = true,
                 default = NodeFieldDefault.ofEnumToken("core.system.settings", "WIFI"),
                 enumType = "core.system.settings",
-                allowedTokens = legacyPageMappings.map { it.pageToken }.distinct().sorted(),
+                allowedTokens = (
+                    legacyPageMappings.map { it.pageToken } + "SETTINGS"
+                ).distinct().sorted(),
             ),
         ),
         capabilities = listOf(
