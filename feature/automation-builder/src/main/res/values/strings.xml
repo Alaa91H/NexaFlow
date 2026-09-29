@@ -1281,4 +1281,7 @@
     <string name="sensor_invalid_range">The upper bound must be greater than or equal to the lower bound.</string>
     <string name="trigger_wear_event">Wear OS watch</string>
     <string name="trigger_wear_event_sub">Run the task when a NexaFlow watch is connected or disconnected</string>
+    <string name="option_tier_common">Common</string>
+    <string name="option_tier_advanced">Advanced</string>
+    <string name="option_tier_all">All options</string>
 </resources>
