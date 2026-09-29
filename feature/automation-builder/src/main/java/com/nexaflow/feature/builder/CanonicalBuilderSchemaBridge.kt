@@ -8,6 +8,7 @@ import com.nexaflow.domain.canonical.FamilyPhase23PowerSensors
 import com.nexaflow.domain.canonical.FamilyPhase24TimeLocation
 import com.nexaflow.domain.canonical.FamilyPhase25AdvancedExternal
 import com.nexaflow.domain.canonical.LegacyCatalogCanonicalContractNormalizer
+import com.nexaflow.domain.canonical.LegacyConfigEntry
 import com.nexaflow.domain.canonical.LegacyMappingTable
 import com.nexaflow.domain.canonical.LegacyNodeInput
 import com.nexaflow.domain.canonical.LegacyNodeKind
@@ -147,7 +148,13 @@ internal object CanonicalBuilderSchemaBridge {
 
     private fun catalogBindingForAction(type: ActionType): CanonicalBuilderSchemaBinding {
         val definition = AutomationNodeCatalog.definitionFor(type)
-        val node = canonicalSkeleton(type.name, LegacyNodeKind.ACTION)
+        val node = canonicalSkeleton(
+            type.name,
+            LegacyNodeKind.ACTION,
+            definition.configuration.fields.mapNotNull { field ->
+                field.defaultValue?.let { LegacyConfigEntry(field.key, it) }
+            },
+        )
         return CanonicalBuilderSchemaBinding(
             LegacyCatalogCanonicalContractNormalizer.normalize(
                 definition = definition,
@@ -160,7 +167,13 @@ internal object CanonicalBuilderSchemaBridge {
 
     private fun catalogBindingForTrigger(type: TriggerType): CanonicalBuilderSchemaBinding {
         val definition = AutomationNodeCatalog.definitionFor(type)
-        val node = canonicalSkeleton(type.name, LegacyNodeKind.TRIGGER)
+        val node = canonicalSkeleton(
+            type.name,
+            LegacyNodeKind.TRIGGER,
+            definition.configuration.fields.mapNotNull { field ->
+                field.defaultValue?.let { LegacyConfigEntry(field.key, it) }
+            },
+        )
         return CanonicalBuilderSchemaBinding(
             LegacyCatalogCanonicalContractNormalizer.normalize(
                 definition = definition,
@@ -174,7 +187,8 @@ internal object CanonicalBuilderSchemaBridge {
     private fun canonicalSkeleton(
         legacyType: String,
         kind: LegacyNodeKind,
+        config: List<LegacyConfigEntry>,
     ) = skeletonRules[kind to legacyType]
-        ?.canonicalize(LegacyNodeInput(legacyType, kind, emptyList()))
+        ?.canonicalize(LegacyNodeInput(legacyType, kind, config))
         ?: error("T12 builder schema bridge has no reviewed mapping for $kind/$legacyType")
 }
