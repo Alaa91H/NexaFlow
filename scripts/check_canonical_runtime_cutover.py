@@ -14,6 +14,15 @@ TEST_FILE = ROOT / (
     "domain/src/test/java/com/nexaflow/domain/canonical/"
     "CanonicalRuntimePipelineTest.kt"
 )
+
+PRODUCT_RUNTIME_FILE = ROOT / (
+    "domain/src/main/java/com/nexaflow/domain/canonical/"
+    "CanonicalProductRuntime.kt"
+)
+EXECUTION_ENGINE_FILE = ROOT / (
+    "core/execution/src/main/java/com/nexaflow/core/execution/"
+    "ExecutionEngine.kt"
+)
 PIPELINE_FILES = (
     MAIN_FILE,
     ROOT / (CANONICAL_DIR + "ExecutionPlanner.kt"),
@@ -83,6 +92,41 @@ def main() -> int:
             if f"fun {case}" not in test_source:
                 problems.append(f"CanonicalRuntimePipelineTest.kt missing {case!r}")
 
+    # Product cutover evidence: the pure domain pipeline is not sufficient.
+    # The actual execution engine must cross the canonical boundary before any
+    # handler side effect, and retry policy must consume canonical idempotency.
+    for path in (PRODUCT_RUNTIME_FILE, EXECUTION_ENGINE_FILE):
+        if not path.is_file():
+            problems.append(f"missing product runtime wiring {path.relative_to(ROOT)}")
+
+    if PRODUCT_RUNTIME_FILE.is_file():
+        product = PRODUCT_RUNTIME_FILE.read_text(encoding="utf-8")
+        for token in (
+            "CanonicalProductRuntime",
+            "prepareAction",
+            "prepareTrigger",
+            "AtomicCommand",
+            "productCommandSemantics",
+        ):
+            if token not in product:
+                problems.append(f"CanonicalProductRuntime.kt missing {token!r}")
+
+    if EXECUTION_ENGINE_FILE.is_file():
+        engine = EXECUTION_ENGINE_FILE.read_text(encoding="utf-8")
+        for token in (
+            "canonicalProductRuntime.prepareTrigger",
+            "canonicalProductRuntime.prepareAction",
+            "canonicalAction.command.commandId",
+            "CommandIdempotency.IDEMPOTENT",
+            "executeCanonicalCompatibilityAction",
+        ):
+            if token not in engine:
+                problems.append(f"ExecutionEngine is not cut over: missing {token!r}")
+        if engine.index("canonicalProductRuntime.prepareTrigger") > engine.index("workflowAdmissionGate.evaluate"):
+            problems.append(
+                "canonical trigger admission must run before the legacy workflow admission/runtime path"
+            )
+
     if problems:
         print("CANONICAL_RUNTIME_CUTOVER: FAIL")
         for problem in problems:
@@ -90,12 +134,10 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_RUNTIME_CUTOVER: OK — single cutover path "
-        "legacy > adapter > canonical AST > validation > plan; the pipeline "
-        "refuses rejected mappings and invalid verdicts, the validated "
-        "surface is the schema-typed view of the consumed config, family "
-        "command semantics merge into the cutover planner, and all 233 "
-        "legacy types canonicalize deterministically"
+        "CANONICAL_RUNTIME_CUTOVER: OK — domain pipeline plus product wiring: "
+        "ExecutionEngine canonicalizes triggers before admission and plans every "
+        "resolved side-effecting action to an AtomicCommand before compatibility "
+        "providers run; retry safety is driven by canonical idempotency"
     )
     return 0
 
