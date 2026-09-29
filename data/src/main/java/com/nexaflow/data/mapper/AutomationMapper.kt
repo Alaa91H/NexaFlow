@@ -2,6 +2,7 @@ package com.nexaflow.data.mapper
 
 import com.nexaflow.core.database.AutomationEntity
 import com.nexaflow.core.database.Converters
+import com.nexaflow.domain.canonical.CanonicalWorkflowV3Codec
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerMatchMode
 
@@ -57,6 +58,10 @@ fun Automation.toEntity(): AutomationEntity {
         maintenanceJson = converters.fromMaintenanceProfile(maintenanceProfile),
         deepLinkToken = deepLinkToken,
         triggerMatch = triggerMatch.name,
+        // T27 product wiring: every production save attempts a typed
+        // canonical V3 write. Null is an explicit dual-write degradation;
+        // the historical columns remain the rollback/read fallback.
+        canonicalWorkflowJson = CanonicalWorkflowV3Codec.encodeOrNull(this),
         createdAt = createdAt,
         updatedAt = updatedAt
     )
