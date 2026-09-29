@@ -77,6 +77,19 @@ and reviewed before T01 may close:
 - Action coverage: **176/176**
 - Existing semantic-router parity pinned: **17/17**
 - CI evidence: workflow run **#735** (`36395436428`) — lint, semantic-review invariants, runtime-contract audit, coverage, and build all passed.
+- T03: **implemented** — Canonical identity registry in
+  `domain/.../canonical/CanonicalIdentityRegistry.kt`: the stable string-ID
+  surface every reviewed node resolves to (targets, `core.operation.*`,
+  `core.predicate.*`), cross-checked against the T01 semantic review by
+  CI gate `scripts/check_canonical_identity_registry.py` so no drift
+  between the recorded meanings and the runtime registry is possible.
+- T04: **implemented** — Canonical typed model in
+  `domain/.../canonical/CanonicalIds.kt`, `CanonicalValues.kt` and
+  `CanonicalAst.kt` (plus `LegacyStableIdMappings.kt`): typed value kinds
+  (no raw `Map<String, String>` core contract), the typed canonical AST
+  with fail-closed validation, and the boundary gate
+  `scripts/check_canonical_typed_model.py` refusing legacy-enum/UI/execution
+  coupling in the canonical core.
 - T05: **implemented** — typed selection/execution semantics per ADR-003 in
   `domain/.../canonical/SelectionSemantics.kt`: `TargetSelectionMode`,
   `EventLogic` (ANY_OF only by design), `ConditionLogic`, `ExecutionMode`,
@@ -145,7 +158,7 @@ and reviewed before T01 may close:
   safe by construction: secret-looking metadata keys/values or messages are
   rejected at construction (Gate I groundwork). Covered by 11 unit tests and
   CI gate `scripts/check_canonical_execution_journal.py`.
-- T12: **implemented (infrastructure core)** — the schema-driven
+- T12: **implemented** (infrastructure core) — the schema-driven
   configurator state machine in `domain/.../canonical/NodeConfiguratorState.kt`:
   dynamic tabs derived from the NodeSchema, progressive disclosure
   (Basic/Advanced/Expert), declared-default seeding, live T08 validation,
@@ -189,7 +202,7 @@ and reviewed before T01 may close:
   baseline split, serialization round-trips, and a no-unregistered-identity
   sweep.  Gate E closed in CI. Covered by 6 unit tests and CI gate
   `scripts/check_canonical_golden_migration.py`.
-- T17: **implemented (pilot family)** — Open Settings per plan §T17 in
+- T17: **implemented** (pilot family) — Open Settings per plan §T17 in
   `domain/.../canonical/PilotOpenFamily.kt`: typed value upgrades for all
   41 SYSTEM_OPEN_* actions over the reviewed mappings (strict package/URL
   parsing; page identity stays the reviewed target), parity-pinned against
