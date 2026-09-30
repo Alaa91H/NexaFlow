@@ -402,8 +402,10 @@ jobs:
       if: always()
       shell: bash
       run: |
-        adb logcat -d > android-integration-logcat.txt 2>/dev/null || true
-        adb shell getprop > android-integration-properties.txt 2>/dev/null || true
+        timeout 15s adb logcat -d > android-integration-logcat.txt 2>/dev/null || \
+          echo "ADB logcat unavailable or timed out." >> android-integration-logcat.txt
+        timeout 15s adb shell getprop > android-integration-properties.txt 2>/dev/null || \
+          echo "ADB properties unavailable or timed out." >> android-integration-properties.txt
         cp "$RUNNER_TEMP/nexaflow-emulator.log" android-emulator.log 2>/dev/null || true
     - name: Upload Android integration evidence
       if: always()
