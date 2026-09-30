@@ -100,7 +100,7 @@ class CanonicalPerformanceBudgetTest {
         val children = (0 until 1_024).map { index ->
             SetStateNode(
                 id = CanonicalNodeId("scale-$index"),
-                target = TargetId("core.scalability.target.$index"),
+                target = TargetId("core.scalability.target.item$index"),
                 state = BooleanValue(index % 2 == 0),
             )
         }
