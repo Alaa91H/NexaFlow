@@ -316,5 +316,5 @@
     <string name="ai_provider_verify">Doğrula</string>
     <string name="ai_provider_remove">Kaldır</string>
     <string name="ai_provider_protocol_compatible">OpenAI uyumlu API</string>
-    <string name="ai_provider_protocol_anthropic">Anthropic Messages API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic Mesaj API'si</string>
 </resources>

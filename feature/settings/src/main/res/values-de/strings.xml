@@ -314,5 +314,5 @@
     <string name="ai_provider_verify">Prüfen</string>
     <string name="ai_provider_remove">Entfernen</string>
     <string name="ai_provider_protocol_compatible">OpenAI-kompatible API</string>
-    <string name="ai_provider_protocol_anthropic">Anthropic Messages API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic-Nachrichten-API</string>
 </resources>

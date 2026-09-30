@@ -316,5 +316,5 @@
     <string name="ai_provider_verify">確認</string>
     <string name="ai_provider_remove">削除</string>
     <string name="ai_provider_protocol_compatible">OpenAI互換API</string>
-    <string name="ai_provider_protocol_anthropic">Anthropic Messages API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic メッセージ API</string>
 </resources>

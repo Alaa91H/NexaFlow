@@ -316,5 +316,5 @@
     <string name="ai_provider_verify">जाँचें</string>
     <string name="ai_provider_remove">हटाएँ</string>
     <string name="ai_provider_protocol_compatible">OpenAI संगत API</string>
-    <string name="ai_provider_protocol_anthropic">Anthropic Messages API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic संदेश API</string>
 </resources>
