@@ -78,4 +78,21 @@ class AiProviderPreferencesTest {
         assertEquals(expected, preferences.current())
     }
 
+    @Test
+    fun providerProfilesRoundTripAndRemainMetadataOnly() = runTest {
+        val preferences = preferences()
+        val profile = AiProviderProfileSettings(
+            id = "openai-main",
+            presetId = "openai",
+            displayName = "OpenAI",
+            protocol = "OPENAI_CHAT_COMPLETIONS",
+            baseUrl = "https://api.openai.com/v1",
+            modelId = "gpt-5.6"
+        )
+
+        preferences.upsertProfile(profile)
+
+        assertEquals(listOf(profile), preferences.currentProfiles())
+    }
+
 }

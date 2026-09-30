@@ -275,7 +275,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Model provider</string>
-    <string name="ai_provider_subtitle">Configure an OpenAI-compatible endpoint for NexaFlow Chat.</string>
+    <string name="ai_provider_subtitle">Add a preset provider or enter a compatible API endpoint. API keys stay encrypted on this device.</string>
     <string name="ai_provider_enabled">Enable model provider</string>
     <string name="ai_provider_name">Provider name</string>
     <string name="ai_provider_endpoint">Endpoint URL</string>
@@ -310,4 +310,13 @@
     <string name="agent_lan_access_on">Enabled — paired agents can connect from your private network</string>
     <string name="agent_lan_access_off">Off — USB/loopback only</string>
     <string name="agent_lan_access_description">Android 17 requires local-network permission. Authentication and revocation still apply.</string>
+    <string name="ai_provider_profiles">Provider profiles</string>
+    <string name="ai_provider_add_title">Add a provider</string>
+    <string name="ai_provider_manual">Manual provider</string>
+    <string name="ai_provider_add">Add provider</string>
+    <string name="ai_provider_verify">Verify</string>
+    <string name="ai_provider_remove">Remove</string>
+    <string name="ai_provider_protocol_compatible">OpenAI-compatible API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic Messages API</string>
+    <string name="ai_provider_edit">Edit</string>
 </resources>

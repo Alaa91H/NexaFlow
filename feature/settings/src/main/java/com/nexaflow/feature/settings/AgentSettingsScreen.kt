@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -48,6 +49,8 @@ import androidx.navigation.NavController
 import com.nexaflow.core.agentapi.AgentApiAuditEventV1
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.airuntime.AiRoutingMode
+import com.nexaflow.core.airuntime.AiProviderCatalog
+import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.domain.security.HttpAccessPolicy
@@ -65,12 +68,16 @@ fun AgentSettingsScreen(
     var agentName by rememberSaveable { mutableStateOf("") }
     var showRevokeAll by rememberSaveable { mutableStateOf(false) }
     var copiedPayload by rememberSaveable { mutableStateOf(false) }
-    var providerEnabled by rememberSaveable { mutableStateOf(false) }
     var providerName by rememberSaveable { mutableStateOf("") }
     var providerUrl by rememberSaveable { mutableStateOf("") }
     var providerModel by rememberSaveable { mutableStateOf("") }
     var providerLocal by rememberSaveable { mutableStateOf(true) }
-    var providerApiKey by rememberSaveable { mutableStateOf("") }
+    var providerApiKey by remember { mutableStateOf("") }
+    var profilePresetId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingProfileId by rememberSaveable { mutableStateOf<String?>(null) }
+    var profileProtocol by rememberSaveable {
+        mutableStateOf(AiProviderProtocol.OPENAI_CHAT_COMPLETIONS)
+    }
     var routingMode by rememberSaveable {
         mutableStateOf(AiRoutingMode.AUTOMATIC)
     }
@@ -78,16 +85,6 @@ fun AgentSettingsScreen(
     var allowCloudFallback by rememberSaveable { mutableStateOf(false) }
     val dateFormat = remember {
         DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-    }
-    val localNetworkPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) {
-        viewModel.testProvider()
-    }
-    val localNetworkDiscoveryPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) {
-        viewModel.discoverModels()
     }
     val agentLanPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -101,7 +98,6 @@ fun AgentSettingsScreen(
         viewModel.refresh()
     }
     LaunchedEffect(state.providerSettings) {
-        providerEnabled = state.providerSettings.enabled
         providerName = state.providerSettings.displayName
         providerUrl = state.providerSettings.baseUrl
         providerModel = state.providerSettings.modelId
@@ -312,79 +308,145 @@ fun AgentSettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.ai_provider_enabled),
-                            modifier = Modifier.weight(1f)
-                        )
-                        Switch(
-                            checked = providerEnabled,
-                            onCheckedChange = { providerEnabled = it }
-                        )
-                    }
-                    OutlinedTextField(
-                        value = providerName,
-                        onValueChange = { if (it.length <= 128) providerName = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.ai_provider_name)) },
-                        singleLine = true
+                    Text(
+                        text = stringResource(R.string.ai_provider_profiles),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
                     )
-                    OutlinedTextField(
-                        value = providerUrl,
-                        onValueChange = { if (it.length <= 2048) providerUrl = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.ai_provider_endpoint)) },
-                        placeholder = {
-                            Text(stringResource(R.string.ai_provider_endpoint_hint))
-                        },
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = providerModel,
-                        onValueChange = { if (it.length <= 256) providerModel = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.ai_provider_model)) },
-                        placeholder = {
-                            Text(stringResource(R.string.ai_provider_model_hint))
-                        },
-                        singleLine = true
-                    )
-                    TextButton(
-                        onClick = {
-                            if (
-                                needsLocalNetworkPermission(
-                                    context = context,
-                                    baseUrl = state.providerSettings.baseUrl,
-                                    local = state.providerSettings.local
+                    state.providerProfiles.forEach { profile ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = state.providerSettings.selectedProviderId == profile.id,
+                                onClick = { viewModel.selectProviderProfile(profile.id) }
+                            )
+                            Column(Modifier.weight(1f)) {
+                                TextButton(
+                                    onClick = {
+                                        editingProfileId = profile.id
+                                        profilePresetId = profile.presetId?.takeIf {
+                                            AiProviderCatalog.preset(it) != null
+                                        }
+                                        profileProtocol = runCatching {
+                                            AiProviderProtocol.valueOf(profile.protocol)
+                                        }.getOrDefault(AiProviderProtocol.OPENAI_CHAT_COMPLETIONS)
+                                        providerName = profile.displayName
+                                        providerUrl = profile.baseUrl
+                                        providerModel = profile.modelId
+                                        providerLocal = profile.local
+                                    }
+                                ) {
+                                    Text(profile.displayName)
+                                }
+                                Text(
+                                    profile.modelId,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                            ) {
-                                localNetworkDiscoveryPermissionLauncher.launch(
-                                    HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
-                                )
-                            } else {
-                                viewModel.discoverModels()
                             }
-                        },
-                        enabled = state.providerSettings.enabled
-                    ) {
-                        Text(stringResource(R.string.agent_refresh))
+                            TextButton(onClick = { viewModel.verifyProviderProfile(profile.id) }) {
+                                Text(stringResource(R.string.ai_provider_verify))
+                            }
+                            TextButton(onClick = { viewModel.removeProviderProfile(profile.id) }) {
+                                Text(stringResource(R.string.ai_provider_remove))
+                            }
+                        }
                     }
-                    state.discoveredModels.take(MAX_VISIBLE_DISCOVERED_MODELS).forEach { model ->
+                    Text(
+                        text = stringResource(R.string.ai_provider_add_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    AiProviderCatalog.presets.forEach { preset ->
                         TextButton(
-                            onClick = { providerModel = model.id },
+                            onClick = {
+                                editingProfileId = null
+                                profilePresetId = preset.id
+                                profileProtocol = preset.protocol
+                                providerName = preset.displayName
+                                providerUrl = preset.baseUrl
+                                providerModel = preset.defaultModelId
+                                providerLocal = preset.local
+                            },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = model.id,
-                                modifier = Modifier.fillMaxWidth(),
-                                maxLines = 1
+                            Text("${preset.displayName} — ${preset.defaultModelId}")
+                        }
+                    }
+                    TextButton(
+                        onClick = {
+                            editingProfileId = null
+                            profilePresetId = null
+                            profileProtocol = AiProviderProtocol.OPENAI_CHAT_COMPLETIONS
+                            providerName = ""
+                            providerUrl = ""
+                            providerModel = ""
+                            providerLocal = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.ai_provider_manual))
+                    }
+                    if (profilePresetId == null) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(
+                                selected = profileProtocol ==
+                                    AiProviderProtocol.OPENAI_CHAT_COMPLETIONS,
+                                onClick = {
+                                    profileProtocol = AiProviderProtocol.OPENAI_CHAT_COMPLETIONS
+                                },
+                                label = { Text(stringResource(R.string.ai_provider_protocol_compatible)) }
+                            )
+                            FilterChip(
+                                selected = profileProtocol == AiProviderProtocol.ANTHROPIC_MESSAGES,
+                                onClick = {
+                                    profileProtocol = AiProviderProtocol.ANTHROPIC_MESSAGES
+                                    providerUrl = AiProviderCatalog.preset("claude")?.baseUrl.orEmpty()
+                                    providerModel = AiProviderCatalog.preset("claude")?.defaultModelId.orEmpty()
+                                },
+                                label = { Text(stringResource(R.string.ai_provider_protocol_anthropic)) }
                             )
                         }
                     }
-                    Row(
+                    if (profilePresetId == null) {
+                        OutlinedTextField(
+                            value = providerName,
+                            onValueChange = { if (it.length <= 128) providerName = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.ai_provider_name)) },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = providerUrl,
+                            onValueChange = { if (it.length <= 2048) providerUrl = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.ai_provider_endpoint)) },
+                            placeholder = {
+                                Text(stringResource(R.string.ai_provider_endpoint_hint))
+                            },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = providerModel,
+                            onValueChange = { if (it.length <= 256) providerModel = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.ai_provider_model)) },
+                            placeholder = {
+                                Text(stringResource(R.string.ai_provider_model_hint))
+                            },
+                            singleLine = true
+                        )
+                    } else {
+                        Text(
+                            text = "$providerName · $providerModel",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    if (profilePresetId == null &&
+                        profileProtocol == AiProviderProtocol.OPENAI_CHAT_COMPLETIONS
+                    ) Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -415,11 +477,40 @@ fun AgentSettingsScreen(
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true
                     )
-                    if (state.providerApiKeyConfigured) {
+                    if (editingProfileId != null) {
                         Text(
                             text = stringResource(R.string.ai_provider_api_key_saved),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            viewModel.saveProviderProfile(
+                                profileId = editingProfileId,
+                                presetId = profilePresetId,
+                                protocol = profileProtocol,
+                                displayName = providerName,
+                                baseUrl = providerUrl,
+                                modelId = providerModel,
+                                local = providerLocal,
+                                apiKey = providerApiKey,
+                                onComplete = { saved ->
+                                    if (saved) providerApiKey = ""
+                                }
+                            )
+                        },
+                        enabled = providerName.isNotBlank() && providerUrl.isNotBlank() &&
+                            providerModel.isNotBlank() && (providerApiKey.isNotBlank() ||
+                            state.providerProfiles.any { it.id == editingProfileId } ||
+                            (profilePresetId == null && providerLocal && profileProtocol ==
+                                AiProviderProtocol.OPENAI_CHAT_COMPLETIONS))
+                    ) {
+                        Text(
+                            stringResource(
+                                if (editingProfileId == null) R.string.ai_provider_add
+                                else R.string.ai_provider_save
+                            )
                         )
                     }
                     HorizontalDivider()
@@ -508,61 +599,12 @@ fun AgentSettingsScreen(
                             )
                         }
                     }
-                    Text(
-                        text = stringResource(R.string.ai_provider_compatibility),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = {
-                                viewModel.saveProvider(
-                                    enabled = providerEnabled,
-                                    displayName = providerName,
-                                    baseUrl = providerUrl,
-                                    modelId = providerModel,
-                                    local = providerLocal,
-                                    apiKey = providerApiKey,
-                                    routingMode = routingMode,
-                                    selectedProviderId = selectedProviderId,
-                                    allowCloudFallback = allowCloudFallback
-                                )
-                                providerApiKey = ""
-                            }
-                        ) {
-                            Text(stringResource(R.string.ai_provider_save))
-                        }
-                        TextButton(
-                            onClick = {
-                                if (
-                                    needsLocalNetworkPermission(
-                                        context = context,
-                                        baseUrl = state.providerSettings.baseUrl,
-                                        local = state.providerSettings.local
-                                    )
-                                ) {
-                                    localNetworkPermissionLauncher.launch(
-                                        HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
-                                    )
-                                } else {
-                                    viewModel.testProvider()
-                                }
-                            },
-                            enabled = state.providerSettings.enabled &&
-                                state.providerProbeState != AiProviderProbeState.TESTING
-                        ) {
-                            Text(
-                                stringResource(
-                                    if (state.providerProbeState == AiProviderProbeState.TESTING) {
-                                        R.string.ai_provider_testing
-                                    } else {
-                                        R.string.ai_provider_test
-                                    }
-                                )
-                            )
-                        }
-                    }
                     when (state.providerProbeState) {
+                        AiProviderProbeState.TESTING -> Text(
+                            text = stringResource(R.string.ai_provider_testing),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         AiProviderProbeState.SUCCESS -> Text(
                             text = stringResource(R.string.ai_provider_test_success),
                             style = MaterialTheme.typography.bodySmall,
@@ -574,11 +616,6 @@ fun AgentSettingsScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                         else -> Unit
-                    }
-                    if (state.providerApiKeyConfigured) {
-                        TextButton(onClick = viewModel::clearProviderApiKey) {
-                            Text(stringResource(R.string.ai_provider_clear_key))
-                        }
                     }
                 }
             }
@@ -821,24 +858,4 @@ private fun AgentActivityRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
-}
-
-
-private const val MAX_VISIBLE_DISCOVERED_MODELS = 12
-
-private fun needsLocalNetworkPermission(
-    context: android.content.Context,
-    baseUrl: String,
-    local: Boolean
-): Boolean {
-    if (!local || Build.VERSION.SDK_INT < 37) return false
-    val host = runCatching { URI(baseUrl).host }
-        .getOrNull()
-        ?.lowercase()
-        ?: return false
-    if (host in setOf("localhost", "127.0.0.1", "::1")) return false
-    return ContextCompat.checkSelfPermission(
-        context,
-        HttpAccessPolicy.LOCAL_NETWORK_PERMISSION
-    ) != PackageManager.PERMISSION_GRANTED
 }

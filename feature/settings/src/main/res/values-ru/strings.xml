@@ -278,7 +278,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Провайдер модели</string>
-    <string name="ai_provider_subtitle">Настройте совместимый с OpenAI адрес для чата NexaFlow.</string>
+    <string name="ai_provider_subtitle">Добавьте готового провайдера или укажите совместимую конечную точку API. Ключи API хранятся на устройстве в зашифрованном виде.</string>
     <string name="ai_provider_enabled">Включить провайдер модели</string>
     <string name="ai_provider_name">Название провайдера</string>
     <string name="ai_provider_endpoint">Адрес конечной точки</string>
@@ -313,4 +313,13 @@
     <string name="agent_lan_access_on">Включено — сопряжённые агенты могут подключаться из вашей частной сети</string>
     <string name="agent_lan_access_off">Выключено — только USB/loopback</string>
     <string name="agent_lan_access_description">В Android 17 требуется разрешение локальной сети. Аутентификация и отзыв доступа продолжают действовать.</string>
+    <string name="ai_provider_profiles">Профили провайдеров</string>
+    <string name="ai_provider_add_title">Добавить провайдера</string>
+    <string name="ai_provider_manual">Ручной провайдер</string>
+    <string name="ai_provider_add">Добавить провайдера</string>
+    <string name="ai_provider_verify">Проверить</string>
+    <string name="ai_provider_remove">Удалить</string>
+    <string name="ai_provider_protocol_compatible">API, совместимый с OpenAI</string>
+    <string name="ai_provider_protocol_anthropic">API Anthropic Messages</string>
+    <string name="ai_provider_edit">Изменить</string>
 </resources>

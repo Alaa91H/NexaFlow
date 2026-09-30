@@ -21,7 +21,8 @@ data class AiProviderRegistryState(
 class AiProviderRegistry(
     providers: List<AiModelProvider> = emptyList()
 ) {
-    private val providerMap = providers.associateBy { it.descriptor.value.id }
+    @Volatile
+    private var providerMap = providers.associateBy { it.descriptor.value.id }
     private val _state = MutableStateFlow(
         AiProviderRegistryState(
             providers = providers.map { it.descriptor.value }
@@ -85,6 +86,17 @@ class AiProviderRegistry(
                 requireTools = true
             )
         )
+    }
+
+    /** Replace runtime adapters after profile changes while keeping routing explicit. */
+    @Synchronized
+    fun replaceProviders(providers: List<AiModelProvider>) {
+        providerMap = providers.associateBy { it.descriptor.value.id }
+        refreshDescriptors()
+        val selected = _state.value.routingPolicy.selectedProviderId
+        if (selected != null && selected !in providerMap) {
+            updateRoutingPolicy(_state.value.routingPolicy.copy(selectedProviderId = null))
+        }
     }
 
     private fun decide(

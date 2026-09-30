@@ -278,7 +278,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Provedor de modelo</string>
-    <string name="ai_provider_subtitle">Configure um endpoint compatível com OpenAI para o chat do NexaFlow.</string>
+    <string name="ai_provider_subtitle">Adicione um provedor predefinido ou informe um endpoint compatível. As chaves API ficam criptografadas neste dispositivo.</string>
     <string name="ai_provider_enabled">Ativar provedor de modelo</string>
     <string name="ai_provider_name">Nome do provedor</string>
     <string name="ai_provider_endpoint">URL do endpoint</string>
@@ -313,4 +313,13 @@
     <string name="agent_lan_access_on">Ativado — os agentes emparelhados podem ligar-se a partir da sua rede privada</string>
     <string name="agent_lan_access_off">Desativado — apenas USB/loopback</string>
     <string name="agent_lan_access_description">O Android 17 exige permissão de rede local. A autenticação e a revogação continuam ativas.</string>
+    <string name="ai_provider_profiles">Perfis de provedores</string>
+    <string name="ai_provider_add_title">Adicionar provedor</string>
+    <string name="ai_provider_manual">Provedor manual</string>
+    <string name="ai_provider_add">Adicionar provedor</string>
+    <string name="ai_provider_verify">Verificar</string>
+    <string name="ai_provider_remove">Remover</string>
+    <string name="ai_provider_protocol_compatible">API compatível com OpenAI</string>
+    <string name="ai_provider_protocol_anthropic">API Anthropic Messages</string>
+    <string name="ai_provider_edit">Editar</string>
 </resources>

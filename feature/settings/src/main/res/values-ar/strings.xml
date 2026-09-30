@@ -276,7 +276,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">مزوّد النموذج</string>
-    <string name="ai_provider_subtitle">إعداد نقطة نهاية متوافقة مع OpenAI لدردشة NexaFlow.</string>
+    <string name="ai_provider_subtitle">أضف مزوداً جاهزاً أو أدخل نقطة نهاية متوافقة. تحفظ مفاتيح API مشفرة على هذا الجهاز.</string>
     <string name="ai_provider_enabled">تفعيل مزوّد النموذج</string>
     <string name="ai_provider_name">اسم المزوّد</string>
     <string name="ai_provider_endpoint">عنوان نقطة النهاية</string>
@@ -311,4 +311,13 @@
     <string name="agent_lan_access_on">مفعّل — يمكن للوكلاء المقترنين الاتصال من شبكتك الخاصة</string>
     <string name="agent_lan_access_off">متوقف — USB أو الاتصال المحلي فقط</string>
     <string name="agent_lan_access_description">يتطلب Android 17 إذن الشبكة المحلية. تبقى المصادقة وإلغاء الصلاحية مطبّقتين.</string>
+    <string name="ai_provider_profiles">ملفات المزوّدين</string>
+    <string name="ai_provider_add_title">إضافة مزوّد</string>
+    <string name="ai_provider_manual">إعداد يدوي</string>
+    <string name="ai_provider_add">إضافة المزوّد</string>
+    <string name="ai_provider_verify">تحقق</string>
+    <string name="ai_provider_remove">إزالة</string>
+    <string name="ai_provider_protocol_compatible">واجهة متوافقة مع OpenAI</string>
+    <string name="ai_provider_protocol_anthropic">واجهة Anthropic Messages</string>
+    <string name="ai_provider_edit">تعديل</string>
 </resources>

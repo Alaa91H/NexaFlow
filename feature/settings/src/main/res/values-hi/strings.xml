@@ -278,7 +278,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">मॉडल प्रदाता</string>
-    <string name="ai_provider_subtitle">NexaFlow चैट के लिए OpenAI-संगत एंडपॉइंट सेट करें।</string>
+    <string name="ai_provider_subtitle">तैयार प्रदाता जोड़ें या संगत API एंडपॉइंट दर्ज करें। API कुंजियाँ इस डिवाइस पर एन्क्रिप्टेड रहती हैं।</string>
     <string name="ai_provider_enabled">मॉडल प्रदाता चालू करें</string>
     <string name="ai_provider_name">प्रदाता का नाम</string>
     <string name="ai_provider_endpoint">एंडपॉइंट URL</string>
@@ -313,4 +313,13 @@
     <string name="agent_lan_access_on">चालू — पेयर किए गए एजेंट आपके निजी नेटवर्क से जुड़ सकते हैं</string>
     <string name="agent_lan_access_off">बंद — केवल USB/लूपबैक</string>
     <string name="agent_lan_access_description">Android 17 पर स्थानीय नेटवर्क की अनुमति आवश्यक है। प्रमाणीकरण और पहुँच रद्द करना लागू रहते हैं।</string>
+    <string name="ai_provider_profiles">प्रदाता प्रोफ़ाइल</string>
+    <string name="ai_provider_add_title">प्रदाता जोड़ें</string>
+    <string name="ai_provider_manual">मैन्युअल प्रदाता</string>
+    <string name="ai_provider_add">प्रदाता जोड़ें</string>
+    <string name="ai_provider_verify">जाँचें</string>
+    <string name="ai_provider_remove">हटाएँ</string>
+    <string name="ai_provider_protocol_compatible">OpenAI संगत API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic Messages API</string>
+    <string name="ai_provider_edit">संपादित करें</string>
 </resources>
