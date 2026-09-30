@@ -1,6 +1,7 @@
 package com.nexaflow.feature.builder
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,7 +66,9 @@ internal fun NodeConfiguratorSheet(
             content()
             Button(
                 onClick = onConfirm,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
                 enabled = confirmEnabled
             ) {
                 Text(confirmLabel)
