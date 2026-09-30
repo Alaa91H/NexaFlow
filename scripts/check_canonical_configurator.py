@@ -110,9 +110,8 @@ def main() -> int:
                     f"NodeConfiguratorStateTest.kt missing required test {case!r}"
                 )
 
-    # The previous gate stopped at the pure state machine and allowed T12 to be
-    # declared complete without any Compose host. Product closure requires the
-    # unified modal shell and both trigger/action discovery paths to use it.
+    # Configuration remains hosted in the shared sheet. Discovery itself is
+    # inline in the builder, with separate trigger and action category lists.
     if SHEET_FILE.is_file():
         sheet = SHEET_FILE.read_text(encoding="utf-8")
         for token in (
@@ -127,13 +126,8 @@ def main() -> int:
 
     if BUILDER_FILE.is_file():
         builder = BUILDER_FILE.read_text(encoding="utf-8")
-        if builder.count("NodeConfiguratorSheet(") < 2:
-            problems.append(
-                "AutomationBuilderScreen must route both trigger and action discovery "
-                "through NodeConfiguratorSheet"
-            )
-        if "showTriggerConfigurator" not in builder or "showActionConfigurator" not in builder:
-            problems.append("builder is missing modal configurator ownership state")
+        if builder.count("CategoryAccordion(") < 2:
+            problems.append("builder must show trigger and action discovery in separate category lists")
 
     if SCHEMA_EDITOR_FILE.is_file():
         editor = SCHEMA_EDITOR_FILE.read_text(encoding="utf-8")
@@ -161,20 +155,20 @@ def main() -> int:
         catalog = OPTION_CATALOG_FILE.read_text(encoding="utf-8")
         for token in (
             "enum class OptionTier",
-            "COMMON",
             "BROWSE",
             "ADVANCED",
-            "commonTriggerOrder",
-            "commonActionOrder",
             "tierFor",
         ):
             if token not in catalog:
-                problems.append(f"progressive disclosure catalog missing {token!r}")
+                problems.append(f"discovery catalog missing {token!r}")
+        for token in ("COMMON", "commonTriggerOrder", "commonActionOrder"):
+            if token in catalog:
+                problems.append(f"discovery catalog must not restore the common tier: {token!r}")
 
     if OPTION_CATALOG_TEST.is_file():
         option_tests = OPTION_CATALOG_TEST.read_text(encoding="utf-8")
         for case in (
-            "common discovery surface stays intentionally small",
+            "discovery tiers omit the common popular surface",
             "every legacy-compatible option has exactly one discovery tier",
             "high risk and raw automation surfaces are advanced",
         ):
@@ -186,14 +180,19 @@ def main() -> int:
         for token in (
             "CanonicalBuilderSchemaBridge.editingBindingForAction",
             "CanonicalSchemaFieldEditor(",
-            "AutomationOptionCatalog.commonTriggerOrder",
-            "AutomationOptionCatalog.commonActionOrder",
+            "triggerCategories",
+            "actionCategories",
+            "AutomationOptionCatalog.tierFor",
+            "OptionTier.BROWSE",
+            "OptionTier.ADVANCED",
             "showAdvancedTriggerOptions",
             "showAdvancedActionOptions",
-            "OptionTier.ADVANCED",
         ):
             if token not in builder:
-                problems.append(f"builder canonical product wiring missing {token!r}")
+                problems.append(f"builder discovery/schema wiring missing {token!r}")
+        for token in ("AutomationOptionCatalog.commonTriggerOrder", "AutomationOptionCatalog.commonActionOrder"):
+            if token in builder:
+                problems.append(f"builder must not use the removed common discovery tier: {token!r}")
         for state_name in ("expandedTriggerCategory", "expandedActionCategory"):
             if re.search(
                 rf"{state_name}\\s+by\\s+rememberSaveable\\s*\\{{\\s*"
@@ -211,9 +210,9 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_CONFIGURATOR: OK — unified product sheet, canonical schema "
-        "renderer/bridge, family-first discovery, bounded common surface and "
-        "explicit advanced disclosure are all wired and regression-gated"
+        "CANONICAL_CONFIGURATOR: OK — shared configuration sheet, canonical schema "
+        "renderer/bridge, separate inline trigger/action discovery, no common tier, "
+        "and explicit advanced disclosure are regression-gated"
     )
     return 0
 
