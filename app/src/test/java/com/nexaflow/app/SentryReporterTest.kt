@@ -8,6 +8,7 @@ import io.sentry.android.core.SentryAndroidOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -37,6 +38,7 @@ class SentryReporterTest {
     private lateinit var app: Application
     private lateinit var privacyPreferences: PrivacyPreferences
     private lateinit var reporter: SentryReporter
+    private lateinit var reporterScope: CoroutineScope
 
     private var initCalls = 0
     private var configuredDsn: String? = null
@@ -49,6 +51,7 @@ class SentryReporterTest {
         Sentry.close()
         app = ApplicationProvider.getApplicationContext()
         privacyPreferences = PrivacyPreferences(app)
+        reporterScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         reporter = SentryReporter(
             app = app,
             privacyPreferences = privacyPreferences,
@@ -56,7 +59,7 @@ class SentryReporterTest {
             // test collector unconfined prevents an unrelated saturated
             // Default dispatcher from turning the initialization assertion
             // into a 10-second scheduling timeout.
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+            scope = reporterScope
         )
         initCalls = 0
         configuredDsn = null
@@ -73,6 +76,10 @@ class SentryReporterTest {
         // Make sure the opt-in state and process-global SDK never leak into
         // another test's file or alter its initialization assertion.
         runBlocking { privacyPreferences.setCrashReportingEnabled(false) }
+        // attach() collects for the lifetime of its scope. Cancel each test's
+        // collector so it cannot observe another test's opt-in and initialize
+        // the process-global Sentry singleton behind that test's init seam.
+        reporterScope.cancel()
         Sentry.close()
     }
 
