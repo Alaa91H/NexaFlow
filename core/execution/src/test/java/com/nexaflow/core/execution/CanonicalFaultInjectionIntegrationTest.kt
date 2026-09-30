@@ -19,13 +19,13 @@ import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -190,27 +190,31 @@ class CanonicalFaultInjectionIntegrationTest {
             Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "test")),
         )
         val runId = "fault-cancel-run"
+        val stallEntered = CompletableDeferred<Unit>()
+        val stallGate = gate(
+            FaultInjectionController.FaultAction.STALL,
+            label = "process_interrupted",
+        )
         val engine = ExecutionEngine(
             context = context,
             historyRepository = NoopHistory(),
             notificationPreferences = NotificationPreferences(context),
             actionRegistry = ActionRegistry.from(listOf(handler)),
             activeExecutionStore = store,
-            faultInjectionGate = gate(
-                FaultInjectionController.FaultAction.STALL,
-                label = "process_interrupted",
-            ),
+            faultInjectionGate = CanonicalFaultInjectionGate { command ->
+                val decision = stallGate.decide(command)
+                if (decision is FaultInjectionController.Decision.Inject) {
+                    stallEntered.complete(Unit)
+                }
+                decision
+            },
         )
 
         try {
             val job = async {
                 engine.runAutomation(task, WorkflowRunContext(runId, task.id, 1L))
             }
-            withTimeout(2_000L) {
-                while (store.checkpoint(runId)?.status != DurableExecutionStatus.ACTION_STARTED) {
-                    yield()
-                }
-            }
+            withTimeout(5_000L) { stallEntered.await() }
             job.cancelAndJoin()
 
             assertEquals(0, handler.calls)
