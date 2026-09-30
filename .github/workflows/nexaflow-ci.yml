@@ -405,6 +405,10 @@ jobs:
         adb shell settings put global transition_animation_scale 0
         adb shell settings put global animator_duration_scale 0
         adb shell getprop ro.build.version.sdk
+    - name: Install app and grant WRITE_SETTINGS for instrumentation fixture
+      run: |
+        ./gradlew :app:installDebug --no-parallel --max-workers=2 --console=plain
+        adb shell appops set com.nexaflow.app WRITE_SETTINGS allow
     - name: Run connected app instrumentation tests
       run: ./gradlew :app:connectedDebugAndroidTest --no-parallel --max-workers=2 --console=plain
     - name: Capture emulator diagnostics

@@ -8,8 +8,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.engine.AirplaneModeMonitor
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.engine.MonitoringService
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.handler.ActionRegistry
@@ -117,25 +119,34 @@ class ImmediateConditionEvaluationAndroidTest {
     private fun harness(id: String): Harness {
         return runBlocking {
             val database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
-        val repository = AutomationRepositoryImpl(database.automationDao())
-        val history = HistoryRepositoryImpl(database.executionDao())
-        val executionEngine = ExecutionEngine(
-            context = context,
-            historyRepository = history,
-            notificationPreferences = NotificationPreferences(context),
-            actionRegistry = ActionRegistry.from(emptyList())
-        )
-        val store = ActiveTriggerStore(context)
-        val executionStore = ActiveExecutionStore(context)
-        executionStore.clear(id)
-        val scope = CoroutineScope(Dispatchers.Default)
-        val monitor = AirplaneModeMonitor(
-            context = context,
-            repository = repository,
-            executionEngine = executionEngine,
-            activeStore = store,
-            scope = scope
-        )
+            val repository = AutomationRepositoryImpl(database.automationDao())
+            val history = HistoryRepositoryImpl(database.executionDao())
+            val executionEngine = ExecutionEngine(
+                context = context,
+                historyRepository = history,
+                notificationPreferences = NotificationPreferences(context),
+                actionRegistry = ActionRegistry.from(emptyList())
+            )
+            val store = ActiveTriggerStore(context)
+            val executionStore = ActiveExecutionStore(context)
+            executionStore.clear(id)
+            val runtimeStore = AutomationRuntimeStore(context)
+            runtimeStore.clear(id)
+            val scope = CoroutineScope(Dispatchers.Default)
+            val monitor = AirplaneModeMonitor(
+                context = context,
+                repository = repository,
+                executionEngine = executionEngine,
+                activeStore = store,
+                runtimeStore = runtimeStore,
+                exitCoordinator = ExitCoordinator(
+                    runtimeStore = runtimeStore,
+                    executionEngine = executionEngine,
+                    automationRepository = repository,
+                    historyRepository = history
+                ),
+                scope = scope
+            )
             repository.saveAutomation(airplaneTask(id))
             Harness(monitor, repository, history, store, executionStore, database, scope).also {
                 currentHarness = it

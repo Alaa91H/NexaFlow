@@ -15,7 +15,7 @@ class FrameworkPermissionGatesTest {
             "BIND_NOTIFICATION_LISTENER_SERVICE", "INTERACT_ACROSS_USERS_FULL", "BIND_JOB_SERVICE",
             "DUMP", "BIND_QUICK_SETTINGS_TILE")) {
             val info = pm.getPermissionInfo("android.permission.$name", 0)
-            assertEquals(name, PermissionInfo.PROTECTION_SIGNATURE, info.protectionLevel and PermissionInfo.PROTECTION_MASK_BASE)
+            assertEquals(name, PermissionInfo.PROTECTION_SIGNATURE, info.protection)
         }
     }
 }
