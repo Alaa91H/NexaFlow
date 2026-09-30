@@ -279,7 +279,6 @@
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Провайдер модели</string>
     <string name="ai_provider_subtitle">Добавьте готового провайдера или укажите совместимую конечную точку API. Ключи API хранятся на устройстве в зашифрованном виде.</string>
-    <string name="ai_provider_enabled">Включить провайдер модели</string>
     <string name="ai_provider_name">Название провайдера</string>
     <string name="ai_provider_endpoint">Адрес конечной точки</string>
     <string name="ai_provider_endpoint_hint">Пример: http://192.168.1.20:11434/v1</string>
@@ -290,13 +289,10 @@
     <string name="ai_provider_api_key">Ключ API</string>
     <string name="ai_provider_api_key_hint">Оставьте пустым, чтобы сохранить текущий ключ</string>
     <string name="ai_provider_api_key_saved">Ключ API сохранён безопасно</string>
-    <string name="ai_provider_compatibility">Работает с Ollama, LM Studio, vLLM, llama.cpp и LocalAI при включённом OpenAI-совместимом API.</string>
     <string name="ai_provider_save">Сохранить провайдер</string>
-    <string name="ai_provider_test">Проверить модель</string>
     <string name="ai_provider_testing">Идёт проверка…</string>
     <string name="ai_provider_test_success">Модель готова</string>
     <string name="ai_provider_test_failed">Проверка модели не удалась</string>
-    <string name="ai_provider_clear_key">Удалить сохранённый ключ</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Маршрутизация моделей</string>
@@ -321,5 +317,4 @@
     <string name="ai_provider_remove">Удалить</string>
     <string name="ai_provider_protocol_compatible">API, совместимый с OpenAI</string>
     <string name="ai_provider_protocol_anthropic">API Anthropic Messages</string>
-    <string name="ai_provider_edit">Изменить</string>
 </resources>

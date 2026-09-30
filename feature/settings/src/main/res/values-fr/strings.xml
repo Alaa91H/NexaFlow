@@ -279,7 +279,6 @@
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Fournisseur de modèle</string>
     <string name="ai_provider_subtitle">Ajoutez un fournisseur ou saisissez un point de terminaison compatible. Les clés API restent chiffrées sur cet appareil.</string>
-    <string name="ai_provider_enabled">Activer le fournisseur de modèle</string>
     <string name="ai_provider_name">Nom du fournisseur</string>
     <string name="ai_provider_endpoint">URL du point de terminaison</string>
     <string name="ai_provider_endpoint_hint">Exemple : http://192.168.1.20:11434/v1</string>
@@ -290,13 +289,10 @@
     <string name="ai_provider_api_key">Clé API</string>
     <string name="ai_provider_api_key_hint">Laissez vide pour conserver la clé enregistrée</string>
     <string name="ai_provider_api_key_saved">Clé API stockée de manière sécurisée</string>
-    <string name="ai_provider_compatibility">Fonctionne avec Ollama, LM Studio, vLLM, llama.cpp et LocalAI lorsque leur API compatible OpenAI est activée.</string>
     <string name="ai_provider_save">Enregistrer le fournisseur</string>
-    <string name="ai_provider_test">Tester le modèle</string>
     <string name="ai_provider_testing">Test en cours…</string>
     <string name="ai_provider_test_success">Le modèle est prêt</string>
     <string name="ai_provider_test_failed">Échec du test du modèle</string>
-    <string name="ai_provider_clear_key">Supprimer la clé enregistrée</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Routage des modèles</string>
@@ -321,5 +317,4 @@
     <string name="ai_provider_remove">Supprimer</string>
     <string name="ai_provider_protocol_compatible">API compatible OpenAI</string>
     <string name="ai_provider_protocol_anthropic">API Anthropic Messages</string>
-    <string name="ai_provider_edit">Modifier</string>
 </resources>

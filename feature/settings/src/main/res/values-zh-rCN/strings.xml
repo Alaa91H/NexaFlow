@@ -279,7 +279,6 @@
     <!-- Local AI model provider -->
     <string name="ai_provider_title">模型提供方</string>
     <string name="ai_provider_subtitle">添加预设服务商或输入兼容的 API 端点。API 密钥会在此设备上加密保存。</string>
-    <string name="ai_provider_enabled">启用模型提供方</string>
     <string name="ai_provider_name">提供方名称</string>
     <string name="ai_provider_endpoint">端点地址</string>
     <string name="ai_provider_endpoint_hint">示例：http://192.168.1.20:11434/v1</string>
@@ -290,13 +289,10 @@
     <string name="ai_provider_api_key">API 密钥</string>
     <string name="ai_provider_api_key_hint">留空可保留已存储的密钥</string>
     <string name="ai_provider_api_key_saved">API 密钥已安全存储</string>
-    <string name="ai_provider_compatibility">启用 OpenAI 兼容 API 后，可与 Ollama、LM Studio、vLLM、llama.cpp 和 LocalAI 配合使用。</string>
     <string name="ai_provider_save">保存提供方</string>
-    <string name="ai_provider_test">测试模型</string>
     <string name="ai_provider_testing">正在测试…</string>
     <string name="ai_provider_test_success">模型已就绪</string>
     <string name="ai_provider_test_failed">模型测试失败</string>
-    <string name="ai_provider_clear_key">删除已存储的密钥</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">模型路由</string>
@@ -321,5 +317,4 @@
     <string name="ai_provider_remove">移除</string>
     <string name="ai_provider_protocol_compatible">OpenAI兼容接口</string>
     <string name="ai_provider_protocol_anthropic">Anthropic Messages接口</string>
-    <string name="ai_provider_edit">编辑</string>
 </resources>

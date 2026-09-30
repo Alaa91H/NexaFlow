@@ -276,7 +276,6 @@
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Model provider</string>
     <string name="ai_provider_subtitle">Add a preset provider or enter a compatible API endpoint. API keys stay encrypted on this device.</string>
-    <string name="ai_provider_enabled">Enable model provider</string>
     <string name="ai_provider_name">Provider name</string>
     <string name="ai_provider_endpoint">Endpoint URL</string>
     <string name="ai_provider_endpoint_hint">Example: http://192.168.1.20:11434/v1</string>
@@ -287,13 +286,10 @@
     <string name="ai_provider_api_key">API key</string>
     <string name="ai_provider_api_key_hint">Leave blank to keep the stored key</string>
     <string name="ai_provider_api_key_saved">API key stored securely</string>
-    <string name="ai_provider_compatibility">Works with Ollama, LM Studio, vLLM, llama.cpp and LocalAI when their OpenAI-compatible API is enabled.</string>
     <string name="ai_provider_save">Save provider</string>
-    <string name="ai_provider_test">Test model</string>
     <string name="ai_provider_testing">Testing…</string>
     <string name="ai_provider_test_success">Model is ready</string>
     <string name="ai_provider_test_failed">Model test failed</string>
-    <string name="ai_provider_clear_key">Remove stored key</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Model routing</string>
@@ -318,5 +314,4 @@
     <string name="ai_provider_remove">Remove</string>
     <string name="ai_provider_protocol_compatible">OpenAI-compatible API</string>
     <string name="ai_provider_protocol_anthropic">Anthropic Messages API</string>
-    <string name="ai_provider_edit">Edit</string>
 </resources>
