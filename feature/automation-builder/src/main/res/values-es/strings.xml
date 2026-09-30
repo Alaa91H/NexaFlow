@@ -1272,7 +1272,6 @@
     <string name="sensor_invalid_range">El límite superior debe ser mayor o igual que el inferior.</string>
     <string name="trigger_wear_event">Reloj Wear OS</string>
     <string name="trigger_wear_event_sub">Ejecutar la tarea cuando un reloj NexaFlow esté conectado o desconectado</string>
-    <string name="option_tier_common">Frecuentes</string>
     <string name="option_tier_advanced">Avanzado</string>
     <string name="option_tier_all">Todas las opciones</string>
 </resources>

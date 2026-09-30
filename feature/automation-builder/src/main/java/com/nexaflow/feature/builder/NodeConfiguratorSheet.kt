@@ -76,3 +76,46 @@ internal fun NodeConfiguratorSheet(
         }
     }
 }
+
+/** Inline catalog shell for the builder's trigger and execution sections. */
+@Composable
+internal fun NodeConfiguratorPanel(
+    title: String,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    selectedCount: Int,
+    confirmLabel: String,
+    confirmEnabled: Boolean,
+    onConfirm: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+    ) {
+        Text(text = title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text(stringResource(R.string.search)) }
+        )
+        Text(
+            text = stringResource(R.string.selected_count, selectedCount),
+            style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+        )
+        content()
+        Button(
+            onClick = onConfirm,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+            enabled = confirmEnabled
+        ) {
+            Text(confirmLabel)
+        }
+    }
+}

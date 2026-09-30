@@ -1272,7 +1272,6 @@
     <string name="sensor_invalid_range">Üst sınır alt sınırdan büyük veya eşit olmalıdır.</string>
     <string name="trigger_wear_event">Wear OS saati</string>
     <string name="trigger_wear_event_sub">Bir NexaFlow saati bağlandığında veya bağlantısı kesildiğinde görevi çalıştır</string>
-    <string name="option_tier_common">Yaygın</string>
     <string name="option_tier_advanced">Gelişmiş</string>
     <string name="option_tier_all">Tüm seçenekler</string>
 </resources>

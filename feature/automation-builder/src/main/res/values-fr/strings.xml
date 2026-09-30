@@ -1272,7 +1272,6 @@
     <string name="sensor_invalid_range">La borne supérieure doit être supérieure ou égale à la borne inférieure.</string>
     <string name="trigger_wear_event">Montre Wear OS</string>
     <string name="trigger_wear_event_sub">Exécuter la tâche lorsqu’une montre NexaFlow est connectée ou déconnectée</string>
-    <string name="option_tier_common">Courants</string>
     <string name="option_tier_advanced">Avancé</string>
     <string name="option_tier_all">Toutes les options</string>
 </resources>

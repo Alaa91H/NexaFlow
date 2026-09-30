@@ -1007,12 +1007,10 @@ fun AutomationBuilderScreen(
     // Family-first discovery: opening a configurator shows the small family
     // surface only. Concrete legacy-compatible options are revealed only
     // after the user chooses a family (or types a search query).
-    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
-    var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(null) }
+    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(0) }
+    var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(0) }
     var triggerSearchQuery by rememberSaveable { mutableStateOf("") }
     var actionSearchQuery by rememberSaveable { mutableStateOf("") }
-    var showTriggerConfigurator by rememberSaveable { mutableStateOf(false) }
-    var showActionConfigurator by rememberSaveable { mutableStateOf(false) }
     var showAdvancedTriggerOptions by rememberSaveable { mutableStateOf(false) }
     var showAdvancedActionOptions by rememberSaveable { mutableStateOf(false) }
     // Fixed multi-select catalogues. A choice is only materialised as a card
@@ -1780,24 +1778,7 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(text = stringResource(R.string.section_when))
-                    Button(
-                        onClick = {
-                            selectedTriggerTypes.clear()
-                            triggerSearchQuery = ""
-                            expandedTriggerCategory = null
-                            showAdvancedTriggerOptions = false
-                            showTriggerConfigurator = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                        Text(
-                            text = stringResource(R.string.add_trigger),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-                    if (showTriggerConfigurator) {
-                        NodeConfiguratorSheet(
+                        NodeConfiguratorPanel(
                             title = stringResource(R.string.section_when),
                             searchQuery = triggerSearchQuery,
                             onSearchQueryChange = { triggerSearchQuery = it },
@@ -1810,11 +1791,6 @@ fun AutomationBuilderScreen(
                                 }
                                 expandedTriggerIndex = triggers.lastIndex.takeIf { it >= 0 }
                                 selectedTriggerTypes.clear()
-                                showTriggerConfigurator = false
-                            },
-                            onDismiss = {
-                                selectedTriggerTypes.clear()
-                                showTriggerConfigurator = false
                             }
                         ) {
                             val visibleTriggers = if (triggerSearchQuery.isBlank()) {
@@ -1848,35 +1824,6 @@ fun AutomationBuilderScreen(
                                     }
                                 }
                             } else {
-                                val commonTriggers = AutomationOptionCatalog.commonTriggerOrder
-                                    .filter { it in visibleTriggers }
-                                if (commonTriggers.isNotEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.option_tier_common),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        commonTriggers.forEachIndexed { optionIndex, type ->
-                                            TriggerOptionRow(
-                                                type = type,
-                                                checked = type in selectedTriggerTypes,
-                                                alternatingIndex = optionIndex,
-                                                availability = triggerAvailabilityByType[type]
-                                                    ?: BuilderOptionAvailability.READY,
-                                                onBlockedClick = { requestGrantForTrigger(type) },
-                                                onSelect = {
-                                                    if (type in selectedTriggerTypes) {
-                                                        selectedTriggerTypes.remove(type)
-                                                    } else {
-                                                        selectedTriggerTypes.add(type)
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
                                 Text(
                                     text = stringResource(R.string.option_tier_all),
                                     style = MaterialTheme.typography.titleSmall,
@@ -1894,7 +1841,7 @@ fun AutomationBuilderScreen(
                                         visibleTriggers
                                             .filter {
                                                 triggerCategoryOf[it] == category &&
-                                                    AutomationOptionCatalog.tierFor(it) != OptionTier.ADVANCED
+                                                    AutomationOptionCatalog.tierFor(it) == OptionTier.BROWSE
                                             }
                                             .forEachIndexed { optionIndex, type ->
                                                 TriggerOptionRow(
@@ -1953,7 +1900,6 @@ fun AutomationBuilderScreen(
                                 }
                             }
                         }
-                    }
                     triggers.forEachIndexed { index, draft ->
                 val triggerDragging = triggerDrag.draggedIndex == index
                 TriggerEditorCard(
@@ -2019,24 +1965,7 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
                             SectionHeader(text = stringResource(R.string.section_actions))
-                        Button(
-                            onClick = {
-                                selectedActionTypes.clear()
-                                actionSearchQuery = ""
-                                expandedActionCategory = null
-                                showAdvancedActionOptions = false
-                                showActionConfigurator = true
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                            Text(
-                                text = stringResource(R.string.add_action),
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                        if (showActionConfigurator) {
-                            NodeConfiguratorSheet(
+                            NodeConfiguratorPanel(
                                 title = stringResource(R.string.section_actions),
                                 searchQuery = actionSearchQuery,
                                 onSearchQueryChange = { actionSearchQuery = it },
@@ -2051,11 +1980,6 @@ fun AutomationBuilderScreen(
                                     }
                                     expandedActionCardId = actionDrafts.lastOrNull()?.id
                                     selectedActionTypes.clear()
-                                    showActionConfigurator = false
-                                },
-                                onDismiss = {
-                                    selectedActionTypes.clear()
-                                    showActionConfigurator = false
                                 }
                             ) {
                                 val visibleActions = if (actionSearchQuery.isBlank()) {
@@ -2089,37 +2013,6 @@ fun AutomationBuilderScreen(
                                         }
                                     }
                                 } else {
-                                    val commonActions = AutomationOptionCatalog.commonActionOrder
-                                        .mapNotNull { type ->
-                                            visibleActions.firstOrNull { it.actionType == type }
-                                        }
-                                    if (commonActions.isNotEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.option_tier_common),
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
-                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                            commonActions.forEachIndexed { optionIndex, option ->
-                                                ActionOptionRow(
-                                                    option = option,
-                                                    checked = option.actionType in selectedActionTypes,
-                                                    alternatingIndex = optionIndex,
-                                                    availability = actionAvailabilityByType[option.actionType]
-                                                        ?: BuilderOptionAvailability.READY,
-                                                    onBlockedClick = { requestGrantForAction(option.actionType) },
-                                                    onToggle = {
-                                                        if (option.actionType in selectedActionTypes) {
-                                                            selectedActionTypes.remove(option.actionType)
-                                                        } else {
-                                                            selectedActionTypes.add(option.actionType)
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
-
                                     Text(
                                         text = stringResource(R.string.option_tier_all),
                                         style = MaterialTheme.typography.titleSmall,
@@ -2136,8 +2029,8 @@ fun AutomationBuilderScreen(
                                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             optionsForActionCategory(category, visibleActions)
                                                 .filter {
-                                                    AutomationOptionCatalog.tierFor(it.actionType) !=
-                                                        OptionTier.ADVANCED
+                                                    AutomationOptionCatalog.tierFor(it.actionType) ==
+                                                        OptionTier.BROWSE
                                                 }
                                                 .forEachIndexed { optionIndex, option ->
                                                     ActionOptionRow(
@@ -2197,7 +2090,6 @@ fun AutomationBuilderScreen(
                                     }
                                 }
                             }
-                        }
                         actionDrafts.forEachIndexed { index, draft ->
                             key(draft.id) {
                                 val actionDragging = actionDrag.draggedIndex == index
