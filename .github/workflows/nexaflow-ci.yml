@@ -373,8 +373,16 @@ jobs:
       run: |
         set -euo pipefail
         nohup emulator           -avd nexaflow-ci-api35           -no-window           -noaudio           -no-boot-anim           -no-snapshot           -gpu swiftshader_indirect           -camera-back none           -camera-front none           > "$RUNNER_TEMP/nexaflow-emulator.log" 2>&1 &
-        adb wait-for-device
         deadline=$((SECONDS + 300))
+        until timeout 10s adb wait-for-device; do
+          if [ "$SECONDS" -ge "$deadline" ]; then
+            echo "::error::Android emulator did not connect to ADB within 5 minutes."
+            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
+            adb devices -l || true
+            exit 1
+          fi
+          sleep 2
+        done
         until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
           if [ "$SECONDS" -ge "$deadline" ]; then
             echo "::error::Android emulator did not finish booting within 5 minutes."
