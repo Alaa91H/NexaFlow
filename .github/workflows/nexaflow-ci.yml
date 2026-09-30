@@ -362,9 +362,13 @@ jobs:
       shell: bash
       run: |
         set -euo pipefail
-        sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:?ANDROID_HOME must be set by setup-android}}"
+        sdkmanager_path="$(readlink -f "$(command -v sdkmanager)")"
+        sdk_root="$(dirname "$(dirname "$(dirname "$(dirname "$sdkmanager_path")")")")"
+        echo "Android SDK root resolved from sdkmanager: $sdk_root"
         echo "$sdk_root/emulator" >> "$GITHUB_PATH"
         export PATH="$sdk_root/emulator:$PATH"
+        sudo apt-get update
+        sudo apt-get install --yes libpulse0
         if [ -e /dev/kvm ]; then
           sudo chmod 666 /dev/kvm
         fi
