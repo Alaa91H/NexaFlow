@@ -1,5 +1,55 @@
 # Changelog
 
+## [Unreleased]
+
+## [v3.91.1] - 2026-09-30
+
+### Added — Extensible AI provider profiles
+
+- Added ready-to-configure profiles for OpenAI, Anthropic Claude, Google Gemini,
+  and OpenCode Zen, with provider-specific endpoints, protocols, and default
+  models supplied by the provider catalog.
+- Added manually configured OpenAI-compatible and Anthropic Messages profiles,
+  backed by a protocol adapter registry so additional providers can be added
+  without coupling provider details to the settings screen.
+- Added per-profile connection verification with clear in-progress, success,
+  and failure states. Verification uses the selected provider's configured
+  endpoint and does not expose API keys in UI state or error messages.
+- Moved provider credentials into secure storage while keeping profile metadata
+  separate, and added migration from the existing single-provider settings.
+  Adding a profile does not silently select it or enable cloud fallback.
+
+### Improved — Automation discovery and configuration
+
+- Restored directly visible trigger and execution discovery in their separate
+  builder sections, with independent search and categorized catalogs.
+- Removed the redundant Common/Popular tier while preserving the full trigger
+  and execution catalogs, capability availability, selection, and configuration
+  flows.
+- Replaced raw cellular framework enum labels with readable network-generation
+  choices, including 2G, 3G, 4G, 5G, and automatic selection.
+- Updated the canonical configurator CI contract to cover the inline discovery
+  design and retain schema-driven configuration checks.
+
+### Fixed — Provider setup and release quality gates
+
+- Corrected localized provider protocol labels and resource issues found during
+  CI review.
+- Repaired the canonical configurator gate after the builder discovery change,
+  so CI checks the current product flow rather than requiring the retired
+  Common tier and modal picker.
+- Stabilized Android emulator integration setup and lifecycle test fixtures,
+  including bounded ADB startup diagnostics and secure settings initialization.
+
+### Compatibility and security
+
+- Existing single-provider settings migrate into a provider profile without
+  moving API-key material into DataStore.
+- Provider selection remains explicit, cloud fallback remains independently
+  controlled, and existing automation trigger/action identities are preserved.
+- Release validation is tied to the exact tagged commit. Android emulator and
+  JVM results do not claim physical-device certification.
+
 ## [v3.91.0] - 2026-09-29
 
 ### Added — Canonical automation platform becomes the single runtime path
@@ -51,8 +101,6 @@
 - The legacy surface remains frozen at 57 triggers + 176 actions = 233 node
   kinds; no database schema migration is introduced; existing V1/V2/V3
   automations remain readable and executable.
-
-## [Unreleased]
 
 ## [v3.90.0] - 2026-09-26
 
