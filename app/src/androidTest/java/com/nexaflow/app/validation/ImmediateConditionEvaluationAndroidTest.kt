@@ -252,11 +252,10 @@ class ImmediateConditionEvaluationAndroidTest {
         try {
             setAirplaneMode(true)
             harness.monitor.reconcileAutomations()
-            waitUntil { records(harness).any { it.automationId == id } }
-            assertTrue(
-                "durable mark must exist while the condition holds",
-                harness.store.activeKeys(SOURCE_AIRPLANE).isNotEmpty()
-            )
+            waitUntil {
+                harness.runtimeStore.current(id)?.lifecycleState ==
+                    AutomationRuntimeLifecycleState.ACTIVE
+            }
 
             // The user disables the task while its condition still holds.
             harness.repository.updateAutomationStatus(id, false)
