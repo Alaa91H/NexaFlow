@@ -362,12 +362,17 @@ jobs:
       shell: bash
       run: |
         set -euo pipefail
+        sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:?ANDROID_HOME must be set by setup-android}}"
+        echo "$sdk_root/emulator" >> "$GITHUB_PATH"
+        export PATH="$sdk_root/emulator:$PATH"
         if [ -e /dev/kvm ]; then
           sudo chmod 666 /dev/kvm
         fi
         yes | sdkmanager --licenses >/dev/null || true
         sdkmanager           "platform-tools"           "emulator"           "system-images;android-35;google_apis;x86_64"
         echo "no" | avdmanager create avd           --force           --name nexaflow-ci-api35           --package "system-images;android-35;google_apis;x86_64"           --device "pixel_6"
+        command -v emulator
+        emulator -version
     - name: Boot emulator
       shell: bash
       run: |
