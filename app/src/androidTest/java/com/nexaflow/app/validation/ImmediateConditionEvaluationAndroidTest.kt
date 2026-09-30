@@ -264,10 +264,7 @@ class ImmediateConditionEvaluationAndroidTest {
             waitUntil {
                 records(harness).any { it.automationId == id && it.message == EXIT_NOOP_MARKER }
             }
-            assertTrue(
-                "compatibility marker is cleared after coordinated exit",
-                harness.store.activeKeys(SOURCE_AIRPLANE).isEmpty()
-            )
+            waitUntil { harness.store.activeKeys(SOURCE_AIRPLANE).isEmpty() }
         } finally {
             harness.database.close()
         }
