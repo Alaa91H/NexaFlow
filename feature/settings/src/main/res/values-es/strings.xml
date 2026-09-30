@@ -276,8 +276,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Proveedor de modelo</string>
-    <string name="ai_provider_subtitle">Configura un endpoint compatible con OpenAI para el chat de NexaFlow.</string>
-    <string name="ai_provider_enabled">Activar proveedor de modelo</string>
+    <string name="ai_provider_subtitle">Añade un proveedor o introduce un endpoint compatible. Las claves API permanecen cifradas en este dispositivo.</string>
     <string name="ai_provider_name">Nombre del proveedor</string>
     <string name="ai_provider_endpoint">URL del endpoint</string>
     <string name="ai_provider_endpoint_hint">Ejemplo: http://192.168.1.20:11434/v1</string>
@@ -288,13 +287,10 @@
     <string name="ai_provider_api_key">Clave de API</string>
     <string name="ai_provider_api_key_hint">Déjalo vacío para conservar la clave guardada</string>
     <string name="ai_provider_api_key_saved">Clave de API guardada de forma segura</string>
-    <string name="ai_provider_compatibility">Funciona con Ollama, LM Studio, vLLM, llama.cpp y LocalAI cuando su API compatible con OpenAI está activada.</string>
     <string name="ai_provider_save">Guardar proveedor</string>
-    <string name="ai_provider_test">Probar modelo</string>
     <string name="ai_provider_testing">Probando…</string>
     <string name="ai_provider_test_success">El modelo está listo</string>
     <string name="ai_provider_test_failed">Falló la prueba del modelo</string>
-    <string name="ai_provider_clear_key">Eliminar clave guardada</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Enrutamiento de modelos</string>
@@ -311,4 +307,12 @@
     <string name="agent_lan_access_on">Activado — los agentes emparejados pueden conectarse desde tu red privada</string>
     <string name="agent_lan_access_off">Desactivado — solo USB/bucle local</string>
     <string name="agent_lan_access_description">Android 17 requiere permiso de red local. La autenticación y la revocación siguen aplicándose.</string>
+    <string name="ai_provider_profiles">Perfiles de proveedores</string>
+    <string name="ai_provider_add_title">Añadir proveedor</string>
+    <string name="ai_provider_manual">Proveedor manual</string>
+    <string name="ai_provider_add">Añadir proveedor</string>
+    <string name="ai_provider_verify">Verificar</string>
+    <string name="ai_provider_remove">Quitar</string>
+    <string name="ai_provider_protocol_compatible">API compatible con OpenAI</string>
+    <string name="ai_provider_protocol_anthropic">API Anthropic Messages</string>
 </resources>

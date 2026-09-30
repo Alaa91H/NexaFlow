@@ -278,8 +278,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">モデルプロバイダー</string>
-    <string name="ai_provider_subtitle">NexaFlow チャット用の OpenAI 互換エンドポイントを設定します。</string>
-    <string name="ai_provider_enabled">モデルプロバイダーを有効化</string>
+    <string name="ai_provider_subtitle">プリセットプロバイダーを追加するか、互換性のあるAPIエンドポイントを入力します。APIキーはこの端末で暗号化して保存されます。</string>
     <string name="ai_provider_name">プロバイダー名</string>
     <string name="ai_provider_endpoint">エンドポイント URL</string>
     <string name="ai_provider_endpoint_hint">例: http://192.168.1.20:11434/v1</string>
@@ -290,13 +289,10 @@
     <string name="ai_provider_api_key">API キー</string>
     <string name="ai_provider_api_key_hint">保存済みキーを維持する場合は空欄にします</string>
     <string name="ai_provider_api_key_saved">API キーは安全に保存されています</string>
-    <string name="ai_provider_compatibility">OpenAI 互換 API を有効にした Ollama、LM Studio、vLLM、llama.cpp、LocalAI で利用できます。</string>
     <string name="ai_provider_save">プロバイダーを保存</string>
-    <string name="ai_provider_test">モデルをテスト</string>
     <string name="ai_provider_testing">テスト中…</string>
     <string name="ai_provider_test_success">モデルは利用可能です</string>
     <string name="ai_provider_test_failed">モデルのテストに失敗しました</string>
-    <string name="ai_provider_clear_key">保存済みキーを削除</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">モデルルーティング</string>
@@ -313,4 +309,12 @@
     <string name="agent_lan_access_on">有効 — ペアリング済みエージェントがプライベートネットワークから接続できます</string>
     <string name="agent_lan_access_off">無効 — USB/ループバックのみ</string>
     <string name="agent_lan_access_description">Android 17 ではローカルネットワーク権限が必要です。認証とアクセス取り消しは引き続き適用されます。</string>
+    <string name="ai_provider_profiles">プロバイダープロファイル</string>
+    <string name="ai_provider_add_title">プロバイダーを追加</string>
+    <string name="ai_provider_manual">手動プロバイダー</string>
+    <string name="ai_provider_add">プロバイダーを追加</string>
+    <string name="ai_provider_verify">確認</string>
+    <string name="ai_provider_remove">削除</string>
+    <string name="ai_provider_protocol_compatible">OpenAI互換API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic メッセージ API</string>
 </resources>

@@ -276,8 +276,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Modellanbieter</string>
-    <string name="ai_provider_subtitle">Einen OpenAI-kompatiblen Endpunkt für den NexaFlow-Chat einrichten.</string>
-    <string name="ai_provider_enabled">Modellanbieter aktivieren</string>
+    <string name="ai_provider_subtitle">Fügen Sie einen Anbieter hinzu oder geben Sie einen kompatiblen API-Endpunkt ein. API-Schlüssel bleiben verschlüsselt auf diesem Gerät.</string>
     <string name="ai_provider_name">Anbietername</string>
     <string name="ai_provider_endpoint">Endpunkt-URL</string>
     <string name="ai_provider_endpoint_hint">Beispiel: http://192.168.1.20:11434/v1</string>
@@ -288,13 +287,10 @@
     <string name="ai_provider_api_key">API-Schlüssel</string>
     <string name="ai_provider_api_key_hint">Leer lassen, um den gespeicherten Schlüssel beizubehalten</string>
     <string name="ai_provider_api_key_saved">API-Schlüssel sicher gespeichert</string>
-    <string name="ai_provider_compatibility">Funktioniert mit Ollama, LM Studio, vLLM, llama.cpp und LocalAI, wenn deren OpenAI-kompatible API aktiviert ist.</string>
     <string name="ai_provider_save">Anbieter speichern</string>
-    <string name="ai_provider_test">Modell testen</string>
     <string name="ai_provider_testing">Test läuft…</string>
     <string name="ai_provider_test_success">Modell ist bereit</string>
     <string name="ai_provider_test_failed">Modelltest fehlgeschlagen</string>
-    <string name="ai_provider_clear_key">Gespeicherten Schlüssel entfernen</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Modellrouting</string>
@@ -311,4 +307,12 @@
     <string name="agent_lan_access_on">Aktiv — gekoppelte Agenten können aus deinem privaten Netzwerk verbinden</string>
     <string name="agent_lan_access_off">Aus — nur USB/Loopback</string>
     <string name="agent_lan_access_description">Android 17 benötigt die Berechtigung für das lokale Netzwerk. Authentifizierung und Widerruf bleiben aktiv.</string>
+    <string name="ai_provider_profiles">Anbieterprofile</string>
+    <string name="ai_provider_add_title">Anbieter hinzufügen</string>
+    <string name="ai_provider_manual">Manueller Anbieter</string>
+    <string name="ai_provider_add">Anbieter hinzufügen</string>
+    <string name="ai_provider_verify">Prüfen</string>
+    <string name="ai_provider_remove">Entfernen</string>
+    <string name="ai_provider_protocol_compatible">OpenAI-kompatible API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic-Nachrichten-API</string>
 </resources>

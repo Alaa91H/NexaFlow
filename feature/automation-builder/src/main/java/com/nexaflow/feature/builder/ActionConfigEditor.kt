@@ -203,9 +203,9 @@ internal fun NetworkModeSelector(
                                     )
                                 },
                                 label = if (option.isAutomatic) {
-                                    "${stringResource(R.string.network_mode_auto)}: ${option.label}"
+                                    "${stringResource(R.string.network_mode_auto)}: ${NetworkModePolicy.displayLabel(option)}"
                                 } else {
-                                    option.label
+                                    NetworkModePolicy.displayLabel(option)
                                 }
                             )
                         }

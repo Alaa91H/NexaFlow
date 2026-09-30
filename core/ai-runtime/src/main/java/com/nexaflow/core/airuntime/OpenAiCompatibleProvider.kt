@@ -23,6 +23,7 @@ import kotlinx.serialization.json.putJsonObject
 
 data class OpenAiCompatibleProviderConfig(
     val enabled: Boolean = false,
+    val providerId: String = OpenAiCompatibleProvider.PROVIDER_ID,
     val displayName: String = "OpenAI-compatible",
     val baseUrl: String = "",
     val modelId: String = "",
@@ -691,6 +692,7 @@ class OpenAiCompatibleProvider(
     }
 
     private fun OpenAiCompatibleProviderConfig.normalized() = copy(
+        providerId = providerId.trim().takeIf(String::isNotBlank) ?: PROVIDER_ID,
         displayName = displayName.trim().ifBlank { "OpenAI-compatible" },
         baseUrl = baseUrl.trim().trimEnd('/'),
         modelId = modelId.trim()
@@ -705,7 +707,7 @@ class OpenAiCompatibleProvider(
             local = value.local
         )
     ) = AiProviderDescriptor(
-            id = PROVIDER_ID,
+            id = value.providerId,
             displayName = value.displayName.ifBlank { "OpenAI-compatible" },
             modelId = value.modelId.takeIf(String::isNotBlank),
             capabilities = capabilities,

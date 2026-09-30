@@ -89,6 +89,24 @@ class AiProviderRoutingTest {
         assertEquals("z-tools", registry.routeProvider(true)?.descriptor?.value?.id)
     }
 
+    @Test
+    fun registryCanReplaceAdaptersForStoredProviderProfiles() {
+        val registry = AiProviderRegistry()
+        val cloud = FakeProvider("claude-main", local = false, available = true)
+
+        registry.replaceProviders(listOf(cloud))
+        registry.updateRoutingPolicy(
+            AiRoutingPolicy(
+                mode = AiRoutingMode.SELECTED_PROVIDER,
+                selectedProviderId = "claude-main"
+            )
+        )
+
+        assertEquals("claude-main", registry.routeProvider(true)?.descriptor?.value?.id)
+        registry.replaceProviders(emptyList())
+        assertNull(registry.routeProvider(true))
+    }
+
     private class FakeProvider(
         id: String,
         local: Boolean,

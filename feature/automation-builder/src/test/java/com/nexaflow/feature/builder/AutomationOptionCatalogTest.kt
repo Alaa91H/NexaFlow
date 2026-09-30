@@ -11,17 +11,8 @@ import org.junit.Test
 class AutomationOptionCatalogTest {
 
     @Test
-    fun `common discovery surface stays intentionally small`() {
-        assertTrue(AutomationOptionCatalog.commonTriggerOrder.size in 6..8)
-        assertTrue(AutomationOptionCatalog.commonActionOrder.size in 6..8)
-        assertEquals(
-            AutomationOptionCatalog.commonTriggerOrder.distinct().size,
-            AutomationOptionCatalog.commonTriggerOrder.size,
-        )
-        assertEquals(
-            AutomationOptionCatalog.commonActionOrder.distinct().size,
-            AutomationOptionCatalog.commonActionOrder.size,
-        )
+    fun `discovery tiers omit the common popular surface`() {
+        assertEquals(listOf(OptionTier.BROWSE, OptionTier.ADVANCED), OptionTier.entries)
     }
 
     @Test
@@ -32,16 +23,6 @@ class AutomationOptionCatalogTest {
         ActionType.entries.forEach { type ->
             assertTrue(AutomationOptionCatalog.tierFor(type) in OptionTier.entries)
         }
-        assertTrue(
-            AutomationOptionCatalog.commonTriggerOrder.all {
-                AutomationOptionCatalog.tierFor(it) == OptionTier.COMMON
-            },
-        )
-        assertTrue(
-            AutomationOptionCatalog.commonActionOrder.all {
-                AutomationOptionCatalog.tierFor(it) == OptionTier.COMMON
-            },
-        )
     }
 
     @Test

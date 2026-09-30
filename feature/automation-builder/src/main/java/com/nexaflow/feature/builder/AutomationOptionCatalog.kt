@@ -7,37 +7,15 @@ import com.nexaflow.domain.models.TriggerType
  * Progressive-disclosure metadata for product discovery.
  *
  * Compatibility remains owned by CompatibilityGate. This catalog only decides
- * how an already-compatible option is presented: a short everyday surface,
- * the normal family browser, or the explicit advanced surface.
+ * how an already-compatible option is presented: the normal family browser
+ * or the explicit advanced surface.
  */
 internal enum class OptionTier {
-    COMMON,
     BROWSE,
     ADVANCED,
 }
 
 internal object AutomationOptionCatalog {
-
-    internal val commonTriggerOrder: List<TriggerType> = listOf(
-        TriggerType.TIME,
-        TriggerType.BATTERY,
-        TriggerType.CHARGER,
-        TriggerType.WIFI_CONNECTED,
-        TriggerType.BLUETOOTH_DEVICE,
-        TriggerType.APPLICATION,
-        TriggerType.LOCATION,
-    )
-
-    internal val commonActionOrder: List<ActionType> = listOf(
-        ActionType.SYSTEM_DND,
-        ActionType.SYSTEM_WIFI,
-        ActionType.SYSTEM_BLUETOOTH,
-        ActionType.SYSTEM_VOLUME,
-        ActionType.SYSTEM_BRIGHTNESS,
-        ActionType.SYSTEM_OPEN_APP,
-        ActionType.SYSTEM_POWER_SAVER,
-        ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
-    )
 
     private val advancedTriggers: Set<TriggerType> = setOf(
         TriggerType.WEBHOOK,
@@ -89,17 +67,11 @@ internal object AutomationOptionCatalog {
         )
     }
 
-    fun tierFor(type: TriggerType): OptionTier = when {
-        type in commonTriggerOrder -> OptionTier.COMMON
-        type in advancedTriggers -> OptionTier.ADVANCED
-        else -> OptionTier.BROWSE
-    }
+    fun tierFor(type: TriggerType): OptionTier =
+        if (type in advancedTriggers) OptionTier.ADVANCED else OptionTier.BROWSE
 
-    fun tierFor(type: ActionType): OptionTier = when {
-        type in commonActionOrder -> OptionTier.COMMON
-        type in advancedActions -> OptionTier.ADVANCED
-        else -> OptionTier.BROWSE
-    }
+    fun tierFor(type: ActionType): OptionTier =
+        if (type in advancedActions) OptionTier.ADVANCED else OptionTier.BROWSE
 
     /**
      * Stable order retained for routines/templates that want a deterministic

@@ -278,8 +278,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">Model sağlayıcısı</string>
-    <string name="ai_provider_subtitle">NexaFlow sohbeti için OpenAI uyumlu bir uç nokta yapılandırın.</string>
-    <string name="ai_provider_enabled">Model sağlayıcısını etkinleştir</string>
+    <string name="ai_provider_subtitle">Hazır sağlayıcı ekleyin veya uyumlu bir API uç noktası girin. API anahtarları bu cihazda şifrelenir.</string>
     <string name="ai_provider_name">Sağlayıcı adı</string>
     <string name="ai_provider_endpoint">Uç nokta URL’si</string>
     <string name="ai_provider_endpoint_hint">Örnek: http://192.168.1.20:11434/v1</string>
@@ -290,13 +289,10 @@
     <string name="ai_provider_api_key">API anahtarı</string>
     <string name="ai_provider_api_key_hint">Kayıtlı anahtarı korumak için boş bırakın</string>
     <string name="ai_provider_api_key_saved">API anahtarı güvenli şekilde saklandı</string>
-    <string name="ai_provider_compatibility">OpenAI uyumlu API etkin olduğunda Ollama, LM Studio, vLLM, llama.cpp ve LocalAI ile çalışır.</string>
     <string name="ai_provider_save">Sağlayıcıyı kaydet</string>
-    <string name="ai_provider_test">Modeli test et</string>
     <string name="ai_provider_testing">Test ediliyor…</string>
     <string name="ai_provider_test_success">Model hazır</string>
     <string name="ai_provider_test_failed">Model testi başarısız</string>
-    <string name="ai_provider_clear_key">Kayıtlı anahtarı kaldır</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Model yönlendirme</string>
@@ -313,4 +309,12 @@
     <string name="agent_lan_access_on">Etkin — eşleştirilmiş aracılar özel ağınızdan bağlanabilir</string>
     <string name="agent_lan_access_off">Kapalı — yalnızca USB/loopback</string>
     <string name="agent_lan_access_description">Android 17 yerel ağ izni gerektirir. Kimlik doğrulama ve erişim iptali uygulanmaya devam eder.</string>
+    <string name="ai_provider_profiles">Sağlayıcı profilleri</string>
+    <string name="ai_provider_add_title">Sağlayıcı ekle</string>
+    <string name="ai_provider_manual">Manuel sağlayıcı</string>
+    <string name="ai_provider_add">Sağlayıcı ekle</string>
+    <string name="ai_provider_verify">Doğrula</string>
+    <string name="ai_provider_remove">Kaldır</string>
+    <string name="ai_provider_protocol_compatible">OpenAI uyumlu API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic Mesajlaşma API</string>
 </resources>

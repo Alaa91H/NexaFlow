@@ -224,6 +224,17 @@ class NetworkModePolicyTest {
     }
 
     @Test
+    fun `legacy enum label is replaced with human readable network families`() {
+        val option = NetworkModePolicy.Option(
+            id = "LEGACY_3347",
+            allowedNetworkTypes = NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G,
+            label = "LEGACY_3347"
+        )
+
+        assertEquals("NR / LTE", NetworkModePolicy.displayLabel(option))
+    }
+
+    @Test
     fun `options retain a supported TD-SCDMA combination without inventing NR`() {
         val supported = NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_TD_SCDMA or
             NetworkModePolicy.BITMASK_2G or NetworkModePolicy.BITMASK_3G

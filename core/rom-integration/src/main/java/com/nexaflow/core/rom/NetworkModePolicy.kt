@@ -134,6 +134,16 @@ object NetworkModePolicy {
         return options.distinctBy { it.allowedNetworkTypes }
     }
 
+    /** Uses the radio-family mask when an older caller supplies a raw enum label. */
+    fun displayLabel(option: Option): String {
+        val label = option.label.trim()
+        return if (label.matches(Regex("(?i)LEGACY_[0-9]+"))) {
+            describe(option.allowedNetworkTypes)
+        } else {
+            label.ifBlank { describe(option.allowedNetworkTypes) }
+        }
+    }
+
     /**
      * Parses the comma-separated AOSP `ro.telephony.default_network` property
      * for one physical slot. A single value describes a single-radio device;

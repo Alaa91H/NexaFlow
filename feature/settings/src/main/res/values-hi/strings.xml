@@ -278,8 +278,7 @@
 
     <!-- Local AI model provider -->
     <string name="ai_provider_title">मॉडल प्रदाता</string>
-    <string name="ai_provider_subtitle">NexaFlow चैट के लिए OpenAI-संगत एंडपॉइंट सेट करें।</string>
-    <string name="ai_provider_enabled">मॉडल प्रदाता चालू करें</string>
+    <string name="ai_provider_subtitle">तैयार प्रदाता जोड़ें या संगत API एंडपॉइंट दर्ज करें। API कुंजियाँ इस डिवाइस पर एन्क्रिप्टेड रहती हैं।</string>
     <string name="ai_provider_name">प्रदाता का नाम</string>
     <string name="ai_provider_endpoint">एंडपॉइंट URL</string>
     <string name="ai_provider_endpoint_hint">उदाहरण: http://192.168.1.20:11434/v1</string>
@@ -290,13 +289,10 @@
     <string name="ai_provider_api_key">API कुंजी</string>
     <string name="ai_provider_api_key_hint">सहेजी गई कुंजी रखने के लिए खाली छोड़ें</string>
     <string name="ai_provider_api_key_saved">API कुंजी सुरक्षित रूप से सहेजी गई</string>
-    <string name="ai_provider_compatibility">OpenAI-संगत API चालू होने पर Ollama, LM Studio, vLLM, llama.cpp और LocalAI के साथ काम करता है।</string>
     <string name="ai_provider_save">प्रदाता सहेजें</string>
-    <string name="ai_provider_test">मॉडल जाँचें</string>
     <string name="ai_provider_testing">जाँच जारी है…</string>
     <string name="ai_provider_test_success">मॉडल तैयार है</string>
     <string name="ai_provider_test_failed">मॉडल जाँच विफल रही</string>
-    <string name="ai_provider_clear_key">सहेजी गई कुंजी हटाएँ</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">मॉडल रूटिंग</string>
@@ -313,4 +309,12 @@
     <string name="agent_lan_access_on">चालू — पेयर किए गए एजेंट आपके निजी नेटवर्क से जुड़ सकते हैं</string>
     <string name="agent_lan_access_off">बंद — केवल USB/लूपबैक</string>
     <string name="agent_lan_access_description">Android 17 पर स्थानीय नेटवर्क की अनुमति आवश्यक है। प्रमाणीकरण और पहुँच रद्द करना लागू रहते हैं।</string>
+    <string name="ai_provider_profiles">प्रदाता प्रोफ़ाइल</string>
+    <string name="ai_provider_add_title">प्रदाता जोड़ें</string>
+    <string name="ai_provider_manual">मैन्युअल प्रदाता</string>
+    <string name="ai_provider_add">प्रदाता जोड़ें</string>
+    <string name="ai_provider_verify">जाँचें</string>
+    <string name="ai_provider_remove">हटाएँ</string>
+    <string name="ai_provider_protocol_compatible">OpenAI संगत API</string>
+    <string name="ai_provider_protocol_anthropic">Anthropic संदेश API</string>
 </resources>

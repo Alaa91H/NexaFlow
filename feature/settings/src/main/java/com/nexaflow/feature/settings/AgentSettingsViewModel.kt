@@ -11,14 +11,21 @@ import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
 import com.nexaflow.core.airuntime.AiProviderDescriptor
 import com.nexaflow.core.airuntime.AiProviderRegistry
+import com.nexaflow.core.airuntime.AiProviderCatalog
+import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.airuntime.AiRoutingPolicy
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiEndpointPolicy
 import com.nexaflow.core.airuntime.OpenAiModelInfo
+import com.nexaflow.core.airuntime.OpenAiCompatibleTransport
+import com.nexaflow.core.airuntime.AnthropicMessagesProvider
+import com.nexaflow.core.airuntime.AnthropicMessagesProviderConfig
+import com.nexaflow.core.airuntime.AnthropicMessagesTransport
 import com.nexaflow.core.datastore.AgentNetworkPreferences
 import com.nexaflow.core.datastore.AiProviderPreferences
+import com.nexaflow.core.datastore.AiProviderProfileSettings
 import com.nexaflow.core.datastore.AiProviderSettings
 import com.nexaflow.core.security.SecureStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,6 +66,7 @@ data class AgentSettingsUiState(
     val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
     val discoveredModels: List<OpenAiModelInfo> = emptyList(),
     val providerDescriptors: List<AiProviderDescriptor> = emptyList(),
+    val providerProfiles: List<AiProviderProfileSettings> = emptyList(),
     val operationFailed: Boolean = false
 )
 
@@ -70,7 +78,9 @@ class AgentSettingsViewModel @Inject constructor(
     private val providerPreferences: AiProviderPreferences,
     private val provider: OpenAiCompatibleProvider,
     private val providerRegistry: AiProviderRegistry,
-    private val secureStorage: SecureStorage
+    private val secureStorage: SecureStorage,
+    private val compatibleTransport: OpenAiCompatibleTransport,
+    private val anthropicTransport: AnthropicMessagesTransport
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AgentSettingsUiState())
@@ -214,6 +224,13 @@ class AgentSettingsViewModel @Inject constructor(
                         OpenAiCompatibleProvider.API_KEY_STORAGE_KEY,
                         apiKey
                     )
+                    providerPreferences.currentProfiles()
+                        .firstOrNull {
+                            it.presetId == AiProviderPreferences.LEGACY_PROFILE_PRESET_ID
+                        }
+                        ?.let { legacyProfile ->
+                            secureStorage.put(providerApiKeyStorageKey(legacyProfile.id), apiKey)
+                        }
                 }
                 provider.configure(candidate.toProviderConfig())
                 providerRegistry.updateRoutingPolicy(candidate.toRoutingPolicy())
@@ -231,11 +248,160 @@ class AgentSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val success = runCatching {
                 secureStorage.remove(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY)
+                providerPreferences.currentProfiles()
+                    .firstOrNull {
+                        it.presetId == AiProviderPreferences.LEGACY_PROFILE_PRESET_ID
+                    }
+                    ?.let { secureStorage.remove(providerApiKeyStorageKey(it.id)) }
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 operationFailed = !success
             )
+        }
+    }
+
+    fun saveProviderProfile(
+        profileId: String?,
+        presetId: String?,
+        protocol: AiProviderProtocol,
+        displayName: String,
+        baseUrl: String,
+        modelId: String,
+        local: Boolean,
+        apiKey: String,
+        onComplete: (Boolean) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val normalizedName = displayName.trim()
+            val normalizedUrl = baseUrl.trim().trimEnd('/')
+            val normalizedModel = modelId.trim()
+            val id = profileId ?: presetId ?: "custom-${UUID.randomUUID()}"
+            val profile = AiProviderProfileSettings(
+                id = id,
+                presetId = presetId,
+                displayName = normalizedName,
+                protocol = protocol.name,
+                baseUrl = normalizedUrl,
+                modelId = normalizedModel,
+                local = local,
+                enabled = true
+            )
+            val saved = runCatching {
+                val existingKey = secureStorage.get(providerApiKeyStorageKey(id))
+                val key = apiKey.takeIf(String::isNotBlank) ?: existingKey
+                val keyRequired = presetId != null || !local ||
+                    protocol == AiProviderProtocol.ANTHROPIC_MESSAGES
+                require(!key.isNullOrBlank() || !keyRequired)
+                require(normalizedName.isNotBlank() && normalizedModel.isNotBlank())
+                when (protocol) {
+                    AiProviderProtocol.OPENAI_CHAT_COMPLETIONS ->
+                        OpenAiEndpointPolicy.chatCompletionsUri(
+                            OpenAiCompatibleProviderConfig(
+                                enabled = true, providerId = id, displayName = normalizedName,
+                                baseUrl = normalizedUrl, modelId = normalizedModel, local = local
+                            ),
+                            hasApiKey = !key.isNullOrBlank()
+                        )
+                    AiProviderProtocol.ANTHROPIC_MESSAGES ->
+                        com.nexaflow.core.airuntime.AnthropicEndpointPolicy.messagesUri(
+                            AnthropicMessagesProviderConfig(
+                                id, true, normalizedName, normalizedUrl, normalizedModel, local
+                            ),
+                            hasApiKey = true
+                        )
+                }
+                if (!apiKey.isBlank()) secureStorage.put(providerApiKeyStorageKey(id), apiKey)
+                providerPreferences.upsertProfile(profile)
+            }.isSuccess
+            reload(
+                providerProbeState = AiProviderProbeState.IDLE,
+                operationFailed = !saved
+            )
+            onComplete(saved)
+        }
+    }
+
+    fun verifyProviderProfile(id: String) {
+        if (_state.value.providerProbeState == AiProviderProbeState.TESTING) return
+        _state.value = _state.value.copy(providerProbeState = AiProviderProbeState.TESTING)
+        viewModelScope.launch {
+            val verified = runCatching {
+                val profile = providerPreferences.currentProfiles().first { it.id == id }
+                val key = secureStorage.get(providerApiKeyStorageKey(id))
+                    ?.takeIf(String::isNotBlank) ?: return@runCatching false
+                when (profile.protocol) {
+                    AiProviderProtocol.OPENAI_CHAT_COMPLETIONS.name -> {
+                        val adapter = OpenAiCompatibleProvider(
+                            transport = compatibleTransport,
+                            apiKeyProvider = { key }
+                        )
+                        adapter.configure(
+                            OpenAiCompatibleProviderConfig(
+                                enabled = profile.enabled, providerId = profile.id,
+                                displayName = profile.displayName, baseUrl = profile.baseUrl,
+                                modelId = profile.modelId, local = profile.local
+                            )
+                        )
+                        adapter.discoverModels().let { result ->
+                            result.success && result.models.any { it.id == profile.modelId }
+                        }
+                    }
+                    AiProviderProtocol.ANTHROPIC_MESSAGES.name -> {
+                        val adapter = AnthropicMessagesProvider(
+                            transport = anthropicTransport,
+                            apiKeyProvider = { key }
+                        )
+                        adapter.configure(
+                            AnthropicMessagesProviderConfig(
+                                id = profile.id, enabled = profile.enabled,
+                                displayName = profile.displayName, baseUrl = profile.baseUrl,
+                                modelId = profile.modelId, local = profile.local
+                            )
+                        )
+                        adapter.verify()
+                    }
+                    else -> false
+                }
+            }.getOrDefault(false)
+            providerRegistry.refreshDescriptors()
+            reload(
+                providerProbeState = if (verified) AiProviderProbeState.SUCCESS
+                    else AiProviderProbeState.FAILED,
+                operationFailed = false
+            )
+        }
+    }
+
+    fun selectProviderProfile(id: String) {
+        viewModelScope.launch {
+            val success = runCatching {
+                require(providerPreferences.currentProfiles().any { it.id == id })
+                providerPreferences.update(
+                    providerPreferences.current().copy(
+                        routingMode = AiRoutingMode.SELECTED_PROVIDER.name,
+                        selectedProviderId = id,
+                        allowCloudFallback = false
+                    )
+                )
+            }.isSuccess
+            reload(operationFailed = !success)
+        }
+    }
+
+    fun removeProviderProfile(id: String) {
+        viewModelScope.launch {
+            val success = runCatching {
+                providerPreferences.removeProfile(id)
+                secureStorage.remove(providerApiKeyStorageKey(id))
+                if (providerPreferences.current().selectedProviderId == null) {
+                    val settings = providerPreferences.current()
+                    providerPreferences.update(
+                        settings.copy(routingMode = AiRoutingMode.AUTOMATIC.name)
+                    )
+                }
+            }.isSuccess
+            reload(operationFailed = !success)
         }
     }
 
@@ -291,6 +457,9 @@ class AgentSettingsViewModel @Inject constructor(
         val providerSettings = runCatching {
             providerPreferences.current()
         }.getOrDefault(AiProviderSettings())
+        val providerProfiles = runCatching {
+            providerPreferences.currentProfiles()
+        }.getOrDefault(emptyList())
         val providerApiKeyConfigured = runCatching {
             !secureStorage.get(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY).isNullOrBlank()
         }.getOrDefault(false)
@@ -310,6 +479,7 @@ class AgentSettingsViewModel @Inject constructor(
             providerProbeState = providerProbeState,
             discoveredModels = discoveredModels,
             providerDescriptors = providerRegistry.state.value.providers,
+            providerProfiles = providerProfiles,
             operationFailed = operationFailed || security == null
         )
     }
@@ -335,5 +505,7 @@ class AgentSettingsViewModel @Inject constructor(
     private companion object {
         const val MAX_AGENT_NAME_LENGTH = 128
         const val MAX_ACTIVITY_ROWS = 30
+        fun providerApiKeyStorageKey(profileId: String) =
+            "ai.provider.profile.$profileId.api_key"
     }
 }
