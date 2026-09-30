@@ -112,7 +112,7 @@ class AutomationDeleteLifecycleAndroidTest {
             val messages = records(engine).map { it.message }
             assertTrue(
                 "exit must dispatch while the task exists (not be skipped); got $messages",
-                messages.any { it.contains("No handler registered") } &&
+                messages.any { it.contains("No compatibility handler registered") } &&
                     messages.none { it.contains("task was not active") }
             )
         } finally {

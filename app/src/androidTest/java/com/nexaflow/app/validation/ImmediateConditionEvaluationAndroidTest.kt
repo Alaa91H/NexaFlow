@@ -8,6 +8,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.engine.AirplaneModeMonitor
@@ -48,8 +49,8 @@ import org.junit.runner.RunWith
  *  2. If the condition does not hold when the task is enabled, nothing fires;
  *     when the condition later turns true the task runs, and when it ends the
  *     exit behavior runs.
- *  3. Disabling a task while its condition still holds prunes its durable
- *     marker without firing a stale exit (the app-wide tested contract).
+ *  3. Disabling a task while its condition still holds closes its owned
+ *     lifecycle through the exit coordinator and clears the durable marker.
  *
  * Requires the shell to pre-grant the WRITE_SETTINGS app-op so the test can
  * drive Settings.Global.AIRPLANE_MODE_ON (the exact value the production
@@ -68,6 +69,7 @@ class ImmediateConditionEvaluationAndroidTest {
         val history: HistoryRepositoryImpl,
         val store: ActiveTriggerStore,
         val executionStore: ActiveExecutionStore,
+        val runtimeStore: AutomationRuntimeStore,
         val database: AppDatabase,
         val scope: CoroutineScope
     )
@@ -148,7 +150,7 @@ class ImmediateConditionEvaluationAndroidTest {
                 scope = scope
             )
             repository.saveAutomation(airplaneTask(id))
-            Harness(monitor, repository, history, store, executionStore, database, scope).also {
+            Harness(monitor, repository, history, store, executionStore, runtimeStore, database, scope).also {
                 currentHarness = it
             }
         }
@@ -190,12 +192,13 @@ class ImmediateConditionEvaluationAndroidTest {
             // the current state and must fire the task immediately.
             harness.monitor.reconcileAutomations()
             waitUntil {
-                records(harness).any { it.automationId == id }
+                harness.runtimeStore.current(id)?.lifecycleState ==
+                    AutomationRuntimeLifecycleState.ACTIVE
             }
             assertEquals(
-                "durable trigger mark must exist after the immediate fire",
-                1,
-                harness.store.activeKeys(SOURCE_AIRPLANE).size
+                "canonical durable ownership must be active after the immediate fire",
+                SOURCE_AIRPLANE,
+                harness.runtimeStore.current(id)?.source
             )
 
             // The condition ends (airplane turned off): the exit must run.
@@ -243,7 +246,7 @@ class ImmediateConditionEvaluationAndroidTest {
     }
 
     @Test
-    fun disablingTaskWhileConditionHoldsPrunesWithoutStaleExit() = runBlocking {
+    fun disablingTaskWhileConditionHoldsClosesItsOwnedLifecycle() = runBlocking {
         val id = "airplane-disable-task"
         val harness = harness(id)
         try {
@@ -258,14 +261,13 @@ class ImmediateConditionEvaluationAndroidTest {
             // The user disables the task while its condition still holds.
             harness.repository.updateAutomationStatus(id, false)
             harness.monitor.reconcileAutomations()
-            waitUntil { harness.store.activeKeys(SOURCE_AIRPLANE).isEmpty() }
-
-            // App-wide contract: a deliberate disable is an abandonment — no
-            // stale exit may fire for it.
-            delay(400)
+            waitUntil { harness.runtimeStore.current(id) == null }
+            waitUntil {
+                records(harness).any { it.automationId == id && it.message == EXIT_NOOP_MARKER }
+            }
             assertTrue(
-                "disabling must not fire a stale exit",
-                records(harness).none { it.automationId == id && it.message == EXIT_NOOP_MARKER }
+                "compatibility marker is cleared after coordinated exit",
+                harness.store.activeKeys(SOURCE_AIRPLANE).isEmpty()
             )
         } finally {
             harness.database.close()
