@@ -13,7 +13,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 - [x] T04 Persistence Safety
 - [x] T05 ExecutionEngine Decomposition
 - [x] T06 SystemController Decomposition
-- [ ] T07 Trigger Editor Decomposition
+- [x] T07 Trigger Editor Decomposition
 - [ ] T08 Action Editor Decomposition
 - [ ] T09 Builder Screen Decomposition
 - [ ] T10 Shared Network Security
