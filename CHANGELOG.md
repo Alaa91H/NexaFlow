@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+## [v3.91.2] - 2026-10-01
+
+### Improved — Dashboard and automation discovery
+
+- Restored trigger and execution choices as directly visible, separately organized catalogs, making automation setup faster to scan and configure.
+- Removed the Common/Popular presentation tier while keeping trigger and execution options distinct.
+- Fixed advanced-option controls so repeated taps reliably expand and collapse their settings.
+- Moved the dashboard AI assistant entry into a floating action alongside the new-task action.
+
+### Improved — AI provider setup
+
+- Reorganized AI settings into Agents, Logs, and Add agent tabs, with clearer provider management and activity visibility.
+- Added guided presets for OpenAI, Anthropic Claude, Google Gemini, and OpenCode Zen, plus manual provider and model configuration for future-compatible expansion.
+- Added model discovery with manual model entry fallback, configurable reasoning levels, and provider connection verification before saving.
+- Added provider model-list discovery and reasoning-effort support where supported by the provider protocol.
+
+### Added — Unified activity history and SMS events
+
+- Added a dedicated activity history with separate sections for automation executions, blocked calls, and NexaFlow SMS events.
+- Added bounded SMS activity records for NexaFlow-owned processing outcomes, including send and receive status, without storing message bodies or phone numbers.
+- Added a Room migration and retention-aware repository for SMS activity, with clear-history support.
+- Kept the existing history and blocked-call routes compatible while consolidating their entry point in Settings.
+
+### Fixed — Settings and localization
+
+- Corrected mobile-network generation choices so users see readable 2G/3G/4G/5G/automatic labels instead of raw framework constants.
+- Added localized labels for the updated AI settings and activity history across supported locales.
+- Added regression coverage for dashboard actions, advanced-option expansion, provider presets and settings tabs, SMS schema/repository behavior, activity sections, navigation, and the SMS permission boundary.
+
+### Security and compatibility
+
+- SMS activity records contain outcome metadata only; the app does not request `READ_SMS` or capture the device SMS inbox.
+- Existing execution and blocked-call history routes remain available, and the SMS database change is covered by a versioned Room migration.
+- Local JVM tests, Android lint, and debug assembly passed for this commit. Tagged-release CI remains the release verification gate.
+
 ## [v3.91.1] - 2026-09-30
 
 ### Added — Extensible AI provider profiles
