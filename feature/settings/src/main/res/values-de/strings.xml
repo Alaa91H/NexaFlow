@@ -21,8 +21,6 @@
 
     
 
-    <string name="execution_history">Ausführungsverlauf</string>
-    <string name="execution_history_sub">Automatisierungsläufe anzeigen</string>
     <string name="section_about">Über</string>
     <string name="about_nexaflow">Über NexaFlow</string>
     <string name="version">Version %1$s</string>
@@ -233,7 +231,6 @@
     <string name="update_notification_channel_sub">Benachrichtigungen bei einer neueren NexaFlow-Version</string>
     <string name="phone_state_permission">Telefonstatus und Netzwerkmodus</string>
     <string name="phone_state_permission_sub">Liest aktive SIM-Karten und die von diesem Gerät unterstützten Netzwerkmodi. Das Ändern eines Modus erfordert zusätzlich Root, Shizuku oder System-App-Zugriff.</string>
-    <string name="blocked_calls_subtitle">Anrufliste der Aufgaben, die Anrufer blockieren</string>
     <string name="diagnostics_title">Konfigurationsprobleme</string>
     <string name="diagnostics_intro">Aufgaben, deren Aktionen wegen ungültiger Konfigurationswerte fehlschlugen</string>
     <string name="blocked_calls_title">Blockierte Anrufe</string>

@@ -292,5 +292,4 @@
     <string name="trigger_wear_event">Reloj Wear OS</string>
 
     <string name="ask_nexaflow">Pregunta a NexaFlow…</string>
-    <string name="ask_nexaflow_subtitle">Crea, cambia o diagnostica automatizaciones con IA</string>
 </resources>

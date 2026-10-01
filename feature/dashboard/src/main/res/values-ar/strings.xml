@@ -292,5 +292,4 @@
     <string name="trigger_wear_event">ساعة Wear OS</string>
 
     <string name="ask_nexaflow">اسأل NexaFlow</string>
-    <string name="ask_nexaflow_subtitle">أنشئ الأتمتة أو عدّلها أو شخّصها بالذكاء الاصطناعي</string>
 </resources>

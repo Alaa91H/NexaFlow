@@ -292,5 +292,4 @@
     <string name="trigger_wear_event">Wear OS ウォッチ</string>
 
     <string name="ask_nexaflow">NexaFlow に質問…</string>
-    <string name="ask_nexaflow_subtitle">AI で自動化を作成、変更、診断</string>
 </resources>

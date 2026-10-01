@@ -26,8 +26,6 @@
 
     
 
-    <string name="execution_history">سجل التنفيذ</string>
-    <string name="execution_history_sub">عرض عمليات تشغيل الأتمتات</string>
     <string name="section_about">حول</string>
     <string name="about_nexaflow">حول NexaFlow</string>
     <string name="version">الإصدار %1$s</string>
@@ -238,7 +236,6 @@
     <string name="update_notification_channel_sub">إشعارات عند توفر إصدار أحدث من NexaFlow</string>
     <string name="phone_state_permission">حالة الهاتف ووضع الشبكة</string>
     <string name="phone_state_permission_sub">قراءة الشرائح النشطة وأوضاع الشبكة التي يدعمها الجهاز فعلياً. يتطلب تغيير الوضع أيضاً روت أو Shizuku أو صلاحية تطبيق نظام.</string>
-    <string name="blocked_calls_subtitle">سجل مكالمات المهام التي تحجب المتصلين</string>
     <string name="diagnostics_title">مشاكل الإعداد</string>
     <string name="diagnostics_intro">مهام فشلت إجراءاتها وقت التنفيذ بسبب قيم إعداد غير صالحة</string>
     <string name="blocked_calls_title">المكالمات المحجوبة</string>

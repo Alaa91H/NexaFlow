@@ -23,8 +23,6 @@
 
     
 
-    <string name="execution_history">История выполнения</string>
-    <string name="execution_history_sub">Просмотр запусков автоматизаций</string>
     <string name="section_about">О приложении</string>
     <string name="about_nexaflow">О NexaFlow</string>
     <string name="version">Версия %1$s</string>
@@ -235,7 +233,6 @@
     <string name="update_notification_channel_sub">Уведомления о доступности более новой версии NexaFlow</string>
     <string name="phone_state_permission">Состояние телефона и режим сети</string>
     <string name="phone_state_permission_sub">Считывает активные SIM-карты и режимы сети, действительно поддерживаемые устройством. Для изменения режима также нужны root, Shizuku или доступ системного приложения.</string>
-    <string name="blocked_calls_subtitle">Журнал вызовов задач, блокирующих абонентов</string>
     <string name="diagnostics_title">Проблемы конфигурации</string>
     <string name="diagnostics_intro">Задачи, чьи действия завершились ошибкой из-за недопустимых значений конфигурации</string>
     <string name="blocked_calls_title">Заблокированные вызовы</string>
