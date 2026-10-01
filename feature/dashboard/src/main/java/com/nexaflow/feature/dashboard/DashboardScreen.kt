@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
@@ -73,7 +72,6 @@ import com.nexaflow.core.execution.R as ExecutionR
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
@@ -145,10 +143,9 @@ fun DashboardScreen(navController: NavController) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
-            NexaFlowFloatingActionButton(
-                onClick = { navController.navigate("automation_builder") },
-                icon = Icons.Filled.Add,
-                label = stringResource(R.string.new_routine)
+            DashboardFabActions(
+                onAsk = { navController.navigate("ai_chat") },
+                onNewTask = { navController.navigate("automation_builder") }
             )
         }
     ) { innerPadding ->
@@ -157,40 +154,6 @@ fun DashboardScreen(navController: NavController) {
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Surface(
-                    onClick = { navController.navigate("ai_chat") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Bolt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.ask_nexaflow),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = stringResource(R.string.ask_nexaflow_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                }
-            }
-
             // ---- Instant search (slim pill) + settings gear beside it ----
             item {
                 Row(

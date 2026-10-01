@@ -1282,5 +1282,7 @@
     <string name="trigger_wear_event">Wear OS watch</string>
     <string name="trigger_wear_event_sub">Run the task when a NexaFlow watch is connected or disconnected</string>
     <string name="option_tier_advanced">Advanced</string>
+    <string name="option_tier_expanded">Expanded</string>
+    <string name="option_tier_collapsed">Collapsed</string>
     <string name="option_tier_all">All options</string>
 </resources>

@@ -1867,16 +1867,14 @@ fun AutomationBuilderScreen(
                                     AutomationOptionCatalog.tierFor(it) == OptionTier.ADVANCED
                                 }
                                 if (advancedTriggers.isNotEmpty()) {
-                                    if (!showAdvancedTriggerOptions) {
-                                        TextButton(onClick = { showAdvancedTriggerOptions = true }) {
-                                            Text(stringResource(R.string.option_tier_advanced))
+                                    AdvancedOptionsHeader(
+                                        title = stringResource(R.string.option_tier_advanced),
+                                        expanded = showAdvancedTriggerOptions,
+                                        onToggle = {
+                                            showAdvancedTriggerOptions = !showAdvancedTriggerOptions
                                         }
-                                    } else {
-                                        Text(
-                                            text = stringResource(R.string.option_tier_advanced),
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
+                                    )
+                                    if (showAdvancedTriggerOptions) {
                                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             advancedTriggers.forEachIndexed { optionIndex, type ->
                                                 TriggerOptionRow(
@@ -2057,16 +2055,14 @@ fun AutomationBuilderScreen(
                                             OptionTier.ADVANCED
                                     }
                                     if (advancedActions.isNotEmpty()) {
-                                        if (!showAdvancedActionOptions) {
-                                            TextButton(onClick = { showAdvancedActionOptions = true }) {
-                                                Text(stringResource(R.string.option_tier_advanced))
+                                        AdvancedOptionsHeader(
+                                            title = stringResource(R.string.option_tier_advanced),
+                                            expanded = showAdvancedActionOptions,
+                                            onToggle = {
+                                                showAdvancedActionOptions = !showAdvancedActionOptions
                                             }
-                                        } else {
-                                            Text(
-                                                text = stringResource(R.string.option_tier_advanced),
-                                                style = MaterialTheme.typography.titleSmall,
-                                                fontWeight = FontWeight.SemiBold,
-                                            )
+                                        )
+                                        if (showAdvancedActionOptions) {
                                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                                 advancedActions.forEachIndexed { optionIndex, option ->
                                                     ActionOptionRow(
