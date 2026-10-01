@@ -15,7 +15,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 - [x] T06 SystemController Decomposition
 - [x] T07 Trigger Editor Decomposition
 - [x] T08 Action Editor Decomposition
-- [ ] T09 Builder Screen Decomposition
+- [x] T09 Builder Screen Decomposition
 - [ ] T10 Shared Network Security
 - [ ] T11 AI Domain V2
 - [ ] T12 Secret References
