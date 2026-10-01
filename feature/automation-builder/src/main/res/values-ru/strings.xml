@@ -438,7 +438,7 @@
     <string name="notification_button_reply">Ответить текстом</string>
     <string name="notification_button_reply_title">Переменная ответа</string>
     <string name="notification_button_reply_hint">Ввод в уведомлении сохраняется в эту переменную, чтобы задача могла его использовать (например, %MyReply).</string>
-    <string name="notification_button_reply_label">Имя переменной (без %)</string>
+    <string name="notification_button_reply_label">Имя переменной (без %%)</string>
     <string name="notification_button_reply_sub">Записывает ответ в %s</string>
     <string name="trigger_type_sensor">Датчик</string>
     <string name="sensor_kind">Тип датчика</string>

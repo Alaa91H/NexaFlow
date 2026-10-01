@@ -319,7 +319,7 @@
     <string name="agent_activity_clear">Effacer</string>
     <string name="agent_activity_clear_confirm">Cette action supprime l’historique local des agents.</string>
     <string name="agent_activity_clear_title">Effacer activité des agents ?</string>
-    <string name="ai_tab_agents">Agents</string>
+    <string name="ai_tab_agents">Assistants</string>
     <string name="ai_tab_logs">Journaux</string>
     <string name="ai_tab_add_agent">Ajouter un agent</string>
     <string name="ai_provider_choose_model">Choisir un modèle</string>

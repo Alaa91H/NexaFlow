@@ -438,7 +438,7 @@
     <string name="notification_button_reply">Responder con texto</string>
     <string name="notification_button_reply_title">Variable de respuesta</string>
     <string name="notification_button_reply_hint">Escribir en la notificación guarda el texto en esta variable para que la tarea pueda usarlo (p. ej. %MyReply).</string>
-    <string name="notification_button_reply_label">Nombre de variable (sin %)</string>
+    <string name="notification_button_reply_label">Nombre de variable (sin %%)</string>
     <string name="notification_button_reply_sub">Escribe la respuesta en %s</string>
     <string name="trigger_type_sensor">Sensor</string>
     <string name="sensor_kind">Tipo de sensor</string>

@@ -438,7 +438,7 @@
     <string name="notification_button_reply">テキストで返信</string>
     <string name="notification_button_reply_title">返信変数</string>
     <string name="notification_button_reply_hint">通知に入力したテキストはこの変数に保存され、タスクから利用できます（例: %MyReply）。</string>
-    <string name="notification_button_reply_label">変数名（%なし）</string>
+    <string name="notification_button_reply_label">変数名（%%なし）</string>
     <string name="notification_button_reply_sub">返信を%sに書き込み</string>
     <string name="trigger_type_sensor">センサー</string>
     <string name="sensor_kind">センサーの種類</string>

@@ -438,7 +438,7 @@
     <string name="notification_button_reply">文字回复</string>
     <string name="notification_button_reply_title">回复变量</string>
     <string name="notification_button_reply_hint">在通知中输入的文本会存入此变量，供任务使用（例如 %MyReply）。</string>
-    <string name="notification_button_reply_label">变量名（不含%）</string>
+    <string name="notification_button_reply_label">变量名（不含%%）</string>
     <string name="notification_button_reply_sub">将回复写入%s</string>
     <string name="trigger_type_sensor">传感器</string>
     <string name="sensor_kind">传感器类型</string>

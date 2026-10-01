@@ -438,7 +438,7 @@
     <string name="notification_button_reply">Répondre par un texte</string>
     <string name="notification_button_reply_title">Variable de réponse</string>
     <string name="notification_button_reply_hint">"La saisie dans la notification est stockée dans cette variable pour que la tâche puisse l\'utiliser (p. ex. %MyReply)."</string>
-    <string name="notification_button_reply_label">Nom de la variable (sans %)</string>
+    <string name="notification_button_reply_label">Nom de la variable (sans %%)</string>
     <string name="notification_button_reply_sub">Écrit la réponse dans %s</string>
     <string name="trigger_type_sensor">Capteur</string>
     <string name="sensor_kind">Type de capteur</string>

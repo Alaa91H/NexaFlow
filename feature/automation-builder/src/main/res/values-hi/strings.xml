@@ -438,7 +438,7 @@
     <string name="notification_button_reply">टेक्स्ट से जवाब दें</string>
     <string name="notification_button_reply_title">जवाब वेरिएबल</string>
     <string name="notification_button_reply_hint">नोटिफ़िकेशन में टाइप किया गया टेक्स्ट इस वेरिएबल में सहेजा जाता है ताकि कार्य उसे इस्तेमाल कर सके (जैसे %MyReply)।</string>
-    <string name="notification_button_reply_label">वेरिएबल नाम (% के बिना)</string>
+    <string name="notification_button_reply_label">वेरिएबल नाम (%% के बिना)</string>
     <string name="notification_button_reply_sub">%s में जवाब लिखता है</string>
     <string name="trigger_type_sensor">सेंसर</string>
     <string name="sensor_kind">सेंसर प्रकार</string>

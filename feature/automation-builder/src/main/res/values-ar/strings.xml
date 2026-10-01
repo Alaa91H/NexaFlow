@@ -437,7 +437,7 @@
     <string name="notification_button_reply">رد بنص</string>
     <string name="notification_button_reply_title">متغير الرد</string>
     <string name="notification_button_reply_hint">تخزَّن الكتابة في الإشعار داخل هذا المتغير ليستخدمها المهمة (مثال %MyReply).</string>
-    <string name="notification_button_reply_label">اسم المتغير (بدون %)</string>
+    <string name="notification_button_reply_label">اسم المتغير (بدون %%)</string>
     <string name="notification_button_reply_sub">يكتب الرد إلى %s</string>
     <string name="trigger_type_sensor">مستشعر</string>
     <string name="sensor_kind">نوع المستشعر</string>

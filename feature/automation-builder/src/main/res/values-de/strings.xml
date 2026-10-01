@@ -438,7 +438,7 @@
     <string name="notification_button_reply">Mit Text antworten</string>
     <string name="notification_button_reply_title">Antwortvariable</string>
     <string name="notification_button_reply_hint">Die Eingabe in der Benachrichtigung wird in dieser Variable gespeichert, damit die Aufgabe sie nutzen kann (z. B. %MyReply).</string>
-    <string name="notification_button_reply_label">Variablenname (ohne %)</string>
+    <string name="notification_button_reply_label">Variablenname (ohne %%)</string>
     <string name="notification_button_reply_sub">Antwort wird nach %s geschrieben</string>
     <string name="trigger_type_sensor">Sensor</string>
     <string name="sensor_kind">Sensorart</string>
