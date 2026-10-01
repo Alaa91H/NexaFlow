@@ -38,9 +38,6 @@ import com.nexaflow.domain.updates.GooglePlayUpdateEnvironment
 import com.nexaflow.domain.updates.GooglePlayUpdatePlanner
 import com.nexaflow.domain.models.SmsActivityEvent
 import com.nexaflow.domain.repositories.SmsActivityRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Suppress("TooManyFunctions", "LargeClass") // System-ops façade: many small, single-purpose device operations
 class SystemController(
@@ -1014,7 +1011,7 @@ class SystemController(
     }
 
     /** Send an SMS text message. Requires SEND_SMS permission. */
-    fun sendSms(number: String, text: String): SystemControlResult {
+    suspend fun sendSms(number: String, text: String): SystemControlResult {
         val result = if (number.isBlank()) SystemControlResult.fail("No phone number configured") else try {
             val smsManager = context.getSystemService(android.telephony.SmsManager::class.java)
             val parts = smsManager.divideMessage(text.ifBlank { "NexaFlow automation" })
@@ -1024,10 +1021,22 @@ class SystemController(
             SystemControlResult.fail("Failed to send SMS")
         }
         smsActivityRepository?.let { repository ->
-            CoroutineScope(Dispatchers.IO).launch {
-                runCatching {
-                    repository.record(SmsActivityEvent(java.util.UUID.randomUUID().toString(), "OUTGOING_ACTION", smsAutomationId, smsAutomationName, if (result.success) "SUBMITTED" else "FAILED", if (result.success) null else "SEND_FAILED", System.currentTimeMillis()))
-                }
+            try {
+                repository.record(
+                    SmsActivityEvent(
+                        java.util.UUID.randomUUID().toString(),
+                        "OUTGOING_ACTION",
+                        smsAutomationId,
+                        smsAutomationName,
+                        if (result.success) "SUBMITTED" else "FAILED",
+                        if (result.success) null else "SEND_FAILED",
+                        System.currentTimeMillis()
+                    )
+                )
+            } catch (cancelled: java.util.concurrent.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Activity telemetry is best-effort and never changes the SMS result.
             }
         }
         return result
