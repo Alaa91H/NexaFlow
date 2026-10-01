@@ -30,7 +30,7 @@ TRIGGER_CATALOG = Path(
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt"
 )
 ACTION_BUILDER = Path(
-    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt"
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt"
 )
 CHANGELOG = Path("CHANGELOG.md")
 
