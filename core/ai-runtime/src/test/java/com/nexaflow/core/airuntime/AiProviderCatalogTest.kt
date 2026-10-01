@@ -14,12 +14,34 @@ class AiProviderCatalogTest {
             setOf("openai", "claude", "gemini", "opencode_zen"),
             presets.keys
         )
-        assertEquals(AiProviderProtocol.OPENAI_CHAT_COMPLETIONS, presets.getValue("openai").protocol)
-        assertEquals(AiProviderProtocol.ANTHROPIC_MESSAGES, presets.getValue("claude").protocol)
-        assertEquals(AiProviderProtocol.OPENAI_CHAT_COMPLETIONS, presets.getValue("gemini").protocol)
-        assertEquals(AiProviderProtocol.OPENAI_CHAT_COMPLETIONS, presets.getValue("opencode_zen").protocol)
+        assertEquals(AiProviderKind.OPENAI, presets.getValue("openai").providerKind)
+        assertEquals(AiApiDialect.OPENAI_CHAT_COMPLETIONS, presets.getValue("openai").dialect)
+        assertEquals(AiProviderKind.ANTHROPIC, presets.getValue("claude").providerKind)
+        assertEquals(AiApiDialect.ANTHROPIC_MESSAGES, presets.getValue("claude").dialect)
+        assertEquals(AiProviderKind.GOOGLE, presets.getValue("gemini").providerKind)
+        assertEquals(AiProviderKind.OPENCODE, presets.getValue("opencode_zen").providerKind)
         assertTrue(presets.values.all { it.baseUrl.startsWith("https://") })
         assertTrue(presets.values.all { it.defaultModelId.isNotBlank() })
+    }
+
+    @Test
+    fun `provider definitions separate identity dialect and authentication`() {
+        val definitions = AiProviderCatalog.definitions.associateBy(AiProviderDefinition::id)
+
+        assertEquals(AiProviderKind.OPENAI, definitions.getValue("openai").kind)
+        assertTrue(
+            AiApiDialect.OPENAI_RESPONSES in
+                definitions.getValue("openai").supportedDialects
+        )
+        assertEquals(
+            setOf(AiAuthScheme.X_API_KEY),
+            definitions.getValue("anthropic").authSchemes
+        )
+        assertTrue(
+            AiApiDialect.GEMINI_GENERATE_CONTENT in
+                definitions.getValue("google").supportedDialects
+        )
+        assertTrue(definitions.getValue("custom").supportsCustomEndpoint)
     }
 
     @Test
