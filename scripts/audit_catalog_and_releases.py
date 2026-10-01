@@ -26,8 +26,8 @@ import sys
 from pathlib import Path
 
 DOMAIN_MODEL = Path("domain/src/main/java/com/nexaflow/domain/models/Automation.kt")
-TRIGGER_EDITOR = Path(
-    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt"
+TRIGGER_CATALOG = Path(
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt"
 )
 ACTION_BUILDER = Path(
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt"
@@ -74,7 +74,7 @@ def check_catalog_parity() -> int:
 
     # --- Triggers -----------------------------------------------------------
     triggers = enum_values(model, "TriggerType")
-    editor = read_utf8(TRIGGER_EDITOR)
+    editor = read_utf8(TRIGGER_CATALOG)
     options = catalog_values(
         editor,
         r"val triggerTypeOptions = listOf\((.*?)\n\)",
