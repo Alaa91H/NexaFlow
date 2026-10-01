@@ -3,95 +3,97 @@ package com.nexaflow.core.security
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import android.util.Base64
 import java.security.KeyStore
-import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
- * [SecureStorage] backed by the Android Keystore (AES-256-GCM). Keys never
- * leave secure hardware where available, and the master key is created once
- * and reused. Values are stored as `base64(iv || ciphertext)`.
+ * [SecureStorage] backed by Android Keystore AES-256-GCM.
  *
- * Chosen over EncryptedSharedPreferences (deprecated in 2026 due to keyset
- * corruption on OEM devices): a single Keystore AES key avoids that class of
- * failure and is a small, dependency-free implementation.
- *
- * Note: Keystore keys do NOT survive app uninstall (backup restores lose the
- * key), so callers must treat this as session-scoped encryption — secrets are
- * re-encrypted under a fresh key on reinstall via the fallback path.
+ * Values are written as a V2 envelope with the logical storage key authenticated
+ * as AAD. Pre-V2 values are decrypted once and lazily re-encrypted without
+ * requiring a destructive migration.
  */
 class KeystoreSecureStorage(
     context: Context,
-    private val keyAlias: String = DEFAULT_KEY_ALIAS
+    private val keyAlias: String = DEFAULT_KEY_ALIAS,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : SecureStorage {
 
-    // Lazily opened: Hilt services (e.g. NotificationListener) construct this
-    // on the main thread at service creation, and touching disk there trips
-    // the debug StrictMode watchdog (penaltyDeath) — an avoidable open-FC.
+    private val appContext = context.applicationContext
     private val prefs by lazy {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    override suspend fun get(key: String): String? {
-        val encoded = prefs.getString(key, null) ?: return null
-        return runCatching { decrypt(encoded) }.getOrNull()
+    private val keyLock = Any()
+
+    @Volatile
+    private var cachedKey: SecretKey? = null
+
+    override suspend fun get(key: String): String? = withContext(ioDispatcher) {
+        val encoded = prefs.getString(key, null) ?: return@withContext null
+        runCatching {
+            val secretKey = getOrCreateKey()
+            if (AesGcmEnvelopeCodec.isV2(encoded)) {
+                AesGcmEnvelopeCodec.decrypt(secretKey, key, encoded)
+            } else {
+                val plaintext = AesGcmEnvelopeCodec.decryptLegacy(secretKey, encoded)
+                prefs.edit()
+                    .putString(key, AesGcmEnvelopeCodec.encrypt(secretKey, key, plaintext))
+                    .apply()
+                plaintext
+            }
+        }.getOrNull()
     }
 
-    override suspend fun put(key: String, value: String) {
-        prefs.edit().putString(key, encrypt(value)).apply()
+    override suspend fun put(key: String, value: String): Unit = withContext(ioDispatcher) {
+        val encoded = AesGcmEnvelopeCodec.encrypt(getOrCreateKey(), key, value)
+        prefs.edit().putString(key, encoded).apply()
     }
 
-    override suspend fun remove(key: String) {
+    override suspend fun remove(key: String): Unit = withContext(ioDispatcher) {
         prefs.edit().remove(key).apply()
     }
 
-    override suspend fun clear() {
+    override suspend fun clear(): Unit = withContext(ioDispatcher) {
         prefs.edit().clear().apply()
     }
 
-    private fun encrypt(plaintext: String): String {
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
-        val iv = cipher.iv
-        val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
-        return Base64.encodeToString(iv + ciphertext, Base64.NO_WRAP)
-    }
-
-    private fun decrypt(encoded: String): String {
-        val bytes = Base64.decode(encoded, Base64.NO_WRAP)
-        val iv = bytes.copyOfRange(0, IV_LENGTH)
-        val ciphertext = bytes.copyOfRange(IV_LENGTH, bytes.size)
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(GCM_TAG_BITS, iv))
-        return String(cipher.doFinal(ciphertext), Charsets.UTF_8)
-    }
-
     private fun getOrCreateKey(): SecretKey {
-        (KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) })
-            .getKey(keyAlias, null)?.let { return it as SecretKey }
-        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
-        generator.init(
-            KeyGenParameterSpec.Builder(
-                keyAlias,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        cachedKey?.let { return it }
+        synchronized(keyLock) {
+            cachedKey?.let { return it }
+
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+            (keyStore.getKey(keyAlias, null) as? SecretKey)?.let {
+                cachedKey = it
+                return it
+            }
+
+            val generator = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES,
+                ANDROID_KEYSTORE
             )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setKeySize(256)
-                .build()
-        )
-        return generator.generateKey()
+            generator.init(
+                KeyGenParameterSpec.Builder(
+                    keyAlias,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                )
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setKeySize(256)
+                    .build()
+            )
+            return generator.generateKey().also { cachedKey = it }
+        }
     }
 
     companion object {
         const val DEFAULT_KEY_ALIAS = "nexaflow_secure_store"
         private const val PREFS_NAME = "nexaflow_secure"
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
-        private const val TRANSFORMATION = "AES/GCM/NoPadding"
-        private const val GCM_TAG_BITS = 128
-        private const val IV_LENGTH = 12
     }
 }
