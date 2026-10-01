@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-01",
+  "baselineTag": "v3.91.3",
+  "baselineCommit": "9e5e2fa132f22601244a208509f3060dc1ac66e3",
+  "baselineTree": "7bd793a573bab9bb6fa70cd064f657f80ccb9690",
+  "repositoryFileCount": 1752,
+  "kotlinFileCount": 1036,
+  "kotlinTestFileCount": 420,
+  "criticalFiles": [
+    {"path":"feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt","blob":"65a03aa979f23bbc4aa86eef0f8ba07a86143512","bytes":187609},
+    {"path":"feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt","blob":"df3d3d2f71b64988c10911591be6edb7b579ed36","bytes":161621},
+    {"path":"feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt","blob":"b7140c3a0a476754f3187a42431660df82b3f1e8","bytes":128671},
+    {"path":"core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt","blob":"bf5b03470013bd6b11fe1bc4fb63e77d3408ff9d","bytes":99683},
+    {"path":"core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt","blob":"c230978b00597b9655a5f7707f64047fe2d81cb3","bytes":83641},
+    {"path":"core/security/src/main/java/com/nexaflow/core/security/KeystoreSecureStorage.kt","blob":"2c9b0daa7fdadc2b630983e43d5c7ebfa54e2ebf","bytes":3866},
+    {"path":"app/src/main/java/com/nexaflow/app/di/AiRuntimeModule.kt","blob":"51eee8cf11ef68fd1b6d492d67891b0bdc205e13","bytes":8203},
+    {"path":"core/datastore/src/main/java/com/nexaflow/core/datastore/AiProviderPreferences.kt","blob":"cf0e7a07ce389e8a8283f0b5e4b63a97f6811efc","bytes":11401},
+    {"path":"core/database/schemas/com.nexaflow.core.database.AppDatabase/21.json","blob":"2b2711d616775855309b164ea4e408105154b66e","bytes":19434}
+  ]
+}
