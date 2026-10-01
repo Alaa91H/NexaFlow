@@ -87,7 +87,8 @@ class AiProviderPreferencesTest {
             displayName = "OpenAI",
             protocol = "OPENAI_CHAT_COMPLETIONS",
             baseUrl = "https://api.openai.com/v1",
-            modelId = "gpt-5.6"
+            modelId = "gpt-5.6",
+            reasoningEffort = "high"
         )
 
         preferences.upsertProfile(profile)

@@ -317,4 +317,23 @@
     <string name="ai_provider_remove">移除</string>
     <string name="ai_provider_protocol_compatible">OpenAI兼容接口</string>
     <string name="ai_provider_protocol_anthropic">Anthropic Messages接口</string>
+    <string name="activity_history_subtitle">执行记录、已拦截来电和 NexaFlow 短信事件</string>
+    <string name="activity_history_title">活动记录</string>
+    <string name="agent_activity_clear">清除</string>
+    <string name="agent_activity_clear_confirm">这会删除本地代理活动记录。</string>
+    <string name="agent_activity_clear_title">清除代理活动记录？</string>
+    <string name="ai_tab_agents">代理</string>
+    <string name="ai_tab_logs">日志</string>
+    <string name="ai_tab_add_agent">添加代理</string>
+    <string name="ai_provider_choose_model">选择模型</string>
+    <string name="ai_provider_discover_models">刷新模型</string>
+    <string name="ai_provider_models_loading">正在加载提供商模型…</string>
+    <string name="ai_provider_models_ready">模型已加载</string>
+    <string name="ai_provider_models_unsupported">模型列表不可用，请手动输入模型 ID。</string>
+    <string name="ai_provider_models_failed">无法加载模型。请检查密钥和提供商设置。</string>
+    <string name="ai_provider_level">推理级别</string>
+    <string name="ai_provider_level_fast">快速</string>
+    <string name="ai_provider_level_balanced">均衡</string>
+    <string name="ai_provider_level_deep">深入</string>
+    <string name="ai_provider_models_title">可用模型</string>
 </resources>

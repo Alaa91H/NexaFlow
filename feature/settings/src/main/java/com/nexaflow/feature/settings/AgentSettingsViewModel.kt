@@ -13,6 +13,7 @@ import com.nexaflow.core.airuntime.AiProviderDescriptor
 import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.AiProviderCatalog
 import com.nexaflow.core.airuntime.AiProviderProtocol
+import com.nexaflow.core.airuntime.AiReasoningLevel
 import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.airuntime.AiRoutingPolicy
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
@@ -51,6 +52,8 @@ enum class AiProviderProbeState {
     FAILED
 }
 
+enum class AiModelDiscoveryState { IDLE, LOADING, SUCCESS, UNSUPPORTED, FAILED }
+
 data class AgentSettingsUiState(
     val loading: Boolean = true,
     val accessEnabled: Boolean = false,
@@ -64,6 +67,8 @@ data class AgentSettingsUiState(
     val providerSettings: AiProviderSettings = AiProviderSettings(),
     val providerApiKeyConfigured: Boolean = false,
     val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
+    val modelDiscoveryState: AiModelDiscoveryState = AiModelDiscoveryState.IDLE,
+    val profileModelChoices: List<String> = emptyList(),
     val discoveredModels: List<OpenAiModelInfo> = emptyList(),
     val providerDescriptors: List<AiProviderDescriptor> = emptyList(),
     val providerProfiles: List<AiProviderProfileSettings> = emptyList(),
@@ -270,6 +275,7 @@ class AgentSettingsViewModel @Inject constructor(
         modelId: String,
         local: Boolean,
         apiKey: String,
+        reasoningEffort: String = "medium",
         onComplete: (Boolean) -> Unit = {}
     ) {
         viewModelScope.launch {
@@ -285,7 +291,8 @@ class AgentSettingsViewModel @Inject constructor(
                 baseUrl = normalizedUrl,
                 modelId = normalizedModel,
                 local = local,
-                enabled = true
+                enabled = true,
+                reasoningEffort = reasoningEffort
             )
             val saved = runCatching {
                 val existingKey = secureStorage.get(providerApiKeyStorageKey(id))
@@ -340,7 +347,10 @@ class AgentSettingsViewModel @Inject constructor(
                             OpenAiCompatibleProviderConfig(
                                 enabled = profile.enabled, providerId = profile.id,
                                 displayName = profile.displayName, baseUrl = profile.baseUrl,
-                                modelId = profile.modelId, local = profile.local
+                                modelId = profile.modelId, local = profile.local,
+                                reasoningEffort = profile.reasoningEffort.takeIf {
+                                    profile.presetId == "openai"
+                                }
                             )
                         )
                         adapter.discoverModels().let { result ->
@@ -356,7 +366,10 @@ class AgentSettingsViewModel @Inject constructor(
                             AnthropicMessagesProviderConfig(
                                 id = profile.id, enabled = profile.enabled,
                                 displayName = profile.displayName, baseUrl = profile.baseUrl,
-                                modelId = profile.modelId, local = profile.local
+                                modelId = profile.modelId, local = profile.local,
+                                reasoningEffort = profile.reasoningEffort.takeIf {
+                                    profile.presetId == "claude"
+                                }
                             )
                         )
                         adapter.verify()
@@ -415,6 +428,160 @@ class AgentSettingsViewModel @Inject constructor(
         }
     }
 
+    fun discoverProfileModels(
+        profileId: String?,
+        presetId: String?,
+        protocol: AiProviderProtocol,
+        displayName: String,
+        baseUrl: String,
+        modelId: String,
+        local: Boolean,
+        apiKey: String
+    ) {
+        _state.value = _state.value.copy(
+            modelDiscoveryState = AiModelDiscoveryState.LOADING,
+            profileModelChoices = emptyList()
+        )
+        viewModelScope.launch {
+            val discovered = runCatching {
+                val key = apiKey.trim().takeIf(String::isNotEmpty)
+                    ?: profileId?.let { secureStorage.get(providerApiKeyStorageKey(it)) }
+                        ?.takeIf(String::isNotBlank)
+                when (protocol) {
+                    AiProviderProtocol.OPENAI_CHAT_COMPLETIONS -> {
+                        val adapter = OpenAiCompatibleProvider(
+                            transport = compatibleTransport,
+                            apiKeyProvider = { key }
+                        )
+                        adapter.configure(
+                            OpenAiCompatibleProviderConfig(
+                                enabled = true,
+                                providerId = presetId ?: profileId ?: "custom",
+                                displayName = displayName,
+                                baseUrl = baseUrl,
+                                modelId = modelId.ifBlank { "model-discovery" },
+                                local = local
+                            )
+                        )
+                        adapter.discoverModels().let { result ->
+                            when {
+                                result.success && result.models.isNotEmpty() ->
+                                    AiModelDiscoveryState.SUCCESS to result.models.map { it.id }
+                                result.statusCode == 501 || (result.success && result.models.isEmpty()) ->
+                                    AiModelDiscoveryState.UNSUPPORTED to emptyList()
+                                else -> AiModelDiscoveryState.FAILED to emptyList()
+                            }
+                        }
+                    }
+                    AiProviderProtocol.ANTHROPIC_MESSAGES -> {
+                        val adapter = AnthropicMessagesProvider(
+                            transport = anthropicTransport,
+                            apiKeyProvider = { key }
+                        )
+                        adapter.configure(
+                            AnthropicMessagesProviderConfig(
+                                id = presetId ?: profileId ?: "claude",
+                                enabled = true,
+                                displayName = displayName,
+                                baseUrl = baseUrl,
+                                modelId = modelId.ifBlank { "model-discovery" },
+                                local = local
+                            )
+                        )
+                        adapter.discoverModels().let { result ->
+                            when {
+                                result.success && result.models.isNotEmpty() ->
+                                    AiModelDiscoveryState.SUCCESS to result.models
+                                result.statusCode == 404 || result.statusCode == 501 ||
+                                    (result.success && result.models.isEmpty()) ->
+                                    AiModelDiscoveryState.UNSUPPORTED to emptyList()
+                                else -> AiModelDiscoveryState.FAILED to emptyList()
+                            }
+                        }
+                    }
+                }
+            }.getOrElse { AiModelDiscoveryState.FAILED to emptyList() }
+            _state.value = _state.value.copy(
+                modelDiscoveryState = discovered.first,
+                profileModelChoices = discovered.second
+            )
+        }
+    }
+
+    fun verifyProviderDraft(
+        profileId: String?,
+        presetId: String?,
+        protocol: AiProviderProtocol,
+        displayName: String,
+        baseUrl: String,
+        modelId: String,
+        local: Boolean,
+        apiKey: String
+    ) {
+        if (_state.value.providerProbeState == AiProviderProbeState.TESTING) return
+        _state.value = _state.value.copy(providerProbeState = AiProviderProbeState.TESTING)
+        viewModelScope.launch {
+            val verified = runCatching {
+                val key = apiKey.trim().takeIf(String::isNotEmpty)
+                    ?: profileId?.let { secureStorage.get(providerApiKeyStorageKey(it)) }
+                        ?.takeIf(String::isNotBlank)
+                when (protocol) {
+                    AiProviderProtocol.OPENAI_CHAT_COMPLETIONS -> {
+                        val adapter = OpenAiCompatibleProvider(
+                            transport = compatibleTransport,
+                            apiKeyProvider = { key }
+                        )
+                        adapter.configure(
+                            OpenAiCompatibleProviderConfig(
+                                enabled = true,
+                                providerId = presetId ?: profileId ?: "custom",
+                                displayName = displayName,
+                                baseUrl = baseUrl,
+                                modelId = modelId,
+                                local = local,
+                                reasoningEffort = AiReasoningLevel.BALANCED.apiValue.takeIf {
+                                    presetId == "openai"
+                                }
+                            )
+                        )
+                        adapter.probe().success
+                    }
+                    AiProviderProtocol.ANTHROPIC_MESSAGES -> {
+                        val adapter = AnthropicMessagesProvider(
+                            transport = anthropicTransport,
+                            apiKeyProvider = { key }
+                        )
+                        adapter.configure(
+                            AnthropicMessagesProviderConfig(
+                                id = presetId ?: profileId ?: "claude",
+                                enabled = true,
+                                displayName = displayName,
+                                baseUrl = baseUrl,
+                                modelId = modelId,
+                                local = local,
+                                reasoningEffort = AiReasoningLevel.BALANCED.apiValue.takeIf {
+                                    presetId == "claude"
+                                }
+                            )
+                        )
+                        adapter.verify()
+                    }
+                }
+            }.getOrDefault(false)
+            _state.value = _state.value.copy(
+                providerProbeState = if (verified) AiProviderProbeState.SUCCESS
+                    else AiProviderProbeState.FAILED
+            )
+        }
+    }
+
+    fun clearProfileModelChoices() {
+        _state.value = _state.value.copy(
+            modelDiscoveryState = AiModelDiscoveryState.IDLE,
+            profileModelChoices = emptyList()
+        )
+    }
+
     fun testProvider() {
         if (_state.value.providerProbeState == AiProviderProbeState.TESTING) return
         _state.value = _state.value.copy(
@@ -435,6 +602,13 @@ class AgentSettingsViewModel @Inject constructor(
 
     fun clearOperationError() {
         _state.value = _state.value.copy(operationFailed = false)
+    }
+
+    fun clearActivity() {
+        viewModelScope.launch {
+            runCatching { runtime.clearAudit() }
+            reload()
+        }
     }
 
     private suspend fun reload(
@@ -477,6 +651,8 @@ class AgentSettingsViewModel @Inject constructor(
             providerSettings = providerSettings,
             providerApiKeyConfigured = providerApiKeyConfigured,
             providerProbeState = providerProbeState,
+            modelDiscoveryState = _state.value.modelDiscoveryState,
+            profileModelChoices = _state.value.profileModelChoices,
             discoveredModels = discoveredModels,
             providerDescriptors = providerRegistry.state.value.providers,
             providerProfiles = providerProfiles,

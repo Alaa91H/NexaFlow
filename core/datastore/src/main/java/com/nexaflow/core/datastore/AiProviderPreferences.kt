@@ -47,7 +47,8 @@ data class AiProviderProfileSettings(
     val baseUrl: String,
     val modelId: String,
     val local: Boolean = false,
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
+    val reasoningEffort: String = "medium"
 )
 
 class AiProviderPreferences internal constructor(
@@ -188,7 +189,8 @@ class AiProviderPreferences internal constructor(
             baseUrl = baseUrl,
             modelId = string("modelId"),
             local = value["local"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false,
-            enabled = value["enabled"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: true
+            enabled = value["enabled"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: true,
+            reasoningEffort = string("reasoningEffort").ifBlank { "medium" }
         ).takeIf { runCatching { validateProfile(it) }.isSuccess }
     }
 
@@ -207,6 +209,7 @@ class AiProviderPreferences internal constructor(
                     put("modelId", value.modelId)
                     put("local", value.local)
                     put("enabled", value.enabled)
+                    put("reasoningEffort", value.reasoningEffort)
                 })
             }
             })

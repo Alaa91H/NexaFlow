@@ -317,4 +317,23 @@
     <string name="ai_provider_remove">Удалить</string>
     <string name="ai_provider_protocol_compatible">API, совместимый с OpenAI</string>
     <string name="ai_provider_protocol_anthropic">API Anthropic Messages</string>
+    <string name="activity_history_subtitle">Запуски, заблокированные вызовы и SMS-события NexaFlow</string>
+    <string name="activity_history_title">История активности</string>
+    <string name="agent_activity_clear">Очистить</string>
+    <string name="agent_activity_clear_confirm">Локальная история активности агентов будет удалена.</string>
+    <string name="agent_activity_clear_title">Очистить активность агентов?</string>
+    <string name="ai_tab_agents">Агенты</string>
+    <string name="ai_tab_logs">Журнал</string>
+    <string name="ai_tab_add_agent">Добавить агента</string>
+    <string name="ai_provider_choose_model">Выбрать модель</string>
+    <string name="ai_provider_discover_models">Обновить модели</string>
+    <string name="ai_provider_models_loading">Загрузка моделей провайдера…</string>
+    <string name="ai_provider_models_ready">Модели загружены</string>
+    <string name="ai_provider_models_unsupported">Список недоступен; введите ID модели вручную.</string>
+    <string name="ai_provider_models_failed">Не удалось загрузить модели. Проверьте ключ и настройки провайдера.</string>
+    <string name="ai_provider_level">Уровень рассуждения</string>
+    <string name="ai_provider_level_fast">Быстрый</string>
+    <string name="ai_provider_level_balanced">Сбалансированный</string>
+    <string name="ai_provider_level_deep">Глубокий</string>
+    <string name="ai_provider_models_title">Доступные модели</string>
 </resources>

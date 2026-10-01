@@ -1274,4 +1274,6 @@
     <string name="trigger_wear_event_sub">Executar a tarefa quando um relógio NexaFlow estiver conectado ou desconectado</string>
     <string name="option_tier_advanced">Avançado</string>
     <string name="option_tier_all">Todas as opções</string>
+    <string name="option_tier_expanded">Expandido</string>
+    <string name="option_tier_collapsed">Recolhido</string>
 </resources>

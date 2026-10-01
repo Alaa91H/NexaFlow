@@ -315,4 +315,23 @@
     <string name="ai_provider_remove">Entfernen</string>
     <string name="ai_provider_protocol_compatible">OpenAI-kompatible API</string>
     <string name="ai_provider_protocol_anthropic">Anthropic-Nachrichten-API</string>
+    <string name="activity_history_subtitle">Ausführungen, blockierte Anrufe und NexaFlow-SMS-Ereignisse</string>
+    <string name="activity_history_title">Aktivitätsverlauf</string>
+    <string name="agent_activity_clear">Löschen</string>
+    <string name="agent_activity_clear_confirm">Dadurch wird der lokale Aktivitätsverlauf der Agenten gelöscht.</string>
+    <string name="agent_activity_clear_title">Agentenaktivität löschen?</string>
+    <string name="ai_tab_agents">Agenten</string>
+    <string name="ai_tab_logs">Protokolle</string>
+    <string name="ai_tab_add_agent">Agent hinzufügen</string>
+    <string name="ai_provider_choose_model">Modell auswählen</string>
+    <string name="ai_provider_discover_models">Modelle aktualisieren</string>
+    <string name="ai_provider_models_loading">Anbietermodelle werden geladen…</string>
+    <string name="ai_provider_models_ready">Modelle geladen</string>
+    <string name="ai_provider_models_unsupported">Modellliste nicht verfügbar; Modell-ID manuell eingeben.</string>
+    <string name="ai_provider_models_failed">Modelle konnten nicht geladen werden. Schlüssel und Anbietereinstellungen prüfen.</string>
+    <string name="ai_provider_level">Denkstufe</string>
+    <string name="ai_provider_level_fast">Schnell</string>
+    <string name="ai_provider_level_balanced">Ausgewogen</string>
+    <string name="ai_provider_level_deep">Intensiv</string>
+    <string name="ai_provider_models_title">Verfügbare Modelle</string>
 </resources>

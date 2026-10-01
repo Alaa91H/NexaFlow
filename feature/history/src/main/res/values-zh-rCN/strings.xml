@@ -94,4 +94,15 @@
 
     <string name="why_run_configuration_blocked">任务配置不完整，因此此次运行被阻止。</string>
     <string name="why_run_fix_review_task_configuration">重新尝试前，请检查任务配置并填写所需值。</string>
+    <string name="activity_blocked_calls">已拦截的来电</string>
+    <string name="activity_executions">执行记录</string>
+    <string name="activity_sms">短信事件</string>
+    <string name="sms_activity_automation">自动化</string>
+    <string name="sms_activity_cancel">取消</string>
+    <string name="sms_activity_clear">清除记录</string>
+    <string name="sms_activity_clear_confirm">这会删除本地保存的 NexaFlow 短信事件。</string>
+    <string name="sms_activity_clear_title">清除短信活动记录？</string>
+    <string name="sms_activity_empty">暂无由 NexaFlow 处理的短信事件</string>
+    <string name="sms_activity_incoming">接收短信触发器</string>
+    <string name="sms_activity_outgoing">发送短信操作</string>
 </resources>

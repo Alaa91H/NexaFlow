@@ -132,11 +132,23 @@ class MigrationTest {
     }
 
     @Test fun historicalChainsReach22() {
-        for (version in listOf(1, 12, 16, 18, 19, 20, 21)) {
+        for (version in listOf(1, 12, 16, 18, 19, 20, 21, 22)) {
             helper.createDatabase(version).close()
-            helper.runMigrationsAndValidate(22, Migrations.ALL).close()
+            helper.runMigrationsAndValidate(23, Migrations.ALL).close()
             dbFile.delete()
         }
+    }
+
+    @Test fun migrate22To23CreatesSmsActivityWithoutMessageBody() {
+        helper.createDatabase(22).close()
+        val migrated = helper.runMigrationsAndValidate(23, listOf(Migrations.MIGRATION_22_23))
+        migrated.prepare("PRAGMA table_info(sms_activity)").use { statement ->
+            val columns = mutableSetOf<String>()
+            while (statement.step()) columns += statement.getText(1)
+            assertTrue("outcome" in columns)
+            assertFalse("messageBody" in columns)
+        }
+        migrated.close()
     }
 
     @get:Rule

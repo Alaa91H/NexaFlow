@@ -317,4 +317,23 @@
     <string name="ai_provider_remove">削除</string>
     <string name="ai_provider_protocol_compatible">OpenAI互換API</string>
     <string name="ai_provider_protocol_anthropic">Anthropic メッセージ API</string>
+    <string name="activity_history_subtitle">実行、ブロックした通話、NexaFlowのSMSイベント</string>
+    <string name="activity_history_title">アクティビティ履歴</string>
+    <string name="agent_activity_clear">消去</string>
+    <string name="agent_activity_clear_confirm">ローカルのエージェントアクティビティ履歴を削除します。</string>
+    <string name="agent_activity_clear_title">エージェントの履歴を消去しますか？</string>
+    <string name="ai_tab_agents">エージェント</string>
+    <string name="ai_tab_logs">ログ</string>
+    <string name="ai_tab_add_agent">エージェントを追加</string>
+    <string name="ai_provider_choose_model">モデルを選択</string>
+    <string name="ai_provider_discover_models">モデルを更新</string>
+    <string name="ai_provider_models_loading">プロバイダーのモデルを読み込み中…</string>
+    <string name="ai_provider_models_ready">モデルを読み込みました</string>
+    <string name="ai_provider_models_unsupported">モデル一覧を取得できません。モデルIDを手動で入力してください。</string>
+    <string name="ai_provider_models_failed">モデルを読み込めません。キーと設定を確認してください。</string>
+    <string name="ai_provider_level">推論レベル</string>
+    <string name="ai_provider_level_fast">高速</string>
+    <string name="ai_provider_level_balanced">標準</string>
+    <string name="ai_provider_level_deep">詳細</string>
+    <string name="ai_provider_models_title">利用可能なモデル</string>
 </resources>

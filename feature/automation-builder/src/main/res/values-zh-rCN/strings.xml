@@ -1274,4 +1274,6 @@
     <string name="trigger_wear_event_sub">当 NexaFlow 手表连接或断开连接时运行任务</string>
     <string name="option_tier_advanced">高级</string>
     <string name="option_tier_all">所有选项</string>
+    <string name="option_tier_expanded">已展开</string>
+    <string name="option_tier_collapsed">已收起</string>
 </resources>

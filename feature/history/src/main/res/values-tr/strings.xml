@@ -94,4 +94,15 @@
 
     <string name="why_run_configuration_blocked">Görev yapılandırması eksik olduğu için çalıştırma engellendi.</string>
     <string name="why_run_fix_review_task_configuration">Yeniden denemeden önce görev yapılandırmasını gözden geçirin ve gerekli değerleri girin.</string>
+    <string name="activity_blocked_calls">Engellenen aramalar</string>
+    <string name="activity_executions">Çalıştırmalar</string>
+    <string name="activity_sms">SMS etkinlikleri</string>
+    <string name="sms_activity_automation">Otomasyon</string>
+    <string name="sms_activity_cancel">İptal</string>
+    <string name="sms_activity_clear">Geçmişi temizle</string>
+    <string name="sms_activity_clear_confirm">Yerel olarak kaydedilen NexaFlow SMS etkinlikleri silinir.</string>
+    <string name="sms_activity_clear_title">SMS etkinliği temizlensin mi?</string>
+    <string name="sms_activity_empty">Henüz NexaFlow tarafından işlenen SMS etkinliği yok</string>
+    <string name="sms_activity_incoming">Gelen SMS tetikleyicisi</string>
+    <string name="sms_activity_outgoing">Giden SMS işlemi</string>
 </resources>

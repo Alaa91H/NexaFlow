@@ -317,4 +317,23 @@
     <string name="ai_provider_remove">Kaldır</string>
     <string name="ai_provider_protocol_compatible">OpenAI uyumlu API</string>
     <string name="ai_provider_protocol_anthropic">Anthropic Mesajlaşma API</string>
+    <string name="activity_history_subtitle">Çalıştırmalar, engellenen aramalar ve NexaFlow SMS etkinlikleri</string>
+    <string name="activity_history_title">Etkinlik geçmişi</string>
+    <string name="agent_activity_clear">Temizle</string>
+    <string name="agent_activity_clear_confirm">Ajanların yerel etkinlik geçmişi silinir.</string>
+    <string name="agent_activity_clear_title">Ajan etkinliği temizlensin mi?</string>
+    <string name="ai_tab_agents">Ajanlar</string>
+    <string name="ai_tab_logs">Günlükler</string>
+    <string name="ai_tab_add_agent">Ajan ekle</string>
+    <string name="ai_provider_choose_model">Model seç</string>
+    <string name="ai_provider_discover_models">Modelleri yenile</string>
+    <string name="ai_provider_models_loading">Sağlayıcı modelleri yükleniyor…</string>
+    <string name="ai_provider_models_ready">Modeller yüklendi</string>
+    <string name="ai_provider_models_unsupported">Model listesi yok; model kimliğini elle girin.</string>
+    <string name="ai_provider_models_failed">Modeller yüklenemedi. Anahtarı ve sağlayıcı ayarlarını kontrol edin.</string>
+    <string name="ai_provider_level">Akıl yürütme düzeyi</string>
+    <string name="ai_provider_level_fast">Hızlı</string>
+    <string name="ai_provider_level_balanced">Dengeli</string>
+    <string name="ai_provider_level_deep">Derin</string>
+    <string name="ai_provider_models_title">Kullanılabilir modeller</string>
 </resources>

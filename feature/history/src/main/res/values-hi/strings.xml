@@ -94,4 +94,15 @@
 
     <string name="why_run_configuration_blocked">कार्य कॉन्फ़िगरेशन अधूरा है, इसलिए रन रोक दिया गया.</string>
     <string name="why_run_fix_review_task_configuration">फिर प्रयास करने से पहले कार्य कॉन्फ़िगरेशन की समीक्षा करें और आवश्यक मान भरें.</string>
+    <string name="activity_blocked_calls">अवरुद्ध कॉल</string>
+    <string name="activity_executions">निष्पादन</string>
+    <string name="activity_sms">SMS घटनाएँ</string>
+    <string name="sms_activity_automation">ऑटोमेशन</string>
+    <string name="sms_activity_cancel">रद्द करें</string>
+    <string name="sms_activity_clear">इतिहास मिटाएँ</string>
+    <string name="sms_activity_clear_confirm">इससे स्थानीय रूप से सहेजी गई NexaFlow SMS घटनाएँ हट जाएँगी।</string>
+    <string name="sms_activity_clear_title">SMS गतिविधि मिटाएँ?</string>
+    <string name="sms_activity_empty">अभी तक NexaFlow द्वारा संसाधित SMS घटनाएँ नहीं हैं</string>
+    <string name="sms_activity_incoming">आने वाला SMS ट्रिगर</string>
+    <string name="sms_activity_outgoing">जाने वाला SMS कार्य</string>
 </resources>

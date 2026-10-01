@@ -27,7 +27,8 @@ data class OpenAiCompatibleProviderConfig(
     val displayName: String = "OpenAI-compatible",
     val baseUrl: String = "",
     val modelId: String = "",
-    val local: Boolean = true
+    val local: Boolean = true,
+    val reasoningEffort: String? = null
 )
 
 data class OpenAiCompatibleTransportResponse(
@@ -410,7 +411,8 @@ class OpenAiCompatibleProvider(
             config = snapshot,
             body = effectiveRequest.toChatCompletionBody(
                 snapshot.modelId,
-                streaming = true
+                streaming = true,
+                reasoningEffort = snapshot.reasoningEffort
             ),
             apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
         ).collect { raw ->
@@ -607,10 +609,12 @@ class OpenAiCompatibleProvider(
 
     private fun AiProviderRequest.toChatCompletionBody(
         modelId: String,
-        streaming: Boolean
+        streaming: Boolean,
+        reasoningEffort: String?
     ): JsonObject = buildJsonObject {
         put("model", modelId)
         put("stream", streaming)
+        reasoningEffort?.let { put("reasoning_effort", it) }
         put("messages", buildJsonArray {
             messages.forEach { add(it.toOpenAiMessage()) }
         })

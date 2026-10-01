@@ -6,6 +6,19 @@ enum class AiProviderProtocol {
     ANTHROPIC_MESSAGES
 }
 
+enum class AiReasoningLevel(val apiValue: String) {
+    FAST("low"),
+    BALANCED("medium"),
+    DEEP("high");
+
+    companion object {
+        fun fromStoredValue(value: String): AiReasoningLevel =
+            entries.firstOrNull {
+                it.apiValue.equals(value, ignoreCase = true) || it.name.equals(value, ignoreCase = true)
+            } ?: BALANCED
+    }
+}
+
 /** Public provider defaults only; credentials are deliberately stored elsewhere. */
 data class AiProviderPreset(
     val id: String,

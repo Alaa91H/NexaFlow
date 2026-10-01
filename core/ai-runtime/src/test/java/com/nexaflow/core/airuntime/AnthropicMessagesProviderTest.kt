@@ -40,7 +40,8 @@ class AnthropicMessagesProviderTest {
                 enabled = true,
                 displayName = "Claude",
                 baseUrl = "https://api.anthropic.com/v1",
-                modelId = "claude-test"
+                modelId = "claude-test",
+                reasoningEffort = "high"
             )
         )
 
@@ -74,6 +75,10 @@ class AnthropicMessagesProviderTest {
 
         assertEquals("Be concise", sent?.get("system")?.jsonPrimitive?.content)
         assertEquals("claude-test", sent?.get("model")?.jsonPrimitive?.content)
+        assertEquals(
+            "high",
+            sent?.get("output_config")?.jsonObject?.get("effort")?.jsonPrimitive?.content
+        )
         assertEquals("device_status", sent?.get("tools")?.jsonArray?.single()
             ?.jsonObject?.get("name")?.jsonPrimitive?.content)
         val messages = sent?.get("messages")?.jsonArray.orEmpty()

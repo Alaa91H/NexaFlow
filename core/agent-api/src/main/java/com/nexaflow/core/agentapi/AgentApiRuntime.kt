@@ -19,6 +19,7 @@ interface AgentApiRuntime {
     suspend fun run(automation: Automation, request: AgentApiRunContext): ExecutionRecord
     suspend fun latestHistory(limit: Int): List<ExecutionRecord>
     suspend fun latestAudit(limit: Int): List<AgentApiAuditEventV1>
+    suspend fun clearAudit() {}
     suspend fun capabilities(): AgentApiCapabilitiesV1
 }
 

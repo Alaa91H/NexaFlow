@@ -71,6 +71,7 @@ dependencies {
     // Compose UI tests via Robolectric (project pattern: see
     // SpecialPermissionStatusRowTest in :feature:automation-builder).
     testImplementation(libs.androidx.compose.ui.ui.test.junit4)
+    implementation(project(":core:database"))
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.robolectric.robolectric)
 }

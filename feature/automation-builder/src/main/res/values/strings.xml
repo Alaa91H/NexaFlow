@@ -481,7 +481,7 @@
     <string name="notification_button_reply">Reply with text</string>
     <string name="notification_button_reply_title">Reply variable</string>
     <string name="notification_button_reply_hint">Typing in the notification stores the text into this variable so the task can use it (e.g. %MyReply).</string>
-    <string name="notification_button_reply_label">Variable name (without %)</string>
+    <string name="notification_button_reply_label">Variable name (without %%)</string>
     <string name="notification_button_reply_sub">Writes reply to %s</string>
     <string name="trigger_type_sensor">Sensor</string>
     <string name="sensor_kind">Sensor</string>

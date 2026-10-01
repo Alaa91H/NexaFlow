@@ -5,6 +5,7 @@ import android.util.Log
 import com.nexaflow.core.rom.model.IntegrationLevel
 import com.nexaflow.core.rom.model.RomBuildInfo
 import com.nexaflow.core.rom.model.RomCapability
+import com.nexaflow.domain.repositories.SmsActivityRepository
 
 object RomIntegrationManager {
     private const val TAG = "NexaFlowRom"
@@ -90,10 +91,15 @@ object RomIntegrationManager {
         return availableCapabilities(context).isNotEmpty()
     }
 
-    fun controller(context: Context): SystemController {
+    fun controller(
+        context: Context,
+        smsActivityRepository: SmsActivityRepository? = null,
+        smsAutomationId: String? = null,
+        smsAutomationName: String? = null
+    ): SystemController {
         ensureInitialized(context)
         val appContext = context.applicationContext
         val provider = RomCapabilityProvider(appContext, integrationLevel, buildInfo.family)
-        return SystemController(appContext, provider)
+        return SystemController(appContext, provider, smsActivityRepository, smsAutomationId, smsAutomationName)
     }
 }

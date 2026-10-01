@@ -438,7 +438,7 @@
     <string name="notification_button_reply">Metinle yanıtla</string>
     <string name="notification_button_reply_title">Yanıt değişkeni</string>
     <string name="notification_button_reply_hint">Bildirimde yazılan metin bu değişkende saklanır ve görev onu kullanabilir (örn. %MyReply).</string>
-    <string name="notification_button_reply_label">Değişken adı (% olmadan)</string>
+    <string name="notification_button_reply_label">Değişken adı (%% olmadan)</string>
     <string name="notification_button_reply_sub">Yanıtı %s değişkenine yazar</string>
     <string name="trigger_type_sensor">Sensör</string>
     <string name="sensor_kind">Sensör türü</string>
@@ -1274,4 +1274,6 @@
     <string name="trigger_wear_event_sub">Bir NexaFlow saati bağlandığında veya bağlantısı kesildiğinde görevi çalıştır</string>
     <string name="option_tier_advanced">Gelişmiş</string>
     <string name="option_tier_all">Tüm seçenekler</string>
+    <string name="option_tier_expanded">Genişletilmiş</string>
+    <string name="option_tier_collapsed">Daraltılmış</string>
 </resources>

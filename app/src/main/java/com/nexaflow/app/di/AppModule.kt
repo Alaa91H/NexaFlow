@@ -22,6 +22,7 @@ import com.nexaflow.core.agentsecurity.AgentRequestAuthorizer
 import com.nexaflow.core.agentsecurity.AgentSecurityStore
 import com.nexaflow.core.agentsecurity.EncryptedAgentSecurityStore
 import com.nexaflow.core.database.VariableDao
+import com.nexaflow.core.database.SmsActivityDao
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.AutomationRuntimeStore
@@ -72,11 +73,13 @@ import com.nexaflow.data.repository.HistoryRepositoryImpl
 import com.nexaflow.data.repository.PluginRepositoryImpl
 import com.nexaflow.data.repository.RoomAutomationAuditSink
 import com.nexaflow.data.repository.RoomAutomationMutationPersistence
+import com.nexaflow.data.repository.SmsActivityRepositoryImpl
 import com.nexaflow.data.repository.VariableRepositoryImpl
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HealthRepository
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.PluginRepository
+import com.nexaflow.domain.repositories.SmsActivityRepository
 import com.nexaflow.domain.repositories.VariableRepository
 import dagger.Module
 import dagger.Provides
@@ -132,6 +135,9 @@ object AppModule {
     fun provideAgentPlatformDao(database: AppDatabase): AgentPlatformDao {
         return database.agentPlatformDao()
     }
+
+    @Provides
+    fun provideSmsActivityDao(database: AppDatabase): SmsActivityDao = database.smsActivityDao()
 
     @Provides
     @Singleton
@@ -298,6 +304,10 @@ object AppModule {
     fun provideHistoryRepository(executionDao: ExecutionDao): HistoryRepository {
         return HistoryRepositoryImpl(executionDao)
     }
+
+    @Provides
+    @Singleton
+    fun provideSmsActivityRepository(dao: SmsActivityDao): SmsActivityRepository = SmsActivityRepositoryImpl(dao)
 
     @Provides
     @Singleton
@@ -474,7 +484,8 @@ object AppModule {
         semanticWorkflowPlanner: com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner,
         automationRuntimeStore: AutomationRuntimeStore,
         semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter,
-        runEventBridge: AgentRunEventBridge
+        runEventBridge: AgentRunEventBridge,
+        smsActivityRepository: com.nexaflow.domain.repositories.SmsActivityRepository
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
@@ -490,7 +501,8 @@ object AppModule {
             capabilitySnapshotInvalidator = { capabilityStateStore.refresh() },
             privilegeSnapshotInvalidator = { privilegeStateStore.refresh() },
             semanticWorkflowPlanner = semanticWorkflowPlanner,
-            runListener = runEventBridge
+            runListener = runEventBridge,
+            smsActivityRepository = smsActivityRepository
         )
     }
 

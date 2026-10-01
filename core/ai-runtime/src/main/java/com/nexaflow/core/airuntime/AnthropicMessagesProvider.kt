@@ -23,7 +23,8 @@ data class AnthropicMessagesProviderConfig(
     val displayName: String = "Claude",
     val baseUrl: String = "",
     val modelId: String = "",
-    val local: Boolean = false
+    val local: Boolean = false,
+    val reasoningEffort: String? = null
 )
 
 data class AnthropicMessagesTransportResponse(val statusCode: Int, val body: String)
@@ -92,33 +93,39 @@ class AnthropicMessagesProvider(
 
     suspend fun verify(): Boolean {
         val snapshot = config
-        if (!isConfigured(snapshot)) return false
-        val key = apiKeyProvider()?.takeIf(String::isNotBlank) ?: return false
-        val response = runCatching { transport.getModels(snapshot, key) }.getOrNull()
-            ?: return false
-        if (response.statusCode !in 200..299) return false
-        return runCatching {
-            val models = json.parseToJsonElement(response.body).jsonObject["data"]?.jsonArray
-            models?.any {
-                it.jsonObject["id"]?.jsonPrimitive?.content == snapshot.modelId
-            } == true
-        }.getOrDefault(false).also { valid ->
-            _descriptor.value = descriptorFor(snapshot, available = valid)
-        }
+        val result = discoverModels()
+        val valid = result.success && result.models.any { it == snapshot.modelId }
+        _descriptor.value = descriptorFor(snapshot, available = valid)
+        return valid
     }
 
-    suspend fun discoverModels(): List<String> {
+    data class ModelDiscoveryResult(
+        val success: Boolean,
+        val models: List<String> = emptyList(),
+        val statusCode: Int? = null
+    )
+
+    suspend fun discoverModels(): ModelDiscoveryResult {
         val snapshot = config
-        val key = apiKeyProvider()?.takeIf(String::isNotBlank) ?: return emptyList()
+        if (!isConfigured(snapshot)) return ModelDiscoveryResult(success = false)
+        val key = apiKeyProvider()?.takeIf(String::isNotBlank)
+            ?: return ModelDiscoveryResult(success = false)
         val response = runCatching { transport.getModels(snapshot, key) }.getOrNull()
-            ?: return emptyList()
-        if (response.statusCode !in 200..299) return emptyList()
-        return runCatching {
+            ?: return ModelDiscoveryResult(success = false)
+        if (response.statusCode !in 200..299) {
+            return ModelDiscoveryResult(success = false, statusCode = response.statusCode)
+        }
+        val models = runCatching {
             json.parseToJsonElement(response.body).jsonObject["data"]?.jsonArray
-                ?.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull }
+                ?.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull?.trim() }
+                ?.filter(String::isNotEmpty)
+                ?.distinct()
                 ?.take(MAX_MODELS)
                 .orEmpty()
-        }.getOrDefault(emptyList())
+        }.getOrElse {
+            return ModelDiscoveryResult(success = false, statusCode = response.statusCode)
+        }
+        return ModelDiscoveryResult(true, models, response.statusCode)
     }
 
     override fun stream(request: AiProviderRequest): Flow<AiProviderEvent> = flow {
@@ -152,6 +159,9 @@ class AnthropicMessagesProvider(
         buildJsonObject {
             put("model", snapshot.modelId)
             put("max_tokens", (maxOutputCharacters / CHARS_PER_TOKEN).coerceIn(1, MAX_OUTPUT_TOKENS))
+            snapshot.reasoningEffort?.let { effort ->
+                put("output_config", buildJsonObject { put("effort", effort) })
+            }
             val system = messages.filter { it.role == AiRole.SYSTEM }
                 .joinToString("\n") { it.text }
             if (system.isNotBlank()) put("system", system.take(MAX_SYSTEM_CHARACTERS))

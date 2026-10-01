@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="activity_executions">التنفيذات</string>
+    <string name="activity_blocked_calls">المكالمات المحجوبة</string>
+    <string name="activity_sms">أحداث الرسائل</string>
+    <string name="sms_activity_empty">لا توجد أحداث رسائل عالجها NexaFlow بعد</string>
+    <string name="sms_activity_automation">أتمتة</string>
+    <string name="sms_activity_incoming">محفز رسالة واردة</string>
+    <string name="sms_activity_outgoing">إجراء إرسال رسالة</string>
+    <string name="sms_activity_clear">مسح السجل</string>
+    <string name="sms_activity_clear_title">مسح سجل الرسائل؟</string>
+    <string name="sms_activity_clear_confirm">سيتم حذف أحداث الرسائل المحفوظة محليًا في NexaFlow.</string>
+    <string name="sms_activity_cancel">إلغاء</string>
     <string name="history_title">السجل</string>
     <string name="no_runs_title">لا توجد عمليات تشغيل بعد</string>
     <string name="no_runs_subtitle">ستظهر عمليات تنفيذ الأتمتات هنا.</string>

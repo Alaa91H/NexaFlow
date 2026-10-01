@@ -94,4 +94,15 @@
 
     <string name="why_run_configuration_blocked">Конфигурация задачи неполная, поэтому запуск был заблокирован.</string>
     <string name="why_run_fix_review_task_configuration">Проверьте конфигурацию задачи и укажите обязательные значения перед повторной попыткой.</string>
+    <string name="activity_blocked_calls">Заблокированные вызовы</string>
+    <string name="activity_executions">Запуски</string>
+    <string name="activity_sms">События SMS</string>
+    <string name="sms_activity_automation">Автоматизация</string>
+    <string name="sms_activity_cancel">Отмена</string>
+    <string name="sms_activity_clear">Очистить историю</string>
+    <string name="sms_activity_clear_confirm">Локально сохраненные SMS-события NexaFlow будут удалены.</string>
+    <string name="sms_activity_clear_title">Очистить журнал SMS?</string>
+    <string name="sms_activity_empty">Пока нет SMS-событий, обработанных NexaFlow</string>
+    <string name="sms_activity_incoming">Триггер входящего SMS</string>
+    <string name="sms_activity_outgoing">Действие исходящего SMS</string>
 </resources>

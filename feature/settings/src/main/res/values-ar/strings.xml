@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="activity_history_title">سجل النشاط</string>
+    <string name="activity_history_subtitle">التنفيذات والمكالمات المحجوبة وأحداث رسائل NexaFlow</string>
+    <string name="agent_activity_clear">مسح</string>
+    <string name="agent_activity_clear_title">مسح سجل نشاط الوكلاء؟</string>
+    <string name="agent_activity_clear_confirm">سيؤدي ذلك إلى حذف سجل نشاط الوكلاء المحلي.</string>
     <string name="settings_title">الإعدادات</string>
     <string name="section_automation">الأتمتة</string>
     <string name="accessibility_service">خدمة إمكانية الوصول</string>
@@ -282,6 +287,20 @@
     <string name="ai_provider_endpoint_hint">مثال: http://192.168.1.20:11434/v1</string>
     <string name="ai_provider_model">معرّف النموذج</string>
     <string name="ai_provider_model_hint">مثال: qwen3</string>
+    <string name="ai_tab_agents">الوكلاء</string>
+    <string name="ai_tab_logs">السجلات</string>
+    <string name="ai_tab_add_agent">إضافة وكيل</string>
+    <string name="ai_provider_choose_model">اختيار النموذج</string>
+    <string name="ai_provider_discover_models">تحديث النماذج</string>
+    <string name="ai_provider_models_loading">جارٍ تحميل نماذج المزود…</string>
+    <string name="ai_provider_models_ready">تم تحميل النماذج</string>
+    <string name="ai_provider_models_unsupported">قائمة النماذج غير متاحة؛ أدخل معرّف النموذج يدويًا.</string>
+    <string name="ai_provider_models_failed">تعذر تحميل النماذج. تحقق من المفتاح وإعدادات المزود.</string>
+    <string name="ai_provider_level">مستوى الاستدلال</string>
+    <string name="ai_provider_level_fast">سريع</string>
+    <string name="ai_provider_level_balanced">متوازن</string>
+    <string name="ai_provider_level_deep">متعمق</string>
+    <string name="ai_provider_models_title">النماذج المتاحة</string>
     <string name="ai_provider_local">نقطة نهاية محلية أو خاصة</string>
     <string name="ai_provider_local_subtitle">مطلوب لاتصال HTTP غير المشفّر. يجب أن تستخدم النقاط العامة HTTPS.</string>
     <string name="ai_provider_api_key">مفتاح API</string>

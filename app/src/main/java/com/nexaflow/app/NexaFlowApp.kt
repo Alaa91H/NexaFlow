@@ -22,6 +22,7 @@ import com.nexaflow.feature.builder.AutomationBuilderScreen
 import com.nexaflow.feature.builder.MapPickerScreen
 import com.nexaflow.feature.dashboard.DashboardScreen
 import com.nexaflow.feature.history.BlockedCallsScreen
+import com.nexaflow.feature.history.ActivityHistoryScreen
 import com.nexaflow.feature.history.DiagnosticsScreen
 import com.nexaflow.feature.history.ExecutionDetailsScreen
 import com.nexaflow.feature.history.HistoryScreen
@@ -168,6 +169,9 @@ fun NexaFlowApp(reviewAutomationId: String? = null, onReviewOpened: () -> Unit =
             }
             composable("blocked_calls") {
                 BlockedCallsScreen(navController = navController)
+            }
+            composable(SettingsDestination.ACTIVITY_HISTORY_ROUTE) {
+                ActivityHistoryScreen(navController = navController)
             }
             composable("icon_picker") {
                 IconPickerScreen(navController = navController)

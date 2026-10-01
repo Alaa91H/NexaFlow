@@ -1274,4 +1274,6 @@
     <string name="trigger_wear_event_sub">Запускать задачу, когда часы NexaFlow подключены или отключены</string>
     <string name="option_tier_advanced">Расширенные</string>
     <string name="option_tier_all">Все варианты</string>
+    <string name="option_tier_expanded">Развернуто</string>
+    <string name="option_tier_collapsed">Свернуто</string>
 </resources>

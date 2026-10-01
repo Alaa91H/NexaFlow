@@ -21,4 +21,14 @@ class AiProviderCatalogTest {
         assertTrue(presets.values.all { it.baseUrl.startsWith("https://") })
         assertTrue(presets.values.all { it.defaultModelId.isNotBlank() })
     }
+
+    @Test
+    fun `reasoning levels map to supported provider effort values`() {
+        assertEquals("low", AiReasoningLevel.FAST.apiValue)
+        assertEquals("medium", AiReasoningLevel.BALANCED.apiValue)
+        assertEquals("high", AiReasoningLevel.DEEP.apiValue)
+        assertEquals(AiReasoningLevel.FAST, AiReasoningLevel.fromStoredValue("low"))
+        assertEquals(AiReasoningLevel.DEEP, AiReasoningLevel.fromStoredValue("DEEP"))
+        assertEquals(AiReasoningLevel.BALANCED, AiReasoningLevel.fromStoredValue("unknown"))
+    }
 }

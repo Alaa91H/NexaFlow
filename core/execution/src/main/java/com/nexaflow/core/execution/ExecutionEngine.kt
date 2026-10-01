@@ -52,6 +52,7 @@ import com.nexaflow.domain.models.MaintenanceExecutionIdentity
 import com.nexaflow.domain.models.completesExitOnFinish
 import com.nexaflow.domain.models.requiresTimeRangeForEndBehavior
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.domain.repositories.SmsActivityRepository
 import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.RuntimeValueCodec
 import com.nexaflow.domain.variables.VariableResolver
@@ -140,6 +141,7 @@ class ExecutionEngine(
     /** Suppresses repeated durable-admission diagnostics from high-frequency triggers. */
     private val checkpointAdmissionReportThrottle: CheckpointAdmissionReportThrottle =
         CheckpointAdmissionReportThrottle(),
+    private val smsActivityRepository: SmsActivityRepository? = null,
     /** Coalesces identical intentional skips emitted by noisy state monitors. */
     private val skipReportThrottle: ExecutionSkipReportThrottle =
         ExecutionSkipReportThrottle(),
@@ -439,7 +441,7 @@ class ExecutionEngine(
         // One typed, scoped facade per run. It layers over the existing payload
         // context and repository; no action accesses a raw variable store.
         val dataRuntime = variableRepository?.let { ScopedDataRuntime(payloadContext, it) }
-        val controller = RomIntegrationManager.controller(context)
+        val controller = RomIntegrationManager.controller(context, smsActivityRepository, automation.id, automation.name)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
         if (maintenanceOccurrenceKey != null &&
@@ -1236,7 +1238,7 @@ class ExecutionEngine(
             )
             return record
         }
-        val controller = RomIntegrationManager.controller(context)
+        val controller = RomIntegrationManager.controller(context, smsActivityRepository, automation.id, automation.name)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
         val exitExecutionId = UUID.randomUUID().toString()

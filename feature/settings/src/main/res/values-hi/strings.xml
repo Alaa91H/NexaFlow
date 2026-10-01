@@ -317,4 +317,23 @@
     <string name="ai_provider_remove">हटाएँ</string>
     <string name="ai_provider_protocol_compatible">OpenAI संगत API</string>
     <string name="ai_provider_protocol_anthropic">Anthropic संदेश API</string>
+    <string name="activity_history_subtitle">निष्पादन, अवरुद्ध कॉल और NexaFlow SMS घटनाएँ</string>
+    <string name="activity_history_title">गतिविधि इतिहास</string>
+    <string name="agent_activity_clear">मिटाएँ</string>
+    <string name="agent_activity_clear_confirm">इससे एजेंटों का स्थानीय गतिविधि इतिहास हट जाएगा।</string>
+    <string name="agent_activity_clear_title">एजेंट गतिविधि मिटाएँ?</string>
+    <string name="ai_tab_agents">एजेंट</string>
+    <string name="ai_tab_logs">लॉग</string>
+    <string name="ai_tab_add_agent">एजेंट जोड़ें</string>
+    <string name="ai_provider_choose_model">मॉडल चुनें</string>
+    <string name="ai_provider_discover_models">मॉडल रीफ़्रेश करें</string>
+    <string name="ai_provider_models_loading">प्रदाता के मॉडल लोड हो रहे हैं…</string>
+    <string name="ai_provider_models_ready">मॉडल लोड हो गए</string>
+    <string name="ai_provider_models_unsupported">मॉडल सूची उपलब्ध नहीं; मॉडल ID स्वयं दर्ज करें।</string>
+    <string name="ai_provider_models_failed">मॉडल लोड नहीं हुए। कुंजी और प्रदाता सेटिंग जाँचें।</string>
+    <string name="ai_provider_level">तर्क स्तर</string>
+    <string name="ai_provider_level_fast">तेज़</string>
+    <string name="ai_provider_level_balanced">संतुलित</string>
+    <string name="ai_provider_level_deep">गहन</string>
+    <string name="ai_provider_models_title">उपलब्ध मॉडल</string>
 </resources>

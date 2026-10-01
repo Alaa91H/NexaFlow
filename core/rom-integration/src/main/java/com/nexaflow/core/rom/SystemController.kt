@@ -36,11 +36,19 @@ import com.nexaflow.domain.models.ExecutionResultClassifier
 import com.nexaflow.domain.updates.GooglePlayUpdateDecision
 import com.nexaflow.domain.updates.GooglePlayUpdateEnvironment
 import com.nexaflow.domain.updates.GooglePlayUpdatePlanner
+import com.nexaflow.domain.models.SmsActivityEvent
+import com.nexaflow.domain.repositories.SmsActivityRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Suppress("TooManyFunctions", "LargeClass") // System-ops façade: many small, single-purpose device operations
 class SystemController(
     private val context: Context,
-    private val capabilityProvider: RomCapabilityProvider
+    private val capabilityProvider: RomCapabilityProvider,
+    private val smsActivityRepository: SmsActivityRepository? = null,
+    private val smsAutomationId: String? = null,
+    private val smsAutomationName: String? = null
 ) {
     // STATUS_BAR_SERVICE is a hidden constant not in the public SDK; the raw
     // service name is used intentionally for privileged ROM integration.
@@ -1077,15 +1085,22 @@ class SystemController(
 
     /** Send an SMS text message. Requires SEND_SMS permission. */
     fun sendSms(number: String, text: String): SystemControlResult {
-        if (number.isBlank()) return SystemControlResult.fail("No phone number configured")
-        return try {
+        val result = if (number.isBlank()) SystemControlResult.fail("No phone number configured") else try {
             val smsManager = context.getSystemService(android.telephony.SmsManager::class.java)
             val parts = smsManager.divideMessage(text.ifBlank { "NexaFlow automation" })
             smsManager.sendMultipartTextMessage(number, null, parts, null, null)
-            SystemControlResult.ok("SMS sent to $number")
+            SystemControlResult.ok("SMS submitted to carrier")
         } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to send SMS: ${t.message}")
+            SystemControlResult.fail("Failed to send SMS")
         }
+        smsActivityRepository?.let { repository ->
+            CoroutineScope(Dispatchers.IO).launch {
+                runCatching {
+                    repository.record(SmsActivityEvent(java.util.UUID.randomUUID().toString(), "OUTGOING_ACTION", smsAutomationId, smsAutomationName, if (result.success) "SUBMITTED" else "FAILED", if (result.success) null else "SEND_FAILED", System.currentTimeMillis()))
+                }
+            }
+        }
+        return result
     }
 
     /** Open a system settings page (Wi-Fi, Bluetooth, location, sound...). */

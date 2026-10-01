@@ -94,4 +94,15 @@
 
     <string name="why_run_configuration_blocked">La configuración de la tarea está incompleta, por lo que la ejecución fue bloqueada.</string>
     <string name="why_run_fix_review_task_configuration">Revisa la configuración de la tarea y completa los valores requeridos antes de volver a intentarlo.</string>
+    <string name="activity_blocked_calls">Llamadas bloqueadas</string>
+    <string name="activity_executions">Ejecuciones</string>
+    <string name="activity_sms">Eventos SMS</string>
+    <string name="sms_activity_automation">Automatización</string>
+    <string name="sms_activity_cancel">Cancelar</string>
+    <string name="sms_activity_clear">Borrar historial</string>
+    <string name="sms_activity_clear_confirm">Esto elimina los eventos SMS de NexaFlow guardados localmente.</string>
+    <string name="sms_activity_clear_title">¿Borrar la actividad SMS?</string>
+    <string name="sms_activity_empty">Aún no hay eventos SMS gestionados por NexaFlow</string>
+    <string name="sms_activity_incoming">Activador de SMS entrante</string>
+    <string name="sms_activity_outgoing">Acción de SMS saliente</string>
 </resources>

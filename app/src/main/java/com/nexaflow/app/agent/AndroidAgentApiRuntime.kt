@@ -187,6 +187,8 @@ class AndroidAgentApiRuntime @Inject constructor(
             )
         }
 
+    override suspend fun clearAudit() = agentPlatformDao.clearAudit()
+
     private fun sha256(value: String): String {
         val digest = MessageDigest.getInstance("SHA-256")
             .digest(value.toByteArray(Charsets.UTF_8))

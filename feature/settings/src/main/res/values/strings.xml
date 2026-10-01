@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="activity_history_title">Activity history</string>
+    <string name="activity_history_subtitle">Executions, blocked calls, and NexaFlow SMS events</string>
+    <string name="agent_activity_clear">Clear</string>
+    <string name="agent_activity_clear_title">Clear agent activity?</string>
+    <string name="agent_activity_clear_confirm">This removes the local agent activity history.</string>
     <string name="settings_title">Settings</string>
     <string name="section_automation">Automation</string>
     <string name="accessibility_service">Accessibility service</string>
@@ -281,6 +286,20 @@
     <string name="ai_provider_endpoint_hint">Example: http://192.168.1.20:11434/v1</string>
     <string name="ai_provider_model">Model ID</string>
     <string name="ai_provider_model_hint">Example: qwen3</string>
+    <string name="ai_tab_agents">Agents</string>
+    <string name="ai_tab_logs">Logs</string>
+    <string name="ai_tab_add_agent">Add agent</string>
+    <string name="ai_provider_choose_model">Choose model</string>
+    <string name="ai_provider_discover_models">Refresh models</string>
+    <string name="ai_provider_models_loading">Loading provider models…</string>
+    <string name="ai_provider_models_ready">Models loaded</string>
+    <string name="ai_provider_models_unsupported">Model list unavailable; enter a model ID manually.</string>
+    <string name="ai_provider_models_failed">Could not load models. Check the key and provider settings.</string>
+    <string name="ai_provider_level">Reasoning level</string>
+    <string name="ai_provider_level_fast">Fast</string>
+    <string name="ai_provider_level_balanced">Balanced</string>
+    <string name="ai_provider_level_deep">Deep</string>
+    <string name="ai_provider_models_title">Available models</string>
     <string name="ai_provider_local">Local/private endpoint</string>
     <string name="ai_provider_local_subtitle">Required for cleartext HTTP. Public endpoints must use HTTPS.</string>
     <string name="ai_provider_api_key">API key</string>

@@ -63,6 +63,9 @@ interface AgentPlatformDao {
     )
     suspend fun pruneAuditToNewest(keepCount: Int): Int
 
+    @Query("DELETE FROM agent_audit")
+    suspend fun clearAudit()
+
     @Query("SELECT * FROM agent_audit ORDER BY createdAt DESC, rowid DESC LIMIT :limit")
     suspend fun latestAudit(limit: Int): List<AgentAuditEntity>
 

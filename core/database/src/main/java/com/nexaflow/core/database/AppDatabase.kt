@@ -11,9 +11,10 @@ import androidx.room.TypeConverters
         GlobalVariableEntity::class,
         AutomationApiMetadataEntity::class,
         AgentAuditEntity::class,
-        AgentIdempotencyEntity::class
+        AgentIdempotencyEntity::class,
+        SmsActivityEntity::class
     ],
-    version = 22,
+    version = 23,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -22,4 +23,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun executionDao(): ExecutionDao
     abstract fun variableDao(): VariableDao
     abstract fun agentPlatformDao(): AgentPlatformDao
+    abstract fun smsActivityDao(): SmsActivityDao
 }

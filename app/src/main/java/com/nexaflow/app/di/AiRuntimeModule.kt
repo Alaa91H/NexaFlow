@@ -110,7 +110,10 @@ object AiRuntimeModule {
                                         displayName = profile.displayName,
                                         baseUrl = profile.baseUrl,
                                         modelId = profile.modelId,
-                                        local = profile.local
+                                        local = profile.local,
+                                        reasoningEffort = profile.reasoningEffort.takeIf {
+                                            profile.presetId == "openai"
+                                        }
                                     )
                                 )
                             }
@@ -128,7 +131,10 @@ object AiRuntimeModule {
                                         displayName = profile.displayName,
                                         baseUrl = profile.baseUrl,
                                         modelId = profile.modelId,
-                                        local = profile.local
+                                        local = profile.local,
+                                        reasoningEffort = profile.reasoningEffort.takeIf {
+                                            profile.presetId == "claude"
+                                        }
                                     )
                                 )
                             }

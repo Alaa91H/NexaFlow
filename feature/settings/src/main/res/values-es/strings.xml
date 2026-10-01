@@ -315,4 +315,23 @@
     <string name="ai_provider_remove">Quitar</string>
     <string name="ai_provider_protocol_compatible">API compatible con OpenAI</string>
     <string name="ai_provider_protocol_anthropic">API Anthropic Messages</string>
+    <string name="activity_history_subtitle">Ejecuciones, llamadas bloqueadas y eventos SMS de NexaFlow</string>
+    <string name="activity_history_title">Historial de actividad</string>
+    <string name="agent_activity_clear">Borrar</string>
+    <string name="agent_activity_clear_confirm">Esto elimina el historial local de actividad de agentes.</string>
+    <string name="agent_activity_clear_title">¿Borrar actividad de agentes?</string>
+    <string name="ai_tab_agents">Agentes</string>
+    <string name="ai_tab_logs">Registros</string>
+    <string name="ai_tab_add_agent">Añadir agente</string>
+    <string name="ai_provider_choose_model">Elegir modelo</string>
+    <string name="ai_provider_discover_models">Actualizar modelos</string>
+    <string name="ai_provider_models_loading">Cargando modelos del proveedor…</string>
+    <string name="ai_provider_models_ready">Modelos cargados</string>
+    <string name="ai_provider_models_unsupported">Lista de modelos no disponible; introduce un ID manualmente.</string>
+    <string name="ai_provider_models_failed">No se pudieron cargar los modelos. Comprueba la clave y la configuración.</string>
+    <string name="ai_provider_level">Nivel de razonamiento</string>
+    <string name="ai_provider_level_fast">Rápido</string>
+    <string name="ai_provider_level_balanced">Equilibrado</string>
+    <string name="ai_provider_level_deep">Profundo</string>
+    <string name="ai_provider_models_title">Modelos disponibles</string>
 </resources>

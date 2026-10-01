@@ -384,6 +384,14 @@ object Migrations {
         }
     }
 
+    /** v22 -> v23: bounded first-party SMS activity metadata, without message contents. */
+    val MIGRATION_22_23 = object : Migration(22, 23) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `sms_activity` (`id` TEXT NOT NULL, `eventType` TEXT NOT NULL, `automationId` TEXT, `automationName` TEXT, `outcome` TEXT NOT NULL, `errorCode` TEXT, `occurredAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_sms_activity_occurredAt` ON `sms_activity` (`occurredAt`)")
+        }
+    }
+
 
     val ALL = listOf(
         MIGRATION_1_2,
@@ -406,6 +414,7 @@ object Migrations {
         MIGRATION_18_19,
         MIGRATION_19_20,
         MIGRATION_20_21,
-        MIGRATION_21_22
+        MIGRATION_21_22,
+        MIGRATION_22_23
     )
 }

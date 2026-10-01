@@ -4,4 +4,5 @@ package com.nexaflow.feature.settings
 object SettingsDestination {
     const val EXECUTION_HISTORY_ROUTE = "history"
     const val AI_AGENTS_ROUTE = "ai_agents"
+    const val ACTIVITY_HISTORY_ROUTE = "activity_history"
 }

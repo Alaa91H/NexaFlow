@@ -37,7 +37,7 @@ class OpenAiCompatibleProviderTest {
     fun requestContainsToolsAndPreservedToolHistory() = runTest {
         val transport = FakeTransport()
         val provider = provider(transport)
-        provider.configure(config())
+        provider.configure(config().copy(reasoningEffort = "high"))
 
         provider.stream(
             AiProviderRequest(
@@ -76,6 +76,7 @@ class OpenAiCompatibleProviderTest {
         val body = requireNotNull(transport.lastBody)
         assertEquals("qwen3", body["model"]!!.jsonPrimitive.content)
         assertTrue(body["stream"]!!.jsonPrimitive.content.toBoolean())
+        assertEquals("high", body["reasoning_effort"]!!.jsonPrimitive.content)
         assertEquals(1, body["tools"]!!.jsonArray.size)
         val messages = body["messages"]!!.jsonArray
         val assistant = messages[1].jsonObject

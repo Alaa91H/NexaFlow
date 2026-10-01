@@ -1274,4 +1274,6 @@
     <string name="trigger_wear_event_sub">Aufgabe ausführen, wenn eine NexaFlow-Uhr verbunden oder getrennt ist</string>
     <string name="option_tier_advanced">Erweitert</string>
     <string name="option_tier_all">Alle Optionen</string>
+    <string name="option_tier_expanded">Erweitert angezeigt</string>
+    <string name="option_tier_collapsed">Eingeklappt</string>
 </resources>

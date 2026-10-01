@@ -94,4 +94,15 @@
 
     <string name="why_run_configuration_blocked">タスク設定が不完全なため、実行がブロックされました。</string>
     <string name="why_run_fix_review_task_configuration">再試行する前にタスク設定を確認し、必要な値を入力してください。</string>
+    <string name="activity_blocked_calls">ブロックした通話</string>
+    <string name="activity_executions">実行</string>
+    <string name="activity_sms">SMSイベント</string>
+    <string name="sms_activity_automation">自動化</string>
+    <string name="sms_activity_cancel">キャンセル</string>
+    <string name="sms_activity_clear">履歴を消去</string>
+    <string name="sms_activity_clear_confirm">ローカルに保存されたNexaFlowのSMSイベントを削除します。</string>
+    <string name="sms_activity_clear_title">SMSアクティビティを消去しますか？</string>
+    <string name="sms_activity_empty">NexaFlowが処理したSMSイベントはまだありません</string>
+    <string name="sms_activity_incoming">受信SMSトリガー</string>
+    <string name="sms_activity_outgoing">送信SMSアクション</string>
 </resources>

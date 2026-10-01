@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="activity_executions">Executions</string>
+    <string name="activity_blocked_calls">Blocked calls</string>
+    <string name="activity_sms">SMS events</string>
+    <string name="sms_activity_empty">No SMS events handled by NexaFlow yet</string>
+    <string name="sms_activity_automation">Automation</string>
+    <string name="sms_activity_incoming">Incoming SMS trigger</string>
+    <string name="sms_activity_outgoing">Outgoing SMS action</string>
+    <string name="sms_activity_clear">Clear</string>
+    <string name="sms_activity_clear_title">Clear SMS activity?</string>
+    <string name="sms_activity_clear_confirm">This removes the locally saved NexaFlow SMS events.</string>
+    <string name="sms_activity_cancel">Cancel</string>
     <string name="history_title">History</string>
     <string name="no_runs_title">No runs yet</string>
     <string name="no_runs_subtitle">Your automation executions will appear here.</string>

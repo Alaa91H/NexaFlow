@@ -51,6 +51,7 @@ import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.airuntime.AiProviderCatalog
 import com.nexaflow.core.airuntime.AiProviderProtocol
+import com.nexaflow.core.airuntime.AiReasoningLevel
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.domain.security.HttpAccessPolicy
@@ -83,6 +84,10 @@ fun AgentSettingsScreen(
     }
     var selectedProviderId by rememberSaveable { mutableStateOf<String?>(null) }
     var allowCloudFallback by rememberSaveable { mutableStateOf(false) }
+    var selectedTab by rememberSaveable { mutableStateOf(AiSettingsTab.AGENTS) }
+    var reasoningLevel by rememberSaveable { mutableStateOf(AiReasoningLevel.BALANCED) }
+    var showModelPicker by rememberSaveable { mutableStateOf(false) }
+    var showClearActivityDialog by rememberSaveable { mutableStateOf(false) }
     val dateFormat = remember {
         DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
     }
@@ -109,6 +114,46 @@ fun AgentSettingsScreen(
         selectedProviderId = state.providerSettings.selectedProviderId
         allowCloudFallback = state.providerSettings.allowCloudFallback
     }
+    LaunchedEffect(profilePresetId, profileProtocol, providerApiKey, providerUrl, editingProfileId) {
+        kotlinx.coroutines.delay(600)
+        if (providerApiKey.length >= 8 || editingProfileId != null) {
+            viewModel.discoverProfileModels(
+                profileId = editingProfileId,
+                presetId = profilePresetId,
+                protocol = profileProtocol,
+                displayName = providerName.ifBlank { profilePresetId ?: "Custom provider" },
+                baseUrl = providerUrl,
+                modelId = providerModel,
+                local = providerLocal,
+                apiKey = providerApiKey
+            )
+        }
+    }
+
+    if (showModelPicker) {
+        AlertDialog(
+            onDismissRequest = { showModelPicker = false },
+            title = { Text(stringResource(R.string.ai_provider_models_title)) },
+            text = {
+                LazyColumn {
+                    items(state.profileModelChoices, key = { it }) { model ->
+                        TextButton(
+                            onClick = {
+                                providerModel = model
+                                showModelPicker = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(model) }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showModelPicker = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 
     if (showRevokeAll) {
         AlertDialog(
@@ -127,6 +172,25 @@ fun AgentSettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showRevokeAll = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showClearActivityDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearActivityDialog = false },
+            title = { Text(stringResource(R.string.agent_activity_clear_title)) },
+            text = { Text(stringResource(R.string.agent_activity_clear_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showClearActivityDialog = false
+                    viewModel.clearActivity()
+                }) { Text(stringResource(R.string.agent_activity_clear)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearActivityDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -154,6 +218,13 @@ fun AgentSettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item(key = "ai_settings_tabs") {
+                AiSettingsTabRow(
+                    selected = selectedTab,
+                    onSelect = { selectedTab = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             if (state.operationFailed) {
                 item(key = "agent_error") {
                     NexaFlowCard(
@@ -170,7 +241,7 @@ fun AgentSettingsScreen(
                 }
             }
 
-            item(key = "agent_access") {
+            if (selectedTab == AiSettingsTab.AGENTS) item(key = "agent_access") {
                 NexaFlowCard {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -213,7 +284,7 @@ fun AgentSettingsScreen(
                 }
             }
 
-            item(key = "agent_gateway") {
+            if (selectedTab == AiSettingsTab.AGENTS) item(key = "agent_gateway") {
                 NexaFlowCard {
                     Text(
                         text = stringResource(R.string.agent_gateway_title),
@@ -296,7 +367,7 @@ fun AgentSettingsScreen(
                 }
             }
 
-            item(key = "ai_model_provider") {
+            if (selectedTab != AiSettingsTab.LOGS) item(key = "ai_model_provider") {
                 NexaFlowCard {
                     Text(
                         text = stringResource(R.string.ai_provider_title),
@@ -308,6 +379,7 @@ fun AgentSettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (selectedTab == AiSettingsTab.AGENTS) {
                     Text(
                         text = stringResource(R.string.ai_provider_profiles),
                         style = MaterialTheme.typography.titleSmall,
@@ -336,6 +408,7 @@ fun AgentSettingsScreen(
                                         providerUrl = profile.baseUrl
                                         providerModel = profile.modelId
                                         providerLocal = profile.local
+                                        reasoningLevel = AiReasoningLevel.fromStoredValue(profile.reasoningEffort)
                                     }
                                 ) {
                                     Text(profile.displayName)
@@ -354,6 +427,8 @@ fun AgentSettingsScreen(
                             }
                         }
                     }
+                    }
+                    if (selectedTab == AiSettingsTab.ADD_AGENT) {
                     Text(
                         text = stringResource(R.string.ai_provider_add_title),
                         style = MaterialTheme.typography.titleSmall,
@@ -369,6 +444,8 @@ fun AgentSettingsScreen(
                                 providerUrl = preset.baseUrl
                                 providerModel = preset.defaultModelId
                                 providerLocal = preset.local
+                                reasoningLevel = AiReasoningLevel.BALANCED
+                                viewModel.clearProfileModelChoices()
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -384,6 +461,8 @@ fun AgentSettingsScreen(
                             providerUrl = ""
                             providerModel = ""
                             providerLocal = false
+                            reasoningLevel = AiReasoningLevel.BALANCED
+                            viewModel.clearProfileModelChoices()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -439,10 +518,79 @@ fun AgentSettingsScreen(
                             singleLine = true
                         )
                     } else {
-                        Text(
-                            text = "$providerName · $providerModel",
-                            style = MaterialTheme.typography.bodyMedium
+                        TextButton(
+                            onClick = { showModelPicker = true },
+                            enabled = state.profileModelChoices.isNotEmpty(),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (providerModel.isBlank()) {
+                                    stringResource(R.string.ai_provider_choose_model)
+                                } else {
+                                    "$providerName · $providerModel"
+                                }
+                            )
+                        }
+                        OutlinedTextField(
+                            value = providerModel,
+                            onValueChange = { if (it.length <= 256) providerModel = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.ai_provider_model)) },
+                            placeholder = { Text(stringResource(R.string.ai_provider_model_hint)) },
+                            singleLine = true
                         )
+                        TextButton(
+                            onClick = {
+                                viewModel.discoverProfileModels(
+                                    profileId = editingProfileId,
+                                    presetId = profilePresetId,
+                                    protocol = profileProtocol,
+                                    displayName = providerName,
+                                    baseUrl = providerUrl,
+                                    modelId = providerModel,
+                                    local = providerLocal,
+                                    apiKey = providerApiKey
+                                )
+                            }
+                        ) { Text(stringResource(R.string.ai_provider_discover_models)) }
+                    }
+                    when (state.modelDiscoveryState) {
+                        AiModelDiscoveryState.LOADING -> Text(stringResource(R.string.ai_provider_models_loading))
+                        AiModelDiscoveryState.SUCCESS -> Text(stringResource(R.string.ai_provider_models_ready))
+                        AiModelDiscoveryState.UNSUPPORTED -> Text(stringResource(R.string.ai_provider_models_unsupported))
+                        AiModelDiscoveryState.FAILED -> Text(stringResource(R.string.ai_provider_models_failed))
+                        AiModelDiscoveryState.IDLE -> Unit
+                    }
+                    when (state.providerProbeState) {
+                        AiProviderProbeState.TESTING -> Text(stringResource(R.string.ai_provider_testing))
+                        AiProviderProbeState.SUCCESS -> Text(stringResource(R.string.ai_provider_test_success))
+                        AiProviderProbeState.FAILED -> Text(stringResource(R.string.ai_provider_test_failed))
+                        AiProviderProbeState.IDLE -> Unit
+                    }
+                    if (profilePresetId == "openai" || profilePresetId == "claude") {
+                        Text(
+                            text = stringResource(R.string.ai_provider_level),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AiReasoningLevel.entries.forEach { level ->
+                                FilterChip(
+                                    selected = reasoningLevel == level,
+                                    onClick = { reasoningLevel = level },
+                                    label = {
+                                        Text(
+                                            stringResource(
+                                                when (level) {
+                                                    AiReasoningLevel.FAST -> R.string.ai_provider_level_fast
+                                                    AiReasoningLevel.BALANCED -> R.string.ai_provider_level_balanced
+                                                    AiReasoningLevel.DEEP -> R.string.ai_provider_level_deep
+                                                }
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                        }
                     }
                     if (profilePresetId == null &&
                         profileProtocol == AiProviderProtocol.OPENAI_CHAT_COMPLETIONS
@@ -484,6 +632,25 @@ fun AgentSettingsScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+                    TextButton(
+                        onClick = {
+                            viewModel.verifyProviderDraft(
+                                profileId = editingProfileId,
+                                presetId = profilePresetId,
+                                protocol = profileProtocol,
+                                displayName = providerName,
+                                baseUrl = providerUrl,
+                                modelId = providerModel,
+                                local = providerLocal,
+                                apiKey = providerApiKey
+                            )
+                        },
+                        enabled = providerName.isNotBlank() && providerUrl.isNotBlank() &&
+                            providerModel.isNotBlank() && (providerApiKey.isNotBlank() ||
+                            state.providerProfiles.any { it.id == editingProfileId })
+                    ) {
+                        Text(stringResource(R.string.ai_provider_verify))
+                    }
                     Button(
                         onClick = {
                             viewModel.saveProviderProfile(
@@ -495,8 +662,12 @@ fun AgentSettingsScreen(
                                 modelId = providerModel,
                                 local = providerLocal,
                                 apiKey = providerApiKey,
+                                reasoningEffort = reasoningLevel.apiValue,
                                 onComplete = { saved ->
-                                    if (saved) providerApiKey = ""
+                                    if (saved) {
+                                        providerApiKey = ""
+                                        selectedTab = AiSettingsTab.AGENTS
+                                    }
                                 }
                             )
                         },
@@ -513,6 +684,8 @@ fun AgentSettingsScreen(
                             )
                         )
                     }
+                    }
+                    if (selectedTab == AiSettingsTab.AGENTS) {
                     HorizontalDivider()
                     Text(
                         text = stringResource(R.string.ai_routing_title),
@@ -617,10 +790,11 @@ fun AgentSettingsScreen(
                         )
                         else -> Unit
                     }
+                    }
                 }
             }
 
-            item(key = "agent_pairing") {
+            if (selectedTab == AiSettingsTab.AGENTS) item(key = "agent_pairing") {
                 NexaFlowCard {
                     Text(
                         text = stringResource(R.string.agent_add_title),
@@ -720,7 +894,7 @@ fun AgentSettingsScreen(
                 }
             }
 
-            item(key = "trusted_agents_header") {
+            if (selectedTab == AiSettingsTab.AGENTS) item(key = "trusted_agents_header") {
                 Text(
                     text = stringResource(R.string.agent_trusted_title),
                     style = MaterialTheme.typography.titleMedium,
@@ -728,7 +902,7 @@ fun AgentSettingsScreen(
                 )
             }
 
-            if (state.agents.isEmpty()) {
+            if (selectedTab == AiSettingsTab.AGENTS && state.agents.isEmpty()) {
                 item(key = "no_trusted_agents") {
                     NexaFlowCard {
                         Text(
@@ -737,7 +911,7 @@ fun AgentSettingsScreen(
                         )
                     }
                 }
-            } else {
+            } else if (selectedTab == AiSettingsTab.AGENTS) {
                 items(
                     items = state.agents,
                     key = AgentGrantRecord::agentId
@@ -755,15 +929,21 @@ fun AgentSettingsScreen(
                 }
             }
 
-            item(key = "agent_activity_header") {
-                Text(
-                    text = stringResource(R.string.agent_activity_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
+            if (selectedTab == AiSettingsTab.LOGS) item(key = "agent_activity_header") {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.agent_activity_title),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    TextButton(onClick = { showClearActivityDialog = true }) {
+                        Text(stringResource(R.string.agent_activity_clear))
+                    }
+                }
             }
 
-            if (state.activity.isEmpty()) {
+            if (selectedTab == AiSettingsTab.LOGS && state.activity.isEmpty()) {
                 item(key = "no_agent_activity") {
                     NexaFlowCard {
                         Text(
@@ -772,7 +952,7 @@ fun AgentSettingsScreen(
                         )
                     }
                 }
-            } else {
+            } else if (selectedTab == AiSettingsTab.LOGS) {
                 item(key = "agent_activity") {
                     NexaFlowCard {
                         state.activity.forEachIndexed { index, event ->

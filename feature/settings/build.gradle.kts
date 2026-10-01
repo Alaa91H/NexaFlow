@@ -76,6 +76,7 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:ui-components"))
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.compose.ui.ui.test.junit4)
     // org.json is not part of the JVM classpath; provide it for tests only.
     testImplementation(libs.org.json.json)
     // Robolectric test proving UpdateChecker never touches the main thread

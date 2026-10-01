@@ -16,9 +16,12 @@ import com.nexaflow.core.execution.variables.BuiltinVariables
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.VariableRepository
+import com.nexaflow.domain.repositories.SmsActivityRepository
+import com.nexaflow.domain.models.SmsActivityEvent
 import com.nexaflow.domain.variables.VariableResolver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -48,6 +51,9 @@ class SmsReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var smsDeliveryStore: SmsDeliveryStore
+
+    @Inject
+    lateinit var smsActivityRepository: SmsActivityRepository
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
@@ -79,7 +85,8 @@ class SmsReceiver : BroadcastReceiver() {
                         ) {
                             val matchedTriggerIndices =
                                 SmsTriggerMatcher.matchingTriggerIndices(automation, sender, body)
-                            executionEngine.runAutomation(
+                            val eventId = java.util.UUID.randomUUID().toString()
+                            val outcome = try { executionEngine.runAutomation(
                                 automation = automation,
                                 completeExitOnFinish = true,
                                 triggerOccurrence = TriggerOccurrence(
@@ -88,7 +95,9 @@ class SmsReceiver : BroadcastReceiver() {
                                     sourceId = "sms",
                                     eventId = fingerprint,
                                 ),
-                            )
+                            ) } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
+                            val succeeded = outcome?.success == true
+                            recordSmsActivitySafely(SmsActivityEvent(eventId, "INCOMING_TRIGGER", automation.id, automation.name, if (succeeded) "SUCCESS" else "FAILED", if (succeeded) null else "EXECUTION_FAILED", System.currentTimeMillis()))
                             val reply = SmsTriggerMatcher.replyOf(automation)
                             if (!reply.isNullOrBlank()) {
                                 // Auto-reply text supports the same %variables
@@ -112,6 +121,16 @@ class SmsReceiver : BroadcastReceiver() {
             variableRepository.getVariablesOnce().associate { it.name to it.value }
     } catch (_: Throwable) {
         emptyMap()
+    }
+
+    private suspend fun recordSmsActivitySafely(event: SmsActivityEvent) {
+        try {
+            smsActivityRepository.record(event)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Activity persistence is best-effort and cannot block automation execution.
+        }
     }
 
     @SuppressLint("MissingPermission")
