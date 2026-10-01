@@ -24,10 +24,27 @@ enum class AiApiDialect {
 }
 
 /**
- * Source-compatible bridge for the pre-V2 name. Remove only after all
- * persistence/UI/runtime callers have migrated to [AiApiDialect].
+ * Compatibility surface for the pre-V2 settings/runtime code. It intentionally
+ * exposes only dialects that the legacy adapters can execute today.
  */
-typealias AiProviderProtocol = AiApiDialect
+enum class AiProviderProtocol {
+    OPENAI_CHAT_COMPLETIONS,
+    ANTHROPIC_MESSAGES;
+
+    fun toDialect(): AiApiDialect = when (this) {
+        OPENAI_CHAT_COMPLETIONS -> AiApiDialect.OPENAI_CHAT_COMPLETIONS
+        ANTHROPIC_MESSAGES -> AiApiDialect.ANTHROPIC_MESSAGES
+    }
+
+    companion object {
+        fun fromDialect(dialect: AiApiDialect): AiProviderProtocol? = when (dialect) {
+            AiApiDialect.OPENAI_CHAT_COMPLETIONS -> OPENAI_CHAT_COMPLETIONS
+            AiApiDialect.ANTHROPIC_MESSAGES -> ANTHROPIC_MESSAGES
+            AiApiDialect.OPENAI_RESPONSES,
+            AiApiDialect.GEMINI_GENERATE_CONTENT -> null
+        }
+    }
+}
 
 enum class AiAuthScheme {
     BEARER_TOKEN,

@@ -35,9 +35,14 @@ class AiProviderDomainV2Test {
     }
 
     @Test
-    fun `legacy protocol name resolves to dialect type`() {
-        val legacy: AiProviderProtocol = AiProviderProtocol.ANTHROPIC_MESSAGES
-        assertEquals(AiApiDialect.ANTHROPIC_MESSAGES, legacy)
+    fun `legacy protocol maps explicitly to the v2 dialect`() {
+        val legacy = AiProviderProtocol.ANTHROPIC_MESSAGES
+        assertEquals(AiApiDialect.ANTHROPIC_MESSAGES, legacy.toDialect())
+        assertEquals(
+            AiProviderProtocol.OPENAI_CHAT_COMPLETIONS,
+            AiProviderProtocol.fromDialect(AiApiDialect.OPENAI_CHAT_COMPLETIONS)
+        )
+        assertEquals(null, AiProviderProtocol.fromDialect(AiApiDialect.OPENAI_RESPONSES))
     }
 
     @Test
