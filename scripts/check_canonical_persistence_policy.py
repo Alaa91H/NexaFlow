@@ -42,6 +42,14 @@ V3_TEST_FILE = ROOT / (
     "CanonicalWorkflowDocumentV3Test.kt"
 )
 
+CANONICAL_V3_MIN_ROOM_VERSION = 22
+
+
+def has_minimum_room_version(database_source: str) -> bool:
+    """Allow additive Room migrations after the canonical V3 cutover."""
+    match = re.search(r"\bversion\s*=\s*(\d+)\b", database_source)
+    return match is not None and int(match.group(1)) >= CANONICAL_V3_MIN_ROOM_VERSION
+
 FORBIDDEN_PATTERNS = (
     r"\bTriggerType\b",
     r"\bActionType\b",
@@ -150,8 +158,13 @@ def main() -> int:
         ):
             if token not in entity:
                 problems.append(f"AutomationEntity missing production V3 column {token!r}")
-    if DATABASE_FILE.is_file() and "version = 22" not in DATABASE_FILE.read_text(encoding="utf-8"):
-        problems.append("AppDatabase is not bumped to canonical V3 schema version 22")
+    if DATABASE_FILE.is_file() and not has_minimum_room_version(
+        DATABASE_FILE.read_text(encoding="utf-8")
+    ):
+        problems.append(
+            "AppDatabase Room version is below canonical V3 schema version "
+            f"{CANONICAL_V3_MIN_ROOM_VERSION}"
+        )
     if MIGRATIONS_FILE.is_file():
         migrations = MIGRATIONS_FILE.read_text(encoding="utf-8")
         for token in (

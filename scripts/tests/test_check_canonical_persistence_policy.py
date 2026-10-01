@@ -10,10 +10,17 @@ from scripts.check_canonical_persistence_policy import (
     FORBIDDEN_PATTERNS,
     REQUIRED_CONSTRUCTS,
     REQUIRED_TEST_CASES,
+    has_minimum_room_version,
 )
 
 
 class CanonicalPersistencePolicyGateTest(unittest.TestCase):
+    def test_room_version_accepts_additive_migrations_after_canonical_v3(self) -> None:
+        self.assertTrue(has_minimum_room_version("@Database(version = 22)"))
+        self.assertTrue(has_minimum_room_version("@Database(version = 23)"))
+        self.assertFalse(has_minimum_room_version("@Database(version = 21)"))
+        self.assertFalse(has_minimum_room_version("@Database(version = \"23\")"))
+
     def test_forbidden_patterns_detect_legacy_leaks(self) -> None:
         samples_by_pattern = {
             r"\bTriggerType\b": ("when (t: TriggerType)",),
