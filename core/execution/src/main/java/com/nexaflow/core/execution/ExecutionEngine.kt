@@ -1268,7 +1268,7 @@ class ExecutionEngine(
                             instanceId = "v3.end.$actionIndex"
                         )
                         EndMode.SET_VALUE -> executeCanonicalCompatibilityAction(
-                            action = resolveAction(action.withConfig(behavior.config), variables),
+                            action = valueResolver.resolve(action.withConfig(behavior.config), variables),
                             controller = controller,
                             notif = notif,
                             channel = channel,
