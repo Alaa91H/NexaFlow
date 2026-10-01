@@ -8,6 +8,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MAX_NEW_KOTLIN_BYTES = 45_000
 
+DIRECT_SCOPE_ALLOWLIST = {
+    "app/src/main/java/com/nexaflow/app/NexaFlowWidgetProviders.kt",
+    "wear/src/main/java/com/nexaflow/wear/data/WearDataListenerService.kt",
+    "core/automation-engine/src/main/java/com/nexaflow/core/engine/di/CoroutinesModule.kt",
+    "wear/src/main/java/com/nexaflow/wear/data/WearCapabilityPublisher.kt",
+    "app/src/main/java/com/nexaflow/app/wear/WearSyncManager.kt",
+    "app/src/main/java/com/nexaflow/app/wear/WearCommandListenerService.kt",
+    "app/src/main/java/com/nexaflow/app/agent/NexaFlowAgentService.kt",
+    "feature/widgets/src/main/java/com/nexaflow/feature/widgets/TaskTileService.kt",
+    "core/execution/src/main/java/com/nexaflow/core/execution/task/TaskManager.kt",
+    "core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorMonitor.kt",
+}
+
 # Existing debt is frozen at the v3.91.3 baseline. These files may shrink,
 # but they may never grow. Once a file falls below the generic ceiling it can
 # be removed from this map.
@@ -49,6 +62,18 @@ def violations(sizes: dict[str, int]) -> list[str]:
             errors.append(f"new oversized Kotlin file: {path} {size}>{MAX_NEW_KOTLIN_BYTES}")
     return sorted(errors)
 
+def direct_scope_violations(root: Path) -> list[str]:
+    errors: list[str] = []
+    for path in root.rglob("*.kt"):
+        relative = path.relative_to(root)
+        if not is_production_kotlin(relative):
+            continue
+        value = relative.as_posix()
+        text = path.read_text(encoding="utf-8")
+        if "CoroutineScope(" in text and "rememberCoroutineScope(" not in text and value not in DIRECT_SCOPE_ALLOWLIST:
+            errors.append(f"new unmanaged CoroutineScope: {value}")
+    return sorted(errors)
+
 def self_test() -> None:
     tiny = {"feature/x/src/main/Foo.kt": 1_000}
     assert violations(tiny) == []
@@ -66,7 +91,7 @@ def main() -> int:
         self_test()
         print("Atomic architecture fitness self-test OK")
         return 0
-    errors = violations(collect_sizes(ROOT))
+    errors = violations(collect_sizes(ROOT)) + direct_scope_violations(ROOT)
     if errors:
         print("\n".join(f"ERROR: {item}" for item in errors))
         return 1

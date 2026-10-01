@@ -8,7 +8,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 
 - [x] T00 Baseline Freeze
 - [x] T01 Repository Fitness Gates
-- [ ] T02 Dispatcher/Lifecycle Foundation
+- [x] T02 Dispatcher/Lifecycle Foundation
 - [ ] T03 SecureStorage V2
 - [ ] T04 Persistence Safety
 - [ ] T05 ExecutionEngine Decomposition
