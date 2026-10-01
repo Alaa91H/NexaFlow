@@ -7,7 +7,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 ## Ordered tasks
 
 - [x] T00 Baseline Freeze
-- [ ] T01 Repository Fitness Gates
+- [x] T01 Repository Fitness Gates
 - [ ] T02 Dispatcher/Lifecycle Foundation
 - [ ] T03 SecureStorage V2
 - [ ] T04 Persistence Safety
