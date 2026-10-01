@@ -92,7 +92,6 @@ private val TURN_ON_TOGGLE_ACTIONS = setOf(
  * task data rather than inventing choices that the device may reject.
  */
 @OptIn(ExperimentalLayoutApi::class)
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ActionConfigEditor(
     option: ActionOption,
@@ -1814,9 +1813,3 @@ fun ActionConfigEditor(
     }
 }
 
-/**
- * Chip insert row: tapping a chip appends its `%NAME` placeholder to
- * the field's current text so users never type the syntax by hand. Built-in
- * and user-global variables share the row.
- */
-@OptIn(ExperimentalLayoutApi::class)
