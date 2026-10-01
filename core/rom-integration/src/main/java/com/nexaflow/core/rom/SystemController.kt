@@ -349,8 +349,6 @@ class SystemController(
     /** Expands the quick-settings panel (shell path with reflection fallback). */
     fun expandQuickSettings(): SystemControlResult = statusBarController.expandQuickSettings()
 
-    private fun expandStatusBarPanel(method: String, fallback: SystemControlResult): SystemControlResult = fallback
-
     fun openUrl(url: String): SystemControlResult {
         if (url.isBlank()) return SystemControlResult.fail("No URL configured")
         return try {
