@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [v3.91.3] - 2026-10-01
+
+### Fixed - AI provider diagnostics and network-mode configuration
+
+- Preserve HTTP response status codes during provider connection checks and show targeted, localized guidance for authentication failures, missing endpoints or models, and rate limits.
+- Make provider verification errors more actionable while keeping API credentials out of diagnostics and application logs.
+- Route mobile network-mode configuration through the live SIM and modem capability editor instead of the generic schema form, preventing unsupported or confusing network settings.
+- Add regression coverage for provider error classification and the network-mode editor routing decision.
+
+### Validation
+
+- Targeted unit-test suites for automation-builder, settings, and ROM network-mode policy passed locally; debug APK assembly succeeded.
+- Tagged-release CI is the final validation gate for this release.
+
 ## [v3.91.2] - 2026-10-01
 
 ### Improved — Dashboard and automation discovery

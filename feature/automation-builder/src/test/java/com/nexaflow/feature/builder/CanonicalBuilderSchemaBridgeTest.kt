@@ -23,7 +23,8 @@ class CanonicalBuilderSchemaBridgeTest {
     @Test
     fun everyNonAdvancedSimpleActionUsesCanonicalSchemaEditor() {
         val expected = ActionType.entries.filter { type ->
-            AutomationOptionCatalog.tierFor(type) != OptionTier.ADVANCED &&
+            type != ActionType.SYSTEM_NETWORK_MODE &&
+                AutomationOptionCatalog.tierFor(type) != OptionTier.ADVANCED &&
                 AutomationNodeCatalog.definitionFor(type)
                     .configuration.fields
                     .all { it.valueType in genericTypes }
@@ -58,6 +59,11 @@ class CanonicalBuilderSchemaBridgeTest {
 
     @Test
     fun specializedContractsStayOnPurposeBuiltEditors() {
+        assertNull(
+            CanonicalBuilderSchemaBridge.editingBindingForAction(
+                ActionType.SYSTEM_NETWORK_MODE,
+            ),
+        )
         assertNull(
             CanonicalBuilderSchemaBridge.editingBindingForAction(
                 ActionType.SYSTEM_WIFI_CONNECT,

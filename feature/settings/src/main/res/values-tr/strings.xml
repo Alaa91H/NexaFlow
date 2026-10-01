@@ -290,6 +290,9 @@
     <string name="ai_provider_testing">Test ediliyor…</string>
     <string name="ai_provider_test_success">Model hazır</string>
     <string name="ai_provider_test_failed">Model testi başarısız</string>
+    <string name="ai_provider_test_auth_failed">Kimlik doğrulama başarısız. API anahtarını ve sağlayıcı erişimini kontrol edin.</string>
+    <string name="ai_provider_test_not_found">Model veya API uç noktası bulunamadı. Seçili modeli ve uç noktasını kontrol edin.</string>
+    <string name="ai_provider_test_rate_limited">Sağlayıcının istek sınırına veya kotasına ulaşıldı. Daha sonra tekrar deneyin ya da planınızı kontrol edin.</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Model yönlendirme</string>

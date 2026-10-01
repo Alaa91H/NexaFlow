@@ -288,6 +288,9 @@
     <string name="ai_provider_testing">Test läuft…</string>
     <string name="ai_provider_test_success">Modell ist bereit</string>
     <string name="ai_provider_test_failed">Modelltest fehlgeschlagen</string>
+    <string name="ai_provider_test_auth_failed">Authentifizierung fehlgeschlagen. Prüfe den API-Schlüssel und den Anbieterzugriff.</string>
+    <string name="ai_provider_test_not_found">Modell oder API-Endpunkt nicht gefunden. Prüfe das ausgewählte Modell und den Endpunkt.</string>
+    <string name="ai_provider_test_rate_limited">Anfragelimit oder Kontingent des Anbieters erreicht. Versuche es später erneut oder prüfe deinen Tarif.</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Modellrouting</string>

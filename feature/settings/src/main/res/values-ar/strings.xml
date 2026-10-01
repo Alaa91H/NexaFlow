@@ -307,6 +307,9 @@
     <string name="ai_provider_testing">جارٍ الاختبار…</string>
     <string name="ai_provider_test_success">النموذج جاهز</string>
     <string name="ai_provider_test_failed">فشل اختبار النموذج</string>
+    <string name="ai_provider_test_auth_failed">فشل التحقق من الهوية. تحقّق من مفتاح API وصلاحية الوصول إلى المزوّد.</string>
+    <string name="ai_provider_test_not_found">تعذّر العثور على النموذج أو نقطة API. تحقّق من النموذج ونقطة الاتصال المحددين.</string>
+    <string name="ai_provider_test_rate_limited">تم بلوغ حد الطلبات أو الحصة لدى المزوّد. أعد المحاولة لاحقًا أو تحقّق من خطتك.</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">توجيه النماذج</string>

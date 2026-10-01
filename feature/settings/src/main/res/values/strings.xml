@@ -306,6 +306,9 @@
     <string name="ai_provider_testing">Testing…</string>
     <string name="ai_provider_test_success">Model is ready</string>
     <string name="ai_provider_test_failed">Model test failed</string>
+    <string name="ai_provider_test_auth_failed">Authentication failed. Check the API key and provider access.</string>
+    <string name="ai_provider_test_not_found">The model or API endpoint was not found. Check the selected model and endpoint.</string>
+    <string name="ai_provider_test_rate_limited">The provider rate limit or quota was reached. Try again later or check your plan.</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Model routing</string>

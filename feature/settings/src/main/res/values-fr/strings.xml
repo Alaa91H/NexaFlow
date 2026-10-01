@@ -290,6 +290,9 @@
     <string name="ai_provider_testing">Test en cours…</string>
     <string name="ai_provider_test_success">Le modèle est prêt</string>
     <string name="ai_provider_test_failed">Échec du test du modèle</string>
+    <string name="ai_provider_test_auth_failed">Échec de l’authentification. Vérifiez la clé API et l’accès au fournisseur.</string>
+    <string name="ai_provider_test_not_found">Modèle ou point de terminaison API introuvable. Vérifiez le modèle et le point de terminaison choisis.</string>
+    <string name="ai_provider_test_rate_limited">Limite de requêtes ou quota du fournisseur atteint. Réessayez plus tard ou vérifiez votre offre.</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Routage des modèles</string>

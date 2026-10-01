@@ -67,6 +67,7 @@ data class AgentSettingsUiState(
     val providerSettings: AiProviderSettings = AiProviderSettings(),
     val providerApiKeyConfigured: Boolean = false,
     val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
+    val providerProbeStatusCode: Int? = null,
     val modelDiscoveryState: AiModelDiscoveryState = AiModelDiscoveryState.IDLE,
     val profileModelChoices: List<String> = emptyList(),
     val discoveredModels: List<OpenAiModelInfo> = emptyList(),
@@ -243,6 +244,7 @@ class AgentSettingsViewModel @Inject constructor(
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
+                providerProbeStatusCode = null,
                 discoveredModels = emptyList(),
                 operationFailed = !success
             )
@@ -261,6 +263,7 @@ class AgentSettingsViewModel @Inject constructor(
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
+                providerProbeStatusCode = null,
                 operationFailed = !success
             )
         }
@@ -323,6 +326,7 @@ class AgentSettingsViewModel @Inject constructor(
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
+                providerProbeStatusCode = null,
                 operationFailed = !saved
             )
             onComplete(saved)
@@ -331,7 +335,10 @@ class AgentSettingsViewModel @Inject constructor(
 
     fun verifyProviderProfile(id: String) {
         if (_state.value.providerProbeState == AiProviderProbeState.TESTING) return
-        _state.value = _state.value.copy(providerProbeState = AiProviderProbeState.TESTING)
+        _state.value = _state.value.copy(
+            providerProbeState = AiProviderProbeState.TESTING,
+            providerProbeStatusCode = null,
+        )
         viewModelScope.launch {
             val verified = runCatching {
                 val profile = providerPreferences.currentProfiles().first { it.id == id }
@@ -381,6 +388,7 @@ class AgentSettingsViewModel @Inject constructor(
             reload(
                 providerProbeState = if (verified) AiProviderProbeState.SUCCESS
                     else AiProviderProbeState.FAILED,
+                providerProbeStatusCode = null,
                 operationFailed = false
             )
         }
@@ -519,9 +527,12 @@ class AgentSettingsViewModel @Inject constructor(
         apiKey: String
     ) {
         if (_state.value.providerProbeState == AiProviderProbeState.TESTING) return
-        _state.value = _state.value.copy(providerProbeState = AiProviderProbeState.TESTING)
+        _state.value = _state.value.copy(
+            providerProbeState = AiProviderProbeState.TESTING,
+            providerProbeStatusCode = null,
+        )
         viewModelScope.launch {
-            val verified = runCatching {
+            val verification = runCatching {
                 val key = apiKey.trim().takeIf(String::isNotEmpty)
                     ?: profileId?.let { secureStorage.get(providerApiKeyStorageKey(it)) }
                         ?.takeIf(String::isNotBlank)
@@ -544,7 +555,7 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.probe().success
+                        adapter.probe().let { it.success to it.statusCode }
                     }
                     AiProviderProtocol.ANTHROPIC_MESSAGES -> {
                         val adapter = AnthropicMessagesProvider(
@@ -564,13 +575,14 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.verify()
+                        adapter.verify() to null
                     }
                 }
-            }.getOrDefault(false)
+            }.getOrDefault(false to null)
             _state.value = _state.value.copy(
-                providerProbeState = if (verified) AiProviderProbeState.SUCCESS
-                    else AiProviderProbeState.FAILED
+                providerProbeState = if (verification.first) AiProviderProbeState.SUCCESS
+                    else AiProviderProbeState.FAILED,
+                providerProbeStatusCode = verification.second,
             )
         }
     }
@@ -585,7 +597,8 @@ class AgentSettingsViewModel @Inject constructor(
     fun testProvider() {
         if (_state.value.providerProbeState == AiProviderProbeState.TESTING) return
         _state.value = _state.value.copy(
-            providerProbeState = AiProviderProbeState.TESTING
+            providerProbeState = AiProviderProbeState.TESTING,
+            providerProbeStatusCode = null,
         )
         viewModelScope.launch {
             val result = provider.probe()
@@ -595,7 +608,8 @@ class AgentSettingsViewModel @Inject constructor(
                     AiProviderProbeState.SUCCESS
                 } else {
                     AiProviderProbeState.FAILED
-                }
+                },
+                providerProbeStatusCode = result.statusCode,
             )
         }
     }
@@ -614,6 +628,7 @@ class AgentSettingsViewModel @Inject constructor(
     private suspend fun reload(
         pairing: AgentPairingUi? = _state.value.pairing,
         providerProbeState: AiProviderProbeState = _state.value.providerProbeState,
+        providerProbeStatusCode: Int? = _state.value.providerProbeStatusCode,
         discoveredModels: List<OpenAiModelInfo> = _state.value.discoveredModels,
         operationFailed: Boolean = false
     ) {
@@ -651,6 +666,7 @@ class AgentSettingsViewModel @Inject constructor(
             providerSettings = providerSettings,
             providerApiKeyConfigured = providerApiKeyConfigured,
             providerProbeState = providerProbeState,
+            providerProbeStatusCode = providerProbeStatusCode,
             modelDiscoveryState = _state.value.modelDiscoveryState,
             profileModelChoices = _state.value.profileModelChoices,
             discoveredModels = discoveredModels,

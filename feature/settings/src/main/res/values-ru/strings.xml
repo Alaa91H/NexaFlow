@@ -290,6 +290,9 @@
     <string name="ai_provider_testing">Идёт проверка…</string>
     <string name="ai_provider_test_success">Модель готова</string>
     <string name="ai_provider_test_failed">Проверка модели не удалась</string>
+    <string name="ai_provider_test_auth_failed">Ошибка аутентификации. Проверьте API-ключ и доступ к провайдеру.</string>
+    <string name="ai_provider_test_not_found">Модель или конечная точка API не найдена. Проверьте выбранную модель и адрес.</string>
+    <string name="ai_provider_test_rate_limited">Достигнут лимит запросов или квота провайдера. Повторите попытку позже или проверьте тариф.</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">Маршрутизация моделей</string>

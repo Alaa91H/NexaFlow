@@ -290,6 +290,9 @@
     <string name="ai_provider_testing">जाँच जारी है…</string>
     <string name="ai_provider_test_success">मॉडल तैयार है</string>
     <string name="ai_provider_test_failed">मॉडल जाँच विफल रही</string>
+    <string name="ai_provider_test_auth_failed">प्रमाणीकरण विफल हुआ। API कुंजी और प्रदाता की पहुँच जाँचें।</string>
+    <string name="ai_provider_test_not_found">मॉडल या API एंडपॉइंट नहीं मिला। चुना गया मॉडल और एंडपॉइंट जाँचें।</string>
+    <string name="ai_provider_test_rate_limited">प्रदाता की अनुरोध सीमा या कोटा पूरा हो गया। बाद में फिर कोशिश करें या अपना प्लान जाँचें।</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">मॉडल रूटिंग</string>

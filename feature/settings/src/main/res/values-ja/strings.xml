@@ -290,6 +290,9 @@
     <string name="ai_provider_testing">テスト中…</string>
     <string name="ai_provider_test_success">モデルは利用可能です</string>
     <string name="ai_provider_test_failed">モデルのテストに失敗しました</string>
+    <string name="ai_provider_test_auth_failed">認証に失敗しました。API キーとプロバイダーへのアクセス権を確認してください。</string>
+    <string name="ai_provider_test_not_found">モデルまたは API エンドポイントが見つかりません。選択内容を確認してください。</string>
+    <string name="ai_provider_test_rate_limited">プロバイダーのリクエスト上限または利用枠に達しました。時間をおいて再試行するか、プランを確認してください。</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">モデルルーティング</string>

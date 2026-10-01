@@ -564,7 +564,9 @@ fun AgentSettingsScreen(
                     when (state.providerProbeState) {
                         AiProviderProbeState.TESTING -> Text(stringResource(R.string.ai_provider_testing))
                         AiProviderProbeState.SUCCESS -> Text(stringResource(R.string.ai_provider_test_success))
-                        AiProviderProbeState.FAILED -> Text(stringResource(R.string.ai_provider_test_failed))
+                        AiProviderProbeState.FAILED -> Text(
+                            stringResource(providerProbeFailureMessageRes(state.providerProbeStatusCode))
+                        )
                         AiProviderProbeState.IDLE -> Unit
                     }
                     if (profilePresetId == "openai" || profilePresetId == "claude") {

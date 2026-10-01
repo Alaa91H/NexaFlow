@@ -290,6 +290,9 @@
     <string name="ai_provider_testing">正在测试…</string>
     <string name="ai_provider_test_success">模型已就绪</string>
     <string name="ai_provider_test_failed">模型测试失败</string>
+    <string name="ai_provider_test_auth_failed">身份验证失败。请检查 API 密钥和提供商访问权限。</string>
+    <string name="ai_provider_test_not_found">未找到模型或 API 端点。请检查所选模型和端点。</string>
+    <string name="ai_provider_test_rate_limited">已达到提供商的请求速率限制或配额。请稍后重试或检查套餐。</string>
 
     <!-- AI model routing -->
     <string name="ai_routing_title">模型路由</string>

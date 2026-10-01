@@ -119,6 +119,9 @@ internal object CanonicalBuilderSchemaBridge {
             ActionType.SYSTEM_BRIGHTNESS,
             ActionType.SYSTEM_SEND_SMS,
             ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> return forAction(type)
+            // This action needs live modem/SIM capabilities and must never
+            // expose its storage-only mask/schema/subscription fields.
+            ActionType.SYSTEM_NETWORK_MODE -> return null
             else -> Unit
         }
 
