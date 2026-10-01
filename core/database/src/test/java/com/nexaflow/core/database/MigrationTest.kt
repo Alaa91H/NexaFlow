@@ -132,7 +132,7 @@ class MigrationTest {
     }
 
     @Test fun historicalChainsReach22() {
-        for (version in listOf(1, 12, 16, 18, 19, 20, 21, 22)) {
+        for (version in listOf(1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)) {
             helper.createDatabase(version).close()
             helper.runMigrationsAndValidate(23, Migrations.ALL).close()
             dbFile.delete()

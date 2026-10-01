@@ -10,7 +10,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 - [x] T01 Repository Fitness Gates
 - [x] T02 Dispatcher/Lifecycle Foundation
 - [x] T03 SecureStorage V2
-- [ ] T04 Persistence Safety
+- [x] T04 Persistence Safety
 - [ ] T05 ExecutionEngine Decomposition
 - [ ] T06 SystemController Decomposition
 - [ ] T07 Trigger Editor Decomposition

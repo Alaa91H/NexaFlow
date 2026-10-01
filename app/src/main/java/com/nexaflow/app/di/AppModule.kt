@@ -113,7 +113,6 @@ object AppModule {
             // crashing on a permanently broken file.
             .openHelperFactory(CorruptionRecoveryFactory())
             .addMigrations(*Migrations.ALL.toTypedArray())
-            .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
             .build()
     }
 

@@ -57,6 +57,7 @@ jobs:
         python3 scripts/check_atomic_overhaul_baseline.py
         python3 scripts/check_atomic_architecture_fitness.py --self-test
         python3 scripts/check_atomic_architecture_fitness.py
+        python3 scripts/check_persistence_safety.py
     - name: Auto-fix resource hygiene (orphans, duplicates, balance)
       # --check: the tree must already be auto-fix-clean. If this fails, run
       # `python3 scripts/auto_fix.py` locally and commit the result.
