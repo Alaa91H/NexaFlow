@@ -1,5 +1,7 @@
 package com.nexaflow.core.airuntime
 
+import com.nexaflow.core.common.EndpointSecurityPolicy
+
 import java.net.URI
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +45,9 @@ interface AnthropicMessagesTransport {
 }
 
 object AnthropicEndpointPolicy {
+    fun requireAddresses(addresses: List<java.net.InetAddress>) =
+        EndpointSecurityPolicy.requireAddressScope(addresses, local = false)
+
     fun messagesUri(config: AnthropicMessagesProviderConfig, hasApiKey: Boolean): URI =
         endpoint(config, hasApiKey, "/messages")
 
@@ -57,13 +62,13 @@ object AnthropicEndpointPolicy {
         suffix: String
     ): URI {
         require(config.baseUrl.length in 8..OpenAiCompatibleProvider.MAX_BASE_URL_LENGTH)
-        val base = URI(config.baseUrl.trim().trimEnd('/'))
-        require(base.scheme == "https") { "Anthropic API requires HTTPS" }
-        require(!base.host.isNullOrBlank() && base.userInfo == null)
-        require(base.query == null && base.fragment == null)
-        require(!config.local || !hasApiKey) {
-            "Anthropic credentials cannot be sent to a local endpoint"
-        }
+        val base = EndpointSecurityPolicy.validateBaseUri(
+            raw = config.baseUrl.trim().trimEnd('/'),
+            allowHttp = false,
+            local = false,
+            hasCredential = hasApiKey,
+        )
+        require(!config.local) { "Anthropic native API profiles are remote-only" }
         return URI(base.scheme, null, base.host, base.port,
             base.path.trimEnd('/') + suffix, null, null)
     }

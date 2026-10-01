@@ -33,9 +33,7 @@ internal object AndroidOpenAiStreamingTransport {
             hasApiKey = !apiKey.isNullOrBlank()
         )
         val addresses = InetAddress.getAllByName(endpoint.host).toList()
-        if (config.local) {
-            OpenAiEndpointPolicy.requireLocalAddresses(addresses)
-        }
+        OpenAiEndpointPolicy.requireAddresses(addresses, config.local)
 
         when (endpoint.scheme) {
             "https" -> streamHttps(endpoint, payload, apiKey) { emit(it) }

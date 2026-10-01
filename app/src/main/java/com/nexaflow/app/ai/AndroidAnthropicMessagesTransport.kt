@@ -38,11 +38,8 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
     ): AnthropicMessagesTransportResponse {
         require(!apiKey.isNullOrBlank()) { "API key is required" }
         require(payload == null || payload.size <= MAX_REQUEST_BYTES)
-        val addresses = InetAddress.getAllByName(endpoint.host)
-        require(addresses.isNotEmpty() && addresses.none {
-            it.isAnyLocalAddress || it.isLoopbackAddress || it.isLinkLocalAddress ||
-                it.isSiteLocalAddress || isUniqueLocalIpv6(it)
-        }) { "Anthropic endpoint resolved to a private address" }
+        val addresses = InetAddress.getAllByName(endpoint.host).toList()
+        AnthropicEndpointPolicy.requireAddresses(addresses)
 
         val connection = endpoint.toURL().openConnection() as HttpsURLConnection
         try {
@@ -88,10 +85,6 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
         }
     }
 
-    private fun isUniqueLocalIpv6(address: InetAddress): Boolean {
-        val bytes = address.address
-        return bytes.size == 16 && (bytes[0].toInt() and 0xFE) == 0xFC
-    }
 
     private companion object {
         const val ANTHROPIC_VERSION = "2023-06-01"

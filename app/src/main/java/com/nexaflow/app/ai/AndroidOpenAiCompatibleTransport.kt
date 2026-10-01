@@ -29,9 +29,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             hasApiKey = !apiKey.isNullOrBlank()
         )
         val addresses = InetAddress.getAllByName(endpoint.host).toList()
-        if (config.local) {
-            OpenAiEndpointPolicy.requireLocalAddresses(addresses)
-        }
+        OpenAiEndpointPolicy.requireAddresses(addresses, config.local)
 
         when (endpoint.scheme) {
             "https" -> getHttps(endpoint, apiKey)
@@ -65,9 +63,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             hasApiKey = !apiKey.isNullOrBlank()
         )
         val addresses = InetAddress.getAllByName(endpoint.host).toList()
-        if (config.local) {
-            OpenAiEndpointPolicy.requireLocalAddresses(addresses)
-        }
+        OpenAiEndpointPolicy.requireAddresses(addresses, config.local)
 
         when (endpoint.scheme) {
             "https" -> postHttps(endpoint, payload, apiKey)
