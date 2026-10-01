@@ -25,7 +25,6 @@ data class AiProviderPreset(
     val local: Boolean = false
 ) {
     /** Compatibility bridge for settings/runtime callers migrated in later tasks. */
-    @Deprecated("Use dialect", ReplaceWith("dialect"))
     val protocol: AiProviderProtocol
         get() = requireNotNull(AiProviderProtocol.fromDialect(dialect)) {
             "Preset $id is not executable by the legacy provider surface"
