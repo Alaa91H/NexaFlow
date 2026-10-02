@@ -31,8 +31,12 @@ class AiProfileAdapterFactory(
     fun create(profile: AiProviderProfileSettings): AiModelProvider? {
         val dialect = effectiveDialect(profile) ?: return null
         val gatewaySession = AiGatewayCatalog.rulesFor(profile.presetId) != null
+        val credentialReference = profile.credentialRef
+            ?.takeIf(String::isNotBlank)
+            ?.let(::AiCredentialReference)
+            ?: AiCredentialReferences.forProfile(profile.id)
         val apiKeyProvider = suspend {
-            credentialStore.resolve(AiCredentialReferences.forProfile(profile.id))
+            credentialStore.resolve(credentialReference)
         }
 
         return when (dialect) {
@@ -117,11 +121,15 @@ class AiProfileAdapterFactory(
         val storedProtocol = runCatching {
             AiProviderProtocol.valueOf(profile.protocol)
         }.getOrNull()
+        val explicitDialect = profile.dialect
+            ?.takeIf(String::isNotBlank)
+            ?.let { runCatching { AiApiDialect.valueOf(it) }.getOrNull() }
 
         return AiProviderDefinitionRegistry.resolveDialect(
             presetId = profile.presetId,
             storedProtocol = storedProtocol,
-            modelId = profile.modelId
+            modelId = profile.modelId,
+            explicitDialect = explicitDialect
         )
     }
 }
