@@ -477,7 +477,9 @@ class AgentSettingsViewModel @Inject constructor(
                 providerPreferences.currentProfiles()
                     .firstOrNull { it.id == id }
                     ?.let { profile ->
-                        providerPreferences.upsertProfile(profile.copy(enabled = false))
+                        providerPreferences.upsertProfile(
+                            profile.copy(enabled = false, credentialRef = null)
+                        )
                     }
                 val settings = providerPreferences.current()
                 if (settings.selectedProviderId == id) {
