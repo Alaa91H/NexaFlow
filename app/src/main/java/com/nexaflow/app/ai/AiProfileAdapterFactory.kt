@@ -30,6 +30,7 @@ class AiProfileAdapterFactory(
 ) {
     fun create(profile: AiProviderProfileSettings): AiModelProvider? {
         val dialect = effectiveDialect(profile) ?: return null
+        val gatewaySession = AiGatewayCatalog.rulesFor(profile.presetId) != null
         val apiKeyProvider = suspend {
             credentialStore.resolve(AiCredentialReferences.forProfile(profile.id))
         }
@@ -50,7 +51,8 @@ class AiProfileAdapterFactory(
                             local = profile.local,
                             reasoningEffort = profile.reasoningEffort.takeIf {
                                 profile.presetId == "openai"
-                            }
+                            },
+                            gatewaySession = gatewaySession
                         )
                     )
                 }
@@ -67,7 +69,8 @@ class AiProfileAdapterFactory(
                             displayName = profile.displayName,
                             baseUrl = profile.baseUrl,
                             modelId = profile.modelId,
-                            reasoningEffort = profile.reasoningEffort
+                            reasoningEffort = profile.reasoningEffort,
+                            gatewaySession = gatewaySession
                         )
                     )
                 }
@@ -85,7 +88,8 @@ class AiProfileAdapterFactory(
                             baseUrl = profile.baseUrl,
                             modelId = profile.modelId,
                             local = profile.local,
-                            reasoningEffort = profile.reasoningEffort
+                            reasoningEffort = profile.reasoningEffort,
+                            gatewaySession = gatewaySession
                         )
                     )
                 }
@@ -101,7 +105,8 @@ class AiProfileAdapterFactory(
                             enabled = profile.enabled,
                             displayName = profile.displayName,
                             baseUrl = profile.baseUrl,
-                            modelId = profile.modelId
+                            modelId = profile.modelId,
+                            gatewaySession = gatewaySession
                         )
                     )
                 }
