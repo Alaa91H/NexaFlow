@@ -262,6 +262,7 @@ class AgentSettingsViewModel @Inject constructor(
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 providerProbeStatusCode = null,
+                providerLastVerifiedAtMillis = null,
                 operationFailed = !success
             )
         }
@@ -383,7 +384,7 @@ class AgentSettingsViewModel @Inject constructor(
             val verified = runCatching {
                 val profile = providerPreferences.currentProfiles().first { it.id == id }
                 val key = credentialStore.resolve(AiCredentialReferences.forProfile(id))
-                    ?.takeIf(String::isNotBlank) ?: return@runCatching false
+                    ?.takeIf(String::isNotBlank) ?: return@runCatching false to null
                 when (profile.protocol) {
                     AiProviderProtocol.OPENAI_CHAT_COMPLETIONS.name -> {
                         val adapter = OpenAiCompatibleProvider(
