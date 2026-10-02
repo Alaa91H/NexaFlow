@@ -26,7 +26,8 @@ data class AnthropicMessagesProviderConfig(
     val baseUrl: String = "",
     val modelId: String = "",
     val local: Boolean = false,
-    val reasoningEffort: String? = null
+    val reasoningEffort: String? = null,
+    val gatewaySession: Boolean = false
 )
 
 data class AnthropicMessagesTransportResponse(val statusCode: Int, val body: String)
@@ -37,6 +38,14 @@ interface AnthropicMessagesTransport {
         body: JsonObject,
         apiKey: String?
     ): AnthropicMessagesTransportResponse
+
+    suspend fun postMessagesWithHeaders(
+        config: AnthropicMessagesProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
+    ): AnthropicMessagesTransportResponse =
+        postMessages(config, body, apiKey)
 
     suspend fun getModels(
         config: AnthropicMessagesProviderConfig,
@@ -199,7 +208,17 @@ class AnthropicMessagesProvider(
         require(isConfigured(snapshot)) { "Provider is not configured" }
         val key = apiKeyProvider()?.takeIf(String::isNotBlank)
             ?: throw IllegalStateException("API key is missing")
-        val response = transport.postMessages(snapshot, request.toBody(snapshot), key)
+        val headers = if (snapshot.gatewaySession) {
+            AiGatewaySessionPolicy.requestHeaders(request.conversationId)
+        } else {
+            emptyMap()
+        }
+        val response = transport.postMessagesWithHeaders(
+            snapshot,
+            request.toBody(snapshot),
+            key,
+            headers
+        )
         require(response.statusCode in 200..299) { "Provider returned HTTP ${response.statusCode}" }
         val root = json.parseToJsonElement(response.body).jsonObject
         root["content"]?.jsonArray.orEmpty().forEach { block ->
