@@ -89,6 +89,41 @@ class AiConversationEngineTest {
         assertEquals(AiConnectionFailure.UNKNOWN, health.lastFailure)
     }
 
+    @Test
+    fun rateLimitedProviderFailureMarksCooldownHealth() = runTest {
+        val provider = object : AiModelProvider {
+            override val descriptor = MutableStateFlow(
+                AiProviderDescriptor(
+                    id = "rate-limited",
+                    displayName = "Rate limited",
+                    capabilities = AiProviderCapabilities(local = true),
+                    available = true
+                )
+            )
+
+            override fun stream(request: AiProviderRequest) = flow<AiProviderEvent> {
+                throw AiProviderRequestException(
+                    failure = AiConnectionFailure.RATE_LIMITED,
+                    httpStatus = 429,
+                    retryAfterMs = 5_000L
+                )
+            }
+        }
+        val registry = AiProviderRegistry(listOf(provider))
+        val engine = AiConversationEngine(registry)
+
+        val events = engine.stream(
+            "conversation-rate-limit",
+            listOf(AiConversationMessage(AiRole.USER, "hello"))
+        ).toList()
+
+        assertEquals(AiConversationEvent.Failed("provider_failure"), events.last())
+        val health = registry.state.value.providerHealth.getValue("rate-limited")
+        assertEquals(AiProviderHealthState.COOLDOWN, health.state)
+        assertEquals(AiConnectionFailure.RATE_LIMITED, health.lastFailure)
+        assertTrue(health.cooldownUntilMillis != null)
+    }
+
     private class FakeProvider(
         private val events: List<AiProviderEvent>
     ) : AiModelProvider {

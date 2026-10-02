@@ -93,9 +93,12 @@ class AiConversationEngine(
                 traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "tool_limit")
                 return@flow
             } catch (failure: Exception) {
+                val requestFailure = failure as? AiProviderRequestException
                 registry.recordProviderFailure(
                     providerId = provider.descriptor.value.id,
-                    failure = AiProviderFailureClassifier.fromThrowable(failure)
+                    failure = requestFailure?.failure
+                        ?: AiProviderFailureClassifier.fromThrowable(failure),
+                    retryAfterMs = requestFailure?.retryAfterMs
                 )
                 emit(AiConversationEvent.Failed("provider_failure"))
                 traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "provider_failure")

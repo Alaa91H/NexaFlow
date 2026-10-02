@@ -23,6 +23,28 @@ enum class AiConnectionFailure {
     UNKNOWN
 }
 
+class AiProviderRequestException(
+    val failure: AiConnectionFailure,
+    val httpStatus: Int? = null,
+    val retryAfterMs: Long? = null,
+    cause: Throwable? = null
+) : RuntimeException("AI provider request failed", cause) {
+    init {
+        require(retryAfterMs == null || retryAfterMs >= 0)
+    }
+
+    companion object {
+        fun fromHttpStatus(
+            status: Int,
+            retryAfterMs: Long? = null
+        ): AiProviderRequestException = AiProviderRequestException(
+            failure = AiProviderFailureClassifier.fromHttpStatus(status),
+            httpStatus = status,
+            retryAfterMs = retryAfterMs
+        )
+    }
+}
+
 data class AiConnectionTestResult(
     val success: Boolean,
     val providerId: String,
@@ -87,6 +109,7 @@ object AiProviderFailureClassifier {
     fun fromThrowable(failure: Throwable): AiConnectionFailure {
         if (failure is CancellationException) throw failure
         return when (failure) {
+            is AiProviderRequestException -> failure.failure
             is SocketTimeoutException -> AiConnectionFailure.TIMEOUT
             is UnknownHostException -> AiConnectionFailure.DNS
             is SSLException -> AiConnectionFailure.TLS
