@@ -21,7 +21,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 - [x] T12 Secret References
 - [x] T13 AI Adapter Contract
 - [x] T14 Native Adapters
-- [ ] T15 Gateway Support
+- [x] T15 Gateway Support
 - [ ] T16 Provider Registry
 - [ ] T17 Model Registry & Capabilities
 - [ ] T18 AI Data Migration
