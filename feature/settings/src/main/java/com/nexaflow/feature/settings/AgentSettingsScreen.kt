@@ -114,20 +114,16 @@ fun AgentSettingsScreen(
         selectedProviderId = state.providerSettings.selectedProviderId
         allowCloudFallback = state.providerSettings.allowCloudFallback
     }
-    LaunchedEffect(profilePresetId, profileProtocol, providerApiKey, providerUrl, editingProfileId) {
-        kotlinx.coroutines.delay(600)
-        if (providerApiKey.length >= 8 || editingProfileId != null) {
-            viewModel.discoverProfileModels(
-                profileId = editingProfileId,
-                presetId = profilePresetId,
-                protocol = profileProtocol,
-                displayName = providerName.ifBlank { profilePresetId ?: "Custom provider" },
-                baseUrl = providerUrl,
-                modelId = providerModel,
-                local = providerLocal,
-                apiKey = providerApiKey
-            )
-        }
+    LaunchedEffect(
+        profilePresetId,
+        profileProtocol,
+        providerApiKey,
+        providerUrl,
+        providerModel,
+        providerLocal,
+        editingProfileId
+    ) {
+        viewModel.invalidateProviderDraft()
     }
 
     if (showModelPicker) {
@@ -392,6 +388,7 @@ fun AgentSettingsScreen(
                         ) {
                             RadioButton(
                                 selected = state.providerSettings.selectedProviderId == profile.id,
+                                enabled = profile.enabled,
                                 onClick = { viewModel.selectProviderProfile(profile.id) }
                             )
                             Column(Modifier.weight(1f)) {
@@ -539,21 +536,22 @@ fun AgentSettingsScreen(
                             placeholder = { Text(stringResource(R.string.ai_provider_model_hint)) },
                             singleLine = true
                         )
-                        TextButton(
-                            onClick = {
-                                viewModel.discoverProfileModels(
-                                    profileId = editingProfileId,
-                                    presetId = profilePresetId,
-                                    protocol = profileProtocol,
-                                    displayName = providerName,
-                                    baseUrl = providerUrl,
-                                    modelId = providerModel,
-                                    local = providerLocal,
-                                    apiKey = providerApiKey
-                                )
-                            }
-                        ) { Text(stringResource(R.string.ai_provider_discover_models)) }
                     }
+                    TextButton(
+                        onClick = {
+                            viewModel.discoverProfileModels(
+                                profileId = editingProfileId,
+                                presetId = profilePresetId,
+                                protocol = profileProtocol,
+                                displayName = providerName,
+                                baseUrl = providerUrl,
+                                modelId = providerModel,
+                                local = providerLocal,
+                                apiKey = providerApiKey
+                            )
+                        },
+                        enabled = AiProviderSetupPolicy.canDiscoverModels(state.providerProbeState)
+                    ) { Text(stringResource(R.string.ai_provider_discover_models)) }
                     when (state.modelDiscoveryState) {
                         AiModelDiscoveryState.LOADING -> Text(stringResource(R.string.ai_provider_models_loading))
                         AiModelDiscoveryState.SUCCESS -> Text(stringResource(R.string.ai_provider_models_ready))
@@ -563,7 +561,15 @@ fun AgentSettingsScreen(
                     }
                     when (state.providerProbeState) {
                         AiProviderProbeState.TESTING -> Text(stringResource(R.string.ai_provider_testing))
-                        AiProviderProbeState.SUCCESS -> Text(stringResource(R.string.ai_provider_test_success))
+                        AiProviderProbeState.SUCCESS -> Text(
+                            buildString {
+                                append(stringResource(R.string.ai_provider_test_success))
+                                state.providerLastVerifiedAtMillis?.let {
+                                    append(" · ")
+                                    append(dateFormat.format(Date(it)))
+                                }
+                            }
+                        )
                         AiProviderProbeState.FAILED -> Text(
                             stringResource(providerProbeFailureMessageRes(state.providerProbeStatusCode))
                         )
@@ -665,6 +671,9 @@ fun AgentSettingsScreen(
                                 local = providerLocal,
                                 apiKey = providerApiKey,
                                 reasoningEffort = reasoningLevel.apiValue,
+                                enableRequested = AiProviderSetupPolicy.enableOnSave(
+                                    state.providerProbeState
+                                ),
                                 onComplete = { saved ->
                                     if (saved) {
                                         providerApiKey = ""
