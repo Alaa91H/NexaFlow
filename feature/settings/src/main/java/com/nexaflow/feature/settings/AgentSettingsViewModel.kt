@@ -470,6 +470,35 @@ class AgentSettingsViewModel @Inject constructor(
         }
     }
 
+    fun clearProviderProfileApiKey(id: String) {
+        viewModelScope.launch {
+            val success = runCatching {
+                credentialStore.delete(AiCredentialReferences.forProfile(id))
+                providerPreferences.currentProfiles()
+                    .firstOrNull { it.id == id }
+                    ?.let { profile ->
+                        providerPreferences.upsertProfile(profile.copy(enabled = false))
+                    }
+                val settings = providerPreferences.current()
+                if (settings.selectedProviderId == id) {
+                    providerPreferences.update(
+                        settings.copy(
+                            routingMode = AiRoutingMode.AUTOMATIC.name,
+                            selectedProviderId = null,
+                            allowCloudFallback = false
+                        )
+                    )
+                }
+            }.isSuccess
+            reload(
+                providerProbeState = AiProviderProbeState.IDLE,
+                providerProbeStatusCode = null,
+                providerLastVerifiedAtMillis = null,
+                operationFailed = !success
+            )
+        }
+    }
+
     fun discoverModels() {
         viewModelScope.launch {
             val result = provider.discoverModels()
