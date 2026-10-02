@@ -97,7 +97,7 @@ class OpenAiCompatibleProvider(
         ignoreUnknownKeys = true
         explicitNulls = false
     }
-) : AiModelProvider {
+) : AiProviderAdapter {
 
     private val _descriptor =
         MutableStateFlow(descriptorFor(OpenAiCompatibleProviderConfig()))
@@ -153,6 +153,26 @@ class OpenAiCompatibleProvider(
         )
     }
 
+    override suspend fun listModels(): AiModelDiscoveryResult {
+        val result = discoverModels()
+        return AiModelDiscoveryResult(
+            success = result.success,
+            models = result.models.map {
+                AiDiscoveredModel(
+                    id = it.id,
+                    ownedBy = it.ownedBy,
+                    contextTokens = it.contextTokens
+                )
+            },
+            httpStatus = result.statusCode,
+            failure = if (result.success) {
+                null
+            } else {
+                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            }
+        )
+    }
+
     private fun parseModelInfo(element: kotlinx.serialization.json.JsonElement): OpenAiModelInfo? {
         val value = element as? JsonObject ?: return null
         val id = value["id"]?.jsonPrimitive?.contentOrNull
@@ -178,6 +198,62 @@ class OpenAiCompatibleProvider(
             id = id,
             ownedBy = ownedBy,
             contextTokens = context
+        )
+    }
+
+    override suspend fun verifyConnection(): AiConnectionTestResult {
+        val snapshot = config
+        val startedAt = System.nanoTime()
+        if (!isConfigured(snapshot)) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.providerId,
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                failure = AiConnectionFailure.UNKNOWN,
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
+        val response = try {
+            transport.postChatCompletions(
+                config = snapshot,
+                body = basicProbeBody(snapshot.modelId),
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            )
+        } catch (failure: Throwable) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.providerId,
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                failure = AiProviderFailureClassifier.fromThrowable(failure),
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
+        if (response.statusCode !in 200..299) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.providerId,
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                httpStatus = response.statusCode,
+                failure = AiProviderFailureClassifier.fromHttpStatus(response.statusCode),
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
+        val validBody = runCatching {
+            json.parseToJsonElement(response.body)
+                .jsonObject["choices"]
+                ?.jsonArray
+                ?.isNotEmpty() == true
+        }.getOrDefault(false)
+        return AiConnectionTestResult(
+            success = validBody,
+            providerId = snapshot.providerId,
+            dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+            httpStatus = response.statusCode,
+            failure = if (validBody) null else AiConnectionFailure.INVALID_RESPONSE,
+            latencyMs = elapsedMillis(startedAt)
         )
     }
 
@@ -222,6 +298,22 @@ class OpenAiCompatibleProvider(
             success = true,
             statusCode = basic.statusCode,
             capabilities = capabilities
+        )
+    }
+
+    override suspend fun discoverCapabilities(
+        model: AiModelDescriptorV2
+    ): AiCapabilityResult {
+        val result = probe()
+        return AiCapabilityResult(
+            success = result.success,
+            modelId = model.id,
+            capabilities = result.capabilities,
+            failure = if (result.success) {
+                null
+            } else {
+                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            }
         )
     }
 

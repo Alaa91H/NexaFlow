@@ -551,7 +551,7 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.probe().let { it.success to it.statusCode }
+                        adapter.verifyConnection().let { it.success to it.httpStatus }
                     }
                     AiProviderProtocol.ANTHROPIC_MESSAGES -> {
                         val adapter = AnthropicMessagesProvider(
@@ -571,7 +571,7 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.verify() to null
+                        adapter.verifyConnection().let { it.success to it.httpStatus }
                     }
                 }
             }.getOrDefault(false to null)
@@ -597,7 +597,7 @@ class AgentSettingsViewModel @Inject constructor(
             providerProbeStatusCode = null,
         )
         viewModelScope.launch {
-            val result = provider.probe()
+            val result = provider.verifyConnection()
             providerRegistry.refreshDescriptors()
             reload(
                 providerProbeState = if (result.success) {
@@ -605,7 +605,7 @@ class AgentSettingsViewModel @Inject constructor(
                 } else {
                     AiProviderProbeState.FAILED
                 },
-                providerProbeStatusCode = result.statusCode,
+                providerProbeStatusCode = result.httpStatus,
             )
         }
     }

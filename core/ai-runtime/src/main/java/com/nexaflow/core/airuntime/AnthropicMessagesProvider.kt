@@ -78,7 +78,7 @@ class AnthropicMessagesProvider(
     private val transport: AnthropicMessagesTransport,
     private val apiKeyProvider: suspend () -> String?,
     private val json: Json = Json { ignoreUnknownKeys = true }
-) : AiModelProvider {
+) : AiProviderAdapter {
     private val _descriptor = MutableStateFlow(descriptorFor(AnthropicMessagesProviderConfig()))
     override val descriptor: StateFlow<AiProviderDescriptor> = _descriptor.asStateFlow()
 
@@ -96,13 +96,39 @@ class AnthropicMessagesProvider(
         _descriptor.value = descriptorFor(normalized)
     }
 
-    suspend fun verify(): Boolean {
+    override suspend fun verifyConnection(): AiConnectionTestResult {
         val snapshot = config
+        val startedAt = System.nanoTime()
+        if (!isConfigured(snapshot)) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.id,
+                dialect = AiApiDialect.ANTHROPIC_MESSAGES,
+                failure = AiConnectionFailure.UNKNOWN,
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
         val result = discoverModels()
-        val valid = result.success && result.models.any { it == snapshot.modelId }
-        _descriptor.value = descriptorFor(snapshot, available = valid)
-        return valid
+        val modelExists = result.success && result.models.any { it == snapshot.modelId }
+        val failure = when {
+            !result.success -> AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            !modelExists -> AiConnectionFailure.MODEL_NOT_FOUND
+            else -> null
+        }
+        val verification = AiConnectionTestResult(
+            success = failure == null,
+            providerId = snapshot.id,
+            dialect = AiApiDialect.ANTHROPIC_MESSAGES,
+            httpStatus = result.statusCode,
+            failure = failure,
+            latencyMs = elapsedMillis(startedAt)
+        )
+        _descriptor.value = descriptorFor(snapshot, available = verification.success)
+        return verification
     }
+
+    suspend fun verify(): Boolean = verifyConnection().success
 
     data class ModelDiscoveryResult(
         val success: Boolean,
@@ -131,6 +157,41 @@ class AnthropicMessagesProvider(
             return ModelDiscoveryResult(success = false, statusCode = response.statusCode)
         }
         return ModelDiscoveryResult(true, models, response.statusCode)
+    }
+
+    override suspend fun listModels(): AiModelDiscoveryResult {
+        val result = discoverModels()
+        return AiModelDiscoveryResult(
+            success = result.success,
+            models = result.models.map(::AiDiscoveredModel),
+            httpStatus = result.statusCode,
+            failure = if (result.success) {
+                null
+            } else {
+                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            }
+        )
+    }
+
+    override suspend fun discoverCapabilities(
+        model: AiModelDescriptorV2
+    ): AiCapabilityResult {
+        val verification = verifyConnection()
+        return AiCapabilityResult(
+            success = verification.success,
+            modelId = model.id,
+            capabilities = if (verification.success) {
+                AiProviderCapabilities(
+                    toolCalling = true,
+                    structuredOutput = false,
+                    streaming = false,
+                    local = false
+                )
+            } else {
+                AiProviderCapabilities()
+            },
+            failure = verification.failure
+        )
     }
 
     override fun stream(request: AiProviderRequest): Flow<AiProviderEvent> = flow {
