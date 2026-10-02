@@ -114,6 +114,10 @@ class AiProfileAdapterFactory(
     }
 
     fun effectiveDialect(profile: AiProviderProfileSettings): AiApiDialect? {
+        if (profile.presetId == "gemini") {
+            return AiApiDialect.GEMINI_GENERATE_CONTENT
+        }
+
         val gatewayRules = AiGatewayCatalog.rulesFor(profile.presetId)
         if (gatewayRules != null && profile.modelId.isNotBlank()) {
             return AiGatewayDialectResolver.resolve(

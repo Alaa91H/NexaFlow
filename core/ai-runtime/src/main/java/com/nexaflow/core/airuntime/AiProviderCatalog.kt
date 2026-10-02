@@ -22,11 +22,12 @@ data class AiProviderPreset(
     val authScheme: AiAuthScheme,
     val baseUrl: String,
     val defaultModelId: String,
-    val local: Boolean = false
+    val local: Boolean = false,
+    val legacyProtocol: AiProviderProtocol? = null
 ) {
     /** Compatibility bridge for settings/runtime callers migrated in later tasks. */
     val protocol: AiProviderProtocol
-        get() = requireNotNull(AiProviderProtocol.fromDialect(dialect)) {
+        get() = legacyProtocol ?: requireNotNull(AiProviderProtocol.fromDialect(dialect)) {
             "Preset $id is not executable by the legacy provider surface"
         }
 }
@@ -55,11 +56,12 @@ object AiProviderCatalog {
             id = "gemini",
             displayName = "Gemini",
             providerKind = AiProviderKind.GOOGLE,
-            // Kept compatible until the native Gemini adapter lands in T14.
-            dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
-            authScheme = AiAuthScheme.BEARER_TOKEN,
-            baseUrl = "https://generativelanguage.googleapis.com/v1beta/openai",
-            defaultModelId = "gemini-3.8-flash"
+            dialect = AiApiDialect.GEMINI_GENERATE_CONTENT,
+            authScheme = AiAuthScheme.GOOGLE_API_KEY,
+            baseUrl = "https://generativelanguage.googleapis.com/v1beta",
+            defaultModelId = "gemini-3.8-flash",
+            // The profile schema still stores the legacy two-value protocol until T18.
+            legacyProtocol = AiProviderProtocol.OPENAI_CHAT_COMPLETIONS
         ),
         AiProviderPreset(
             id = "opencode_zen",

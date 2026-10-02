@@ -19,6 +19,19 @@ class AiProviderCatalogTest {
         assertEquals(AiProviderKind.ANTHROPIC, presets.getValue("claude").providerKind)
         assertEquals(AiApiDialect.ANTHROPIC_MESSAGES, presets.getValue("claude").dialect)
         assertEquals(AiProviderKind.GOOGLE, presets.getValue("gemini").providerKind)
+        assertEquals(
+            AiApiDialect.GEMINI_GENERATE_CONTENT,
+            presets.getValue("gemini").dialect
+        )
+        assertEquals(
+            "https://generativelanguage.googleapis.com/v1beta",
+            presets.getValue("gemini").baseUrl
+        )
+        assertEquals(AiAuthScheme.GOOGLE_API_KEY, presets.getValue("gemini").authScheme)
+        assertEquals(
+            AiProviderProtocol.OPENAI_CHAT_COMPLETIONS,
+            presets.getValue("gemini").protocol
+        )
         assertEquals(AiProviderKind.OPENCODE, presets.getValue("opencode_zen").providerKind)
         assertTrue(presets.values.all { it.baseUrl.startsWith("https://") })
         assertTrue(presets.values.all { it.defaultModelId.isNotBlank() })
