@@ -644,6 +644,7 @@ fun AgentSettingsScreen(
                         onApiKeyChange = { providerApiKey = it },
                         onSaved = { selectedTab = AiSettingsTab.AGENTS }
                     )
+                    }
                     if (selectedTab == AiSettingsTab.AGENTS) {
                     HorizontalDivider()
                     Text(
