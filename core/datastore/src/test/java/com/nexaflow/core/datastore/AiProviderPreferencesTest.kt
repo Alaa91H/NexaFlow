@@ -3,6 +3,7 @@ package com.nexaflow.core.datastore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.nexaflow.core.airuntime.AiApiDialect
 import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -95,7 +96,7 @@ class AiProviderPreferencesTest {
         assertEquals(profile.id, roundTrip.id)
         assertEquals(profile.modelId, roundTrip.modelId)
         assertEquals("openai", roundTrip.providerDefinitionId)
-        assertEquals(AiStoredDialect.OPENAI_RESPONSES.name, roundTrip.dialect)
+        assertEquals(AiApiDialect.OPENAI_RESPONSES.name, roundTrip.dialect)
         assertEquals(2, state.version)
         assertEquals(1, state.connections.size)
         assertEquals(1, state.models.size)
@@ -157,6 +158,7 @@ class AiProviderPreferencesTest {
                       "id":"good",
                       "presetId":"claude",
                       "providerDefinitionId":"anthropic",
+                      "providerKind":"ANTHROPIC",
                       "displayName":"Claude",
                       "dialect":"ANTHROPIC_MESSAGES",
                       "baseUrl":"https://api.anthropic.com/v1",
@@ -168,6 +170,7 @@ class AiProviderPreferencesTest {
                     {
                       "id":[],
                       "providerDefinitionId":"custom",
+                      "providerKind":"CUSTOM",
                       "displayName":"Broken",
                       "baseUrl":"https://example.com/v1",
                       "authScheme":"BEARER_TOKEN"
