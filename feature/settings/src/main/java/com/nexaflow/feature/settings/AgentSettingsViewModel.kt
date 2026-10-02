@@ -646,7 +646,7 @@ class AgentSettingsViewModel @Inject constructor(
             providerPreferences.currentProfiles()
         }.getOrDefault(emptyList())
         val providerApiKeyConfigured = runCatching {
-            !secureStorage.get(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY).isNullOrBlank()
+            !credentialStore.resolve(AiCredentialReferences.legacySingleProvider).isNullOrBlank()
         }.getOrDefault(false)
 
         _state.value = AgentSettingsUiState(
