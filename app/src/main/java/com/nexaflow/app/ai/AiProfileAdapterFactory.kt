@@ -4,8 +4,8 @@ import com.nexaflow.core.airuntime.AiApiDialect
 import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
 import com.nexaflow.core.airuntime.AiGatewayCatalog
-import com.nexaflow.core.airuntime.AiGatewayDialectResolver
 import com.nexaflow.core.airuntime.AiModelProvider
+import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry
 import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.airuntime.AnthropicMessagesProvider
 import com.nexaflow.core.airuntime.AnthropicMessagesProviderConfig
@@ -114,20 +114,14 @@ class AiProfileAdapterFactory(
     }
 
     fun effectiveDialect(profile: AiProviderProfileSettings): AiApiDialect? {
-        if (profile.presetId == "gemini") {
-            return AiApiDialect.GEMINI_GENERATE_CONTENT
-        }
-
-        val gatewayRules = AiGatewayCatalog.rulesFor(profile.presetId)
-        if (gatewayRules != null && profile.modelId.isNotBlank()) {
-            return AiGatewayDialectResolver.resolve(
-                modelId = profile.modelId,
-                rules = gatewayRules
-            ).dialect
-        }
-
-        return runCatching {
-            AiProviderProtocol.valueOf(profile.protocol).toDialect()
+        val storedProtocol = runCatching {
+            AiProviderProtocol.valueOf(profile.protocol)
         }.getOrNull()
+
+        return AiProviderDefinitionRegistry.resolveDialect(
+            presetId = profile.presetId,
+            storedProtocol = storedProtocol,
+            modelId = profile.modelId
+        )
     }
 }
