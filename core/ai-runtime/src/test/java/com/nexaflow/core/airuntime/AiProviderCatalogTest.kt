@@ -8,14 +8,14 @@ class AiProviderCatalogTest {
 
     @Test
     fun `built in catalog has openai claude gemini and opencode presets without secrets`() {
-        val presets = AiProviderCatalog.presets.associateBy(AiProviderPreset::id)
+        val presets = AiProviderDefinitionRegistry.presets.associateBy(AiProviderPreset::id)
 
         assertEquals(
             setOf("openai", "claude", "gemini", "opencode_zen"),
             presets.keys
         )
         assertEquals(AiProviderKind.OPENAI, presets.getValue("openai").providerKind)
-        assertEquals(AiApiDialect.OPENAI_CHAT_COMPLETIONS, presets.getValue("openai").dialect)
+        assertEquals(AiApiDialect.OPENAI_RESPONSES, presets.getValue("openai").dialect)
         assertEquals(AiProviderKind.ANTHROPIC, presets.getValue("claude").providerKind)
         assertEquals(AiApiDialect.ANTHROPIC_MESSAGES, presets.getValue("claude").dialect)
         assertEquals(AiProviderKind.GOOGLE, presets.getValue("gemini").providerKind)
@@ -39,7 +39,7 @@ class AiProviderCatalogTest {
 
     @Test
     fun `provider definitions separate identity dialect and authentication`() {
-        val definitions = AiProviderCatalog.definitions.associateBy(AiProviderDefinition::id)
+        val definitions = AiProviderDefinitionRegistry.definitions.associateBy(AiProviderDefinition::id)
 
         assertEquals(AiProviderKind.OPENAI, definitions.getValue("openai").kind)
         assertTrue(
@@ -55,6 +55,51 @@ class AiProviderCatalogTest {
                 definitions.getValue("google").supportedDialects
         )
         assertTrue(definitions.getValue("custom").supportsCustomEndpoint)
+    }
+
+    @Test
+    fun `canonical registry covers first party gateways compatible and local providers`() {
+        val definitions = AiProviderDefinitionRegistry.definitions.associateBy(AiProviderDefinition::id)
+
+        assertTrue(
+            setOf(
+                "openai",
+                "anthropic",
+                "google",
+                "opencode",
+                "openrouter",
+                "groq",
+                "mistral",
+                "deepseek",
+                "xai",
+                "ollama",
+                "lm_studio",
+                "openai_compatible",
+                "custom"
+            ).all(definitions::containsKey)
+        )
+        assertEquals(
+            AiApiDialect.GEMINI_GENERATE_CONTENT,
+            AiProviderDefinitionRegistry.resolveDialect(
+                presetId = "gemini",
+                storedProtocol = AiProviderProtocol.OPENAI_CHAT_COMPLETIONS,
+                modelId = "gemini-test"
+            )
+        )
+        assertEquals(
+            AiApiDialect.OPENAI_RESPONSES,
+            AiProviderDefinitionRegistry.resolveDialect(
+                presetId = "opencode_zen",
+                storedProtocol = AiProviderProtocol.OPENAI_CHAT_COMPLETIONS,
+                modelId = "gpt-5.6-sol"
+            )
+        )
+        assertTrue(
+            AiProviderDefinitionRegistry.supportsAuth(
+                "claude",
+                AiAuthScheme.X_API_KEY
+            )
+        )
     }
 
     @Test
