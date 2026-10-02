@@ -49,7 +49,7 @@ import androidx.navigation.NavController
 import com.nexaflow.core.agentapi.AgentApiAuditEventV1
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.airuntime.AiRoutingMode
-import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry as ProviderRegistry
+import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry as Registry
 import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.airuntime.AiReasoningLevel
 import com.nexaflow.core.ui.NexaFlowCard
@@ -399,7 +399,7 @@ fun AgentSettingsScreen(
                                     onClick = {
                                         editingProfileId = profile.id
                                         profilePresetId = profile.presetId?.takeIf {
-                                            ProviderRegistry.preset(it) != null
+                                            Registry.preset(it) != null
                                         }
                                         profileProtocol = runCatching {
                                             AiProviderProtocol.valueOf(profile.protocol)
@@ -434,7 +434,7 @@ fun AgentSettingsScreen(
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )
-                    ProviderRegistry.presets.forEach { preset ->
+                    Registry.presets.forEach { preset ->
                         TextButton(
                             onClick = {
                                 editingProfileId = null
@@ -482,8 +482,8 @@ fun AgentSettingsScreen(
                                 selected = profileProtocol == AiProviderProtocol.ANTHROPIC_MESSAGES,
                                 onClick = {
                                     profileProtocol = AiProviderProtocol.ANTHROPIC_MESSAGES
-                                    providerUrl = ProviderRegistry.preset("claude")?.baseUrl.orEmpty()
-                                    providerModel = ProviderRegistry.preset("claude")?.defaultModelId.orEmpty()
+                                    providerUrl = Registry.preset("claude")?.baseUrl.orEmpty()
+                                    providerModel = Registry.preset("claude")?.defaultModelId.orEmpty()
                                 },
                                 label = { Text(stringResource(R.string.ai_provider_protocol_anthropic)) }
                             )
