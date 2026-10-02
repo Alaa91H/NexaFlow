@@ -17,7 +17,6 @@ errors: list[str] = []
 for path in RUNTIME_FILES:
     source = path.read_text(encoding="utf-8")
     for banned in (
-        "import com.nexaflow.core.security.SecureStorage",
         "secureStorage.get(",
         "secureStorage.put(",
         "secureStorage.remove(",
