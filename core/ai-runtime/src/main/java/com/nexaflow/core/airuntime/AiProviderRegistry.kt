@@ -308,6 +308,7 @@ class AiProviderRegistry(
             )
             AiRoutingMode.SELECTED_PROVIDER -> {
                 val id = policy.selectedProviderId
+                    ?: return AiRouteDecision(reason = AiRouteReason.SELECTED_UNAVAILABLE)
                 val selectedDescriptor = capable.firstOrNull { it.id == id }
                 if (selectedDescriptor == null) {
                     AiRouteDecision(reason = AiRouteReason.SELECTED_UNAVAILABLE)
@@ -379,7 +380,15 @@ class AiProviderRegistry(
         val chosen = candidates.sortedWith(
             compareBy<AiProviderDescriptor> {
                 health[it.id]?.routingRank(nowMillis) ?: UNKNOWN_HEALTH_RANK
-            }.then(DESCRIPTOR_ORDER)
+            }.thenByDescending {
+                it.capabilities.toolCalling || it.capabilities.structuredOutput
+            }.thenByDescending {
+                it.capabilities.streaming
+            }.thenBy {
+                it.displayName.lowercase()
+            }.thenBy {
+                it.id
+            }
         ).firstOrNull() ?: return AiRouteDecision(reason = emptyReason)
 
         return AiRouteDecision(
