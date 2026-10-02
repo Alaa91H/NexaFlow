@@ -48,8 +48,8 @@ for token in (
 
 settings = SETTINGS_FILE.read_text(encoding="utf-8")
 for token in (
-    "ProviderRegistry.presets",
-    "ProviderRegistry.preset(",
+    "Registry.presets",
+    "Registry.preset(",
 ):
     if token not in settings:
         errors.append("AI settings is not registry-driven: missing " + repr(token))
