@@ -13,7 +13,6 @@ import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
 import com.nexaflow.core.airuntime.AiProviderDescriptor
 import com.nexaflow.core.airuntime.AiProviderRegistry
-import com.nexaflow.core.airuntime.AiProviderCatalog
 import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.airuntime.AiReasoningLevel
 import com.nexaflow.core.airuntime.AiRoutingMode
