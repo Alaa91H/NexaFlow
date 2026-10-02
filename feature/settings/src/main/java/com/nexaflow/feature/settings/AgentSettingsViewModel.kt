@@ -425,7 +425,7 @@ class AgentSettingsViewModel @Inject constructor(
                     else -> null
                 }
             }.getOrNull()
-            verification?.let(providerRegistry::recordConnectionTest)
+            verification?.let { providerRegistry.recordConnectionTest(it) }
             providerRegistry.refreshDescriptors()
             reload(
                 providerProbeState = if (verification?.success == true) {
