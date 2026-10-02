@@ -32,6 +32,7 @@ internal fun AiProviderCredentialActions(
         state.providerProfiles.any {
             it.id == editingProfileId && it.credentialRef != null
         }
+    val storedCredentialProfileId = editingProfileId?.takeIf { hasStoredCredential }
     val credentiallessLocal = profilePresetId == null &&
         providerLocal &&
         profileProtocol == AiProviderProtocol.OPENAI_CHAT_COMPLETIONS
@@ -53,7 +54,7 @@ internal fun AiProviderCredentialActions(
         singleLine = true
     )
 
-    if (hasStoredCredential) {
+    if (storedCredentialProfileId != null) {
         Text(
             text = stringResource(R.string.ai_provider_api_key_saved),
             style = MaterialTheme.typography.bodySmall,
@@ -61,7 +62,7 @@ internal fun AiProviderCredentialActions(
         )
         TextButton(
             onClick = {
-                editingProfileId?.let(viewModel::clearProviderProfileApiKey)
+                viewModel.clearProviderProfileApiKey(storedCredentialProfileId)
                 onApiKeyChange("")
             }
         ) {
