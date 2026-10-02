@@ -9,6 +9,8 @@ import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
+import com.nexaflow.core.airuntime.AiCredentialReferences
+import com.nexaflow.core.airuntime.AiCredentialStore
 import com.nexaflow.core.airuntime.AiProviderDescriptor
 import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.AiProviderCatalog
@@ -28,7 +30,6 @@ import com.nexaflow.core.datastore.AgentNetworkPreferences
 import com.nexaflow.core.datastore.AiProviderPreferences
 import com.nexaflow.core.datastore.AiProviderProfileSettings
 import com.nexaflow.core.datastore.AiProviderSettings
-import com.nexaflow.core.security.SecureStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
@@ -84,7 +85,7 @@ class AgentSettingsViewModel @Inject constructor(
     private val providerPreferences: AiProviderPreferences,
     private val provider: OpenAiCompatibleProvider,
     private val providerRegistry: AiProviderRegistry,
-    private val secureStorage: SecureStorage,
+    private val credentialStore: AiCredentialStore,
     private val compatibleTransport: OpenAiCompatibleTransport,
     private val anthropicTransport: AnthropicMessagesTransport
 ) : ViewModel() {
@@ -214,9 +215,7 @@ class AgentSettingsViewModel @Inject constructor(
                 allowCloudFallback = allowCloudFallback
             )
             val success = runCatching {
-                val existingKey = secureStorage.get(
-                    OpenAiCompatibleProvider.API_KEY_STORAGE_KEY
-                )
+                val existingKey = credentialStore.resolve(AiCredentialReferences.legacySingleProvider)
                 val hasApiKey = apiKey.isNotBlank() || !existingKey.isNullOrBlank()
                 if (candidate.enabled) {
                     OpenAiEndpointPolicy.chatCompletionsUri(
@@ -226,16 +225,13 @@ class AgentSettingsViewModel @Inject constructor(
                 }
                 providerPreferences.update(candidate)
                 if (apiKey.isNotBlank()) {
-                    secureStorage.put(
-                        OpenAiCompatibleProvider.API_KEY_STORAGE_KEY,
-                        apiKey
-                    )
+                    credentialStore.store(AiCredentialReferences.legacySingleProvider, apiKey)
                     providerPreferences.currentProfiles()
                         .firstOrNull {
                             it.presetId == AiProviderPreferences.LEGACY_PROFILE_PRESET_ID
                         }
                         ?.let { legacyProfile ->
-                            secureStorage.put(providerApiKeyStorageKey(legacyProfile.id), apiKey)
+                            credentialStore.store(AiCredentialReferences.forProfile(legacyProfile.id), apiKey)
                         }
                 }
                 provider.configure(candidate.toProviderConfig())
@@ -254,12 +250,12 @@ class AgentSettingsViewModel @Inject constructor(
     fun clearProviderApiKey() {
         viewModelScope.launch {
             val success = runCatching {
-                secureStorage.remove(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY)
+                credentialStore.delete(AiCredentialReferences.legacySingleProvider)
                 providerPreferences.currentProfiles()
                     .firstOrNull {
                         it.presetId == AiProviderPreferences.LEGACY_PROFILE_PRESET_ID
                     }
-                    ?.let { secureStorage.remove(providerApiKeyStorageKey(it.id)) }
+                    ?.let { credentialStore.delete(AiCredentialReferences.forProfile(it.id)) }
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
@@ -298,7 +294,7 @@ class AgentSettingsViewModel @Inject constructor(
                 reasoningEffort = reasoningEffort
             )
             val saved = runCatching {
-                val existingKey = secureStorage.get(providerApiKeyStorageKey(id))
+                val existingKey = credentialStore.resolve(AiCredentialReferences.forProfile(id))
                 val key = apiKey.takeIf(String::isNotBlank) ?: existingKey
                 val keyRequired = presetId != null || !local ||
                     protocol == AiProviderProtocol.ANTHROPIC_MESSAGES
@@ -321,7 +317,7 @@ class AgentSettingsViewModel @Inject constructor(
                             hasApiKey = true
                         )
                 }
-                if (!apiKey.isBlank()) secureStorage.put(providerApiKeyStorageKey(id), apiKey)
+                if (!apiKey.isBlank()) credentialStore.store(AiCredentialReferences.forProfile(id), apiKey)
                 providerPreferences.upsertProfile(profile)
             }.isSuccess
             reload(
@@ -342,7 +338,7 @@ class AgentSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val verified = runCatching {
                 val profile = providerPreferences.currentProfiles().first { it.id == id }
-                val key = secureStorage.get(providerApiKeyStorageKey(id))
+                val key = credentialStore.resolve(AiCredentialReferences.forProfile(id))
                     ?.takeIf(String::isNotBlank) ?: return@runCatching false
                 when (profile.protocol) {
                     AiProviderProtocol.OPENAI_CHAT_COMPLETIONS.name -> {
@@ -414,7 +410,7 @@ class AgentSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val success = runCatching {
                 providerPreferences.removeProfile(id)
-                secureStorage.remove(providerApiKeyStorageKey(id))
+                credentialStore.delete(AiCredentialReferences.forProfile(id))
                 if (providerPreferences.current().selectedProviderId == null) {
                     val settings = providerPreferences.current()
                     providerPreferences.update(
@@ -453,7 +449,7 @@ class AgentSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val discovered = runCatching {
                 val key = apiKey.trim().takeIf(String::isNotEmpty)
-                    ?: profileId?.let { secureStorage.get(providerApiKeyStorageKey(it)) }
+                    ?: profileId?.let { credentialStore.resolve(AiCredentialReferences.forProfile(it)) }
                         ?.takeIf(String::isNotBlank)
                 when (protocol) {
                     AiProviderProtocol.OPENAI_CHAT_COMPLETIONS -> {
@@ -534,7 +530,7 @@ class AgentSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val verification = runCatching {
                 val key = apiKey.trim().takeIf(String::isNotEmpty)
-                    ?: profileId?.let { secureStorage.get(providerApiKeyStorageKey(it)) }
+                    ?: profileId?.let { credentialStore.resolve(AiCredentialReferences.forProfile(it)) }
                         ?.takeIf(String::isNotBlank)
                 when (protocol) {
                     AiProviderProtocol.OPENAI_CHAT_COMPLETIONS -> {
@@ -697,7 +693,5 @@ class AgentSettingsViewModel @Inject constructor(
     private companion object {
         const val MAX_AGENT_NAME_LENGTH = 128
         const val MAX_ACTIVITY_ROWS = 30
-        fun providerApiKeyStorageKey(profileId: String) =
-            "ai.provider.profile.$profileId.api_key"
     }
 }

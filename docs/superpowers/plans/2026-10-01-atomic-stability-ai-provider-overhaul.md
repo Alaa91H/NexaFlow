@@ -17,7 +17,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 - [x] T08 Action Editor Decomposition
 - [x] T09 Builder Screen Decomposition
 - [x] T10 Shared Network Security
-- [ ] T11 AI Domain V2
+- [x] T11 AI Domain V2
 - [ ] T12 Secret References
 - [ ] T13 AI Adapter Contract
 - [ ] T14 Native Adapters

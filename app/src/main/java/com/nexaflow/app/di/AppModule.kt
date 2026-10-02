@@ -66,6 +66,7 @@ import com.nexaflow.core.logging.LogStore
 import com.nexaflow.core.logging.RedactingLogStore
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.core.security.KeystoreSecureStorage
+import com.nexaflow.core.security.SecretVault
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.data.repository.AutomationRepositoryImpl
@@ -149,6 +150,11 @@ object AppModule {
         // work is explicitly kept off the main dispatcher.
         return KeystoreSecureStorage(context, ioDispatcher = dispatchers.io)
     }
+
+    @Provides
+    @Singleton
+    fun provideSecretVault(secureStorage: SecureStorage): SecretVault =
+        SecretVault(secureStorage)
 
     @Provides
     @Singleton

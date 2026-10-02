@@ -4,8 +4,11 @@ import android.content.Context
 import com.nexaflow.app.agent.NexaFlowAiToolExecutor
 import com.nexaflow.app.ai.AndroidOpenAiCompatibleTransport
 import com.nexaflow.app.ai.AndroidAnthropicMessagesTransport
+import com.nexaflow.app.ai.VaultBackedAiCredentialStore
 import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.airuntime.AiConversationEngine
+import com.nexaflow.core.airuntime.AiCredentialReferences
+import com.nexaflow.core.airuntime.AiCredentialStore
 import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.airuntime.AiRoutingPolicy
@@ -19,6 +22,7 @@ import com.nexaflow.core.airuntime.AnthropicMessagesTransport
 import com.nexaflow.core.airuntime.AnthropicMessagesProviderConfig
 import com.nexaflow.core.datastore.AiProviderPreferences
 import com.nexaflow.core.engine.di.ApplicationScope
+import com.nexaflow.core.security.SecretVault
 import com.nexaflow.core.security.SecureStorage
 import dagger.Module
 import dagger.Provides
@@ -42,6 +46,13 @@ object AiRuntimeModule {
 
     @Provides
     @Singleton
+    fun provideAiCredentialStore(
+        secretVault: SecretVault,
+        secureStorage: SecureStorage
+    ): AiCredentialStore = VaultBackedAiCredentialStore(secretVault, secureStorage)
+
+    @Provides
+    @Singleton
     fun provideOpenAiCompatibleTransport(): OpenAiCompatibleTransport =
         AndroidOpenAiCompatibleTransport()
 
@@ -54,11 +65,11 @@ object AiRuntimeModule {
     @Singleton
     fun provideOpenAiCompatibleProvider(
         transport: OpenAiCompatibleTransport,
-        secureStorage: SecureStorage
+        credentialStore: AiCredentialStore
     ): OpenAiCompatibleProvider = OpenAiCompatibleProvider(
         transport = transport,
         apiKeyProvider = {
-            secureStorage.get(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY)
+            credentialStore.resolve(AiCredentialReferences.legacySingleProvider)
         }
     )
 
@@ -68,7 +79,7 @@ object AiRuntimeModule {
         provider: OpenAiCompatibleProvider,
         transport: OpenAiCompatibleTransport,
         anthropicTransport: AnthropicMessagesTransport,
-        secureStorage: SecureStorage,
+        credentialStore: AiCredentialStore,
         preferences: AiProviderPreferences,
         @ApplicationScope scope: CoroutineScope
     ): AiProviderRegistry {
@@ -81,15 +92,17 @@ object AiRuntimeModule {
                         it.presetId == AiProviderPreferences.LEGACY_PROFILE_PRESET_ID
                     }
                     ?.let { legacy ->
-                        val legacyKey = secureStorage.get(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY)
-                        val profileKey = secureStorage.get(providerApiKeyStorageKey(legacy.id))
+                        val legacyReference = AiCredentialReferences.legacySingleProvider
+                        val profileReference = AiCredentialReferences.forProfile(legacy.id)
+                        val legacyKey = credentialStore.resolve(legacyReference)
+                        val profileKey = credentialStore.resolve(profileReference)
                         if (profileKey.isNullOrBlank() && !legacyKey.isNullOrBlank()) {
-                            secureStorage.put(providerApiKeyStorageKey(legacy.id), legacyKey)
+                            credentialStore.store(profileReference, legacyKey)
                         }
                         if (!legacyKey.isNullOrBlank() &&
-                            !secureStorage.get(providerApiKeyStorageKey(legacy.id)).isNullOrBlank()
+                            !credentialStore.resolve(profileReference).isNullOrBlank()
                         ) {
-                            secureStorage.remove(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY)
+                            credentialStore.delete(legacyReference)
                         }
                     }
             }
@@ -100,7 +113,7 @@ object AiRuntimeModule {
                             OpenAiCompatibleProvider(
                                 transport = transport,
                                 apiKeyProvider = {
-                                    secureStorage.get(providerApiKeyStorageKey(profile.id))
+                                    credentialStore.resolve(AiCredentialReferences.forProfile(profile.id))
                                 }
                             ).apply {
                                 configure(
@@ -121,7 +134,7 @@ object AiRuntimeModule {
                             AnthropicMessagesProvider(
                                 transport = anthropicTransport,
                                 apiKeyProvider = {
-                                    secureStorage.get(providerApiKeyStorageKey(profile.id))
+                                    credentialStore.resolve(AiCredentialReferences.forProfile(profile.id))
                                 }
                             ).apply {
                                 configure(
@@ -170,8 +183,6 @@ object AiRuntimeModule {
         return registry
     }
 
-    private fun providerApiKeyStorageKey(profileId: String): String =
-        "ai.provider.profile.$profileId.api_key"
 
     @Provides
     @Singleton

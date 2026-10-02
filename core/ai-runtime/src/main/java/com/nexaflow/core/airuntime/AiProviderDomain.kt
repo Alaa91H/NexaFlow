@@ -59,11 +59,12 @@ enum class AiAuthScheme {
 value class AiCredentialReference(val value: String) {
     init {
         require(value.length in 1..MAX_REFERENCE_LENGTH)
-        require(value.all { it.isLetterOrDigit() || it in "._:-/" })
+        require(value.matches(REFERENCE_PATTERN))
     }
 
     companion object {
         private const val MAX_REFERENCE_LENGTH = 256
+        private val REFERENCE_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,255}")
     }
 }
 
