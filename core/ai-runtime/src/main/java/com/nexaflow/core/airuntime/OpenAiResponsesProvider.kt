@@ -26,7 +26,8 @@ data class OpenAiResponsesProviderConfig(
     val displayName: String = "OpenAI",
     val baseUrl: String = "https://api.openai.com/v1",
     val modelId: String = "",
-    val reasoningEffort: String? = null
+    val reasoningEffort: String? = null,
+    val gatewaySession: Boolean = false
 )
 
 data class OpenAiResponsesTransportResponse(
@@ -40,6 +41,14 @@ interface OpenAiResponsesTransport {
         body: JsonObject,
         apiKey: String
     ): OpenAiResponsesTransportResponse
+
+    suspend fun postResponsesWithHeaders(
+        config: OpenAiResponsesProviderConfig,
+        body: JsonObject,
+        apiKey: String,
+        headers: Map<String, String>
+    ): OpenAiResponsesTransportResponse =
+        postResponses(config, body, apiKey)
 
     suspend fun getModels(
         config: OpenAiResponsesProviderConfig,
@@ -142,7 +151,17 @@ class OpenAiResponsesProvider(
         require(isConfigured(snapshot)) { "Provider is not configured" }
         val key = apiKeyProvider()?.takeIf(String::isNotBlank)
             ?: throw IllegalStateException("API key is missing")
-        val response = transport.postResponses(snapshot, request.toBody(snapshot), key)
+        val headers = if (snapshot.gatewaySession) {
+            AiGatewaySessionPolicy.requestHeaders(request.conversationId)
+        } else {
+            emptyMap()
+        }
+        val response = transport.postResponsesWithHeaders(
+            snapshot,
+            request.toBody(snapshot),
+            key,
+            headers
+        )
         require(response.statusCode in 200..299) {
             "Provider returned HTTP " + response.statusCode
         }
