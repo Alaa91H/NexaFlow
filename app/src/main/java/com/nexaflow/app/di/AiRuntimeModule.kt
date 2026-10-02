@@ -3,6 +3,8 @@ package com.nexaflow.app.di
 import android.content.Context
 import com.nexaflow.app.agent.NexaFlowAiToolExecutor
 import com.nexaflow.app.ai.AndroidOpenAiCompatibleTransport
+import com.nexaflow.app.ai.AndroidOpenAiResponsesTransport
+import com.nexaflow.app.ai.AndroidGeminiNativeTransport
 import com.nexaflow.app.ai.AndroidAnthropicMessagesTransport
 import com.nexaflow.app.ai.VaultBackedAiCredentialStore
 import com.nexaflow.core.agentapi.AgentApiController
@@ -16,6 +18,8 @@ import com.nexaflow.core.airuntime.AiToolExecutor
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiCompatibleTransport
+import com.nexaflow.core.airuntime.OpenAiResponsesTransport
+import com.nexaflow.core.airuntime.GeminiNativeTransport
 import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.airuntime.AnthropicMessagesProvider
 import com.nexaflow.core.airuntime.AnthropicMessagesTransport
@@ -60,6 +64,16 @@ object AiRuntimeModule {
     @Singleton
     fun provideAnthropicMessagesTransport(): AnthropicMessagesTransport =
         AndroidAnthropicMessagesTransport()
+
+    @Provides
+    @Singleton
+    fun provideOpenAiResponsesTransport(): OpenAiResponsesTransport =
+        AndroidOpenAiResponsesTransport()
+
+    @Provides
+    @Singleton
+    fun provideGeminiNativeTransport(): GeminiNativeTransport =
+        AndroidGeminiNativeTransport()
 
     @Provides
     @Singleton
