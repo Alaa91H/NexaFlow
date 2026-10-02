@@ -552,6 +552,14 @@ fun AgentSettingsScreen(
                         },
                         enabled = AiProviderSetupPolicy.canDiscoverModels(state.providerProbeState)
                     ) { Text(stringResource(R.string.ai_provider_discover_models)) }
+                    if (profilePresetId == null && state.profileModelChoices.isNotEmpty()) {
+                        TextButton(
+                            onClick = { showModelPicker = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.ai_provider_choose_model))
+                        }
+                    }
                     when (state.modelDiscoveryState) {
                         AiModelDiscoveryState.LOADING -> Text(stringResource(R.string.ai_provider_models_loading))
                         AiModelDiscoveryState.SUCCESS -> Text(stringResource(R.string.ai_provider_models_ready))
@@ -690,8 +698,14 @@ fun AgentSettingsScreen(
                     ) {
                         Text(
                             stringResource(
-                                if (editingProfileId == null) R.string.ai_provider_add
-                                else R.string.ai_provider_save
+                                if (
+                                    state.providerProbeState == AiProviderProbeState.SUCCESS &&
+                                    editingProfileId == null
+                                ) {
+                                    R.string.ai_provider_add
+                                } else {
+                                    R.string.ai_provider_save
+                                }
                             )
                         )
                     }
