@@ -1,5 +1,6 @@
 package com.nexaflow.core.security
 
+import java.util.Base64
 import javax.crypto.AEADBadTagException
 import javax.crypto.KeyGenerator
 import org.junit.Assert.assertEquals
@@ -32,7 +33,13 @@ class AesGcmEnvelopeCodecTest {
     fun tamperingFailsAuthentication() {
         val key = key()
         val encoded = AesGcmEnvelopeCodec.encrypt(key, "slot", "secret")
-        val mutated = encoded.dropLast(1) + if (encoded.last() == 'A') "B" else "A"
+        val payload = Base64.getDecoder().decode(
+            encoded.removePrefix(AesGcmEnvelopeCodec.PREFIX)
+        )
+        val ciphertextIndex = payload.lastIndex
+        payload[ciphertextIndex] = (payload[ciphertextIndex].toInt() xor 0x01).toByte()
+        val mutated = AesGcmEnvelopeCodec.PREFIX +
+            Base64.getEncoder().withoutPadding().encodeToString(payload)
         assertTrue(runCatching {
             AesGcmEnvelopeCodec.decrypt(key, "slot", mutated)
         }.isFailure)
