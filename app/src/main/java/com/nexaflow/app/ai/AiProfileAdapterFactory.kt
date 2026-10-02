@@ -1,6 +1,7 @@
 package com.nexaflow.app.ai
 
 import com.nexaflow.core.airuntime.AiApiDialect
+import com.nexaflow.core.airuntime.AiCredentialReference
 import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
 import com.nexaflow.core.airuntime.AiGatewayCatalog
