@@ -54,15 +54,20 @@ data class AiCapabilityEvidence(
         )
 
     companion object {
+        /**
+         * Existing adapter probes expose booleans rather than tri-state support.
+         * Treat only affirmative probe results as evidence so an untested/false
+         * field cannot erase stronger static or provider metadata.
+         */
         fun fromCapabilities(
             capabilities: AiProviderCapabilities
         ): AiCapabilityEvidence =
             AiCapabilityEvidence(
-                toolCalling = capabilities.toolCalling,
-                structuredOutput = capabilities.structuredOutput,
-                streaming = capabilities.streaming,
-                vision = capabilities.vision,
-                reasoning = capabilities.reasoning,
+                toolCalling = capabilities.toolCalling.takeIf { it },
+                structuredOutput = capabilities.structuredOutput.takeIf { it },
+                streaming = capabilities.streaming.takeIf { it },
+                vision = capabilities.vision.takeIf { it },
+                reasoning = capabilities.reasoning.takeIf { it },
                 contextWindowTokens = capabilities.contextTokens
             )
     }
