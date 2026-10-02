@@ -3,6 +3,7 @@ package com.nexaflow.app.di
 import android.content.Context
 import com.nexaflow.app.agent.NexaFlowAiToolExecutor
 import com.nexaflow.app.ai.AndroidOpenAiCompatibleTransport
+import com.nexaflow.app.ai.AiProfileAdapterFactory
 import com.nexaflow.app.ai.AndroidOpenAiResponsesTransport
 import com.nexaflow.app.ai.AndroidGeminiNativeTransport
 import com.nexaflow.app.ai.AndroidAnthropicMessagesTransport
@@ -89,11 +90,26 @@ object AiRuntimeModule {
 
     @Provides
     @Singleton
+    fun provideAiProfileAdapterFactory(
+        chatTransport: OpenAiCompatibleTransport,
+        responsesTransport: OpenAiResponsesTransport,
+        anthropicTransport: AnthropicMessagesTransport,
+        geminiTransport: GeminiNativeTransport,
+        credentialStore: AiCredentialStore
+    ): AiProfileAdapterFactory = AiProfileAdapterFactory(
+        chatTransport = chatTransport,
+        responsesTransport = responsesTransport,
+        anthropicTransport = anthropicTransport,
+        geminiTransport = geminiTransport,
+        credentialStore = credentialStore
+    )
+
+    @Provides
+    @Singleton
     fun provideAiProviderRegistry(
         provider: OpenAiCompatibleProvider,
-        transport: OpenAiCompatibleTransport,
-        anthropicTransport: AnthropicMessagesTransport,
         credentialStore: AiCredentialStore,
+        adapterFactory: AiProfileAdapterFactory,
         preferences: AiProviderPreferences,
         @ApplicationScope scope: CoroutineScope
     ): AiProviderRegistry {
@@ -121,53 +137,7 @@ object AiRuntimeModule {
                     }
             }
             preferences.profiles.collect { profiles ->
-                val adapters = profiles.mapNotNull { profile ->
-                    when (profile.protocol) {
-                        AiProviderProtocol.OPENAI_CHAT_COMPLETIONS.name ->
-                            OpenAiCompatibleProvider(
-                                transport = transport,
-                                apiKeyProvider = {
-                                    credentialStore.resolve(AiCredentialReferences.forProfile(profile.id))
-                                }
-                            ).apply {
-                                configure(
-                                    OpenAiCompatibleProviderConfig(
-                                        enabled = profile.enabled,
-                                        providerId = profile.id,
-                                        displayName = profile.displayName,
-                                        baseUrl = profile.baseUrl,
-                                        modelId = profile.modelId,
-                                        local = profile.local,
-                                        reasoningEffort = profile.reasoningEffort.takeIf {
-                                            profile.presetId == "openai"
-                                        }
-                                    )
-                                )
-                            }
-                        AiProviderProtocol.ANTHROPIC_MESSAGES.name ->
-                            AnthropicMessagesProvider(
-                                transport = anthropicTransport,
-                                apiKeyProvider = {
-                                    credentialStore.resolve(AiCredentialReferences.forProfile(profile.id))
-                                }
-                            ).apply {
-                                configure(
-                                    AnthropicMessagesProviderConfig(
-                                        id = profile.id,
-                                        enabled = profile.enabled,
-                                        displayName = profile.displayName,
-                                        baseUrl = profile.baseUrl,
-                                        modelId = profile.modelId,
-                                        local = profile.local,
-                                        reasoningEffort = profile.reasoningEffort.takeIf {
-                                            profile.presetId == "claude"
-                                        }
-                                    )
-                                )
-                            }
-                        else -> null
-                    }
-                }
+                val adapters = profiles.mapNotNull(adapterFactory::create)
                 registry.replaceProviders(adapters)
             }
         }
