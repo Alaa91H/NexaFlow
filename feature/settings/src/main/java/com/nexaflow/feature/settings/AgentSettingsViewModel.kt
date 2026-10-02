@@ -10,6 +10,7 @@ import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
 import com.nexaflow.core.airuntime.AiAuthScheme
+import com.nexaflow.core.airuntime.AiConnectionTestResult
 import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
 import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry
@@ -381,10 +382,11 @@ class AgentSettingsViewModel @Inject constructor(
             providerLastVerifiedAtMillis = null,
         )
         viewModelScope.launch {
-            val verified = runCatching {
+            val verification: AiConnectionTestResult? = runCatching {
                 val profile = providerPreferences.currentProfiles().first { it.id == id }
                 val key = credentialStore.resolve(AiCredentialReferences.forProfile(id))
-                    ?.takeIf(String::isNotBlank) ?: return@runCatching false to null
+                    ?.takeIf(String::isNotBlank)
+                if (!profile.local && key == null) return@runCatching null
                 when (profile.protocol) {
                     AiProviderProtocol.OPENAI_CHAT_COMPLETIONS.name -> {
                         val adapter = OpenAiCompatibleProvider(
@@ -401,7 +403,7 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.verifyConnection().let { it.success to it.httpStatus }
+                        adapter.verifyConnection()
                     }
                     AiProviderProtocol.ANTHROPIC_MESSAGES.name -> {
                         val adapter = AnthropicMessagesProvider(
@@ -418,17 +420,21 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.verifyConnection().let { it.success to it.httpStatus }
+                        adapter.verifyConnection()
                     }
-                    else -> false to null
+                    else -> null
                 }
-            }.getOrDefault(false to null)
+            }.getOrNull()
+            verification?.let(providerRegistry::recordConnectionTest)
             providerRegistry.refreshDescriptors()
             reload(
-                providerProbeState = if (verified.first) AiProviderProbeState.SUCCESS
-                    else AiProviderProbeState.FAILED,
-                providerProbeStatusCode = verified.second,
-                providerLastVerifiedAtMillis = if (verified.first) {
+                providerProbeState = if (verification?.success == true) {
+                    AiProviderProbeState.SUCCESS
+                } else {
+                    AiProviderProbeState.FAILED
+                },
+                providerProbeStatusCode = verification?.httpStatus,
+                providerLastVerifiedAtMillis = if (verification?.success == true) {
                     System.currentTimeMillis()
                 } else {
                     null
@@ -693,6 +699,7 @@ class AgentSettingsViewModel @Inject constructor(
         )
         viewModelScope.launch {
             val result = provider.verifyConnection()
+            providerRegistry.recordConnectionTest(result)
             providerRegistry.refreshDescriptors()
             reload(
                 providerProbeState = if (result.success) {
