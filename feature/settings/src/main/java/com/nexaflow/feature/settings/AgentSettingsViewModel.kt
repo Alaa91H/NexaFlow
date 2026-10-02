@@ -70,6 +70,7 @@ data class AgentSettingsUiState(
     val providerApiKeyConfigured: Boolean = false,
     val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
     val providerProbeStatusCode: Int? = null,
+    val providerLastVerifiedAtMillis: Long? = null,
     val modelDiscoveryState: AiModelDiscoveryState = AiModelDiscoveryState.IDLE,
     val profileModelChoices: List<String> = emptyList(),
     val discoveredModels: List<OpenAiModelInfo> = emptyList(),
@@ -276,6 +277,7 @@ class AgentSettingsViewModel @Inject constructor(
         local: Boolean,
         apiKey: String,
         reasoningEffort: String = "medium",
+        enableRequested: Boolean = false,
         onComplete: (Boolean) -> Unit = {}
     ) {
         viewModelScope.launch {
@@ -298,6 +300,8 @@ class AgentSettingsViewModel @Inject constructor(
                 else -> AiAuthScheme.BEARER_TOKEN
             }
             val credentialReference = AiCredentialReferences.forProfile(id)
+            val enableProfile = enableRequested &&
+                AiProviderSetupPolicy.enableOnSave(_state.value.providerProbeState)
             val profile = AiProviderProfileSettings(
                 id = id,
                 presetId = presetId,
@@ -306,7 +310,7 @@ class AgentSettingsViewModel @Inject constructor(
                 baseUrl = normalizedUrl,
                 modelId = normalizedModel,
                 local = local,
-                enabled = true,
+                enabled = enableProfile,
                 reasoningEffort = reasoningEffort,
                 providerDefinitionId = preset?.definitionId ?: "custom",
                 providerKind = definition?.kind?.name,
@@ -325,6 +329,7 @@ class AgentSettingsViewModel @Inject constructor(
                     protocol == AiProviderProtocol.ANTHROPIC_MESSAGES
                 require(!key.isNullOrBlank() || !keyRequired)
                 require(normalizedName.isNotBlank() && normalizedModel.isNotBlank())
+                require(!enableRequested || enableProfile)
                 when (protocol) {
                     AiProviderProtocol.OPENAI_CHAT_COMPLETIONS ->
                         OpenAiEndpointPolicy.chatCompletionsUri(
@@ -342,12 +347,25 @@ class AgentSettingsViewModel @Inject constructor(
                             hasApiKey = true
                         )
                 }
-                if (!apiKey.isBlank()) credentialStore.store(AiCredentialReferences.forProfile(id), apiKey)
+                if (!apiKey.isBlank()) {
+                    credentialStore.store(AiCredentialReferences.forProfile(id), apiKey)
+                }
                 providerPreferences.upsertProfile(profile)
+                if (!enableProfile && providerPreferences.current().selectedProviderId == id) {
+                    val settings = providerPreferences.current()
+                    providerPreferences.update(
+                        settings.copy(
+                            routingMode = AiRoutingMode.AUTOMATIC.name,
+                            selectedProviderId = null,
+                            allowCloudFallback = false
+                        )
+                    )
+                }
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 providerProbeStatusCode = null,
+                providerLastVerifiedAtMillis = null,
                 operationFailed = !saved
             )
             onComplete(saved)
@@ -359,6 +377,7 @@ class AgentSettingsViewModel @Inject constructor(
         _state.value = _state.value.copy(
             providerProbeState = AiProviderProbeState.TESTING,
             providerProbeStatusCode = null,
+            providerLastVerifiedAtMillis = null,
         )
         viewModelScope.launch {
             val verified = runCatching {
@@ -373,7 +392,7 @@ class AgentSettingsViewModel @Inject constructor(
                         )
                         adapter.configure(
                             OpenAiCompatibleProviderConfig(
-                                enabled = profile.enabled, providerId = profile.id,
+                                enabled = true, providerId = profile.id,
                                 displayName = profile.displayName, baseUrl = profile.baseUrl,
                                 modelId = profile.modelId, local = profile.local,
                                 reasoningEffort = profile.reasoningEffort.takeIf {
@@ -381,9 +400,7 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.discoverModels().let { result ->
-                            result.success && result.models.any { it.id == profile.modelId }
-                        }
+                        adapter.verifyConnection().let { it.success to it.httpStatus }
                     }
                     AiProviderProtocol.ANTHROPIC_MESSAGES.name -> {
                         val adapter = AnthropicMessagesProvider(
@@ -392,7 +409,7 @@ class AgentSettingsViewModel @Inject constructor(
                         )
                         adapter.configure(
                             AnthropicMessagesProviderConfig(
-                                id = profile.id, enabled = profile.enabled,
+                                id = profile.id, enabled = true,
                                 displayName = profile.displayName, baseUrl = profile.baseUrl,
                                 modelId = profile.modelId, local = profile.local,
                                 reasoningEffort = profile.reasoningEffort.takeIf {
@@ -400,16 +417,21 @@ class AgentSettingsViewModel @Inject constructor(
                                 }
                             )
                         )
-                        adapter.verify()
+                        adapter.verifyConnection().let { it.success to it.httpStatus }
                     }
-                    else -> false
+                    else -> false to null
                 }
-            }.getOrDefault(false)
+            }.getOrDefault(false to null)
             providerRegistry.refreshDescriptors()
             reload(
-                providerProbeState = if (verified) AiProviderProbeState.SUCCESS
+                providerProbeState = if (verified.first) AiProviderProbeState.SUCCESS
                     else AiProviderProbeState.FAILED,
-                providerProbeStatusCode = null,
+                providerProbeStatusCode = verified.second,
+                providerLastVerifiedAtMillis = if (verified.first) {
+                    System.currentTimeMillis()
+                } else {
+                    null
+                },
                 operationFailed = false
             )
         }
@@ -418,7 +440,7 @@ class AgentSettingsViewModel @Inject constructor(
     fun selectProviderProfile(id: String) {
         viewModelScope.launch {
             val success = runCatching {
-                require(providerPreferences.currentProfiles().any { it.id == id })
+                require(providerPreferences.currentProfiles().any { it.id == id && it.enabled })
                 providerPreferences.update(
                     providerPreferences.current().copy(
                         routingMode = AiRoutingMode.SELECTED_PROVIDER.name,
@@ -467,6 +489,7 @@ class AgentSettingsViewModel @Inject constructor(
         local: Boolean,
         apiKey: String
     ) {
+        if (!AiProviderSetupPolicy.canDiscoverModels(_state.value.providerProbeState)) return
         _state.value = _state.value.copy(
             modelDiscoveryState = AiModelDiscoveryState.LOADING,
             profileModelChoices = emptyList()
@@ -604,12 +627,27 @@ class AgentSettingsViewModel @Inject constructor(
                 providerProbeState = if (verification.first) AiProviderProbeState.SUCCESS
                     else AiProviderProbeState.FAILED,
                 providerProbeStatusCode = verification.second,
+                providerLastVerifiedAtMillis = if (verification.first) {
+                    System.currentTimeMillis()
+                } else {
+                    null
+                },
             )
         }
     }
 
     fun clearProfileModelChoices() {
         _state.value = _state.value.copy(
+            modelDiscoveryState = AiModelDiscoveryState.IDLE,
+            profileModelChoices = emptyList()
+        )
+    }
+
+    fun invalidateProviderDraft() {
+        _state.value = _state.value.copy(
+            providerProbeState = AiProviderProbeState.IDLE,
+            providerProbeStatusCode = null,
+            providerLastVerifiedAtMillis = null,
             modelDiscoveryState = AiModelDiscoveryState.IDLE,
             profileModelChoices = emptyList()
         )
@@ -650,6 +688,7 @@ class AgentSettingsViewModel @Inject constructor(
         pairing: AgentPairingUi? = _state.value.pairing,
         providerProbeState: AiProviderProbeState = _state.value.providerProbeState,
         providerProbeStatusCode: Int? = _state.value.providerProbeStatusCode,
+        providerLastVerifiedAtMillis: Long? = _state.value.providerLastVerifiedAtMillis,
         discoveredModels: List<OpenAiModelInfo> = _state.value.discoveredModels,
         operationFailed: Boolean = false
     ) {
@@ -688,6 +727,7 @@ class AgentSettingsViewModel @Inject constructor(
             providerApiKeyConfigured = providerApiKeyConfigured,
             providerProbeState = providerProbeState,
             providerProbeStatusCode = providerProbeStatusCode,
+            providerLastVerifiedAtMillis = providerLastVerifiedAtMillis,
             modelDiscoveryState = _state.value.modelDiscoveryState,
             profileModelChoices = _state.value.profileModelChoices,
             discoveredModels = discoveredModels,
