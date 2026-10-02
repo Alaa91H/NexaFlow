@@ -90,7 +90,7 @@ interface OpenAiCompatibleTransport {
     ): Flow<String> = flow {
         val response = postChatCompletions(config, body, apiKey)
         if (response.statusCode !in 200..299) {
-            error("Provider returned HTTP ${response.statusCode}")
+            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
         }
         emit(response.body)
     }
@@ -599,8 +599,8 @@ class OpenAiCompatibleProvider(
                 apiKey = apiKey,
                 headers = headers
             )
-            require(response.statusCode in 200..299) {
-                "Provider returned HTTP ${response.statusCode}"
+            if (response.statusCode !in 200..299) {
+                throw AiProviderRequestException.fromHttpStatus(response.statusCode)
             }
             val message = json.parseToJsonElement(response.body)
                 .jsonObject["choices"]

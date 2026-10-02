@@ -158,6 +158,46 @@ class NativeAiProviderAdaptersTest {
         assertEquals(AiConnectionFailure.MODEL_NOT_FOUND, verification.failure)
     }
 
+    @Test
+    fun openAiResponsesStreamExposesTypedRateLimitFailure() = runTest {
+        val provider = OpenAiResponsesProvider(
+            transport = object : OpenAiResponsesTransport {
+                override suspend fun postResponses(
+                    config: OpenAiResponsesProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ) = OpenAiResponsesTransportResponse(
+                    429,
+                    """{"error":"rate_limited"}"""
+                )
+
+                override suspend fun getModels(
+                    config: OpenAiResponsesProviderConfig,
+                    apiKey: String
+                ) = OpenAiResponsesTransportResponse(
+                    200,
+                    """{"data":[{"id":"gpt-test"}]}"""
+                )
+            },
+            apiKeyProvider = { "secret" }
+        )
+        provider.configure(
+            OpenAiResponsesProviderConfig(
+                enabled = true,
+                modelId = "gpt-test"
+            )
+        )
+
+        val failure = runCatching {
+            provider.stream(request()).toList()
+        }.exceptionOrNull()
+
+        assertTrue(failure is AiProviderRequestException)
+        failure as AiProviderRequestException
+        assertEquals(429, failure.httpStatus)
+        assertEquals(AiConnectionFailure.RATE_LIMITED, failure.failure)
+    }
+
     private fun request() = AiProviderRequest(
         conversationId = "conversation",
         messages = listOf(AiConversationMessage(AiRole.USER, "hello")),

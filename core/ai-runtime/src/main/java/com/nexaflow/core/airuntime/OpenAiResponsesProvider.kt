@@ -162,8 +162,8 @@ class OpenAiResponsesProvider(
             key,
             headers
         )
-        require(response.statusCode in 200..299) {
-            "Provider returned HTTP " + response.statusCode
+        if (response.statusCode !in 200..299) {
+            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
         }
         val root = json.parseToJsonElement(response.body).jsonObject
         var emittedText = false
