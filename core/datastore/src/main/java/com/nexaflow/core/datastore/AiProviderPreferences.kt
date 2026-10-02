@@ -421,8 +421,8 @@ class AiProviderPreferences internal constructor(
             .take(MAX_PROFILES)
 
         return AiConnectionsState(
-            connections = normalized.map(Pair<AiConnectionSettings, AiModelSelectionSettings?>::first),
-            models = normalized.mapNotNull(Pair<AiConnectionSettings, AiModelSelectionSettings?>::second)
+            connections = normalized.map { it.first },
+            models = normalized.mapNotNull { it.second }
         )
     }
 
