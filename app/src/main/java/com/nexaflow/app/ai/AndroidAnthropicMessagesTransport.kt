@@ -17,9 +17,23 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
         config: AnthropicMessagesProviderConfig,
         body: JsonObject,
         apiKey: String?
+    ): AnthropicMessagesTransportResponse =
+        postMessagesWithHeaders(config, body, apiKey, emptyMap())
+
+    override suspend fun postMessagesWithHeaders(
+        config: AnthropicMessagesProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
     ): AnthropicMessagesTransportResponse = withContext(Dispatchers.IO) {
         val endpoint = AnthropicEndpointPolicy.messagesUri(config, !apiKey.isNullOrBlank())
-        execute(endpoint, "POST", apiKey, body.toString().toByteArray(Charsets.UTF_8))
+        execute(
+            endpoint,
+            "POST",
+            apiKey,
+            body.toString().toByteArray(Charsets.UTF_8),
+            headers
+        )
     }
 
     override suspend fun getModels(
@@ -27,14 +41,15 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
         apiKey: String?
     ): AnthropicMessagesTransportResponse = withContext(Dispatchers.IO) {
         val endpoint = AnthropicEndpointPolicy.modelsUri(config, !apiKey.isNullOrBlank())
-        execute(endpoint, "GET", apiKey, null)
+        execute(endpoint, "GET", apiKey, null, emptyMap())
     }
 
     private fun execute(
         endpoint: java.net.URI,
         method: String,
         apiKey: String?,
-        payload: ByteArray?
+        payload: ByteArray?,
+        gatewayHeaders: Map<String, String>
     ): AnthropicMessagesTransportResponse {
         require(!apiKey.isNullOrBlank()) { "API key is required" }
         require(payload == null || payload.size <= MAX_REQUEST_BYTES)
@@ -51,6 +66,7 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
             connection.setRequestProperty("x-api-key", apiKey)
             connection.setRequestProperty("anthropic-version", ANTHROPIC_VERSION)
             connection.setRequestProperty("Accept-Encoding", "identity")
+            AndroidAiGatewayHeaders.apply(connection, gatewayHeaders)
             if (payload != null) {
                 connection.doOutput = true
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
