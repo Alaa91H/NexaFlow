@@ -1,6 +1,11 @@
 package com.nexaflow.core.datastore
 
 import android.content.Context
+import com.nexaflow.core.airuntime.AiApiDialect
+import com.nexaflow.core.airuntime.AiAuthScheme
+import com.nexaflow.core.airuntime.AiCredentialReference
+import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry
+import com.nexaflow.core.airuntime.AiProviderKind
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -38,30 +43,16 @@ data class AiProviderSettings(
     val allowCloudFallback: Boolean = false
 )
 
-enum class AiStoredDialect {
-    OPENAI_CHAT_COMPLETIONS,
-    OPENAI_RESPONSES,
-    ANTHROPIC_MESSAGES,
-    GEMINI_GENERATE_CONTENT
-}
-
-enum class AiStoredAuthScheme {
-    BEARER_TOKEN,
-    X_API_KEY,
-    GOOGLE_API_KEY,
-    CUSTOM_HEADER,
-    NONE
-}
-
 data class AiConnectionSettings(
     val id: String,
     val presetId: String?,
     val providerDefinitionId: String,
+    val providerKind: AiProviderKind,
     val displayName: String,
-    val dialect: AiStoredDialect?,
+    val dialect: AiApiDialect?,
     val baseUrl: String,
-    val authScheme: AiStoredAuthScheme,
-    val credentialRef: String?,
+    val authScheme: AiAuthScheme,
+    val credentialRef: AiCredentialReference?,
     val local: Boolean,
     val enabled: Boolean
 )
@@ -97,6 +88,7 @@ data class AiProviderProfileSettings(
     val enabled: Boolean = true,
     val reasoningEffort: String = "medium",
     val providerDefinitionId: String? = null,
+    val providerKind: String? = null,
     val dialect: String? = null,
     val authScheme: String? = null,
     val credentialRef: String? = null
@@ -186,13 +178,14 @@ class AiProviderPreferences internal constructor(
                 local = legacy.local,
                 enabled = legacy.enabled,
                 providerDefinitionId = "openai_compatible",
-                dialect = AiStoredDialect.OPENAI_CHAT_COMPLETIONS.name,
+                providerKind = AiProviderKind.OPENAI_COMPATIBLE.name,
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS.name,
                 authScheme = if (legacy.local) {
-                    AiStoredAuthScheme.NONE.name
+                    AiAuthScheme.NONE.name
                 } else {
-                    AiStoredAuthScheme.BEARER_TOKEN.name
+                    AiAuthScheme.BEARER_TOKEN.name
                 },
-                credentialRef = defaultCredentialRef(legacy.selectedProviderId ?: LEGACY_PROFILE_ID)
+                credentialRef = defaultCredentialRef(legacy.selectedProviderId ?: LEGACY_PROFILE_ID).value
             )
             if (runCatching { validateProfile(candidate) }.isFailure) {
                 preferences[KEY_LEGACY_MIGRATION_COMPLETE] = true
@@ -293,14 +286,16 @@ class AiProviderPreferences internal constructor(
             id = required("id"),
             presetId = value["presetId"]?.jsonPrimitive?.contentOrNull,
             providerDefinitionId = required("providerDefinitionId"),
+            providerKind = AiProviderKind.valueOf(required("providerKind")),
             displayName = required("displayName"),
             dialect = value["dialect"]?.jsonPrimitive?.contentOrNull
                 ?.takeIf(String::isNotBlank)
-                ?.let(AiStoredDialect::valueOf),
+                ?.let(AiApiDialect::valueOf),
             baseUrl = required("baseUrl"),
-            authScheme = AiStoredAuthScheme.valueOf(required("authScheme")),
+            authScheme = AiAuthScheme.valueOf(required("authScheme")),
             credentialRef = value["credentialRef"]?.jsonPrimitive?.contentOrNull
-                ?.takeIf(String::isNotBlank),
+                ?.takeIf(String::isNotBlank)
+                ?.let(::AiCredentialReference),
             local = value["local"]?.jsonPrimitive?.contentOrNull
                 ?.toBooleanStrictOrNull() ?: false,
             enabled = value["enabled"]?.jsonPrimitive?.contentOrNull
@@ -372,9 +367,10 @@ class AiProviderPreferences internal constructor(
                 enabled = connection.enabled,
                 reasoningEffort = model?.reasoningEffort ?: "medium",
                 providerDefinitionId = connection.providerDefinitionId,
+                providerKind = connection.providerKind.name,
                 dialect = connection.dialect?.name,
                 authScheme = connection.authScheme.name,
-                credentialRef = connection.credentialRef
+                credentialRef = connection.credentialRef?.value
             )
         }
     }
@@ -394,13 +390,15 @@ class AiProviderPreferences internal constructor(
                         providerDefinitionId = profile.providerDefinitionId
                             ?.takeIf(String::isNotBlank)
                             ?: definitionIdForPreset(profile.presetId),
+                        providerKind = providerKindForProfile(profile),
                         displayName = profile.displayName,
                         dialect = dialect,
                         baseUrl = profile.baseUrl,
                         authScheme = authScheme,
                         credentialRef = profile.credentialRef
                             ?.takeIf(String::isNotBlank)
-                            ?: if (authScheme == AiStoredAuthScheme.NONE) {
+                            ?.let(::AiCredentialReference)
+                            ?: if (authScheme == AiAuthScheme.NONE) {
                                 null
                             } else {
                                 defaultCredentialRef(profile.id)
@@ -438,13 +436,14 @@ class AiProviderPreferences internal constructor(
                         if (value.presetId == null) put("presetId", JsonNull)
                         else put("presetId", value.presetId)
                         put("providerDefinitionId", value.providerDefinitionId)
+                        put("providerKind", value.providerKind.name)
                         put("displayName", value.displayName)
                         if (value.dialect == null) put("dialect", JsonNull)
                         else put("dialect", value.dialect.name)
                         put("baseUrl", value.baseUrl)
                         put("authScheme", value.authScheme.name)
                         if (value.credentialRef == null) put("credentialRef", JsonNull)
-                        else put("credentialRef", value.credentialRef)
+                        else put("credentialRef", value.credentialRef.value)
                         put("local", value.local)
                         put("enabled", value.enabled)
                     })
@@ -468,53 +467,56 @@ class AiProviderPreferences internal constructor(
                 PROFILE_SCHEMA_VERSION
         }.getOrDefault(false)
 
-    private fun storedDialect(profile: AiProviderProfileSettings): AiStoredDialect? {
+    private fun storedDialect(profile: AiProviderProfileSettings): AiApiDialect? {
         profile.dialect?.takeIf(String::isNotBlank)?.let { value ->
-            runCatching { return AiStoredDialect.valueOf(value) }
+            runCatching { return AiApiDialect.valueOf(value) }
         }
-        return when (profile.presetId) {
-            "openai" -> AiStoredDialect.OPENAI_RESPONSES
-            "gemini" -> AiStoredDialect.GEMINI_GENERATE_CONTENT
-            "claude" -> AiStoredDialect.ANTHROPIC_MESSAGES
-            "opencode_zen" -> null
-            else -> when (profile.protocol) {
-                "ANTHROPIC_MESSAGES" -> AiStoredDialect.ANTHROPIC_MESSAGES
-                else -> AiStoredDialect.OPENAI_CHAT_COMPLETIONS
-            }
+        if (profile.presetId == "opencode_zen") return null
+        AiProviderDefinitionRegistry.preset(profile.presetId)?.dialect?.let { return it }
+        return when (profile.protocol) {
+            "ANTHROPIC_MESSAGES" -> AiApiDialect.ANTHROPIC_MESSAGES
+            else -> AiApiDialect.OPENAI_CHAT_COMPLETIONS
         }
     }
 
-    private fun storedAuthScheme(profile: AiProviderProfileSettings): AiStoredAuthScheme {
+    private fun storedAuthScheme(profile: AiProviderProfileSettings): AiAuthScheme {
         profile.authScheme?.takeIf(String::isNotBlank)?.let { value ->
-            runCatching { return AiStoredAuthScheme.valueOf(value) }
+            runCatching { return AiAuthScheme.valueOf(value) }
         }
-        return when {
-            profile.presetId == "claude" -> AiStoredAuthScheme.X_API_KEY
-            profile.presetId == "gemini" -> AiStoredAuthScheme.GOOGLE_API_KEY
-            profile.local && profile.presetId == null -> AiStoredAuthScheme.NONE
-            else -> AiStoredAuthScheme.BEARER_TOKEN
+        AiProviderDefinitionRegistry.preset(profile.presetId)?.authScheme?.let { return it }
+        return if (profile.local && profile.presetId == null) {
+            AiAuthScheme.NONE
+        } else {
+            AiAuthScheme.BEARER_TOKEN
         }
     }
 
-    private fun legacyProtocolFor(dialect: AiStoredDialect?): String =
+    private fun legacyProtocolFor(dialect: AiApiDialect?): String =
         when (dialect) {
-            AiStoredDialect.ANTHROPIC_MESSAGES -> "ANTHROPIC_MESSAGES"
-            AiStoredDialect.OPENAI_CHAT_COMPLETIONS,
-            AiStoredDialect.OPENAI_RESPONSES,
-            AiStoredDialect.GEMINI_GENERATE_CONTENT,
+            AiApiDialect.ANTHROPIC_MESSAGES -> "ANTHROPIC_MESSAGES"
+            AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+            AiApiDialect.OPENAI_RESPONSES,
+            AiApiDialect.GEMINI_GENERATE_CONTENT,
             null -> "OPENAI_CHAT_COMPLETIONS"
         }
 
     private fun definitionIdForPreset(presetId: String?): String =
         when (presetId) {
-            "openai" -> "openai"
-            "claude" -> "anthropic"
-            "gemini" -> "google"
-            "opencode_zen" -> "opencode"
             LEGACY_PROFILE_PRESET_ID -> "openai_compatible"
             null -> "custom"
-            else -> presetId
+            else -> AiProviderDefinitionRegistry.preset(presetId)?.definitionId ?: presetId
         }
+
+    private fun providerKindForProfile(profile: AiProviderProfileSettings): AiProviderKind {
+        profile.providerKind?.takeIf(String::isNotBlank)?.let { value ->
+            runCatching { return AiProviderKind.valueOf(value) }
+        }
+        if (profile.presetId == LEGACY_PROFILE_PRESET_ID) {
+            return AiProviderKind.OPENAI_COMPATIBLE
+        }
+        return AiProviderDefinitionRegistry.definitionForPreset(profile.presetId)?.kind
+            ?: if (profile.local) AiProviderKind.LOCAL else AiProviderKind.CUSTOM
+    }
 
     private fun validateConnection(value: AiConnectionSettings) {
         require(value.id.length in 1..MAX_PROVIDER_ID_LENGTH)
@@ -522,10 +524,7 @@ class AiProviderPreferences internal constructor(
         require(value.providerDefinitionId.length in 1..MAX_PROVIDER_ID_LENGTH)
         require(value.displayName.isNotBlank() && value.displayName.length <= MAX_DISPLAY_NAME_LENGTH)
         require(value.baseUrl.length in 8..MAX_BASE_URL_LENGTH)
-        value.credentialRef?.let {
-            require(it.length <= MAX_CREDENTIAL_REFERENCE_LENGTH)
-            require(it.matches(CREDENTIAL_REFERENCE_PATTERN))
-        }
+        value.credentialRef?.let { AiCredentialReference(it.value) }
     }
 
     private fun validateModel(value: AiModelSelectionSettings) {
@@ -542,12 +541,10 @@ class AiProviderPreferences internal constructor(
         require(value.baseUrl.length in 8..MAX_BASE_URL_LENGTH)
         require(value.modelId.length <= MAX_MODEL_ID_LENGTH)
         require(value.providerDefinitionId.orEmpty().length <= MAX_PROVIDER_ID_LENGTH)
+        require(value.providerKind.orEmpty().length <= MAX_ROUTING_MODE_LENGTH)
         require(value.dialect.orEmpty().length <= MAX_ROUTING_MODE_LENGTH)
         require(value.authScheme.orEmpty().length <= MAX_ROUTING_MODE_LENGTH)
-        value.credentialRef?.let {
-            require(it.length <= MAX_CREDENTIAL_REFERENCE_LENGTH)
-            require(it.matches(CREDENTIAL_REFERENCE_PATTERN))
-        }
+        value.credentialRef?.let(::AiCredentialReference)
     }
 
     companion object {
@@ -562,12 +559,8 @@ class AiProviderPreferences internal constructor(
         const val LEGACY_PROFILE_PRESET_ID = "legacy_migration"
 
         private const val MAX_REASONING_EFFORT_LENGTH = 32
-        private const val MAX_CREDENTIAL_REFERENCE_LENGTH = 256
-        private val CREDENTIAL_REFERENCE_PATTERN =
-            Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,255}")
-
-        private fun defaultCredentialRef(profileId: String): String =
-            "ai.provider.profile.$profileId.api_key"
+        private fun defaultCredentialRef(profileId: String): AiCredentialReference =
+            AiCredentialReference("ai.provider.profile.$profileId.api_key")
 
         private val KEY_ENABLED = booleanPreferencesKey("enabled")
         private val KEY_DISPLAY_NAME = stringPreferencesKey("display_name")
