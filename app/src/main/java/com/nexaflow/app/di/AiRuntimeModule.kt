@@ -12,6 +12,7 @@ import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.airuntime.AiConversationEngine
 import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
+import com.nexaflow.core.airuntime.AiModelRegistry
 import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.airuntime.AiRoutingPolicy
@@ -55,6 +56,10 @@ object AiRuntimeModule {
         secretVault: SecretVault,
         secureStorage: SecureStorage
     ): AiCredentialStore = VaultBackedAiCredentialStore(secretVault, secureStorage)
+
+    @Provides
+    @Singleton
+    fun provideAiModelRegistry(): AiModelRegistry = AiModelRegistry()
 
     @Provides
     @Singleton
