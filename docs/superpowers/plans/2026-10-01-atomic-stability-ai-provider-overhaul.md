@@ -24,7 +24,7 @@ This branch executes the approved overhaul as one atomic programme. No intermedi
 - [x] T15 Gateway Support
 - [x] T16 Provider Registry
 - [x] T17 Model Registry & Capabilities
-- [ ] T18 AI Data Migration
+- [x] T18 AI Data Migration
 - [ ] T19 AI Add Provider UX
 - [ ] T20 AI Routing & Health
 - [ ] T21 Overall UI/UX Polish
