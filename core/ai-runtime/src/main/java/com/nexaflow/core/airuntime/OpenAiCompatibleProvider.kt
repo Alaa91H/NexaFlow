@@ -28,7 +28,8 @@ data class OpenAiCompatibleProviderConfig(
     val baseUrl: String = "",
     val modelId: String = "",
     val local: Boolean = true,
-    val reasoningEffort: String? = null
+    val reasoningEffort: String? = null,
+    val gatewaySession: Boolean = false
 )
 
 data class OpenAiCompatibleTransportResponse(
@@ -61,6 +62,14 @@ interface OpenAiCompatibleTransport {
         apiKey: String?
     ): OpenAiCompatibleTransportResponse
 
+    suspend fun postChatCompletionsWithHeaders(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
+    ): OpenAiCompatibleTransportResponse =
+        postChatCompletions(config, body, apiKey)
+
     suspend fun getModels(
         config: OpenAiCompatibleProviderConfig,
         apiKey: String?
@@ -85,6 +94,13 @@ interface OpenAiCompatibleTransport {
         }
         emit(response.body)
     }
+
+    fun streamChatCompletionsWithHeaders(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
+    ): Flow<String> = streamChatCompletions(config, body, apiKey)
 }
 
 class OpenAiCompatibleProvider(
@@ -119,7 +135,8 @@ class OpenAiCompatibleProvider(
         val response = runCatching {
             transport.getModels(
                 config = snapshot,
-                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank),
+                headers = gatewayHeaders
             )
         }.getOrElse {
             return OpenAiModelDiscoveryResult(success = false)
@@ -439,7 +456,7 @@ class OpenAiCompatibleProvider(
         apiKey: String?
     ): Boolean = runCatching {
         var sawDelta = false
-        transport.streamChatCompletions(
+        transport.streamChatCompletionsWithHeaders(
             config = snapshot,
             body = buildJsonObject {
                 put("model", snapshot.modelId)
@@ -476,6 +493,11 @@ class OpenAiCompatibleProvider(
         }
 
         val capabilities = _descriptor.value.capabilities
+        val gatewayHeaders = if (snapshot.gatewaySession) {
+            AiGatewaySessionPolicy.requestHeaders(request.conversationId)
+        } else {
+            emptyMap()
+        }
         if (
             request.tools.isNotEmpty() &&
             !capabilities.toolCalling &&
@@ -506,7 +528,8 @@ class OpenAiCompatibleProvider(
                 streaming = true,
                 reasoningEffort = snapshot.reasoningEffort
             ),
-            apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            apiKey = apiKeyProvider()?.takeIf(String::isNotBlank),
+            headers = gatewayHeaders
         ).collect { raw ->
             if (raw.isBlank() || raw.trim() == "[DONE]") {
                 return@collect
@@ -566,12 +589,14 @@ class OpenAiCompatibleProvider(
         .emitStructuredToolFallback(
             request: AiProviderRequest,
             snapshot: OpenAiCompatibleProviderConfig,
-            apiKey: String?
+            apiKey: String?,
+            headers: Map<String, String>
         ) {
-            val response = transport.postChatCompletions(
+            val response = transport.postChatCompletionsWithHeaders(
                 config = snapshot,
                 body = request.toStructuredFallbackBody(snapshot.modelId),
-                apiKey = apiKey
+                apiKey = apiKey,
+                headers = headers
             )
             require(response.statusCode in 200..299) {
                 "Provider returned HTTP ${response.statusCode}"
