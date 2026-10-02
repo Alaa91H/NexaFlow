@@ -21,6 +21,14 @@ class AndroidOpenAiResponsesTransport : OpenAiResponsesTransport {
         config: OpenAiResponsesProviderConfig,
         body: JsonObject,
         apiKey: String
+    ): OpenAiResponsesTransportResponse =
+        postResponsesWithHeaders(config, body, apiKey, emptyMap())
+
+    override suspend fun postResponsesWithHeaders(
+        config: OpenAiResponsesProviderConfig,
+        body: JsonObject,
+        apiKey: String,
+        headers: Map<String, String>
     ): OpenAiResponsesTransportResponse = withContext(Dispatchers.IO) {
         val endpoint = OpenAiResponsesEndpointPolicy.responsesUri(config)
         OpenAiResponsesEndpointPolicy.requireAddresses(
@@ -29,7 +37,8 @@ class AndroidOpenAiResponsesTransport : OpenAiResponsesTransport {
         NativeHttpsJsonClient.execute(
             endpoint = endpoint,
             method = "POST",
-            headers = mapOf("Authorization" to "Bearer $apiKey"),
+            headers = AndroidAiGatewayHeaders.normalized(headers) +
+                mapOf("Authorization" to "Bearer $apiKey"),
             payload = body.toString().toByteArray(Charsets.UTF_8)
         ).let { OpenAiResponsesTransportResponse(it.statusCode, it.body) }
     }
@@ -55,6 +64,14 @@ class AndroidGeminiNativeTransport : GeminiNativeTransport {
         config: GeminiNativeProviderConfig,
         body: JsonObject,
         apiKey: String
+    ): GeminiNativeTransportResponse =
+        generateContentWithHeaders(config, body, apiKey, emptyMap())
+
+    override suspend fun generateContentWithHeaders(
+        config: GeminiNativeProviderConfig,
+        body: JsonObject,
+        apiKey: String,
+        headers: Map<String, String>
     ): GeminiNativeTransportResponse = withContext(Dispatchers.IO) {
         val endpoint = GeminiNativeEndpointPolicy.generateContentUri(config)
         GeminiNativeEndpointPolicy.requireAddresses(
@@ -63,7 +80,8 @@ class AndroidGeminiNativeTransport : GeminiNativeTransport {
         NativeHttpsJsonClient.execute(
             endpoint = endpoint,
             method = "POST",
-            headers = mapOf("x-goog-api-key" to apiKey),
+            headers = AndroidAiGatewayHeaders.normalized(headers) +
+                mapOf("x-goog-api-key" to apiKey),
             payload = body.toString().toByteArray(Charsets.UTF_8)
         ).let { GeminiNativeTransportResponse(it.statusCode, it.body) }
     }
