@@ -470,7 +470,8 @@ class OpenAiCompatibleProvider(
                     )
                 }
             },
-            apiKey = apiKey
+            apiKey = apiKey,
+            headers = emptyMap()
         ).collect { raw ->
             if (raw.isBlank() || raw.trim() == "[DONE]") return@collect
             val choice = json.parseToJsonElement(raw)
