@@ -9,7 +9,7 @@ class AiProviderDomainV2Test {
 
     @Test
     fun `connection model and credential reference are independent concepts`() {
-        val credential = AiCredentialReference("secret://ai/provider/openai-main")
+        val credential = AiCredentialReferences.forProfile("openai-main")
         val connection = AiConnectionProfile(
             id = "openai-main",
             providerKind = AiProviderKind.OPENAI,
