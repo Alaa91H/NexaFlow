@@ -121,6 +121,7 @@ object AiRuntimeModule {
         val registry = AiProviderRegistry(listOf(provider))
         scope.launch {
             runCatching {
+                preferences.migrateConnectionsStateIfNeeded()
                 preferences.migrateLegacyProfileIfNeeded()
                 preferences.currentProfiles()
                     .firstOrNull {
