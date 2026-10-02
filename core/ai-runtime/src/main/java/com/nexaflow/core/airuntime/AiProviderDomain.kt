@@ -10,6 +10,13 @@ enum class AiProviderKind {
     ANTHROPIC,
     GOOGLE,
     OPENCODE,
+    OPENROUTER,
+    GROQ,
+    MISTRAL,
+    DEEPSEEK,
+    XAI,
+    OLLAMA,
+    LM_STUDIO,
     OPENAI_COMPATIBLE,
     LOCAL,
     CUSTOM
