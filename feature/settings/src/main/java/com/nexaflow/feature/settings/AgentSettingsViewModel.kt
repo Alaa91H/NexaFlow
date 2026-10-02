@@ -9,8 +9,10 @@ import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
+import com.nexaflow.core.airuntime.AiAuthScheme
 import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
+import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry
 import com.nexaflow.core.airuntime.AiProviderDescriptor
 import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.AiProviderProtocol
@@ -281,6 +283,21 @@ class AgentSettingsViewModel @Inject constructor(
             val normalizedUrl = baseUrl.trim().trimEnd('/')
             val normalizedModel = modelId.trim()
             val id = profileId ?: presetId ?: "custom-${UUID.randomUUID()}"
+            val preset = AiProviderDefinitionRegistry.preset(presetId)
+            val definition = preset?.let {
+                AiProviderDefinitionRegistry.definition(it.definitionId)
+            }
+            val canonicalDialect = if (presetId == "opencode_zen") {
+                null
+            } else {
+                preset?.dialect ?: protocol.toDialect()
+            }
+            val canonicalAuth = preset?.authScheme ?: when {
+                protocol == AiProviderProtocol.ANTHROPIC_MESSAGES -> AiAuthScheme.X_API_KEY
+                local -> AiAuthScheme.NONE
+                else -> AiAuthScheme.BEARER_TOKEN
+            }
+            val credentialReference = AiCredentialReferences.forProfile(id)
             val profile = AiProviderProfileSettings(
                 id = id,
                 presetId = presetId,
@@ -290,7 +307,16 @@ class AgentSettingsViewModel @Inject constructor(
                 modelId = normalizedModel,
                 local = local,
                 enabled = true,
-                reasoningEffort = reasoningEffort
+                reasoningEffort = reasoningEffort,
+                providerDefinitionId = preset?.definitionId ?: "custom",
+                providerKind = definition?.kind?.name,
+                dialect = canonicalDialect?.name,
+                authScheme = canonicalAuth.name,
+                credentialRef = if (canonicalAuth == AiAuthScheme.NONE) {
+                    null
+                } else {
+                    credentialReference.value
+                }
             )
             val saved = runCatching {
                 val existingKey = credentialStore.resolve(AiCredentialReferences.forProfile(id))
