@@ -25,7 +25,8 @@ data class GeminiNativeProviderConfig(
     val enabled: Boolean = false,
     val displayName: String = "Gemini",
     val baseUrl: String = "https://generativelanguage.googleapis.com/v1beta",
-    val modelId: String = ""
+    val modelId: String = "",
+    val gatewaySession: Boolean = false
 )
 
 data class GeminiNativeTransportResponse(
@@ -39,6 +40,14 @@ interface GeminiNativeTransport {
         body: JsonObject,
         apiKey: String
     ): GeminiNativeTransportResponse
+
+    suspend fun generateContentWithHeaders(
+        config: GeminiNativeProviderConfig,
+        body: JsonObject,
+        apiKey: String,
+        headers: Map<String, String>
+    ): GeminiNativeTransportResponse =
+        generateContent(config, body, apiKey)
 
     suspend fun getModels(
         config: GeminiNativeProviderConfig,
@@ -187,7 +196,17 @@ class GeminiNativeProvider(
         require(isConfigured(snapshot)) { "Provider is not configured" }
         val key = apiKeyProvider()?.takeIf(String::isNotBlank)
             ?: throw IllegalStateException("API key is missing")
-        val response = transport.generateContent(snapshot, request.toBody(), key)
+        val headers = if (snapshot.gatewaySession) {
+            AiGatewaySessionPolicy.requestHeaders(request.conversationId)
+        } else {
+            emptyMap()
+        }
+        val response = transport.generateContentWithHeaders(
+            snapshot,
+            request.toBody(),
+            key,
+            headers
+        )
         require(response.statusCode in 200..299) {
             "Provider returned HTTP " + response.statusCode
         }
