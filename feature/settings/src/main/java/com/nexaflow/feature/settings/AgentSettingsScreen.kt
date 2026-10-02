@@ -647,6 +647,23 @@ fun AgentSettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
+                        if (
+                            state.providerProfiles.any {
+                                it.id == editingProfileId && it.credentialRef != null
+                            }
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    editingProfileId?.let(viewModel::clearProviderProfileApiKey)
+                                    providerApiKey = ""
+                                }
+                            ) {
+                                Text(
+                                    stringResource(R.string.ai_provider_remove) + " " +
+                                        stringResource(R.string.ai_provider_api_key)
+                                )
+                            }
+                        }
                     }
                     TextButton(
                         onClick = {
@@ -662,8 +679,16 @@ fun AgentSettingsScreen(
                             )
                         },
                         enabled = providerName.isNotBlank() && providerUrl.isNotBlank() &&
-                            providerModel.isNotBlank() && (providerApiKey.isNotBlank() ||
-                            state.providerProfiles.any { it.id == editingProfileId })
+                            providerModel.isNotBlank() && (
+                                providerApiKey.isNotBlank() ||
+                                    state.providerProfiles.any { it.id == editingProfileId } ||
+                                    (
+                                        profilePresetId == null &&
+                                            providerLocal &&
+                                            profileProtocol ==
+                                            AiProviderProtocol.OPENAI_CHAT_COMPLETIONS
+                                    )
+                                )
                     ) {
                         Text(stringResource(R.string.ai_provider_verify))
                     }
