@@ -70,6 +70,25 @@ class AiConversationEngineTest {
         assertTrue(events.last() is AiConversationEvent.Completed)
     }
 
+
+    @Test
+    fun providerFailureMarksHealthDegraded() = runTest {
+        val provider = FailingProvider()
+        val registry = AiProviderRegistry(listOf(provider))
+        val engine = AiConversationEngine(registry)
+
+        val events = engine.stream(
+            "conversation-1",
+            listOf(AiConversationMessage(AiRole.USER, "hello"))
+        ).toList()
+
+        assertEquals(AiConversationEvent.Failed("provider_failure"), events.last())
+        val health = registry.state.value.providerHealth.getValue("failing")
+        assertEquals(AiProviderHealthState.DEGRADED, health.state)
+        assertEquals(1, health.consecutiveFailures)
+        assertEquals(AiConnectionFailure.UNKNOWN, health.lastFailure)
+    }
+
     private class FakeProvider(
         private val events: List<AiProviderEvent>
     ) : AiModelProvider {
@@ -84,6 +103,21 @@ class AiConversationEngineTest {
 
         override fun stream(request: AiProviderRequest) = flow {
             events.forEach { emit(it) }
+        }
+    }
+
+    private class FailingProvider : AiModelProvider {
+        override val descriptor = MutableStateFlow(
+            AiProviderDescriptor(
+                id = "failing",
+                displayName = "Failing",
+                capabilities = AiProviderCapabilities(local = true),
+                available = true
+            )
+        )
+
+        override fun stream(request: AiProviderRequest) = flow<AiProviderEvent> {
+            error("provider failed")
         }
     }
 
