@@ -177,9 +177,14 @@ object AiGatewayCatalog {
 
 object AiGatewaySessionPolicy {
     const val HEADER_NAME = "x-opencode-session"
+    const val USER_AGENT_HEADER = "User-Agent"
+    const val CLIENT_USER_AGENT = "NexaFlow/Android"
 
     fun requestHeaders(conversationId: String): Map<String, String> =
-        mapOf(HEADER_NAME to normalizedSessionId(conversationId))
+        mapOf(
+            HEADER_NAME to normalizedSessionId(conversationId),
+            USER_AGENT_HEADER to CLIENT_USER_AGENT
+        )
 
     fun normalizedSessionId(
         raw: String?,
