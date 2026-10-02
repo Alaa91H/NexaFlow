@@ -81,6 +81,7 @@ class AiConversationEngine(
                         }
                     }
                 }
+                registry.recordProviderSuccess(provider.descriptor.value.id)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: OutputLimitException) {
@@ -91,7 +92,11 @@ class AiConversationEngine(
                 emit(AiConversationEvent.Failed("tool_limit"))
                 traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "tool_limit")
                 return@flow
-            } catch (_: Exception) {
+            } catch (failure: Exception) {
+                registry.recordProviderFailure(
+                    providerId = provider.descriptor.value.id,
+                    failure = AiProviderFailureClassifier.fromThrowable(failure)
+                )
                 emit(AiConversationEvent.Failed("provider_failure"))
                 traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "provider_failure")
                 return@flow
