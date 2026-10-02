@@ -135,8 +135,7 @@ class OpenAiCompatibleProvider(
         val response = runCatching {
             transport.getModels(
                 config = snapshot,
-                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank),
-                headers = gatewayHeaders
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
             )
         }.getOrElse {
             return OpenAiModelDiscoveryResult(success = false)
@@ -506,7 +505,8 @@ class OpenAiCompatibleProvider(
             emitStructuredToolFallback(
                 request = request,
                 snapshot = snapshot,
-                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank),
+                headers = gatewayHeaders
             )
             return@flow
         }
@@ -521,7 +521,7 @@ class OpenAiCompatibleProvider(
 
         val toolCalls = linkedMapOf<Int, ToolCallAccumulator>()
         var finishReason: String? = null
-        transport.streamChatCompletions(
+        transport.streamChatCompletionsWithHeaders(
             config = snapshot,
             body = effectiveRequest.toChatCompletionBody(
                 snapshot.modelId,
