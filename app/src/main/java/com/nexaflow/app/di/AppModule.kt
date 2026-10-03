@@ -5,6 +5,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.nexaflow.app.agent.AgentAutomationEventBridge
 import com.nexaflow.app.agent.AgentRunEventBridge
+import com.nexaflow.app.agent.ManagedAgentRunCoordinator
+import com.nexaflow.core.agentruntime.ManagedAgentRunUseCase
 import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.automationcontrol.AutomationCommandService
 import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
@@ -13,6 +15,8 @@ import com.nexaflow.core.common.AppDispatchers
 import com.nexaflow.core.automationcontrol.schedule.AgentSchedulePreviewService
 import com.nexaflow.core.automationcontrol.simulation.AgentSimulationService
 import com.nexaflow.core.database.AgentPlatformDao
+import com.nexaflow.core.database.AgentDefinitionDao
+import com.nexaflow.core.database.AgentRunDao
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.CorruptionRecoveryFactory
@@ -136,6 +140,19 @@ object AppModule {
     fun provideAgentPlatformDao(database: AppDatabase): AgentPlatformDao {
         return database.agentPlatformDao()
     }
+
+    @Provides
+    fun provideAgentDefinitionDao(database: AppDatabase): AgentDefinitionDao {
+        return database.agentDefinitionDao()
+    }
+
+    @Provides
+    fun provideAgentRunDao(database: AppDatabase): AgentRunDao = database.agentRunDao()
+
+    @Provides
+    @Singleton
+    fun provideManagedAgentRunUseCase(coordinator: ManagedAgentRunCoordinator): ManagedAgentRunUseCase =
+        coordinator
 
     @Provides
     fun provideSmsActivityDao(database: AppDatabase): SmsActivityDao = database.smsActivityDao()

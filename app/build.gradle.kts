@@ -251,6 +251,7 @@ dependencies {
     implementation(project(":core:agent-api"))
     implementation(project(":core:agent-relay"))
     implementation(project(":core:ai-runtime"))
+    implementation(project(":core:agent-runtime"))
     implementation(project(":core:automation-control"))
     implementation(project(":core:datastore"))
     implementation(project(":core:logging"))

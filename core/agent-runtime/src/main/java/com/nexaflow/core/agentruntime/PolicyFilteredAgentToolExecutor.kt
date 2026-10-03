@@ -1,0 +1,52 @@
+package com.nexaflow.core.agentruntime
+
+import com.nexaflow.core.airuntime.AiToolCall
+import com.nexaflow.core.airuntime.AiToolDefinition
+import com.nexaflow.core.airuntime.AiToolExecutor
+import com.nexaflow.core.airuntime.AiToolResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+
+fun interface AgentToolApprovalGate {
+    suspend fun approve(agentId: String, call: AiToolCall, onRequested: suspend (String, AiToolCall) -> Unit): Boolean
+}
+
+/** Enforces the agent's allowlist at discovery and execution time. */
+class PolicyFilteredAgentToolExecutor(
+    private val agentId: String,
+    private val source: AiToolExecutor,
+    private val policy: AgentPolicy,
+    private val approvalGate: AgentToolApprovalGate,
+    private val onApprovalRequested: suspend (String, AiToolCall) -> Unit = { _, _ -> }
+) : AiToolExecutor {
+    init {
+        require(agentId.isNotBlank())
+    }
+
+    /** The AI engine reads this snapshot once per run; no detached collector is needed. */
+    override val tools: StateFlow<List<AiToolDefinition>> = MutableStateFlow(
+        source.tools.value.filter { it.name in policy.allowedToolNames }
+    )
+
+    override suspend fun execute(call: AiToolCall): AiToolResult {
+        val failure = when {
+            call.name !in policy.allowedToolNames -> "tool_not_allowed"
+            source.tools.value.none { it.name == call.name } -> "tool_unavailable"
+            call.name in policy.approvalRequiredToolNames &&
+                !approvalGate.approve(agentId, call, onApprovalRequested) -> "approval_denied"
+            else -> null
+        }
+        if (failure != null) {
+            return AiToolResult(
+                callId = call.id,
+                toolName = call.name,
+                output = buildJsonObject { put("error", failure) },
+                isError = true
+            )
+        }
+        return source.execute(call)
+    }
+
+}

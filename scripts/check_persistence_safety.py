@@ -23,7 +23,7 @@ if schemas[-1] < 1:
     raise SystemExit("ERROR: invalid latest Room schema")
 
 test_source = MIGRATION_TEST.read_text(encoding="utf-8")
-match = re.search(r"historicalChainsReach22\(\).*?listOf\(([^)]*)\)", test_source, re.S)
+match = re.search(r"historicalChainsReach\d+\(\).*?listOf\(([^)]*)\)", test_source, re.S)
 if not match:
     raise SystemExit("ERROR: historical migration-chain test not found")
 covered = {int(value) for value in re.findall(r"\d+", match.group(1))}

@@ -19,10 +19,12 @@ data class AiRoutingRequirements(
     val requireStreaming: Boolean = false,
     val requireVision: Boolean = false,
     val requireReasoning: Boolean = false,
-    val requireVerified: Boolean = false
+    val requireVerified: Boolean = false,
+    val requireLocal: Boolean = false
 ) {
     fun matches(descriptor: AiProviderDescriptor): Boolean {
         val capabilities = descriptor.capabilities
+        if (requireLocal && !capabilities.local) return false
         if (requireTools && !capabilities.toolCalling && !capabilities.structuredOutput) return false
         if (requireStructuredOutput && !capabilities.structuredOutput) return false
         if (requireStreaming && !capabilities.streaming) return false

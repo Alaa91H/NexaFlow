@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     implementation(project(":domain"))
     implementation(project(":core:database"))
+    implementation(project(":core:agent-runtime"))
     implementation(project(":core:automation-control"))
     implementation(project(":core:datastore"))
     implementation(project(":core:security"))

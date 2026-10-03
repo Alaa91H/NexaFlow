@@ -44,6 +44,27 @@ class AiProviderRoutingTest {
     }
 
     @Test
+    fun agentRoutingPinsItsProviderAndNeverFallsBackAcrossCloudBoundary() {
+        val local = FakeProvider("local-profile", local = true, available = true)
+        val cloud = FakeProvider("cloud-profile", local = false, available = true)
+        val registry = AiProviderRegistry(listOf(local, cloud))
+        registry.updateRoutingPolicy(AiRoutingPolicy(AiRoutingMode.CLOUD_ONLY))
+
+        assertEquals(
+            "local-profile",
+            registry.routeProvider(AiRoutingRequirements(requireTools = true), "local-profile", false)
+                ?.descriptor?.value?.id
+        )
+        assertNull(registry.routeProvider(AiRoutingRequirements(requireTools = true), "cloud-profile", false))
+        assertNull(registry.routeProvider(AiRoutingRequirements(requireTools = true), "missing", true))
+        assertEquals(
+            "cloud-profile",
+            registry.routeProvider(AiRoutingRequirements(requireTools = true), "cloud-profile", true)
+                ?.descriptor?.value?.id
+        )
+    }
+
+    @Test
     fun selectedProviderNeverFallsBackSilently() {
         val first = FakeProvider("first", local = true, available = true)
         val second = FakeProvider("second", local = false, available = true)

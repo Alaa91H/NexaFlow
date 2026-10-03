@@ -392,6 +392,59 @@ object Migrations {
         }
     }
 
+    /** v23 -> v24: stores reusable internal agent definitions without credentials or run payloads. */
+    val MIGRATION_23_24 = object : Migration(23, 24) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `agent_definitions` (" +
+                    "`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, " +
+                    "`systemInstructions` TEXT NOT NULL, `providerProfileId` TEXT, `modelId` TEXT, " +
+                    "`policyJson` TEXT NOT NULL, `budgetJson` TEXT NOT NULL, `enabled` INTEGER NOT NULL, " +
+                    "`revision` INTEGER NOT NULL, `createdAtMillis` INTEGER NOT NULL, " +
+                    "`updatedAtMillis` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_agent_definitions_enabled_updatedAtMillis` " +
+                    "ON `agent_definitions` (`enabled`, `updatedAtMillis`)"
+            )
+        }
+    }
+
+    /** v24 -> v25: durable, redacted run/approval metadata; no prompts or tool payloads. */
+    val MIGRATION_24_25 = object : Migration(24, 25) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `agent_runs` (" +
+                    "`id` TEXT NOT NULL, `agentId` TEXT NOT NULL, `idempotencyKeyHash` TEXT NOT NULL, " +
+                    "`requestFingerprint` TEXT NOT NULL, `definitionRevision` INTEGER NOT NULL, " +
+                    "`status` TEXT NOT NULL, `createdAtMillis` INTEGER NOT NULL, `updatedAtMillis` INTEGER NOT NULL, " +
+                    "`deadlineAtMillis` INTEGER NOT NULL, `providerId` TEXT, `modelId` TEXT, `outcomeCode` TEXT, " +
+                    "`turns` INTEGER NOT NULL, `toolCalls` INTEGER NOT NULL, `outputCharacters` INTEGER NOT NULL, " +
+                    "`costMicros` INTEGER NOT NULL, `revision` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+            )
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_agent_runs_agentId_idempotencyKeyHash` ON `agent_runs` (`agentId`, `idempotencyKeyHash`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_agent_runs_agentId_createdAtMillis` ON `agent_runs` (`agentId`, `createdAtMillis`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_agent_runs_status_updatedAtMillis` ON `agent_runs` (`status`, `updatedAtMillis`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `agent_run_events` (" +
+                    "`runId` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `id` TEXT NOT NULL, " +
+                    "`type` TEXT NOT NULL, `safeCode` TEXT NOT NULL, `createdAtMillis` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`runId`, `sequence`))"
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_agent_run_events_runId_createdAtMillis` ON `agent_run_events` (`runId`, `createdAtMillis`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `agent_approvals` (" +
+                    "`id` TEXT NOT NULL, `runId` TEXT NOT NULL, `agentId` TEXT NOT NULL, " +
+                    "`definitionRevision` INTEGER NOT NULL, `toolName` TEXT NOT NULL, " +
+                    "`callFingerprint` TEXT NOT NULL, `deviceBindingHash` TEXT NOT NULL, " +
+                    "`createdAtMillis` INTEGER NOT NULL, `expiresAtMillis` INTEGER NOT NULL, " +
+                    "`decision` TEXT, `resolvedAtMillis` INTEGER, PRIMARY KEY(`id`))"
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_agent_approvals_runId_createdAtMillis` ON `agent_approvals` (`runId`, `createdAtMillis`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_agent_approvals_agentId_resolvedAtMillis` ON `agent_approvals` (`agentId`, `resolvedAtMillis`)")
+        }
+    }
+
 
     val ALL = listOf(
         MIGRATION_1_2,
@@ -415,6 +468,8 @@ object Migrations {
         MIGRATION_19_20,
         MIGRATION_20_21,
         MIGRATION_21_22,
-        MIGRATION_22_23
+        MIGRATION_22_23,
+        MIGRATION_23_24,
+        MIGRATION_24_25
     )
 }

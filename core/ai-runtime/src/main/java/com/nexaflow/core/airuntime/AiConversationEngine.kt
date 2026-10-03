@@ -12,20 +12,32 @@ class AiConversationEngine(
     private val toolExecutor: AiToolExecutor = EmptyAiToolExecutor,
     private val turnTimeoutMillis: Long = DEFAULT_TURN_TIMEOUT_MS,
     private val maxToolIterations: Int = DEFAULT_MAX_TOOL_ITERATIONS,
-    private val traceSink: AiAgentTraceSink? = null
+    private val traceSink: AiAgentTraceSink? = null,
+    private val allowTurn: () -> Boolean = { true }
 ) {
     fun stream(
         conversationId: String,
-        messages: List<AiConversationMessage>
+        messages: List<AiConversationMessage>,
+        providerIdOverride: String? = null,
+        allowCloudProvider: Boolean = true,
+        outputCharacterLimit: Int = MAX_OUTPUT_CHARACTERS,
+        toolCallLimitPerTurn: Int = MAX_TOOL_CALLS_PER_TURN
     ): Flow<AiConversationEvent> = flow {
-        if (!validConversationId(conversationId) || !validMessages(messages)) {
+        if (!validConversationId(conversationId) || !validMessages(messages) ||
+            outputCharacterLimit !in 1..MAX_OUTPUT_CHARACTERS ||
+            toolCallLimitPerTurn !in 1..MAX_TOOL_CALLS_PER_TURN
+        ) {
             emit(AiConversationEvent.Failed("invalid_conversation"))
             traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "invalid_conversation")
             return@flow
         }
 
         val provider = registry.routeProvider(
-            requireTools = toolExecutor.tools.value.isNotEmpty()
+            requirements = AiRoutingRequirements(
+                requireTools = toolExecutor.tools.value.isNotEmpty()
+            ),
+            preferredProviderId = providerIdOverride,
+            allowCloudProvider = allowCloudProvider
         )
         if (provider == null || !provider.descriptor.value.available) {
             emit(AiConversationEvent.Unavailable("no_provider"))
@@ -35,7 +47,13 @@ class AiConversationEngine(
 
         val transcript = messages.toMutableList()
         var iteration = 0
+        var totalAssistantCharacters = 0
         while (iteration < maxToolIterations) {
+            if (!allowTurn()) {
+                emit(AiConversationEvent.Failed("turn_limit"))
+                traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "turn_limit")
+                return@flow
+            }
             iteration += 1
             val pendingCalls = mutableListOf<AiToolCall>()
             val assistantText = StringBuilder()
@@ -52,24 +70,25 @@ class AiConversationEngine(
                                 transcript.toList()
                             },
                             tools = toolExecutor.tools.value,
-                            maxOutputCharacters = MAX_OUTPUT_CHARACTERS
+                            maxOutputCharacters = outputCharacterLimit - totalAssistantCharacters
                         )
                     ).collect { event ->
                         when (event) {
                             is AiProviderEvent.TextDelta -> {
                                 if (
-                                    assistantText.length + event.text.length >
-                                    MAX_OUTPUT_CHARACTERS
+                                totalAssistantCharacters + assistantText.length + event.text.length >
+                                    outputCharacterLimit
                                 ) {
                                     throw OutputLimitException()
                                 }
                                 assistantText.append(event.text)
+                                totalAssistantCharacters += event.text.length
                                 emit(AiConversationEvent.AssistantDelta(event.text))
                                 traceSink?.onAssistantDelta(event.text)
                             }
                             is AiProviderEvent.ToolCall -> {
                                 if (
-                                    pendingCalls.size >= MAX_TOOL_CALLS_PER_TURN ||
+                                    pendingCalls.size >= toolCallLimitPerTurn ||
                                     event.call.name.length > MAX_TOOL_NAME_LENGTH ||
                                     event.call.arguments.toString().length >
                                     MAX_TOOL_ARGUMENT_CHARACTERS
@@ -133,7 +152,7 @@ class AiConversationEngine(
                     pendingCalls += AiStructuredToolParser.parse(
                         assistantText.toString(),
                         toolExecutor.tools.value.mapTo(LinkedHashSet()) { it.name }
-                    ).take(MAX_TOOL_CALLS_PER_TURN)
+                        ).take(toolCallLimitPerTurn)
                 }
             }
 

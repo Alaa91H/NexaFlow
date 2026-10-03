@@ -49,6 +49,23 @@ class AiProviderRegistry(
     fun routeProvider(requireTools: Boolean): AiModelProvider? =
         routeProvider(AiRoutingRequirements(requireTools = requireTools))
 
+    /** Agent-scoped routing: an explicit profile never falls back to another account. */
+    fun routeProvider(
+        requirements: AiRoutingRequirements,
+        preferredProviderId: String?,
+        allowCloudProvider: Boolean
+    ): AiModelProvider? {
+        val constrained = if (allowCloudProvider) requirements else requirements.copy(requireLocal = true)
+        if (preferredProviderId == null) return routeProvider(constrained)
+        val current = _state.value
+        val descriptor = current.providers.firstOrNull {
+            it.id == preferredProviderId && it.available && constrained.matches(it)
+        } ?: return null
+        val health = current.providerHealth[descriptor.id]
+        if (health?.isRoutable(System.currentTimeMillis(), constrained.requireVerified) == false) return null
+        return providerMap[descriptor.id]
+    }
+
     fun routeProvider(
         requirements: AiRoutingRequirements,
         nowMillis: Long = System.currentTimeMillis()

@@ -213,6 +213,25 @@ fun AgentSettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item(key = "managed_agent_profiles_entry") {
+                NexaFlowCard {
+                    Text(
+                        stringResource(R.string.managed_agent_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        stringResource(R.string.managed_agent_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    TextButton(onClick = {
+                        navController.navigate(SettingsDestination.MANAGED_AI_AGENTS_ROUTE)
+                    }) {
+                        Text(stringResource(R.string.managed_agent_open))
+                    }
+                }
+            }
             item(key = "ai_settings_tabs") {
                 AiSettingsTabRow(
                     selected = selectedTab,

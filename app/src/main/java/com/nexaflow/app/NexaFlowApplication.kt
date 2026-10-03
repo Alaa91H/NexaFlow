@@ -26,6 +26,7 @@ import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.rom.ShizukuShellBridge
 import com.nexaflow.feature.settings.UpdateVersion
 import com.nexaflow.data.repository.CanonicalWorkflowMigrationRunner
+import com.nexaflow.data.agents.AgentRunRepository
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -84,6 +85,9 @@ class NexaFlowApplication : Application() {
     @Inject
     lateinit var canonicalMigrationRunner: CanonicalWorkflowMigrationRunner
 
+    @Inject
+    lateinit var agentRunRepository: AgentRunRepository
+
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
@@ -122,6 +126,12 @@ class NexaFlowApplication : Application() {
         appScope.launch {
             runCatching { canonicalMigrationRunner.runNextBatch() }
                 .onFailure { Log.e(TAG, "canonical V3 migration batch failed", it) }
+        }
+        // Agent runs interrupted by process death are recorded but never replayed:
+        // the app cannot prove whether a tool side effect reached its target.
+        appScope.launch {
+            runCatching { agentRunRepository.recoverInFlight() }
+                .onFailure { Log.e(TAG, "agent run recovery scan failed", it) }
         }
         // Periodic location re-check (Settings > Location): schedule at the
         // user's chosen interval so location-triggered tasks keep verifying

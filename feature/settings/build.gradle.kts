@@ -67,6 +67,7 @@ dependencies {
     implementation(project(":core:agent-security"))
     implementation(project(":core:agent-api"))
     implementation(project(":core:ai-runtime"))
+    implementation(project(":core:agent-runtime"))
     implementation(project(":core:security"))
     implementation(project(":core:plugin-sdk"))
     implementation(project(":core:rom-integration"))

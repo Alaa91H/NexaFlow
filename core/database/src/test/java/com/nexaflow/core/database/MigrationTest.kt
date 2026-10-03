@@ -131,10 +131,10 @@ class MigrationTest {
         migrated.close()
     }
 
-    @Test fun historicalChainsReach22() {
-        for (version in listOf(1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)) {
+    @Test fun historicalChainsReach25() {
+        for (version in listOf(1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)) {
             helper.createDatabase(version).close()
-            helper.runMigrationsAndValidate(23, Migrations.ALL).close()
+            helper.runMigrationsAndValidate(25, Migrations.ALL).close()
             dbFile.delete()
         }
     }
@@ -147,6 +147,54 @@ class MigrationTest {
             while (statement.step()) columns += statement.getText(1)
             assertTrue("outcome" in columns)
             assertFalse("messageBody" in columns)
+        }
+        migrated.close()
+    }
+
+    @Test fun migrate23To24CreatesAgentDefinitionsAndPreservesSmsMetadata() {
+        helper.createDatabase(23).apply {
+            execSQL(
+                "INSERT INTO sms_activity " +
+                    "(id,eventType,automationId,automationName,outcome,errorCode,occurredAt) " +
+                    "VALUES ('sms-1','RECEIVED',NULL,NULL,'RECORDED',NULL,1234)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(
+            24,
+            listOf(Migrations.MIGRATION_23_24)
+        )
+
+        migrated.prepare("SELECT COUNT(*) FROM agent_definitions").use {
+            assertTrue(it.step())
+            assertEquals(0L, it.getLong(0))
+        }
+        migrated.prepare("SELECT id, occurredAt FROM sms_activity WHERE id='sms-1'").use {
+            assertTrue(it.step())
+            assertEquals("sms-1", it.getText(0))
+            assertEquals(1234L, it.getLong(1))
+        }
+        migrated.close()
+    }
+
+    @Test fun migrate24To25CreatesRunTablesWithoutPersistingConversationContent() {
+        helper.createDatabase(24).close()
+        val migrated = helper.runMigrationsAndValidate(25, listOf(Migrations.MIGRATION_24_25))
+        migrated.prepare("PRAGMA table_info(agent_runs)").use { statement ->
+            val columns = mutableSetOf<String>()
+            while (statement.step()) columns += statement.getText(1)
+            assertTrue("requestFingerprint" in columns)
+            assertFalse("prompt" in columns)
+            assertFalse("messagesJson" in columns)
+        }
+        migrated.prepare("SELECT COUNT(*) FROM agent_run_events").use {
+            assertTrue(it.step())
+            assertEquals(0L, it.getLong(0))
+        }
+        migrated.prepare("SELECT COUNT(*) FROM agent_approvals").use {
+            assertTrue(it.step())
+            assertEquals(0L, it.getLong(0))
         }
         migrated.close()
     }
