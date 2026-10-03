@@ -5,7 +5,7 @@ import androidx.room.Transaction
 
 /** Room transactions that keep run state, approval state, and its event ledger atomic. */
 @Dao
-abstract class AgentRunTransactionDao : AgentRunReadDao, AgentRunMutationDao {
+abstract class AgentRunDao : AgentRunReadDao, AgentRunMutationDao {
 
     @Transaction
     open suspend fun appendEventWithNextSequence(event: AgentRunEventEntity) {

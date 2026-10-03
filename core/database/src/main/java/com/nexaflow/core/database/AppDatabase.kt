@@ -28,6 +28,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun variableDao(): VariableDao
     abstract fun agentPlatformDao(): AgentPlatformDao
     abstract fun agentDefinitionDao(): AgentDefinitionDao
-    abstract fun agentRunDao(): AgentRunTransactionDao
+    abstract fun agentRunDao(): AgentRunDao
     abstract fun smsActivityDao(): SmsActivityDao
 }
