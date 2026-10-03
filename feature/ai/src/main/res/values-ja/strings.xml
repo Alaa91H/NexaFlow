@@ -19,5 +19,5 @@
     <string name="ai_chat_voice_input">音声入力</string>
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
-    <string name="ai_chat_agent_settings">Agent settings</string>
+    <string name="ai_chat_agent_settings">エージェント設定</string>
 </resources>

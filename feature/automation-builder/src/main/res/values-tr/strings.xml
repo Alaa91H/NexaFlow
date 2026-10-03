@@ -5,7 +5,7 @@
     <string name="canonical_battery_title">Pil eşiği</string>
     <string name="canonical_battery_subtitle">Pil seviyesi ve şarj koşulları</string>
     <string name="canonical_add_battery">Pil koşulu ekle</string>
-    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_threshold">Eşik</string>
     <string name="canonical_battery_toggle_direction">Eşik yönünü değiştir</string>
     <string name="canonical_add_delay">Bekleme ekle</string>
     <string name="canonical_store_secret">Korunan gizli değeri kaydet</string>
@@ -1298,7 +1298,7 @@
     <string name="option_tier_all">Tüm seçenekler</string>
     <string name="option_tier_expanded">Genişletilmiş</string>
     <string name="option_tier_collapsed">Daraltılmış</string>
-    <string name="canonical_battery_charger">Charger: %1$s</string>
-    <string name="canonical_battery_charging_state">Charging state: %1$s</string>
-    <string name="canonical_mixed_trigger_error">Use either native battery conditions or legacy triggers in one automation, not both.</string>
+    <string name="canonical_battery_charger">Şarj cihazı: %1$s</string>
+    <string name="canonical_battery_charging_state">Şarj durumu: %1$s</string>
+    <string name="canonical_mixed_trigger_error">Bir otomasyonda yerel pil koşullarını veya eski tetikleyicileri kullanın; ikisini birlikte kullanmayın.</string>
 </resources>
