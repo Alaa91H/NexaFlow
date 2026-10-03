@@ -35,14 +35,14 @@ The tag workflow gates publication on the following automated checks. Consult th
   regression coverage.
 - Release build with R8 full shrinking, APK signature verification (v2/v3 schemes and
   certificate-fingerprint match against the production keystore), 16 KB page-size
-  alignment check, zipalign verification, bundletool AAB validation, and Gradle
-  dependency verification (SHA-256 checksums for every artifact).
+  alignment check, zipalign verification, and Gradle dependency verification.
 - Tag hygiene: the tag must match the newest `CHANGELOG.md` entry, so the notes below
   are the actual, reviewed change record for this release.
 
 ## Install
 
-- Download `NexaFlow-<version>.apk` from the assets below and install it.
+- Download `NexaFlow-<version>.apk` for Android phone or `NexaFlow-Wear-<version>.apk`
+  for Wear OS from the assets below.
 - Android updates require a compatible version code and the same signing certificate.
   Back up important tasks before upgrading.
 - Pre-release tags (`alpha` / `beta` / `rc`) are marked as pre-releases automatically.

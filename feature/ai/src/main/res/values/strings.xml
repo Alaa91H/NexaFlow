@@ -2,6 +2,7 @@
     <string name="ai_chat_title">NexaFlow AI</string>
     <string name="ai_chat_no_provider">No model provider configured</string>
     <string name="ai_chat_clear">Clear</string>
+    <string name="ai_chat_agent_settings">Agent settings</string>
     <string name="ai_chat_provider_required">A model provider is required</string>
     <string name="ai_chat_provider_required_detail">The chat surface is ready. Connect a local or cloud model provider to start issuing natural-language automation commands.</string>
     <string name="ai_chat_welcome">Ask NexaFlow</string>

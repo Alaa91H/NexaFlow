@@ -5,7 +5,7 @@
     <string name="canonical_battery_title">बैटरी सीमा</string>
     <string name="canonical_battery_subtitle">बैटरी स्तर और चार्जिंग शर्तें</string>
     <string name="canonical_add_battery">बैटरी शर्त जोड़ें</string>
-    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_threshold">सीमा</string>
     <string name="canonical_battery_toggle_direction">सीमा दिशा बदलें</string>
     <string name="canonical_add_delay">विलंब जोड़ें</string>
     <string name="canonical_store_secret">सुरक्षित रहस्य सहेजें</string>
@@ -1298,7 +1298,7 @@
     <string name="option_tier_all">सभी विकल्प</string>
     <string name="option_tier_expanded">विस्तारित</string>
     <string name="option_tier_collapsed">समेटा हुआ</string>
-    <string name="canonical_battery_charger">Charger: %1$s</string>
-    <string name="canonical_battery_charging_state">Charging state: %1$s</string>
-    <string name="canonical_mixed_trigger_error">Use either native battery conditions or legacy triggers in one automation, not both.</string>
+    <string name="canonical_battery_charger">चार्जर: %1$s</string>
+    <string name="canonical_battery_charging_state">चार्जिंग स्थिति: %1$s</string>
+    <string name="canonical_mixed_trigger_error">एक ऑटोमेशन में या तो मूल बैटरी शर्तें इस्तेमाल करें या पुराने ट्रिगर, दोनों नहीं।</string>
 </resources>

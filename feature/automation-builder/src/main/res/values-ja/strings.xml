@@ -5,7 +5,7 @@
     <string name="canonical_battery_title">バッテリーしきい値</string>
     <string name="canonical_battery_subtitle">バッテリー残量と充電条件</string>
     <string name="canonical_add_battery">バッテリー条件を追加</string>
-    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_threshold">しきい値</string>
     <string name="canonical_battery_toggle_direction">しきい値の方向を変更</string>
     <string name="canonical_add_delay">待機を追加</string>
     <string name="canonical_store_secret">保護されたシークレットを保存</string>
@@ -1298,7 +1298,7 @@
     <string name="option_tier_all">すべてのオプション</string>
     <string name="option_tier_expanded">展開済み</string>
     <string name="option_tier_collapsed">折りたたみ済み</string>
-    <string name="canonical_battery_charger">Charger: %1$s</string>
-    <string name="canonical_battery_charging_state">Charging state: %1$s</string>
-    <string name="canonical_mixed_trigger_error">Use either native battery conditions or legacy triggers in one automation, not both.</string>
+    <string name="canonical_battery_charger">充電器: %1$s</string>
+    <string name="canonical_battery_charging_state">充電状態: %1$s</string>
+    <string name="canonical_mixed_trigger_error">1つの自動化では、標準のバッテリー条件か従来のトリガーのどちらかを使用してください。</string>
 </resources>

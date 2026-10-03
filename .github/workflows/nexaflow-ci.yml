@@ -1,4 +1,4 @@
-name: NexaFlow Unified CI
+name: NexaFlow CI and APK Release
 
 on:
   workflow_dispatch:
@@ -483,12 +483,15 @@ jobs:
         distribution: 'temurin'
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Generate and print Room schema 21 for review
+    - name: Verify the current Room schema snapshot
       run: |
-        ./gradlew :core:database:kspDebugKotlin --no-configuration-cache --console=plain
-        echo "=== ROOM_SCHEMA_21_BEGIN ==="
-        cat core/database/schemas/com.nexaflow.core.database.AppDatabase/21.json
-        echo "=== ROOM_SCHEMA_21_END ==="
+        ./gradlew :core:database:kspDebugKotlin --no-configuration-cache --no-daemon --console=plain
+        ROOM_VERSION="$(sed -n 's/^[[:space:]]*version = \([0-9][0-9]*\),/\1/p' core/database/src/main/java/com/nexaflow/core/database/AppDatabase.kt | head -1)"
+        test -n "$ROOM_VERSION" || { echo "Could not read the Room database version." >&2; exit 1; }
+        ROOM_SCHEMA="core/database/schemas/com.nexaflow.core.database.AppDatabase/${ROOM_VERSION}.json"
+        test -s "$ROOM_SCHEMA" || { echo "Room schema snapshot missing: $ROOM_SCHEMA" >&2; exit 1; }
+        git diff --exit-code -- core/database/schemas
+        echo "Room schema $ROOM_VERSION is generated and committed."
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest --no-daemon --stacktrace --console=plain
     - name: Restore release signing keystore (when configured)
@@ -550,7 +553,13 @@ jobs:
           echo "::error::Packaged versionName '$ACTUAL_VERSION' does not match release tag '$GITHUB_REF_NAME'."
           exit 1
         }
-        echo "Package version verified: $ACTUAL_VERSION"
+        WATCH_APK=wear/build/outputs/apk/release/wear-release.apk
+        WATCH_VERSION="$("$AAPT" dump badging "$WATCH_APK" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)"
+        test "$WATCH_VERSION" = "$GITHUB_REF_NAME" || {
+          echo "::error::Packaged Wear versionName '$WATCH_VERSION' does not match release tag '$GITHUB_REF_NAME'."
+          exit 1
+        }
+        echo "Phone and Wear package versions verified: $ACTUAL_VERSION"
     - name: Verify phone/Wear Data Layer identity contract
       run: |
         PHONE_APK=app/build/outputs/apk/release/app-release.apk
@@ -648,56 +657,22 @@ jobs:
         test -n "$ACTUAL" || { echo "Could not read the watch APK certificate fingerprint." >&2; exit 1; }
         test "$EXPECTED" = "$ACTUAL" || { echo "Watch APK certificate does not match the production keystore." >&2; exit 1; }
         echo "Watch APK certificate matches the production keystore."
-    - name: Build release AAB
-      run: ./gradlew bundleRelease
-    - name: Download bundletool
-      run: curl -fsSL -o bundletool.jar https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
-    - name: bundletool - validate bundle and measure per-ABI size
-      run: |
-        BUNDLE=app/build/outputs/bundle/release/app-release.aab
-        keytool -genkeypair -keystore ci-debug.keystore -storepass android -keypass android \
-          -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" \
-          -keyalg RSA -keysize 2048 -validity 10000 >/dev/null 2>&1
-        KS=(--ks=ci-debug.keystore --ks-pass=pass:android --ks-key-alias=androiddebugkey --key-pass=pass:android)
-        echo "== Bundle manifest (validates the AAB) =="
-        java -jar bundletool.jar dump manifest --bundle="$BUNDLE" \
-          | grep -E "package=|versionCode|versionName|minSdkVersion|targetSdkVersion"
-        java -jar bundletool.jar build-apks --bundle="$BUNDLE" --output=apks-splits.apks "${KS[@]}"
-        java -jar bundletool.jar build-apks --bundle="$BUNDLE" --output=apks-universal.apks --mode=universal "${KS[@]}"
-        echo "== Estimated download size - per-device splits (bytes, min..max) =="
-        java -jar bundletool.jar get-size total --apks=apks-splits.apks | tail -1
-        echo "== Estimated download size - universal (all ABIs) APK (bytes) =="
-        java -jar bundletool.jar get-size total --apks=apks-universal.apks | tail -1
-        echo "== Native-library splits per ABI (bytes) =="
-        unzip -l apks-splits.apks | grep -E "base-(arm64_v8a|armeabi_v7a|x86_64|x86)\.apk" \
-          | awk '{printf "  %-24s %s bytes\n", $4, $1}'
     - name: Audit native libraries (ABI + size)
       run: python3 scripts/check_apk_libs.py app/build/outputs/apk/release/app-release.apk
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v7
-      with:
-        name: nexaflow-debug-apk
-        if-no-files-found: error
-        path: app/build/outputs/apk/debug/app-debug.apk
     - name: Upload Release APK
+      if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v7
       with:
         name: nexaflow-release-apk
         if-no-files-found: error
         path: app/build/outputs/apk/release/app-release.apk
     - name: Upload Watch Release APK
+      if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v7
       with:
         name: nexaflow-wear-release-apk
         if-no-files-found: error
         path: wear/build/outputs/apk/release/wear-release.apk
-    - name: Upload Release AAB
-      uses: actions/upload-artifact@v7
-      with:
-        name: nexaflow-release-aab
-        if-no-files-found: error
-        path: app/build/outputs/bundle/release/app-release.aab
-
   release:
     name: Publish tagged release
     needs: [lint, coverage, build]
@@ -738,12 +713,6 @@ jobs:
           name: nexaflow-wear-release-apk
           path: release-assets/wear
 
-      - name: Download Android App Bundle
-        uses: actions/download-artifact@v7
-        with:
-          name: nexaflow-release-aab
-          path: release-assets/aab
-
       - name: Prepare versioned release assets
         shell: bash
         run: |
@@ -751,22 +720,10 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
-          BUNDLE="NexaFlow-$TAG.aab"
           cp release-assets/phone/app-release.apk "$PHONE"
           cp release-assets/wear/wear-release.apk "$WEAR"
-          cp release-assets/aab/app-release.aab "$BUNDLE"
           test -s "$PHONE"
           test -s "$WEAR"
-          test -s "$BUNDLE"
-          sha256sum "$PHONE" | awk '{print $1}' > "$PHONE.sha256"
-          sha256sum "$WEAR" | awk '{print $1}' > "$WEAR.sha256"
-          sha256sum "$BUNDLE" | awk '{print $1}' > "$BUNDLE.sha256"
-          for checksum in "$PHONE.sha256" "$WEAR.sha256" "$BUNDLE.sha256"; do
-            grep -Eq '^[0-9a-f]{64}$' "$checksum" || {
-              echo "::error::Invalid SHA-256 file $checksum"
-              exit 1
-            }
-          done
           python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
 
       - name: Publish GitHub Release
@@ -778,23 +735,29 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
-          BUNDLE="NexaFlow-$TAG.aab"
-          PHONE_SHA="$PHONE.sha256"
-          WEAR_SHA="$WEAR.sha256"
-          BUNDLE_SHA="$BUNDLE.sha256"
           PRERELEASE=()
           [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA" --clobber
+            gh release upload "$TAG" "$PHONE" "$WEAR" --clobber
             gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
           else
-            gh release create "$TAG" "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA" \
+            gh release create "$TAG" "$PHONE" "$WEAR" \
               --verify-tag \
               --title "NexaFlow $TAG" \
               --notes-file release-notes.md \
               "${PRERELEASE[@]}"
           fi
+
+          # Keep reruns of an existing tag as clean as a newly created release:
+          # only the exact versioned phone and Wear APKs remain attached.
+          RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq .id)"
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" \
+            --paginate --jq ".[] | select(.name != \"$PHONE\" and .name != \"$WEAR\") | .id" \
+            | while read -r ASSET_ID; do
+                test -n "$ASSET_ID" && gh api --method DELETE \
+                  "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
+              done
 
       - name: Verify published release
         env:
@@ -805,21 +768,21 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
-          BUNDLE="NexaFlow-$TAG.aab"
-          PHONE_SHA="$PHONE.sha256"
-          WEAR_SHA="$WEAR.sha256"
-          BUNDLE_SHA="$BUNDLE.sha256"
           RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
           test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
           test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
           MISSING="$(jq \
-            --arg phone "$PHONE" --arg phoneSha "$PHONE_SHA" \
-            --arg wear "$WEAR" --arg wearSha "$WEAR_SHA" \
-            --arg bundle "$BUNDLE" --arg bundleSha "$BUNDLE_SHA" \
-            '[$phone, $phoneSha, $wear, $wearSha, $bundle, $bundleSha] - [.assets[].name] | length' \
+            --arg phone "$PHONE" --arg wear "$WEAR" \
+            '[$phone, $wear] - [.assets[].name] | length' \
             <<<"$RELEASE_JSON")"
           test "$MISSING" = "0"
-          for ASSET in "$PHONE" "$PHONE_SHA" "$WEAR" "$WEAR_SHA" "$BUNDLE" "$BUNDLE_SHA"; do
+          EXTRA="$(jq \
+            --arg phone "$PHONE" --arg wear "$WEAR" \
+            '[.assets[].name | select(. != $phone and . != $wear)] | length' \
+            <<<"$RELEASE_JSON")"
+          test "$EXTRA" = "0" || { echo "::error::Release contains unexpected non-versioned assets."; exit 1; }
+          for ASSET in "$PHONE" "$WEAR"; do
+            [[ "$ASSET" == *.apk ]]
             SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
             STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
             test -n "$SIZE" && test "$SIZE" -gt 0

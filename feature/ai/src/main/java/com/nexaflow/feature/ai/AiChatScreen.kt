@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import com.nexaflow.core.ui.NexaFlowTopBar
 @Composable
 fun AiChatScreen(
     navController: NavController,
+    onOpenAgentSettings: () -> Unit,
     viewModel: AiChatViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -62,6 +64,12 @@ fun AiChatScreen(
                     ?: stringResource(R.string.ai_chat_no_provider),
                 onBack = { navController.popBackStack() },
                 actions = {
+                    IconButton(onClick = onOpenAgentSettings) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.ai_chat_agent_settings)
+                        )
+                    }
                     TextButton(onClick = viewModel::clearConversation) {
                         Text(stringResource(R.string.ai_chat_clear))
                     }

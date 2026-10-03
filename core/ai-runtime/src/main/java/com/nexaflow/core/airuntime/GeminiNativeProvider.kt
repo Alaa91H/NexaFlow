@@ -314,7 +314,11 @@ class GeminiNativeProvider(
                                     buildJsonObject {
                                         put("name", tool.name)
                                         put("description", tool.description)
-                                        put("parameters", tool.inputSchema)
+                                        // Gemini's OpenAPI `parameters` accepts only a narrow
+                                        // subset and rejects several valid NexaFlow JSON Schema
+                                        // keywords. Use the JSON Schema-specific field so the
+                                        // complete agent tool catalog can be sent with chat.
+                                        put("parametersJsonSchema", tool.inputSchema)
                                     }
                                 )
                             }

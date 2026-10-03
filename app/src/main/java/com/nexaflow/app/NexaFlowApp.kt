@@ -121,7 +121,12 @@ fun NexaFlowApp(reviewAutomationId: String? = null, onReviewOpened: () -> Unit =
                 DashboardScreen(navController = navController)
             }
             composable(AiDestination.CHAT_ROUTE) {
-                AiChatScreen(navController = navController)
+                AiChatScreen(
+                    navController = navController,
+                    onOpenAgentSettings = {
+                        navController.navigate(SettingsDestination.AI_AGENTS_ROUTE)
+                    }
+                )
             }
             composable("automation_builder?automationId={automationId}&templateId={templateId}") { entry ->
                 AutomationBuilderScreen(

@@ -17,4 +17,7 @@
     <string name="ai_chat_tool_limit">टूल लूप अपनी सुरक्षा सीमा तक पहुँच गया।</string>
     <string name="ai_chat_provider_failure">मॉडल प्रदाता प्रतिक्रिया पूरी नहीं कर सका।</string>
     <string name="ai_chat_voice_input">वॉइस इनपुट</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="ai_chat_agent_settings">एजेंट सेटिंग</string>
 </resources>

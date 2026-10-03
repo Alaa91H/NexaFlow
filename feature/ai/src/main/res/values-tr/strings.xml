@@ -17,4 +17,7 @@
     <string name="ai_chat_tool_limit">Araç döngüsü güvenlik sınırına ulaştı.</string>
     <string name="ai_chat_provider_failure">Model sağlayıcısı yanıtı tamamlayamadı.</string>
     <string name="ai_chat_voice_input">Sesli giriş</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="ai_chat_agent_settings">Aracı ayarları</string>
 </resources>

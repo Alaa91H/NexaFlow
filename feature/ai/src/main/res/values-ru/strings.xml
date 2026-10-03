@@ -17,4 +17,7 @@
     <string name="ai_chat_tool_limit">Цикл инструментов достиг безопасного предела.</string>
     <string name="ai_chat_provider_failure">Поставщик модели не смог завершить ответ.</string>
     <string name="ai_chat_voice_input">Голосовой ввод</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="ai_chat_agent_settings">Настройки агента</string>
 </resources>

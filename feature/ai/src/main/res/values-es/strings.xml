@@ -17,4 +17,7 @@
     <string name="ai_chat_tool_limit">El ciclo de herramientas alcanzó su límite de seguridad.</string>
     <string name="ai_chat_provider_failure">El proveedor de modelo no pudo completar la respuesta.</string>
     <string name="ai_chat_voice_input">Entrada de voz</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="ai_chat_agent_settings">Ajustes del agente</string>
 </resources>

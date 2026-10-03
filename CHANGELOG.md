@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [v3.91.4] - 2026-10-03
+
+### Added — Managed AI agents
+
+- Added private, in-app agent profiles with provider and model selection, scoped tool policies, run budgets, explicit approval for write-capable tools, run history, and cancellation and recovery handling.
+- Added optional per-agent encrypted memory with expiry, editing, deletion, and user-initiated export. Memory is bounded, isolated between agents, and supplied to the model as untrusted reference data.
+- Added durable agent definitions, run events, and approvals with revision checks, replay protection, and process-restart recovery.
+
+### Improved — Automation authoring and execution
+
+- Added typed workflow-node storage and execution for registered native nodes, including delay actions and battery-threshold triggers, while preserving compatibility with existing trigger and action data.
+- Expanded field-specific automation editing for durations, time and date, time zones, applications, document URIs, coordinates, lists, and JSON, with validation and localized guidance.
+- Added a trusted schema boundary for canonical nodes and durable execution checkpoints so unregistered or malformed definitions fail closed before side effects.
+- Improved provider routing and native protocol support for OpenAI-compatible, OpenAI Responses, Anthropic Messages, and Gemini, while keeping credentials in secure storage and redacting diagnostic output.
+- Fixed Gemini chat requests to send tool schemas through the JSON Schema request field after successful model verification, and added a direct gear-button shortcut to localized agent settings.
+
+### Fixed — Reliability and security
+
+- Recheck agent activation, definition revisions, tool permissions, approval freshness, and device binding before execution; stale or replayed approvals cannot authorize a tool call.
+- Prevented canonical configuration payloads and agent traces from storing untrusted schemas, raw secrets, or private prompt content.
+- Corrected trigger dispatch for repeated canonical definitions and stabilized calendar exit-reconciliation tests.
+
+### CI and distribution
+
+- Consolidated Android validation and APK release into one GitHub Actions workflow. Ordinary CI runs build and sign APKs without publishing release assets; a validated version tag publishes only the matching phone and Wear APKs.
+- Versioned releases require an exact `vMAJOR.MINOR.PATCH` tag, a matching packaged version, production signing, and a complete English changelog entry.
+
 ## [v3.91.3] - 2026-10-01
 
 ### Fixed - AI provider diagnostics and network-mode configuration

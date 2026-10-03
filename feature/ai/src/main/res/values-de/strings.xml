@@ -17,4 +17,7 @@
     <string name="ai_chat_tool_limit">Die Werkzeugschleife hat ihr Sicherheitslimit erreicht.</string>
     <string name="ai_chat_provider_failure">Der Modellanbieter konnte die Antwort nicht abschließen.</string>
     <string name="ai_chat_voice_input">Spracheingabe</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="ai_chat_agent_settings">Agenteneinstellungen</string>
 </resources>
