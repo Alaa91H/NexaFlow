@@ -17,7 +17,7 @@ import java.time.LocalTime
  * Precedence (evaluated across all matching rules):
  *  1. Emergency numbers are NEVER screened (the caller decides nothing here;
  *     the service refuses to return a non-default response for them).
- *  2. BLOCK beats SILENCE when several rules match the same call.
+ *  2. Reject beats silent block, which beats ringtone silence.
  *  3. A rule whose task carries a SCHEDULE constraint only applies inside its
  *     window (day-of-week + time range, overnight-capable) — the same gate
  *     used by [ConstraintEvaluator].
@@ -31,7 +31,12 @@ import java.time.LocalTime
 object CallPolicyEvaluator {
 
     /** Screening verdicts for one incoming call. */
-    enum class Verdict { /** Let the phone ring normally. */ NONE, /** Reject the call pre-ring. */ BLOCK, /** Let the call continue without ringing. */ SILENCE }
+    enum class Verdict {
+        /** Let the phone ring normally. */ NONE,
+        /** Reject the call pre-ring and request the platform's rejection behavior. */ BLOCK,
+        /** Disallow the call while suppressing its notification where supported. */ SILENT_BLOCK,
+        /** Let the call continue without ringing. */ SILENCE
+    }
 
     /** Caller categories a rule can target. */
     const val CATEGORY_ANY = "ANY"
@@ -86,7 +91,8 @@ object CallPolicyEvaluator {
 
     /**
      * The strongest verdict across every enabled INCOMING_CALL task:
-     * BLOCK wins over SILENCE; no matching rule means [Verdict.NONE].
+     * BLOCK wins over SILENT_BLOCK, which wins over SILENCE; no matching rule
+     * means [Verdict.NONE].
      */
     fun evaluate(
         automations: List<Automation>,
@@ -100,6 +106,7 @@ object CallPolicyEvaluator {
         .fold(Verdict.NONE) { strongest, verdict ->
             when {
                 strongest == Verdict.BLOCK || verdict == Verdict.BLOCK -> Verdict.BLOCK
+                strongest == Verdict.SILENT_BLOCK || verdict == Verdict.SILENT_BLOCK -> Verdict.SILENT_BLOCK
                 verdict == Verdict.SILENCE -> Verdict.SILENCE
                 else -> strongest
             }
@@ -128,12 +135,12 @@ object CallPolicyEvaluator {
     }
 
     /**
-     * What the task wants to do with a screened call: a CALL_BLOCK action
-     * means reject, a CALL_SILENCE action means silence. Tasks without either
+     * What the task wants to do with a screened call. Tasks without a call
      * control action are pure observers (e.g. log-only) and return null.
      */
     fun intentOf(automation: Automation): Verdict? = when {
         automation.actions.any { it.isCallBlock() } -> Verdict.BLOCK
+        automation.actions.any { it.type == ActionType.CALL_BLOCK_SILENT } -> Verdict.SILENT_BLOCK
         automation.actions.any { it.isCallSilence() } -> Verdict.SILENCE
         else -> null
     }

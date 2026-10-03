@@ -860,6 +860,7 @@ class ExecutionEngine(
                                 payloadContext,
                                 dataRuntime,
                                 executionId = payloadContext.runId,
+                                triggerEventData = triggerOccurrence?.eventData.orEmpty(),
                                 canonicalCommand = canonicalAction.command,
                             )
                         }
@@ -1578,6 +1579,7 @@ class ExecutionEngine(
         runContext: WorkflowRunContext? = null,
         dataRuntime: ScopedDataRuntime? = null,
         executionId: String? = runContext?.runId,
+        triggerEventData: Map<String, String> = emptyMap(),
         canonicalCommand: AtomicCommand,
     ): SystemControlResult {
         val capabilityRequest = CapabilityActionMapper.requestFor(
@@ -1608,6 +1610,7 @@ class ExecutionEngine(
                 runContext = runContext,
                 dataRuntime = dataRuntime,
                 capabilityService = capabilityExecutionService,
+                triggerEventData = triggerEventData,
             ),
         )
     }

@@ -113,6 +113,9 @@ object AgentRiskEvaluator {
         ActionType.ROM_CUSTOM_SETTING,
         ActionType.ROM_BATCH,
         ActionType.SYSTEM_SEND_SMS,
+        ActionType.SMS_REPLY,
+        ActionType.SMS_BLOCK_INCOMING,
+        ActionType.CALL_REPLY_WITH_SMS,
         ActionType.SYSTEM_DIAL_NUMBER,
         ActionType.SYSTEM_HTTP_REQUEST,
         ActionType.SYSTEM_INPUT_TEXT,
@@ -124,6 +127,7 @@ object AgentRiskEvaluator {
         ActionType.SYSTEM_FORCE_STOP_APP,
         ActionType.SYSTEM_PRIVATE_DNS,
         ActionType.CALL_BLOCK,
+        ActionType.CALL_BLOCK_SILENT,
         ActionType.CALL_SILENCE
     )
 

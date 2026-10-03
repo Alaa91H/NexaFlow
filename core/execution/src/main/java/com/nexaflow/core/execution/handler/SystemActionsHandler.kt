@@ -27,6 +27,9 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_OPEN_DEVICE_STORE,
         ActionType.SYSTEM_OPEN_SETTINGS,
         ActionType.SYSTEM_SEND_SMS,
+        ActionType.SMS_REPLY,
+        ActionType.SMS_BLOCK_INCOMING,
+        ActionType.CALL_REPLY_WITH_SMS,
         ActionType.SYSTEM_WAIT,
         ActionType.SYSTEM_POWER_SAVER,
         ActionType.SYSTEM_VIBRATE,
@@ -180,6 +183,28 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.openSystemSettings(action.config["page"] ?: "WIFI")
             ActionType.SYSTEM_SEND_SMS ->
                 ctx.controller.sendSms(action.config["number"] ?: "", action.config["text"] ?: "")
+            ActionType.SMS_REPLY, ActionType.CALL_REPLY_WITH_SMS -> {
+                val destination = ctx.triggerEventData[
+                    if (action.type == ActionType.SMS_REPLY) "sms.sender" else "call.number"
+                ].orEmpty()
+                if (destination.isBlank()) {
+                    SystemControlResult.fail("No incoming sender is available for this reply")
+                } else {
+                    ctx.controller.sendSms(destination, action.config["text"].orEmpty())
+                }
+            }
+            ActionType.SMS_BLOCK_INCOMING -> {
+                val defaultSmsPackage = android.provider.Telephony.Sms.getDefaultSmsPackage(ctx.appContext)
+                if (defaultSmsPackage == ctx.appContext.packageName &&
+                    ctx.triggerEventData["sms.blocked"] == "true"
+                ) {
+                    SystemControlResult.ok("Incoming SMS blocked by the default SMS app")
+                } else if (defaultSmsPackage == ctx.appContext.packageName) {
+                    SystemControlResult.fail("This SMS event did not satisfy safe pre-delivery block conditions")
+                } else {
+                    SystemControlResult.fail("Set NexaFlow as the default SMS app to block incoming messages")
+                }
+            }
             ActionType.SYSTEM_WAIT -> {
                 // The builder supports 1 second through 24 hours. Keep the
                 // runtime bounded as well so imported workflows cannot request

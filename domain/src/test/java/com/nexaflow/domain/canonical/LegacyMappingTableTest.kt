@@ -10,11 +10,11 @@ class LegacyMappingTableTest {
     private val adapter = LegacyCanonicalAdapter(LegacyMappingTable.all())
 
     @Test
-    fun tableCoversAll233LegacyTypes() {
-        assertEquals(233, LegacyMappingTable.ruleCount())
+    fun tableCoversAll237AutomationTypes() {
+        assertEquals(237, LegacyMappingTable.ruleCount())
         assertEquals(57, LegacyMappingTable.triggerCount())
-        assertEquals(176, LegacyMappingTable.actionCount())
-        assertEquals(233, adapter.declaredRules)
+        assertEquals(180, LegacyMappingTable.actionCount())
+        assertEquals(237, adapter.declaredRules)
     }
 
     @Test

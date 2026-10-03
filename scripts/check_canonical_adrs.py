@@ -40,7 +40,7 @@ MUST_CONTAIN = {
     12: ("Why didn't it run?", "Secrets and sensitive payloads are redacted or omitted"),
     13: ("WorkflowSchemaVersion", "ExecutionPlanVersion"),
     14: ("Secrets are never logged", "High-risk operations"),
-    15: ("233/233 golden migration tests pass", "At least one stable release cycle"),
+    15: ("237/237 golden migration tests pass", "At least one stable release cycle"),
 }
 
 FORBIDDEN_COMBINATIONS = (

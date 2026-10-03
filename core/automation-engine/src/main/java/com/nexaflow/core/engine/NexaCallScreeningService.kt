@@ -19,6 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
 /**
@@ -59,7 +60,9 @@ class NexaCallScreeningService : CallScreeningService() {
 
         scope.launch {
             val automations = try {
-                repository.getAutomations().first()
+                withTimeout(SCREENING_DECISION_TIMEOUT_MS) {
+                    repository.getAutomations().first()
+                }
             } catch (_: Throwable) {
                 respondSafely(callDetails, CallPolicyEvaluator.Verdict.NONE)
                 return@launch
@@ -85,7 +88,9 @@ class NexaCallScreeningService : CallScreeningService() {
             respondSafely(callDetails, verdict)
             // Durable blocked-call log entry (BlackList-style call log).
             // Success=true: blocking is the requested behavior, not a failure.
-            if (verdict == CallPolicyEvaluator.Verdict.BLOCK) {
+            if (verdict == CallPolicyEvaluator.Verdict.BLOCK ||
+                verdict == CallPolicyEvaluator.Verdict.SILENT_BLOCK
+            ) {
                 val blockingTasks = screeningTasks
                     .filter { task ->
                         CallPolicyEvaluator.verdictOf(task, number, category, isEmergency) ==
@@ -123,6 +128,7 @@ class NexaCallScreeningService : CallScreeningService() {
                     val matchedTriggerIndices =
                         CallPolicyEvaluator.matchingTriggerIndices(task, number, category)
                     if (matchedTriggerIndices.isEmpty()) return@forEach
+                    val taskVerdict = CallPolicyEvaluator.verdictOf(task, number, category, isEmergency)
                     runCatching {
                         executionEngine.runAutomation(
                             automation = task,
@@ -131,6 +137,17 @@ class NexaCallScreeningService : CallScreeningService() {
                                 matchedTriggerIndices = matchedTriggerIndices,
                                 occurredAtEpochMs = System.currentTimeMillis(),
                                 sourceId = "incoming-call",
+                                eventData = mapOf(
+                                    "call.number" to number.take(512),
+                                    "call.blocked" to (
+                                        taskVerdict == CallPolicyEvaluator.Verdict.BLOCK ||
+                                            taskVerdict == CallPolicyEvaluator.Verdict.SILENT_BLOCK
+                                        ).toString(),
+                                    "call.silenced" to (
+                                        taskVerdict == CallPolicyEvaluator.Verdict.SILENCE &&
+                                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                                        ).toString(),
+                                ),
                             ),
                         )
                     }
@@ -140,12 +157,13 @@ class NexaCallScreeningService : CallScreeningService() {
 
     private fun respondSafely(details: Call.Details, verdict: CallPolicyEvaluator.Verdict) {
         runCatching {
-            val block = verdict == CallPolicyEvaluator.Verdict.BLOCK
+            val rejected = verdict == CallPolicyEvaluator.Verdict.BLOCK
+            val disallowed = rejected || verdict == CallPolicyEvaluator.Verdict.SILENT_BLOCK
             val builder = CallResponse.Builder()
-                .setDisallowCall(block)
-                .setRejectCall(block)
-                .setSkipCallLog(block)
-                .setSkipNotification(block)
+                .setDisallowCall(disallowed)
+                .setRejectCall(rejected)
+                .setSkipCallLog(disallowed)
+                .setSkipNotification(disallowed)
             // setSilenceCall exists only from API 29; on API 26-28 a SILENCE
             // verdict degrades to ringing normally — the task still runs
             // through the engine, so observers/notifications are unaffected.
@@ -186,6 +204,8 @@ class NexaCallScreeningService : CallScreeningService() {
 
     private companion object {
         const val TAG = "NexaCallScreening"
+        // Android expects a call-screening response within five seconds.
+        const val SCREENING_DECISION_TIMEOUT_MS = 3_500L
     }
 }
 

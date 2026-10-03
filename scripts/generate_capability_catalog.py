@@ -9,7 +9,7 @@ CATALOG = ROOT / "docs/CAPABILITY_CATALOG.md"
 model = (ROOT / "domain/src/main/java/com/nexaflow/domain/models/Automation.kt").read_text(encoding="utf-8")
 builder = ROOT / "feature/automation-builder/src/main"
 strings = {n.attrib["name"]: "".join(n.itertext()) for n in ET.parse(builder / "res/values/strings.xml").getroot() if n.tag == "string"}
-actions = (builder / "java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt").read_text(encoding="utf-8")
+actions = (builder / "java/com/nexaflow/feature/builder/BuilderActionCatalog.kt").read_text(encoding="utf-8")
 labels = {kind: strings.get(label, label) for label, kind in re.findall(r"ActionOption\(R.string.(\w+),.*?ActionType.(\w+)", actions)}
 # A curated (hand-reviewed) section documents the semantic operations layer.
 # It is preserved verbatim across regenerations: the inventory above it is
@@ -34,5 +34,7 @@ for kind in triggers:
 lines += ["", "## Actions", "", "Availability depends on permissions, capabilities, Android version and hardware. Settings-opening actions open system UI; their presence does not mean the app can silently change that setting. Elevated actions require a supported provider. Registry and catalog parity tests check dispatch/picker coverage, not every device outcome.", "", "| Enum | Builder label |", "| --- | --- |"]
 for kind in action_types:
     lines.append(f"| `{kind}` | {labels.get(kind, kind).replace('|', '/')} |")
-(ROOT / "docs/CAPABILITY_CATALOG.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+(ROOT / "docs/CAPABILITY_CATALOG.md").write_text(
+    "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
+)
 print(f"Generated {len(triggers)} triggers and {len(action_types)} actions")

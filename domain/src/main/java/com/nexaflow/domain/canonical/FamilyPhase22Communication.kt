@@ -31,6 +31,8 @@ object FamilyPhase22Communication {
         "SYSTEM_SEND_EMAIL",
         "SYSTEM_SEND_NOTIFICATION",
         "SYSTEM_SEND_REMINDER",
+        "SMS_REPLY",
+        "CALL_REPLY_WITH_SMS",
         "BATTERY_ALERTS",
         "BATTERY_CHARGING_NOTIFICATIONS",
     )
@@ -46,11 +48,14 @@ object FamilyPhase22Communication {
         "SYSTEM_CLEAR_NOTIFICATIONS",
         "SYSTEM_CLEAR_APP_NOTIFICATIONS",
         "SYSTEM_BLOCK_NOTIFICATION",
+        "SMS_BLOCK_INCOMING",
     )
 
     /** Call actions (reject/silence — reversible call-scoped states). */
     private val CALL_ACTIONS = setOf(
         "CALL_BLOCK",
+        "CALL_BLOCK_SILENT",
+        "CALL_REPLY_WITH_SMS",
         "CALL_SILENCE",
     )
 

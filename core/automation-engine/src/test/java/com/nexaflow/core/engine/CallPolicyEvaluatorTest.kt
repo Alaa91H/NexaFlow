@@ -58,6 +58,32 @@ class CallPolicyEvaluatorTest {
     }
 
     @Test
+    fun `silent block disallows the call without selecting rejection`() {
+        val verdict = CallPolicyEvaluator.evaluate(
+            automations = listOf(callTask(action = ActionType.CALL_BLOCK_SILENT)),
+            number = "+49123456",
+            category = CallPolicyEvaluator.CATEGORY_UNKNOWN,
+            isEmergency = false
+        )
+
+        assertEquals("SILENT_BLOCK", verdict.name)
+    }
+
+    @Test
+    fun `explicit rejection takes precedence over silent block`() {
+        val verdict = CallPolicyEvaluator.evaluate(
+            automations = listOf(
+                callTask(action = ActionType.CALL_BLOCK_SILENT),
+                callTask(action = ActionType.CALL_BLOCK)
+            ),
+            number = "+49123456",
+            category = CallPolicyEvaluator.CATEGORY_UNKNOWN,
+            isEmergency = false
+        )
+        assertEquals(CallPolicyEvaluator.Verdict.BLOCK, verdict)
+    }
+
+    @Test
     fun `silence intent silences the call`() {
         val verdict = CallPolicyEvaluator.evaluate(
             automations = listOf(callTask(action = ActionType.CALL_SILENCE)),

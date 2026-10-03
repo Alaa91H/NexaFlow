@@ -27,6 +27,8 @@ data class TriggerOccurrence(
     val occurredAtEpochMs: Long,
     val sourceId: String? = null,
     val eventId: String? = null,
+    /** Bounded, process-local values used by communication reply actions. Never persisted or logged. */
+    val eventData: Map<String, String> = emptyMap(),
 ) {
     init {
         require(matchedTriggerIndices.isNotEmpty()) {
@@ -50,6 +52,9 @@ data class TriggerOccurrence(
         require(eventId == null || eventId.length <= 512) {
             "TriggerOccurrence eventId is too long"
         }
+        require(eventData.size <= 8 && eventData.all { (key, value) ->
+            key in ALLOWED_EVENT_DATA_KEYS && value.length <= 512
+        }) { "TriggerOccurrence eventData contains unsupported or oversized values" }
     }
 
     companion object {
@@ -58,13 +63,23 @@ data class TriggerOccurrence(
             occurredAtEpochMs: Long,
             sourceId: String? = null,
             eventId: String? = null,
+            eventData: Map<String, String> = emptyMap(),
         ): TriggerOccurrence = TriggerOccurrence(
             matchedTriggerIndices = setOf(triggerIndex),
             occurredAtEpochMs = occurredAtEpochMs,
             sourceId = sourceId,
             eventId = eventId,
+            eventData = eventData.toMap(),
+        )
+
+        private val ALLOWED_EVENT_DATA_KEYS = setOf(
+            "sms.sender", "sms.blocked", "call.number", "call.blocked", "call.silenced"
         )
     }
+
+    override fun toString(): String =
+        "TriggerOccurrence(matchedTriggerIndices=$matchedTriggerIndices, occurredAtEpochMs=$occurredAtEpochMs, " +
+            "sourceId=$sourceId, eventId=$eventId, eventData=<redacted>)"
 }
 
 /** Where the proof for one trigger result came from. */

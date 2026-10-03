@@ -4,8 +4,20 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-
 class TriggerOccurrenceDeduplicatorTest {
+
+    @Test
+    fun `communication event values never appear in occurrence diagnostics`() {
+        val occurrence = TriggerOccurrence.single(
+            triggerIndex = 0,
+            occurredAtEpochMs = 1L,
+            sourceId = "sms",
+            eventData = mapOf("sms.sender" to "+15551234567"),
+        )
+
+        assertFalse(occurrence.toString().contains("15551234567"))
+        assertFalse(occurrence.toString().contains("sms.sender"))
+    }
 
     private fun occurrence(
         eventId: String? = "event-1",

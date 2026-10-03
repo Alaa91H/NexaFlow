@@ -1,6 +1,7 @@
 package com.nexaflow.core.engine
 
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 import java.security.MessageDigest
 
@@ -64,6 +65,17 @@ object SmsTriggerMatcher {
         body: String
     ): List<Automation> = automations.filter { automation ->
         automation.enabled && matchingTriggerIndices(automation, sender, body).isNotEmpty()
+    }
+
+    /** True only for a matching, enabled workflow with the explicit block action. */
+    fun blocksIncoming(automation: Automation, sender: String, body: String): Boolean {
+        val matching = matchingTriggerIndices(automation, sender, body)
+        if (!automation.enabled || matching.isEmpty() || automation.constraints.isNotEmpty()) return false
+        val expressionSatisfied = when (automation.triggerMatch) {
+            com.nexaflow.domain.models.TriggerMatchMode.ANY -> true
+            com.nexaflow.domain.models.TriggerMatchMode.ALL -> matching.size == automation.triggers.size
+        }
+        return expressionSatisfied && automation.actions.any { it.type == ActionType.SMS_BLOCK_INCOMING }
     }
 
     /** The reply text of the first SMS trigger of the automation, or null. */

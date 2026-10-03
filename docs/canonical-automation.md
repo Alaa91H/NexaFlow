@@ -10,8 +10,8 @@
 Automations are expressed as a **typed canonical AST** (`CanonicalAst.kt`,
 T04) with typed values (no raw `Map<String, String>` core contract), stable
 string identities (`CanonicalIdentityRegistry.kt`, T03) resolved from the
-frozen 233-node legacy surface through the reviewed mapping table
-(`LegacyMappingTable.kt`, T15 — 233/233). Legacy input is converted by the
+preserved legacy surface plus additive communication actions through the reviewed mapping table
+(`LegacyMappingTable.kt`, T15 — 237/237). Legacy input is converted by the
 legacy adapter (T14) plus the typed family upgrades (T17–T25); nothing is
 guessed at runtime.
 

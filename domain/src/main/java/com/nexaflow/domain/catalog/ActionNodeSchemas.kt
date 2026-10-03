@@ -87,6 +87,11 @@ internal object ActionNodeSchemas {
             stringField("number", required = true, expressionCapable = true),
             stringField("text", required = true, expressionCapable = true)
         )
+        ActionType.SMS_REPLY,
+        ActionType.CALL_REPLY_WITH_SMS -> schema(
+            stringField("text", required = true, expressionCapable = true)
+        )
+        ActionType.SMS_BLOCK_INCOMING -> schema()
         ActionType.SYSTEM_SEND_REMINDER -> schema(
             stringField("title", default = "Reminder", expressionCapable = true),
             stringField("text", expressionCapable = true),

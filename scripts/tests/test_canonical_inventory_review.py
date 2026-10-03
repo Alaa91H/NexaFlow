@@ -13,7 +13,7 @@ from canonical_inventory_review import ACTION_REVIEWS, TRIGGER_REVIEWS  # noqa: 
 class CanonicalInventoryReviewTest(unittest.TestCase):
     def test_frozen_legacy_counts_are_fully_reviewed(self) -> None:
         self.assertEqual(57, len(TRIGGER_REVIEWS))
-        self.assertEqual(176, len(ACTION_REVIEWS))
+        self.assertEqual(180, len(ACTION_REVIEWS))
 
     def test_review_vocabulary_is_closed(self) -> None:
         selections = {"SINGLE", "MULTI"}

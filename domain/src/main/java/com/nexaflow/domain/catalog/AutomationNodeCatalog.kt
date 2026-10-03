@@ -289,7 +289,11 @@ object AutomationNodeCatalog {
             ActionType.SYSTEM_DIAL_NUMBER,
             ActionType.SYSTEM_SEND_EMAIL,
             ActionType.CALL_BLOCK,
-            ActionType.CALL_SILENCE
+            ActionType.CALL_BLOCK_SILENT,
+            ActionType.CALL_SILENCE,
+            ActionType.CALL_REPLY_WITH_SMS,
+            ActionType.SMS_REPLY,
+            ActionType.SMS_BLOCK_INCOMING,
         ),
         AutomationNodeFamily.APPLICATIONS to listOf(
             ActionType.SYSTEM_OPEN_APP,

@@ -2,7 +2,7 @@
 
 Generated from source by `python scripts/generate_capability_catalog.py`. This inventory counts enum entries, not equivalent competitor blocks or device-certified capabilities.
 
-**57 trigger entries; 176 action entries.** Two triggers have restricted creation paths. The SENSOR entry has 12 configuration modes; the eight DATA actions each offer several operations. See [configuration](CONFIGURATION.md) and [validation](VALIDATION.md).
+**57 trigger entries; 180 action entries.** Two triggers have restricted creation paths. The SENSOR entry has 12 configuration modes; the eight DATA actions each offer several operations. See [configuration](CONFIGURATION.md) and [validation](VALIDATION.md).
 
 ## Semantic operations (Capability-Adaptive Execution)
 
@@ -121,6 +121,8 @@ Availability depends on permissions, capabilities, Android version and hardware.
 | `SYSTEM_OPEN_PLAY_UPDATES` | Play Store updates |
 | `SYSTEM_OPEN_DEVICE_STORE` | App store |
 | `SYSTEM_SEND_SMS` | Send SMS |
+| `SMS_REPLY` | Reply to incoming SMS |
+| `SMS_BLOCK_INCOMING` | Block incoming SMS |
 | `SYSTEM_SEND_REMINDER` | Reminder |
 | `SYSTEM_OPEN_SETTINGS` | Open settings |
 | `SYSTEM_WAIT` | Wait / Delay |
@@ -234,6 +236,8 @@ Availability depends on permissions, capabilities, Android version and hardware.
 | `SYSTEM_WIFI_SCAN_NOW` | Scan for Wi-Fi |
 | `SYSTEM_SET_TIMEZONE` | Set timezone |
 | `CALL_BLOCK` | Block call |
+| `CALL_BLOCK_SILENT` | Silently block call |
+| `CALL_REPLY_WITH_SMS` | Reply to caller by SMS |
 | `CALL_SILENCE` | Silence call |
 | `ROM_CUSTOM_SETTING` | Custom Setting |
 | `ROM_QS_TILES` | QS Tiles |

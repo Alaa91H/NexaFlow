@@ -51,14 +51,14 @@ REQUIRED_CONSTRUCTS = (
 )
 
 REQUIRED_TEST_CASES = (
-    "defaultAdapterCoversAll233TypesWithFamilyOverrides",
+    "defaultAdapterCoversAll237TypesWithFamilyOverrides",
     "legacyOpenSettingsFlowsThroughToAnExecutablePlan",
     "preservedLegacyConfigRidesButIsNotExecuted",
     "rejectedLegacyTypeNeverReachesThePlanner",
     "schemaTypedConfigBecomesTheValidatedSurface",
     "schemaMismatchBlocksTheCutover",
     "defaultPlannerCoversEveryFamilyDeclaredOperation",
-    "all233TypesCanonicalizeDeterministicallyThroughTheCutoverAdapter",
+    "all237TypesCanonicalizeDeterministicallyThroughTheCutoverAdapter",
     "cutoverPathIsDeterministic",
 )
 
@@ -126,7 +126,7 @@ def main() -> int:
             "mediaTransportIdentitySurvivesIntoAtomicCommand",
             "expressionCapableBrightnessPromotesTypedExpressionIntoPayload",
             "invalidBrightnessIsRejectedBeforePlanning",
-            "all233CatalogContractsValidateAndPreserveReviewedIdentity",
+            "all237CatalogContractsValidateAndPreserveReviewedIdentity",
             "runtimeCanonicalMetadataNeverRetainsRawSecretFields",
         ):
             if f"fun {case}" not in product_tests:

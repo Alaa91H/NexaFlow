@@ -21,7 +21,7 @@
 
 ## 3. خط الأساس الفعلي
 
-في Automation.kt يوجد 57 تعداد TriggerType و176 تعداد ActionType محفوظة. يسجل CanonicalIdentityRegistry 134 هدفا و46 عملية و12 شرطا؛ هذه مفاتيح تسجيل وليست 134 ميزة مكتملة ولا جميع توليفات الهدف والعملية.
+كان خط الأساس يحتوي 57 نوع TriggerType و176 نوع ActionType. أضافت موجة الاتصالات أربعة إجراءات متوافقة إضافية (CALL_BLOCK_SILENT وCALL_REPLY_WITH_SMS وSMS_REPLY وSMS_BLOCK_INCOMING)، فأصبح الإجمالي 57/180 مع بقاء الأنواع القديمة دون حذف. يسجل CanonicalIdentityRegistry 134 هدفا و46 عملية و12 شرطا؛ هذه مفاتيح تسجيل وليست 134 ميزة مكتملة ولا جميع توليفات الهدف والعملية.
 
 لا يسمح المسار القانوني بعدُ بالتعريفات الجديدة اعتمادا على NodeSchema وحده. يبنى AutomationNodeCatalog من التعدادات القديمة؛ وV3 يحتفظ بأعمدة المصدر القديمة؛ وCanonicalWorkflowV3ReadMapper يعيد حل المصدر إلى التعداد؛ وCanonicalCompatibilityActionDispatcher يطلب Handler حسب تعداد الإجراء. ولذلك يتطلب أي نوع جديد مسار كتالوج ومحرر ومخزن وقراءة وجدولة وتنفيذ واختبار migration واضحا.
 
@@ -84,7 +84,7 @@
 4. إلغاء التشغيل يوقف الموفّر وكل أداة مملوكة وينشئ audit terminal مرة واحدة. عزل memory/tool/prompt يمنع عابرا بين الوكلاء.
 5. محرر حقل لكل نوع قانوني يعيد save/load مع validation الواضح وتغطية TalkBack/RTL. capability matrix توضح غير المدعوم.
 6. العقد canonical الجديدة تمر من الإنشاء والتخزين والترحيل/backup والمحاكاة والجدولة والتنفيذ وإعادة التشغيل باستخدام معرف ثابت بلا إضافة enum.
-7. لكل trigger/action اختبار نجاح وفقد صلاحية/موفّر/عتاد/بيانات سيئة/timeout/cancel/duplicate والحدود المهمة. تحفظ الأنواع 57/176 القديمة golden parity.
+7. لكل trigger/action اختبار نجاح وفقد صلاحية/موفّر/عتاد/بيانات سيئة/timeout/cancel/duplicate والحدود المهمة. تحفظ الأنواع القديمة 57/176 golden parity، وتضاف الأنواع الجديدة إلى سجلها كعقود مستقلة قابلة للتدقيق.
 8. كامل Gradle CI gates والـcanonical contract/migrations/secrets/build/R8/test/release; instrumented Android permissions and process-death. أجهزة فعلية ذات OEM مختلفة قبل إثبات behavioral coverage.
 
 ## 9. محطات التنفيذ

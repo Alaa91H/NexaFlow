@@ -1,11 +1,11 @@
 package com.nexaflow.domain.canonical
 
 /**
- * T15 — generated legacy mapping table: 57 triggers + 176
- * actions = 233 rules.
+ * T15 — generated legacy mapping table: 57 triggers + 180
+ * actions = 237 rules.
  *
  * Source of truth: scripts/canonical_inventory_review.py (T01 semantic
- * review, 233/233 REVIEWED). Regenerate with:
+ * review, 237/237 REVIEWED). Regenerate with:
  *
  *     python3 scripts/generate_legacy_mapping_table.py
  *
@@ -17,7 +17,7 @@ package com.nexaflow.domain.canonical
  * family phase upgrades values with schema type information. This is what
  * keeps the migration lossless and idempotent.
  */
-@Suppress("LargeClass") // one reviewed 233-entry table; splitting it would hide the parity contract
+@Suppress("LargeClass") // one reviewed 237-entry table; splitting it would hide the parity contract
 object LegacyMappingTable {
 
     private data class Entry(
@@ -418,6 +418,18 @@ object LegacyMappingTable {
             operation = OperationId("core.operation.reject"),
             predicate = null,
         ),
+        Pair(LegacyNodeKind.ACTION, "CALL_BLOCK_SILENT") to Entry(
+            observe = false,
+            target = TargetId("core.communication.call"),
+            operation = OperationId("core.operation.reject"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "CALL_REPLY_WITH_SMS") to Entry(
+            observe = false,
+            target = TargetId("core.communication.sms"),
+            operation = OperationId("core.operation.send"),
+            predicate = null,
+        ),
         Pair(LegacyNodeKind.ACTION, "CALL_SILENCE") to Entry(
             observe = false,
             target = TargetId("core.communication.call"),
@@ -530,6 +542,18 @@ object LegacyMappingTable {
             observe = false,
             target = TargetId("core.rom.customization"),
             operation = OperationId("core.operation.set_configuration"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SMS_BLOCK_INCOMING") to Entry(
+            observe = false,
+            target = TargetId("core.communication.sms"),
+            operation = OperationId("core.operation.set_blocked"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "SMS_REPLY") to Entry(
+            observe = false,
+            target = TargetId("core.communication.sms"),
+            operation = OperationId("core.operation.send"),
             predicate = null,
         ),
         Pair(LegacyNodeKind.ACTION, "SYSTEM_ADAPTIVE_BATTERY") to Entry(
@@ -1428,7 +1452,7 @@ object LegacyMappingTable {
         ),
     )
 
-    /** All 233 rules in deterministic (kind, legacyType) order. */
+    /** All 237 rules in deterministic (kind, legacyType) order. */
     fun all(): List<LegacyMappingRule> = entries.map { (key, entry) ->
         GeneratedLegacyMappingRule(
             legacyType = key.second,

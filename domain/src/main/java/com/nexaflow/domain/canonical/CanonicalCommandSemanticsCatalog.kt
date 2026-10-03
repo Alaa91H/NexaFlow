@@ -2,7 +2,7 @@ package com.nexaflow.domain.canonical
 
 /**
  * Single T26 command-semantics registry for every operation emitted by the
- * reviewed 233-entry legacy mapping inventory.
+ * reviewed 237-entry automation mapping inventory.
  *
  * Conservative classifications are deliberate: user-visible/external effects
  * are never promoted to blindly retryable merely because a provider happens

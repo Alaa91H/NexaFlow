@@ -26,7 +26,7 @@ class PilotOpenFamilyTest {
 
     @Test
     fun pilotAdapterKeepsEveryOtherRuleIntact() {
-        assertEquals(233, pilotAdapter.declaredRules)
+        assertEquals(237, pilotAdapter.declaredRules)
         assertTrue(pilotAdapter.hasMapping(LegacyNodeKind.ACTION, "SYSTEM_OPEN_URL"))
         assertTrue(pilotAdapter.hasMapping(LegacyNodeKind.ACTION, "SYSTEM_OPEN_CAMERA"))
         assertTrue(pilotAdapter.hasMapping(LegacyNodeKind.TRIGGER, "WIFI_CONNECTED"))

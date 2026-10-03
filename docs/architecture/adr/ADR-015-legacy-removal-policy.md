@@ -15,8 +15,8 @@ V3 stability is proven. Import adapters may remain longer than execution paths.
 ## Required evidence before removal
 
 - 57/57 trigger mappings pass.
-- 176/176 action mappings pass.
-- 233/233 golden migration tests pass.
+- The original 176 legacy action mappings remain covered; the expanded catalog has 180 actions.
+- 237/237 golden migration tests pass across the 57 triggers and 180 actions.
 - Canonical runtime no longer depends on legacy enum semantics.
 - Upgrade/migration/device integration tests pass.
 - No unresolved migration data-loss defects exist.

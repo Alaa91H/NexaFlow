@@ -9,8 +9,10 @@ behavior is guessed during migration.
 | Kind | Count | Coverage target |
 |---|---:|---:|
 | TriggerType | 57 | 57/57 |
-| ActionType | 176 | 176/176 |
-| Total | 233 | 233/233 |
+| ActionType | 180 | 180/180 |
+| Total | 237 | 237/237 |
+
+The original 176 action types remain intact. Four additive communication actions are included in the expanded total.
 
 ## Existing foundations discovered during inventory
 
@@ -31,7 +33,7 @@ abstractions:
 
 ## Required inventory fields
 
-Every one of the 233 entries must eventually have all columns below populated
+Every one of the 237 entries must eventually have all columns below populated
 and reviewed before T01 may close:
 
 | Field | Meaning |
@@ -64,17 +66,17 @@ and reviewed before T01 may close:
 3. Unknown/dynamic config is preserved until its producer and consumer are
    explicitly understood.
 4. Legacy migration is one-to-one first. Consolidation is a later optimizer.
-5. T01 closes only when all 233 rows are REVIEWED and no behavior owner is
+5. T01 closes only when all 237 rows are REVIEWED and no behavior owner is
    unknown.
 
 ## Status
 
 - T00: **closed**
 - T01: **closed**
-- Source-derived inventory coverage: **233/233**
-- Semantic review coverage: **233/233 REVIEWED**
+- Source-derived inventory coverage: **237/237**
+- Semantic review coverage: **237/237 REVIEWED**
 - Trigger coverage: **57/57**
-- Action coverage: **176/176**
+- Action coverage: **180/180**
 - Existing semantic-router parity pinned: **17/17**
 - CI evidence: workflow run **#735** (`36395436428`) — lint, semantic-review invariants, runtime-contract audit, coverage, and build all passed.
 - T03: **implemented** — Canonical identity registry in
@@ -185,20 +187,20 @@ and reviewed before T01 may close:
   supplied by T15 mapping data; the framework itself is legacy-agnostic.
   Covered by 11 unit tests and CI gate
   `scripts/check_canonical_legacy_adapter.py`.
-- T15: **implemented** — 233/233 legacy mapping rules generated into
+- T15: **implemented** — 237/237 automation mapping rules generated into
   `domain/.../canonical/LegacyMappingTable.kt` from the reviewed T01
   inventory via `scripts/generate_legacy_mapping_table.py` (single source of
   truth; CI fails on drift): 57/57 triggers → ObserveNode skeletons over
-  registered predicates, 176/176 actions → InvokeNode skeletons over
+  registered predicates, 180/180 actions → InvokeNode skeletons over
   registered operations. Generated rules consume no config keys (payloads
   ride along losslessly until family phases add typed upgrades). Every rule
   is validated against the T03 identity registry and pinned idempotent.
-  Gate B closed in CI: 57/57 + 176/176 = 233/233. Covered by 7 unit tests
+  Gate B closed in CI: 57/57 + 180/180 = 237/237. Covered by 7 unit tests
   and CI gate `scripts/check_canonical_legacy_mappings.py`.
 - T16: **implemented** — Golden Migration Suite in
   `domain/src/test/.../GoldenMigrationSuiteTest.kt`: a pinned golden
-  contract (kind, target, identity) for each of the 233 mappings, payload
-  parity (config re-emerges verbatim), whole-table idempotency, the 57/176
+  contract (kind, target, identity) for each of the 237 mappings, payload
+  parity (config re-emerges verbatim), whole-table idempotency, the 57/180
   baseline split, serialization round-trips, and a no-unregistered-identity
   sweep.  Gate E closed in CI. Covered by 6 unit tests and CI gate
   `scripts/check_canonical_golden_migration.py`.

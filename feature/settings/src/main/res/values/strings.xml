@@ -8,6 +8,13 @@
     <string name="agent_activity_clear_confirm">This removes the local agent activity history.</string>
     <string name="settings_title">Settings</string>
     <string name="section_automation">Automation</string>
+    <string name="sms_default_role_title">Default SMS app</string>
+    <string name="sms_default_role_subtitle">Required to block SMS before delivery</string>
+    <string name="sms_default_role_active">Active</string>
+    <string name="sms_default_role_set">Set</string>
+    <string name="sms_default_role_disclosure_title">Set NexaFlow as the default SMS app?</string>
+    <string name="sms_default_role_disclosure_message">Android will deliver incoming SMS to NexaFlow so matching messages can be blocked. NexaFlow stores unblocked SMS, but it does not provide a full messaging inbox. MMS is not processed and may not be received while NexaFlow is the default SMS app. Your choice is managed by Android and can be changed in system settings.</string>
+    <string name="sms_default_role_continue">Review system choice</string>
     <string name="accessibility_service">Accessibility service</string>
 
     <string name="accessibility_disabled">Off — app triggers won\'t fire</string>

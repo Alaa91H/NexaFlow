@@ -2,7 +2,7 @@
 """Build/check the source-derived T01 legacy automation inventory.
 
 The inventory is intentionally generated from source contracts instead of a
-hand-maintained 233-row table. Review-only canonical fields remain UNREVIEWED
+hand-maintained row-count table. Review-only canonical fields remain UNREVIEWED
 until a human/source audit assigns semantics, canonical target/operation,
 capability and side-effect metadata.
 
@@ -190,10 +190,10 @@ def validate(rows: list[dict[str, object]]) -> list[str]:
     actions = [row for row in rows if row["kind"] == "ACTION"]
     if len(triggers) != 57:
         problems.append(f"expected 57 trigger rows, found {len(triggers)}")
-    if len(actions) != 176:
-        problems.append(f"expected 176 action rows, found {len(actions)}")
-    if len(rows) != 233:
-        problems.append(f"expected 233 total rows, found {len(rows)}")
+    if len(actions) != 180:
+        problems.append(f"expected 180 action rows, found {len(actions)}")
+    if len(rows) != 237:
+        problems.append(f"expected 237 total rows, found {len(rows)}")
 
     identities = [(row["kind"], row["legacyType"]) for row in rows]
     if len(set(identities)) != len(identities):
@@ -244,8 +244,8 @@ def main() -> int:
     reviewed = sum(row["reviewStatus"] == "REVIEWED" for row in rows)
     print(
         "CANONICAL_INVENTORY: REVIEW COVERAGE OK — "
-        f"{len(rows)} rows (57 triggers, 176 actions), "
-        f"{reviewed}/233 semantically reviewed"
+        f"{len(rows)} rows (57 triggers, 180 actions), "
+        f"{reviewed}/237 semantically reviewed"
     )
     if args.check:
         return 0

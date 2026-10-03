@@ -286,11 +286,31 @@ fun ActionConfigEditor(
                 )
             }
         }
+        ActionType.SMS_REPLY, ActionType.CALL_REPLY_WITH_SMS -> {
+            OutlinedTextField(
+                value = config["text"] ?: "",
+                onValueChange = { onConfigChange(config + ("text" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.reply_message)) },
+                singleLine = false
+            )
+            VariableInsertChips(
+                availableVariables = availableVariables,
+                currentValue = config["text"] ?: "",
+                onValueChange = { onConfigChange(config + ("text" to it)) }
+            )
+        }
+        ActionType.SMS_BLOCK_INCOMING -> {
+            Text(text = stringResource(R.string.action_sms_block_hint))
+        }
         ActionType.CALL_BLOCK -> {
             // No config: rejects the currently ringing call. The runtime
             // permission request is surfaced by PermissionCatalog's hint row;
             // here we only explain the behavior.
             Text(text = stringResource(R.string.call_block_hint))
+        }
+        ActionType.CALL_BLOCK_SILENT -> {
+            Text(text = stringResource(R.string.call_block_silent_hint))
         }
         ActionType.CALL_SILENCE -> {
             // No config: silences the ring without rejecting the call.

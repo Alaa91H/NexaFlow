@@ -12,13 +12,13 @@ class FamilyPhase22CommunicationTest {
 
     @Test
     fun familyOverridesCoverCommunicationMembers() {
-        assertEquals(14, overrides().count { it.kind == LegacyNodeKind.ACTION })
+        assertEquals(18, overrides().count { it.kind == LegacyNodeKind.ACTION })
         assertEquals(4, overrides().count { it.kind == LegacyNodeKind.TRIGGER })
     }
 
     @Test
     fun familyAdapterKeepsTheFullTable() {
-        assertEquals(233, familyAdapter.declaredRules)
+        assertEquals(237, familyAdapter.declaredRules)
     }
 
     @Test
