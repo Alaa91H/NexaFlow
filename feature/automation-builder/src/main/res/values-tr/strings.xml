@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_choose_app">Uygulama seç</string>
+    <string name="canonical_search_apps">Uygulama ara</string>
+    <string name="canonical_no_apps_found">Uygulama bulunamadı</string>
+    <string name="canonical_file_permission_error">Bu sağlayıcı kalıcı dosya erişimi vermedi. Başka bir dosya seçin.</string>
+    <string name="canonical_choose_file">Dosya seç</string>
             <string name="canonical_browse">Gözat</string>
     <string name="canonical_latitude">Enlem</string>
     <string name="canonical_longitude">Boylam</string>

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_choose_app">ऐप चुनें</string>
+    <string name="canonical_search_apps">ऐप खोजें</string>
+    <string name="canonical_no_apps_found">कोई ऐप नहीं मिला</string>
+    <string name="canonical_file_permission_error">इस प्रदाता ने फ़ाइल का स्थायी एक्सेस नहीं दिया। दूसरी फ़ाइल चुनें।</string>
+    <string name="canonical_choose_file">फ़ाइल चुनें</string>
             <string name="canonical_browse">ब्राउज़ करें</string>
     <string name="canonical_latitude">अक्षांश</string>
     <string name="canonical_longitude">देशांतर</string>

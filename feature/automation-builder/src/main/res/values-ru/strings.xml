@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_choose_app">Выбрать приложение</string>
+    <string name="canonical_search_apps">Поиск приложений</string>
+    <string name="canonical_no_apps_found">Приложения не найдены</string>
+    <string name="canonical_file_permission_error">Этот провайдер не предоставил постоянный доступ к файлу. Выберите другой файл.</string>
+    <string name="canonical_choose_file">Выбрать файл</string>
             <string name="canonical_browse">Обзор</string>
     <string name="canonical_latitude">Широта</string>
     <string name="canonical_longitude">Долгота</string>

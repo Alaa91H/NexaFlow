@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_choose_app">选择应用</string>
+    <string name="canonical_search_apps">搜索应用</string>
+    <string name="canonical_no_apps_found">未找到应用</string>
+    <string name="canonical_file_permission_error">此提供方未授予持久文件访问权限。请选择其他文件。</string>
+    <string name="canonical_choose_file">选择文件</string>
             <string name="canonical_browse">浏览</string>
     <string name="canonical_latitude">纬度</string>
     <string name="canonical_longitude">经度</string>

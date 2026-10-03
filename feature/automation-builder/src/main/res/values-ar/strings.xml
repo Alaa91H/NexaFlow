@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_choose_app">اختر تطبيقاً</string>
+    <string name="canonical_search_apps">ابحث عن تطبيق</string>
+    <string name="canonical_no_apps_found">لم يتم العثور على تطبيقات</string>
+    <string name="canonical_file_permission_error">لم يمنح موفر الملفات إذناً دائماً. اختر ملفاً آخر.</string>
+    <string name="canonical_choose_file">اختر ملفاً</string>
             <string name="canonical_browse">تصفح</string>
     <string name="canonical_latitude">خط العرض</string>
     <string name="canonical_longitude">خط الطول</string>

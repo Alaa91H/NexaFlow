@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_choose_app">App auswählen</string>
+    <string name="canonical_search_apps">Apps suchen</string>
+    <string name="canonical_no_apps_found">Keine Apps gefunden</string>
+    <string name="canonical_file_permission_error">Dieser Anbieter hat keinen dauerhaften Dateizugriff gewährt. Wähle eine andere Datei.</string>
+    <string name="canonical_choose_file">Datei auswählen</string>
             <string name="canonical_browse">Durchsuchen</string>
     <string name="canonical_latitude">Breitengrad</string>
     <string name="canonical_longitude">Längengrad</string>

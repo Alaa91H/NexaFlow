@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_choose_app">Choisir une application</string>
+    <string name="canonical_search_apps">Rechercher des applications</string>
+    <string name="canonical_no_apps_found">Aucune application trouvée</string>
+    <string name="canonical_file_permission_error">Ce fournisseur n’a pas accordé l’accès persistant au fichier. Choisissez un autre fichier.</string>
+    <string name="canonical_choose_file">Choisir un fichier</string>
             <string name="canonical_browse">Parcourir</string>
     <string name="canonical_latitude">Latitude</string>
     <string name="canonical_longitude">Longitude</string>

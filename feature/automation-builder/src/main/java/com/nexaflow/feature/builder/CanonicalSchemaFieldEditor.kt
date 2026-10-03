@@ -1,12 +1,23 @@
 package com.nexaflow.feature.builder
 
+import android.content.Intent
+import android.net.Uri
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.TimePicker
@@ -24,6 +35,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
+import java.text.Collator
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -316,6 +329,112 @@ private fun CanonicalFieldControl(
                 isError = hasParseError,
                 supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
             )
+        }
+        NodeFieldType.PACKAGE_ID -> {
+            val context = LocalContext.current
+            var showPicker by remember(field.id.value) { mutableStateOf(false) }
+            var query by remember(field.id.value) { mutableStateOf("") }
+            val applications = remember(showPicker, context) {
+                if (!showPicker) emptyList() else runCatching {
+                    context.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+                        .map { info ->
+                            info.packageName to context.packageManager.getApplicationLabel(info).toString()
+                        }
+                        .sortedWith(compareBy(Collator.getInstance()) { it.second })
+                }.getOrDefault(emptyList())
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = rawValue,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.weight(1f),
+                    label = { Text(field.id.value) },
+                    singleLine = true,
+                    isError = hasParseError,
+                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
+                )
+                Button(onClick = { showPicker = true }) {
+                    Text(stringResource(R.string.canonical_choose_app))
+                }
+            }
+            if (showPicker) {
+                AlertDialog(
+                    onDismissRequest = { showPicker = false },
+                    confirmButton = { TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.cancel)) } },
+                    title = { Text(stringResource(R.string.canonical_choose_app)) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = query,
+                                onValueChange = { query = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(stringResource(R.string.canonical_search_apps)) },
+                                singleLine = true,
+                            )
+                            val filtered = applications.filter { (packageName, label) ->
+                                query.isBlank() || label.contains(query, ignoreCase = true) ||
+                                    packageName.contains(query, ignoreCase = true)
+                            }
+                            if (filtered.isEmpty()) {
+                                Text(stringResource(R.string.canonical_no_apps_found))
+                            } else {
+                                LazyColumn(modifier = Modifier.heightIn(max = 360.dp)) {
+                                    items(filtered, key = { it.first }) { (packageName, label) ->
+                                        TextButton(
+                                            onClick = {
+                                                onValueChange(packageName)
+                                                showPicker = false
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                        ) {
+                                            Column(modifier = Modifier.fillMaxWidth()) {
+                                                Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                Text(packageName, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                )
+            }
+        }
+        NodeFieldType.URI -> {
+            val context = LocalContext.current
+            var permissionError by remember(field.id.value) { mutableStateOf(false) }
+            val filePicker = rememberLauncherForActivityResult(
+                ActivityResultContracts.OpenDocument(),
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    val retained = runCatching {
+                        context.contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                        )
+                    }.isSuccess
+                    permissionError = !retained
+                    if (retained) onValueChange(uri.toString())
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = rawValue,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.weight(1f),
+                    label = { Text(field.id.value) },
+                    singleLine = true,
+                    isError = hasParseError,
+                    supportingText = when {
+                        hasParseError -> ({ Text(stringResource(R.string.canonical_field_invalid_value)) })
+                        permissionError -> ({ Text(stringResource(R.string.canonical_file_permission_error)) })
+                        else -> null
+                    },
+                )
+                Button(onClick = { filePicker.launch(arrayOf("*/*")) }) {
+                    Text(stringResource(R.string.canonical_choose_file))
+                }
+            }
         }
         NodeFieldType.JSON -> {
             OutlinedTextField(
