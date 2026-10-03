@@ -107,6 +107,114 @@ class AiProviderRoutingTest {
         assertNull(registry.routeProvider(true))
     }
 
+
+    @Test
+    fun rateLimitedLocalProviderFallsBackToCloudUntilCooldownExpires() {
+        val local = FakeProvider("local", local = true, available = true)
+        val cloud = FakeProvider("cloud", local = false, available = true)
+        val registry = AiProviderRegistry(listOf(local, cloud))
+        registry.updateRoutingPolicy(
+            AiRoutingPolicy(
+                mode = AiRoutingMode.AUTOMATIC,
+                allowCloudFallback = true
+            )
+        )
+
+        registry.recordProviderFailure(
+            providerId = "local",
+            failure = AiConnectionFailure.RATE_LIMITED,
+            retryAfterMs = 10_000L,
+            nowMillis = 1_000L
+        )
+
+        val duringCooldown = registry.routeDecision(
+            AiRoutingRequirements(requireTools = true),
+            nowMillis = 2_000L
+        )
+        assertEquals("cloud", duringCooldown.providerId)
+        assertEquals(AiRouteReason.AUTOMATIC_HEALTH_FALLBACK, duringCooldown.reason)
+
+        val afterCooldown = registry.routeDecision(
+            AiRoutingRequirements(requireTools = true),
+            nowMillis = 12_000L
+        )
+        assertEquals("local", afterCooldown.providerId)
+        assertEquals(AiRouteReason.AUTOMATIC_LOCAL, afterCooldown.reason)
+    }
+
+    @Test
+    fun verifiedRoutingRejectsUnknownProviderUntilSuccessfulVerification() {
+        val cloud = FakeProvider("cloud", local = false, available = true)
+        val registry = AiProviderRegistry(listOf(cloud))
+        registry.updateRoutingPolicy(AiRoutingPolicy(AiRoutingMode.CLOUD_ONLY))
+        val requirements = AiRoutingRequirements(
+            requireTools = true,
+            requireVerified = true
+        )
+
+        assertNull(registry.routeProvider(requirements, nowMillis = 1_000L))
+        assertEquals(
+            AiRouteReason.HEALTH_UNAVAILABLE,
+            registry.routeDecision(requirements, nowMillis = 1_000L).reason
+        )
+
+        registry.recordConnectionTest(
+            AiConnectionTestResult(
+                success = true,
+                providerId = "cloud",
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                httpStatus = 200,
+                latencyMs = 20
+            ),
+            nowMillis = 2_000L
+        )
+
+        assertEquals(
+            "cloud",
+            registry.routeProvider(requirements, nowMillis = 2_001L)
+                ?.descriptor?.value?.id
+        )
+        assertEquals(
+            AiProviderHealthState.HEALTHY,
+            registry.state.value.providerHealth.getValue("cloud").state
+        )
+    }
+
+    @Test
+    fun fatalVerificationFailureBlocksSelectedProviderWithoutSilentFallback() {
+        val selected = FakeProvider("selected", local = false, available = true)
+        val backup = FakeProvider("backup", local = false, available = true)
+        val registry = AiProviderRegistry(listOf(selected, backup))
+        registry.updateRoutingPolicy(
+            AiRoutingPolicy(
+                mode = AiRoutingMode.SELECTED_PROVIDER,
+                selectedProviderId = "selected"
+            )
+        )
+
+        registry.recordConnectionTest(
+            AiConnectionTestResult(
+                success = false,
+                providerId = "selected",
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                httpStatus = 401,
+                failure = AiConnectionFailure.AUTHENTICATION,
+                latencyMs = 10
+            ),
+            nowMillis = 5_000L
+        )
+
+        assertNull(registry.routeProvider(true))
+        assertEquals(
+            AiRouteReason.SELECTED_UNHEALTHY,
+            registry.routeDecision(AiRoutingRequirements(requireTools = true)).reason
+        )
+        assertEquals(
+            AiProviderHealthState.UNAVAILABLE,
+            registry.state.value.providerHealth.getValue("selected").state
+        )
+    }
+
     private class FakeProvider(
         id: String,
         local: Boolean,

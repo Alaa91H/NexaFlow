@@ -1,0 +1,319 @@
+package com.nexaflow.feature.builder
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.BrightnessLow
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Contrast
+import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.Gradient
+import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.AirplanemodeActive
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.automirrored.filled.PhoneMissed
+import androidx.compose.material.icons.filled.PhonePaused
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.BrightnessHigh
+import androidx.compose.material.icons.filled.ClearAll
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DataUsage
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.DoNotDisturb
+import androidx.compose.material.icons.filled.EnergySavingsLeaf
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.FlashlightOn
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Terminal
+import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SignalCellularAlt
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.Timelapse
+import androidx.compose.material.icons.filled.ViewCarousel
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiTethering
+import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Contacts
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.PictureInPicture
+import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.nexaflow.domain.models.ActionType
+
+enum class ActionCategory(val headerRes: Int, val color: Color) {
+    DISPLAY(R.string.category_display, Color(0xFF0B57D0)),
+    SOUND(R.string.category_sound, Color(0xFF6750A4)),
+    CONNECTIVITY(R.string.category_connectivity, Color(0xFF006A6C)),
+    MEDIA(R.string.category_media, Color(0xFFC2185B)),
+    NOTIFICATIONS(R.string.category_notifications, Color(0xFF8F4C00)),
+    APPS(R.string.category_apps, Color(0xFF006D3C)),
+    SYSTEM(R.string.category_system, Color(0xFF455A64)),
+    BATTERY(R.string.category_battery, Color(0xFF387908)),
+    PLUGINS(R.string.category_plugins, Color(0xFF625B71))
+}
+
+data class ActionOption(
+    val titleRes: Int,
+    val subtitleRes: Int,
+    val icon: ImageVector,
+    val actionType: ActionType,
+    val category: ActionCategory
+) {
+    val color: Color get() = category.color
+}
+
+internal val actionOptions = listOf(
+    // DISPLAY
+    ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.BrightnessHigh, ActionType.SYSTEM_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.BrightnessAuto, ActionType.SYSTEM_AUTO_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, ActionType.SYSTEM_SCREEN_ROTATION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.Timelapse, ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
+    // Advanced System Tweaks — generic for all builds (vendor custom settings) — distributed to look native
+    ActionOption(R.string.action_rom_setting_qs_tiles, R.string.action_rom_setting_qs_tiles_sub, Icons.Filled.ViewCarousel, ActionType.ROM_QS_TILES, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_status_bar, R.string.action_rom_setting_status_bar_sub, Icons.Filled.BarChart, ActionType.ROM_STATUS_BAR, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_lockscreen, R.string.action_rom_setting_lockscreen_sub, Icons.Filled.Lock, ActionType.ROM_LOCKSCREEN, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_theme, R.string.action_rom_setting_theme_sub, Icons.Filled.Palette, ActionType.ROM_THEME, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_ambient_aod, R.string.action_rom_setting_ambient_aod_sub, Icons.Filled.WbSunny, ActionType.ROM_AMBIENT_AOD, ActionCategory.DISPLAY),
+    // SOUND
+    ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_vibrate, R.string.action_vibrate_sub, Icons.Filled.Vibration, ActionType.SYSTEM_VIBRATE, ActionCategory.SOUND),
+    ActionOption(R.string.action_ring_volume, R.string.action_ring_volume_sub, Icons.Filled.PhoneAndroid, ActionType.SYSTEM_RING_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote, ActionType.SYSTEM_SET_RINGTONE, ActionCategory.SOUND),
+    ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.Filled.NotificationsActive, ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
+    ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, ActionType.SYSTEM_DND, ActionCategory.SOUND),
+    // CONNECTIVITY
+    ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.WifiTethering, ActionType.SYSTEM_HOTSPOT, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_BLUETOOTH, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_MOBILE_DATA, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt, ActionType.SYSTEM_NETWORK_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc, ActionType.SYSTEM_NFC, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, ActionType.SYSTEM_AIRPLANE_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_location, R.string.action_location_sub, Icons.Filled.LocationOn, ActionType.SYSTEM_LOCATION, ActionCategory.CONNECTIVITY),
+    // MEDIA
+    ActionOption(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.PlayArrow, ActionType.SYSTEM_MEDIA_PLAY_PAUSE, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.SkipNext, ActionType.SYSTEM_MEDIA_NEXT, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.SkipPrevious, ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_stop, R.string.action_media_stop_sub, Icons.Filled.Stop, ActionType.SYSTEM_MEDIA_STOP, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_search, R.string.action_media_search_sub, Icons.Filled.MusicNote, ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH, ActionCategory.MEDIA),
+    // NOTIFICATIONS
+    ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.Notifications, ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message, ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_call_block, R.string.action_call_block_sub, Icons.AutoMirrored.Filled.PhoneMissed, ActionType.CALL_BLOCK, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_call_silence, R.string.action_call_silence_sub, Icons.Filled.PhonePaused, ActionType.CALL_SILENCE, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.ClearAll, ActionType.SYSTEM_CLEAR_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_open_notifications, R.string.action_open_notifications_sub, Icons.Filled.Notifications, ActionType.SYSTEM_OPEN_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.ExpandLess, ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.ExpandMore, ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_rom_setting_notifications, R.string.action_rom_setting_notifications_sub, Icons.Filled.NotificationsActive, ActionType.ROM_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    // APPS
+    ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.ViewCarousel, ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.APPS),
+    ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
+    ActionOption(R.string.action_update_google_play_apps, R.string.action_update_google_play_apps_sub, Icons.Filled.Storefront, ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS, ActionCategory.APPS),
+    ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
+    ActionOption(R.string.action_system_update, R.string.action_system_update_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_launch_app, R.string.action_launch_app_sub, Icons.Filled.Apps, ActionType.APPLICATION_LAUNCH_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_device_store, R.string.action_device_store_sub, Icons.Filled.Store, ActionType.SYSTEM_OPEN_DEVICE_STORE, ActionCategory.APPS),
+    // SYSTEM
+    ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashlightOn, ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_text, R.string.action_data_text_sub, Icons.Filled.Tune, ActionType.DATA_TEXT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_encoding, R.string.action_data_encoding_sub, Icons.Filled.Tune, ActionType.DATA_ENCODING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_hash, R.string.action_data_hash_sub, Icons.Filled.Tune, ActionType.DATA_HASH, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_random, R.string.action_data_random_sub, Icons.Filled.Tune, ActionType.DATA_RANDOM, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_math, R.string.action_data_math_sub, Icons.Filled.Tune, ActionType.DATA_MATH, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_date_time, R.string.action_data_date_time_sub, Icons.Filled.Tune, ActionType.DATA_DATE_TIME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_json, R.string.action_data_json_sub, Icons.Filled.Tune, ActionType.DATA_JSON, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_array, R.string.action_data_array_sub, Icons.Filled.Tune, ActionType.DATA_ARRAY, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public, ActionType.SYSTEM_HTTP_REQUEST, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.EnergySavingsLeaf, ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule, ActionType.SYSTEM_SET_ALARM, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_timer, R.string.action_timer_sub, Icons.Filled.HourglassEmpty, ActionType.SYSTEM_SET_TIMER, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.HourglassEmpty, ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_quick_settings, R.string.action_open_quick_settings_sub, Icons.Filled.Tune, ActionType.SYSTEM_OPEN_QUICK_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_wake_screen, R.string.action_wake_screen_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_WAKE_SCREEN, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_clipboard, R.string.action_clipboard_sub, Icons.Filled.ContentPaste, ActionType.SYSTEM_CLIPBOARD_SET, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune, ActionType.SYSTEM_SET_SETTING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_rom_setting_set_setting, R.string.action_rom_setting_set_setting_sub, Icons.Filled.Tune, ActionType.ROM_CUSTOM_SETTING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_rom_setting_navigation, R.string.action_rom_setting_navigation_sub, Icons.Filled.TouchApp, ActionType.ROM_NAVIGATION, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_rom_setting_batch, R.string.action_rom_setting_batch_sub, Icons.Filled.Build, ActionType.ROM_BATCH, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_screenshot, R.string.action_screenshot_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_SCREENSHOT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_input_text, R.string.action_input_text_sub, Icons.AutoMirrored.Filled.Chat, ActionType.SYSTEM_INPUT_TEXT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_key_event, R.string.action_key_event_sub, Icons.Filled.Build, ActionType.SYSTEM_KEY_EVENT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_input_tap, R.string.action_input_tap_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_INPUT_TAP, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_input_swipe, R.string.action_input_swipe_sub, Icons.AutoMirrored.Filled.ArrowForward, ActionType.SYSTEM_INPUT_SWIPE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_color_inversion, R.string.action_color_inversion_sub, Icons.Filled.Contrast, ActionType.SYSTEM_COLOR_INVERSION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_grayscale, R.string.action_grayscale_sub, Icons.Filled.Gradient, ActionType.SYSTEM_GRAYSCALE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_extra_dim, R.string.action_extra_dim_sub, Icons.Filled.BrightnessLow, ActionType.SYSTEM_EXTRA_DIM, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_night_light, R.string.action_night_light_sub, Icons.Filled.NightsStay, ActionType.SYSTEM_NIGHT_LIGHT, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_haptic_feedback, R.string.action_haptic_feedback_sub, Icons.Filled.TouchApp, ActionType.SYSTEM_HAPTIC_FEEDBACK, ActionCategory.SOUND),
+    ActionOption(R.string.action_sound_effects, R.string.action_sound_effects_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_SOUND_EFFECTS, ActionCategory.SOUND),
+    ActionOption(R.string.action_force_stop_app, R.string.action_force_stop_app_sub, Icons.Filled.Stop, ActionType.SYSTEM_FORCE_STOP_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_clear_app_data, R.string.action_clear_app_data_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_DATA, ActionCategory.APPS),
+    ActionOption(R.string.action_media_fast_forward, R.string.action_media_fast_forward_sub, Icons.Filled.FastForward, ActionType.SYSTEM_MEDIA_FAST_FORWARD, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_rewind, R.string.action_media_rewind_sub, Icons.Filled.FastRewind, ActionType.SYSTEM_MEDIA_REWIND, ActionCategory.MEDIA),
+    ActionOption(R.string.action_dial_number, R.string.action_dial_number_sub, Icons.Filled.Phone, ActionType.SYSTEM_DIAL_NUMBER, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_camera, R.string.action_open_camera_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_OPEN_CAMERA, ActionCategory.APPS),
+    ActionOption(R.string.action_open_play_store_app, R.string.action_open_play_store_app_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_STORE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_location_mode, R.string.action_location_mode_sub, Icons.Filled.LocationOn, ActionType.SYSTEM_LOCATION_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_data_saver, R.string.action_data_saver_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_DATA_SAVER, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_private_dns, R.string.action_private_dns_sub, Icons.Filled.Public, ActionType.SYSTEM_PRIVATE_DNS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_wifi_sleep_policy, R.string.action_wifi_sleep_policy_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SLEEP_POLICY, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_bluetooth_discoverability, R.string.action_bluetooth_discoverability_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_auto_time, R.string.action_auto_time_sub, Icons.Filled.Schedule, ActionType.SYSTEM_AUTO_TIME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_auto_timezone, R.string.action_auto_timezone_sub, Icons.Filled.Public, ActionType.SYSTEM_AUTO_TIMEZONE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_wifi_scanning, R.string.action_wifi_scanning_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SCANNING, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_font_scale, R.string.action_font_scale_sub, Icons.Filled.TextFields, ActionType.SYSTEM_FONT_SCALE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_display_density, R.string.action_display_density_sub, Icons.Filled.ScreenRotation, ActionType.SYSTEM_DISPLAY_DENSITY, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_screensaver, R.string.action_screensaver_sub, Icons.Filled.BrightnessLow, ActionType.SYSTEM_SCREENSAVER, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_always_on_display, R.string.action_always_on_display_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_ALWAYS_ON_DISPLAY, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_show_taps, R.string.action_show_taps_sub, Icons.Filled.TouchApp, ActionType.SYSTEM_SHOW_TAPS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_pointer_location, R.string.action_pointer_location_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_POINTER_LOCATION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_battery_saver_threshold, R.string.action_battery_saver_threshold_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_limit, R.string.action_charging_limit_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_CHARGING_LIMIT, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_feedback, R.string.action_charging_feedback_sub, Icons.Filled.Vibration, ActionType.SYSTEM_CHARGING_FEEDBACK, ActionCategory.BATTERY),
+    ActionOption(R.string.action_adaptive_battery, R.string.action_adaptive_battery_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_ADAPTIVE_BATTERY, ActionCategory.BATTERY),
+    ActionOption(R.string.action_haptic_intensity, R.string.action_haptic_intensity_sub, Icons.Filled.Equalizer, ActionType.SYSTEM_HAPTIC_INTENSITY, ActionCategory.SOUND),
+    ActionOption(R.string.action_camera_shutter_sound, R.string.action_camera_shutter_sound_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_CAMERA_SHUTTER_SOUND, ActionCategory.SOUND),
+    ActionOption(R.string.action_open_wifi_settings, R.string.action_open_wifi_settings_sub, Icons.Filled.Wifi, ActionType.SYSTEM_OPEN_WIFI_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_bluetooth_settings, R.string.action_open_bluetooth_settings_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_location_settings, R.string.action_open_location_settings_sub, Icons.Filled.LocationOn, ActionType.SYSTEM_OPEN_LOCATION_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_data_usage_settings, R.string.action_open_data_usage_settings_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_battery_settings, R.string.action_open_battery_settings_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_OPEN_BATTERY_SETTINGS, ActionCategory.BATTERY),
+    ActionOption(R.string.action_open_display_settings, R.string.action_open_display_settings_sub, Icons.Filled.ScreenRotation, ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_open_sound_settings, R.string.action_open_sound_settings_sub, Icons.AutoMirrored.Filled.VolumeUp, ActionType.SYSTEM_OPEN_SOUND_SETTINGS, ActionCategory.SOUND),
+    ActionOption(R.string.action_open_storage_settings, R.string.action_open_storage_settings_sub, Icons.Filled.Storage, ActionType.SYSTEM_OPEN_STORAGE_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_security_settings, R.string.action_open_security_settings_sub, Icons.Filled.Security, ActionType.SYSTEM_OPEN_SECURITY_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_accessibility_settings, R.string.action_open_accessibility_settings_sub, Icons.Filled.Accessibility, ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_app_settings_list, R.string.action_open_app_settings_list_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST, ActionCategory.APPS),
+    ActionOption(R.string.action_open_about_phone, R.string.action_open_about_phone_sub, Icons.Filled.Info, ActionType.SYSTEM_OPEN_ABOUT_PHONE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_reboot, R.string.action_reboot_sub, Icons.Filled.Refresh, ActionType.SYSTEM_REBOOT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_shutdown, R.string.action_shutdown_sub, Icons.Filled.PowerSettingsNew, ActionType.SYSTEM_SHUTDOWN, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_restart_system_ui, R.string.action_restart_system_ui_sub, Icons.Filled.Restore, ActionType.SYSTEM_RESTART_SYSTEM_UI, ActionCategory.SYSTEM),
+    // BATTERY
+    ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryChargingFull, ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
+    // v3.28 wave
+    ActionOption(R.string.action_toast, R.string.action_toast_sub, Icons.Filled.Info, ActionType.SYSTEM_TOAST, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_alert, R.string.action_alert_sub, Icons.Filled.Warning, ActionType.SYSTEM_ALERT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_vibrate_pattern, R.string.action_vibrate_pattern_sub, Icons.Filled.Vibration, ActionType.SYSTEM_VIBRATE_PATTERN, ActionCategory.SOUND),
+    ActionOption(R.string.action_paste, R.string.action_paste_sub, Icons.Filled.ContentPaste, ActionType.SYSTEM_PASTE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_app_drawer, R.string.action_open_app_drawer_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_APP_DRAWER, ActionCategory.APPS),
+    ActionOption(R.string.action_toggle_pip, R.string.action_toggle_pip_sub, Icons.Filled.PictureInPicture, ActionType.SYSTEM_TOGGLE_PIP, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_wifi_connect, R.string.action_wifi_connect_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_CONNECT, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_wifi_forget, R.string.action_wifi_forget_sub, Icons.Filled.WifiOff, ActionType.SYSTEM_WIFI_FORGET, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_data_roaming, R.string.action_data_roaming_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_DATA_ROAMING, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_screensaver_timeout, R.string.action_screensaver_timeout_sub, Icons.Filled.Timelapse, ActionType.SYSTEM_SCREENSAVER_TIMEOUT, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_pointer_speed, R.string.action_pointer_speed_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_POINTER_SPEED, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_install_apk, R.string.action_install_apk_sub, Icons.Filled.Download, ActionType.SYSTEM_INSTALL_APK, ActionCategory.APPS),
+    ActionOption(R.string.action_uninstall_app, R.string.action_uninstall_app_sub, Icons.Filled.Delete, ActionType.SYSTEM_UNINSTALL_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_disable_app, R.string.action_disable_app_sub, Icons.Filled.Block, ActionType.SYSTEM_DISABLE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_enable_app, R.string.action_enable_app_sub, Icons.Filled.CheckCircle, ActionType.SYSTEM_ENABLE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_set_notification_tone, R.string.action_set_notification_tone_sub, Icons.Filled.MusicNote, ActionType.SYSTEM_SET_NOTIFICATION_TONE, ActionCategory.SOUND),
+    ActionOption(R.string.action_call_vibration, R.string.action_call_vibration_sub, Icons.Filled.Vibration, ActionType.SYSTEM_CALL_VIBRATION, ActionCategory.SOUND),
+    ActionOption(R.string.action_open_network_settings, R.string.action_open_network_settings_sub, Icons.Filled.Wifi, ActionType.SYSTEM_OPEN_NETWORK_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_nfc_settings, R.string.action_open_nfc_settings_sub, Icons.Filled.Nfc, ActionType.SYSTEM_OPEN_NFC_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_data_saver_settings, R.string.action_open_data_saver_settings_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_developer_settings, R.string.action_open_developer_settings_sub, Icons.Filled.Build, ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_maps, R.string.action_open_maps_sub, Icons.Filled.Map, ActionType.SYSTEM_OPEN_MAPS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_soft_restart, R.string.action_soft_restart_sub, Icons.Filled.RestartAlt, ActionType.SYSTEM_SOFT_RESTART, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_status_bar_toggle, R.string.action_status_bar_toggle_sub, Icons.Filled.Visibility, ActionType.SYSTEM_STATUS_BAR_TOGGLE, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_open_contacts, R.string.action_open_contacts_sub, Icons.Filled.Contacts, ActionType.SYSTEM_OPEN_CONTACTS, ActionCategory.APPS),
+    ActionOption(R.string.action_send_email, R.string.action_send_email_sub, Icons.Filled.Email, ActionType.SYSTEM_SEND_EMAIL, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_open_notification_settings, R.string.action_open_notification_settings_sub, Icons.Filled.Notifications, ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_open_privacy_settings, R.string.action_open_privacy_settings_sub, Icons.Filled.Lock, ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_cast_settings, R.string.action_open_cast_settings_sub, Icons.Filled.Cast, ActionType.SYSTEM_OPEN_CAST_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_input_method_settings, R.string.action_open_input_method_settings_sub, Icons.Filled.Keyboard, ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_default_apps_settings, R.string.action_open_default_apps_settings_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS, ActionCategory.APPS),
+    ActionOption(R.string.action_open_vpn_settings, R.string.action_open_vpn_settings_sub, Icons.Filled.Lock, ActionType.SYSTEM_OPEN_VPN_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_date_settings, R.string.action_open_date_settings_sub, Icons.Filled.DateRange, ActionType.SYSTEM_OPEN_DATE_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_print_settings, R.string.action_open_print_settings_sub, Icons.Filled.Print, ActionType.SYSTEM_OPEN_PRINT_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_device_admin_settings, R.string.action_open_device_admin_settings_sub, Icons.Filled.Security, ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_usage_access_settings, R.string.action_open_usage_access_settings_sub, Icons.Filled.BarChart, ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_airplane_settings, R.string.action_open_airplane_settings_sub, Icons.Filled.AirplanemodeActive, ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_bluetooth_scan, R.string.action_bluetooth_scan_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_BLUETOOTH_SCAN, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_wifi_scan_now, R.string.action_wifi_scan_now_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SCAN_NOW, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_set_timezone, R.string.action_set_timezone_sub, Icons.Filled.Schedule, ActionType.SYSTEM_SET_TIMEZONE, ActionCategory.SYSTEM),
+    // PLUGINS
+    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS),
+    // ADVANCED — shown only when the matching elevated channel exists
+    // (the compatibility engine hides them otherwise).
+    ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, ActionType.ADVANCED_SHIZUKU, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, ActionType.ADVANCED_ROOT, ActionCategory.SYSTEM)
+)
+
+/**
+ * A focused, ordered view over the canonical catalog. Routine options keep
+ * their native category and are never persisted as a distinct action kind.
+ */

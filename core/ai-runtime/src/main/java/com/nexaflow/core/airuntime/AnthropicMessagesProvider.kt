@@ -1,5 +1,7 @@
 package com.nexaflow.core.airuntime
 
+import com.nexaflow.core.common.EndpointSecurityPolicy
+
 import java.net.URI
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +26,8 @@ data class AnthropicMessagesProviderConfig(
     val baseUrl: String = "",
     val modelId: String = "",
     val local: Boolean = false,
-    val reasoningEffort: String? = null
+    val reasoningEffort: String? = null,
+    val gatewaySession: Boolean = false
 )
 
 data class AnthropicMessagesTransportResponse(val statusCode: Int, val body: String)
@@ -36,6 +39,14 @@ interface AnthropicMessagesTransport {
         apiKey: String?
     ): AnthropicMessagesTransportResponse
 
+    suspend fun postMessagesWithHeaders(
+        config: AnthropicMessagesProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
+    ): AnthropicMessagesTransportResponse =
+        postMessages(config, body, apiKey)
+
     suspend fun getModels(
         config: AnthropicMessagesProviderConfig,
         apiKey: String?
@@ -43,6 +54,9 @@ interface AnthropicMessagesTransport {
 }
 
 object AnthropicEndpointPolicy {
+    fun requireAddresses(addresses: List<java.net.InetAddress>) =
+        EndpointSecurityPolicy.requireAddressScope(addresses, local = false)
+
     fun messagesUri(config: AnthropicMessagesProviderConfig, hasApiKey: Boolean): URI =
         endpoint(config, hasApiKey, "/messages")
 
@@ -57,13 +71,13 @@ object AnthropicEndpointPolicy {
         suffix: String
     ): URI {
         require(config.baseUrl.length in 8..OpenAiCompatibleProvider.MAX_BASE_URL_LENGTH)
-        val base = URI(config.baseUrl.trim().trimEnd('/'))
-        require(base.scheme == "https") { "Anthropic API requires HTTPS" }
-        require(!base.host.isNullOrBlank() && base.userInfo == null)
-        require(base.query == null && base.fragment == null)
-        require(!config.local || !hasApiKey) {
-            "Anthropic credentials cannot be sent to a local endpoint"
-        }
+        val base = EndpointSecurityPolicy.validateBaseUri(
+            raw = config.baseUrl.trim().trimEnd('/'),
+            allowHttp = false,
+            local = false,
+            hasCredential = hasApiKey,
+        )
+        require(!config.local) { "Anthropic native API profiles are remote-only" }
         return URI(base.scheme, null, base.host, base.port,
             base.path.trimEnd('/') + suffix, null, null)
     }
@@ -73,7 +87,7 @@ class AnthropicMessagesProvider(
     private val transport: AnthropicMessagesTransport,
     private val apiKeyProvider: suspend () -> String?,
     private val json: Json = Json { ignoreUnknownKeys = true }
-) : AiModelProvider {
+) : AiProviderAdapter {
     private val _descriptor = MutableStateFlow(descriptorFor(AnthropicMessagesProviderConfig()))
     override val descriptor: StateFlow<AiProviderDescriptor> = _descriptor.asStateFlow()
 
@@ -91,13 +105,39 @@ class AnthropicMessagesProvider(
         _descriptor.value = descriptorFor(normalized)
     }
 
-    suspend fun verify(): Boolean {
+    override suspend fun verifyConnection(): AiConnectionTestResult {
         val snapshot = config
+        val startedAt = System.nanoTime()
+        if (!isConfigured(snapshot)) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.id,
+                dialect = AiApiDialect.ANTHROPIC_MESSAGES,
+                failure = AiConnectionFailure.UNKNOWN,
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
         val result = discoverModels()
-        val valid = result.success && result.models.any { it == snapshot.modelId }
-        _descriptor.value = descriptorFor(snapshot, available = valid)
-        return valid
+        val modelExists = result.success && result.models.any { it == snapshot.modelId }
+        val failure = when {
+            !result.success -> AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            !modelExists -> AiConnectionFailure.MODEL_NOT_FOUND
+            else -> null
+        }
+        val verification = AiConnectionTestResult(
+            success = failure == null,
+            providerId = snapshot.id,
+            dialect = AiApiDialect.ANTHROPIC_MESSAGES,
+            httpStatus = result.statusCode,
+            failure = failure,
+            latencyMs = elapsedMillis(startedAt)
+        )
+        _descriptor.value = descriptorFor(snapshot, available = verification.success)
+        return verification
     }
+
+    suspend fun verify(): Boolean = verifyConnection().success
 
     data class ModelDiscoveryResult(
         val success: Boolean,
@@ -128,13 +168,60 @@ class AnthropicMessagesProvider(
         return ModelDiscoveryResult(true, models, response.statusCode)
     }
 
+    override suspend fun listModels(): AiModelDiscoveryResult {
+        val result = discoverModels()
+        return AiModelDiscoveryResult(
+            success = result.success,
+            models = result.models.map(::AiDiscoveredModel),
+            httpStatus = result.statusCode,
+            failure = if (result.success) {
+                null
+            } else {
+                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            }
+        )
+    }
+
+    override suspend fun discoverCapabilities(
+        model: AiModelDescriptorV2
+    ): AiCapabilityResult {
+        val verification = verifyConnection()
+        return AiCapabilityResult(
+            success = verification.success,
+            modelId = model.id,
+            capabilities = if (verification.success) {
+                AiProviderCapabilities(
+                    toolCalling = true,
+                    structuredOutput = false,
+                    streaming = false,
+                    local = false
+                )
+            } else {
+                AiProviderCapabilities()
+            },
+            failure = verification.failure
+        )
+    }
+
     override fun stream(request: AiProviderRequest): Flow<AiProviderEvent> = flow {
         val snapshot = config
         require(isConfigured(snapshot)) { "Provider is not configured" }
         val key = apiKeyProvider()?.takeIf(String::isNotBlank)
             ?: throw IllegalStateException("API key is missing")
-        val response = transport.postMessages(snapshot, request.toBody(snapshot), key)
-        require(response.statusCode in 200..299) { "Provider returned HTTP ${response.statusCode}" }
+        val headers = if (snapshot.gatewaySession) {
+            AiGatewaySessionPolicy.requestHeaders(request.conversationId)
+        } else {
+            emptyMap()
+        }
+        val response = transport.postMessagesWithHeaders(
+            snapshot,
+            request.toBody(snapshot),
+            key,
+            headers
+        )
+        if (response.statusCode !in 200..299) {
+            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
+        }
         val root = json.parseToJsonElement(response.body).jsonObject
         root["content"]?.jsonArray.orEmpty().forEach { block ->
             val value = block.jsonObject

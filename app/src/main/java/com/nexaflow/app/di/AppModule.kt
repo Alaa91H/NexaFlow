@@ -9,6 +9,7 @@ import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.automationcontrol.AutomationCommandService
 import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
 import com.nexaflow.core.automationcontrol.WorkflowDryRunInspector
+import com.nexaflow.core.common.AppDispatchers
 import com.nexaflow.core.automationcontrol.schedule.AgentSchedulePreviewService
 import com.nexaflow.core.automationcontrol.simulation.AgentSimulationService
 import com.nexaflow.core.database.AgentPlatformDao
@@ -65,6 +66,7 @@ import com.nexaflow.core.logging.LogStore
 import com.nexaflow.core.logging.RedactingLogStore
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.core.security.KeystoreSecureStorage
+import com.nexaflow.core.security.SecretVault
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.data.repository.AutomationRepositoryImpl
@@ -112,7 +114,6 @@ object AppModule {
             // crashing on a permanently broken file.
             .openHelperFactory(CorruptionRecoveryFactory())
             .addMigrations(*Migrations.ALL.toTypedArray())
-            .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
             .build()
     }
 
@@ -141,10 +142,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSecureStorage(@ApplicationContext context: Context): SecureStorage {
-        // Keystore AES-GCM; encrypts sensitive variable values at rest.
-        return KeystoreSecureStorage(context)
+    fun provideSecureStorage(
+        @ApplicationContext context: Context,
+        dispatchers: AppDispatchers
+    ): SecureStorage {
+        // Keystore AES-GCM with authenticated V2 envelopes; all disk/crypto
+        // work is explicitly kept off the main dispatcher.
+        return KeystoreSecureStorage(context, ioDispatcher = dispatchers.io)
     }
+
+    @Provides
+    @Singleton
+    fun provideSecretVault(secureStorage: SecureStorage): SecretVault =
+        SecretVault(secureStorage)
 
     @Provides
     @Singleton

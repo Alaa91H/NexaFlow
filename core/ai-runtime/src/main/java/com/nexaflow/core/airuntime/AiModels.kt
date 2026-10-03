@@ -16,7 +16,9 @@ data class AiConversationMessage(
     val toolCallId: String? = null,
     val toolName: String? = null,
     val toolCalls: List<AiToolCall> = emptyList(),
-    val isError: Boolean = false
+    val isError: Boolean = false,
+    /** Bounded opaque wire context required to resume provider-specific tool turns. */
+    val providerContext: JsonObject = JsonObject(emptyMap())
 )
 
 data class AiToolDefinition(
@@ -67,6 +69,7 @@ data class AiProviderRequest(
 sealed interface AiProviderEvent {
     data class TextDelta(val text: String) : AiProviderEvent
     data class ToolCall(val call: AiToolCall) : AiProviderEvent
+    data class WireContext(val context: JsonObject) : AiProviderEvent
     data class Finished(val reason: String? = null) : AiProviderEvent
 }
 

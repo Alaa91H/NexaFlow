@@ -1,7 +1,6 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
-import android.content.Intent
 import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.compat.ExecutionChannelSelector
 import com.nexaflow.core.compat.ExecutionProvider
@@ -21,7 +20,6 @@ import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
 import com.nexaflow.core.execution.capability.toSystemControlResult
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
-import com.nexaflow.core.execution.variables.BuiltinVariables
 import com.nexaflow.core.execution.variables.ScopedDataRuntime
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
@@ -54,8 +52,6 @@ import com.nexaflow.domain.models.requiresTimeRangeForEndBehavior
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.SmsActivityRepository
 import com.nexaflow.domain.repositories.VariableRepository
-import com.nexaflow.domain.variables.RuntimeValueCodec
-import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.awaitCancellation
@@ -171,28 +167,10 @@ class ExecutionEngine(
         constraintStateProvider = constraintStateProvider
     )
 
-    /**
-     * Single choke point for durable history writes: persists the record,
-     * then fans out to the run listener. Listener failures are swallowed so
-     * telemetry can never break execution or history.
-     */
-    private suspend fun recordHistory(record: ExecutionRecord) {
-        try {
-            historyRepository.recordExecution(record)
-        } finally {
-            try {
-                runListener.onRecord(record)
-            } catch (_: Exception) {
-            }
-        }
-    }
-
-    private suspend fun notifyTriggered(automationId: String, runId: String) {
-        try {
-            runListener.onTriggered(automationId, runId)
-        } catch (_: Exception) {
-        }
-    }
+    private val historyWriter = ExecutionHistoryWriter(historyRepository, runListener)
+    private val valueResolver = ExecutionValueResolver(context, variableRepository, epochMillis)
+    private val recoveryLedger = ExecutionRecoveryLedger(activeExecutionStore)
+    private val automationChangeNotifier = AutomationChangeNotifier(context)
     private val workflowAdmissionGate = WorkflowAdmissionGate(
         capabilitySnapshotProvider = capabilitySnapshotProvider,
         privilegeSnapshotProvider = privilegeSnapshotProvider,
@@ -313,7 +291,7 @@ class ExecutionEngine(
                     now = startedAt
                 )
             ) {
-                recordHistory(record)
+                historyWriter.record(record)
                 diagnostics.recordTimeline(
                     automation = automation,
                     kind = "CONCURRENT_RUN_SKIPPED",
@@ -350,7 +328,7 @@ class ExecutionEngine(
                     now = startedAt
                 )
             ) {
-                recordHistory(record)
+                historyWriter.record(record)
                 diagnostics.recordTimeline(
                     automation = automation,
                     kind = "DUPLICATE_OCCURRENCE_SKIPPED",
@@ -394,7 +372,7 @@ class ExecutionEngine(
                 message = historyMessage("Canonical runtime refused trigger graph: $detail"),
                 executedAt = startedAt,
             )
-            recordHistory(record)
+            historyWriter.record(record)
             diagnostics.recordTimeline(
                 automation, "CANONICAL_TRIGGER_REJECTED", record, startedAt, payloadContext.runId
             )
@@ -457,7 +435,7 @@ class ExecutionEngine(
                 channel = channel?.type?.name
             )
             if (skipReportThrottle.shouldReport(automation.id, "MAINTENANCE_DUPLICATE", startedAt)) {
-                recordHistory(record)
+                historyWriter.record(record)
             }
             diagnostics.recordTimeline(
                 automation = automation,
@@ -500,7 +478,7 @@ class ExecutionEngine(
                 )
                 if (skipReportThrottle.shouldReport(
                         automation.id, "CONSTRAINT:" + constraintResult.toGateMessage(), startedAt
-                    )) recordHistory(record)
+                    )) historyWriter.record(record)
                 diagnostics.recordTimeline(automation, "BLOCKED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
@@ -555,7 +533,7 @@ class ExecutionEngine(
                 )
                 if (skipReportThrottle.shouldReport(
                         automation.id, "TRIGGER_ALL:" + skipDetail, startedAt
-                    )) recordHistory(record)
+                    )) historyWriter.record(record)
                 diagnostics.recordTimeline(
                     automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId
                 )
@@ -597,7 +575,7 @@ class ExecutionEngine(
             )
             if (skipReportThrottle.shouldReport(
                     automation.id, "MAINTENANCE_WAITING:" + maintenanceReadiness.reason.name, startedAt
-                )) recordHistory(record)
+                )) historyWriter.record(record)
             diagnostics.recordTimeline(
                 automation = automation,
                 kind = "MAINTENANCE_WAITING",
@@ -654,7 +632,7 @@ class ExecutionEngine(
                     now = startedAt
                 )
             ) {
-                recordHistory(record)
+                historyWriter.record(record)
                 diagnostics.recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordBlockedRun(
                     payloadContext.runId, automation.id, TraceReasons.ADMISSION_REJECTED,
@@ -707,7 +685,7 @@ class ExecutionEngine(
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
-                recordHistory(record)
+                historyWriter.record(record)
                 diagnostics.recordTimeline(automation, "LIFECYCLE_CONFLICT", record, startedAt, payloadContext.runId)
                 traceRecorder.recordBlockedRun(
                     payloadContext.runId, automation.id, TraceReasons.ADMISSION_REJECTED,
@@ -721,7 +699,7 @@ class ExecutionEngine(
         // lifecycle claim, so reaching this point is the admission boundary.
         activeExecutions.add(automation.id)
         activeExecutionStore.markStarted(automation.id)
-        notifyTriggered(automation.id, payloadContext.runId)
+        historyWriter.triggered(automation.id, payloadContext.runId)
 
         // The durable admission succeeded (or this is a legacy/stateless run),
         // so this invocation may now own the in-memory restore snapshot too.
@@ -730,7 +708,7 @@ class ExecutionEngine(
         }
         // Resolve %variables once per run (single repo read + device probe),
         // then apply pure string substitution per action.
-        val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
+        val variables = runCatching { valueResolver.snapshot() }.getOrDefault(emptyMap())
         var inProgressActionIndex: Int? = null
         // Live Update card for this run: a silent IMPORTANCE_MIN notification
         // that advances per action and disappears when the run ends. Shown
@@ -767,7 +745,7 @@ class ExecutionEngine(
                 // Actions run sequentially and each handler may publish to the
                 // shared context (Step 4), so %CTX selectors are resolved here —
                 // after the previous node ran, before this node dispatches.
-                val resolved = resolveContextRefs(resolveAction(action, variables), payloadContext)
+                val resolved = valueResolver.resolve(action, variables, payloadContext)
 
                 // 1. Condition evaluation: skip action if condition is false
                 val conditionExpr = resolved.config["condition"]?.trim()
@@ -979,7 +957,7 @@ class ExecutionEngine(
             channel = channel?.type?.name,
             actionResults = results
         )
-        recordHistory(record)
+        historyWriter.record(record)
         // History is the durable commit point for a known main-action chain.
         // Never remove the checkpoint before this succeeds: a process death in
         // that window would otherwise lose both the run evidence and recovery
@@ -1029,7 +1007,7 @@ class ExecutionEngine(
         traceRecorder.recordRunOutcome(
             payloadContext.runId, automation.id, results, record.channel, startedAt, epochMillis.now()
         )
-        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+        automationChangeNotifier.notifyChanged()
         return record
         } finally {
             runningAutomationIds.remove(automation.id)
@@ -1063,7 +1041,7 @@ class ExecutionEngine(
             message = "Skipped: manual conditions not satisfied",
             executedAt = startedAt
         )
-        recordHistory(record)
+        historyWriter.record(record)
         diagnostics.recordTimeline(
             automation = automation,
             kind = "MANUAL_CONDITION_BLOCKED",
@@ -1202,7 +1180,7 @@ class ExecutionEngine(
                 executedAt = startedAt
             )
             if (skipReportThrottle.shouldReport(automation.id, "EXIT_NOT_ACTIVE", startedAt)) {
-                recordHistory(record)
+                historyWriter.record(record)
             }
             diagnostics.recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
             return record
@@ -1229,7 +1207,7 @@ class ExecutionEngine(
                 },
                 executedAt = startedAt
             )
-            recordHistory(record)
+            historyWriter.record(record)
             diagnostics.recordTimeline(
                 automation,
                 if (manualConditionRejected) "MANUAL_CONDITION_NOT_MET" else "EXIT",
@@ -1266,7 +1244,7 @@ class ExecutionEngine(
             mutableListOf<ActionExecutionResult>().apply {
                 // %variables resolved only when exit actions actually run — pure
                 // revert tasks never pay the extra repo read + device probe.
-                val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
+                val variables = runCatching { valueResolver.snapshot() }.getOrDefault(emptyMap())
                 // Adaptive per-action end behavior: each action configured with an
                 // end behavior (leave / restore original / set a specific value)
                 // is honored exactly as configured, before the custom exit actions.
@@ -1280,7 +1258,7 @@ class ExecutionEngine(
                         EndMode.REVERT -> snapshot?.restoreSetting(context, action)
                             ?: SystemControlResult.fail("No captured state to restore for ${action.type.name}")
                         EndMode.RERUN -> executeCanonicalCompatibilityAction(
-                            action = resolveAction(action, variables),
+                            action = valueResolver.resolve(action, variables),
                             controller = controller,
                             notif = notif,
                             channel = channel,
@@ -1290,7 +1268,7 @@ class ExecutionEngine(
                             instanceId = "v3.end.$actionIndex"
                         )
                         EndMode.SET_VALUE -> executeCanonicalCompatibilityAction(
-                            action = resolveAction(action.withConfig(behavior.config), variables),
+                            action = valueResolver.resolve(action.withConfig(behavior.config), variables),
                             controller = controller,
                             notif = notif,
                             channel = channel,
@@ -1318,7 +1296,7 @@ class ExecutionEngine(
                 automation.exitActions.forEachIndexed { exitIndex, action ->
                     val actionStartedAt = epochMillis.now()
                     val result = executeCanonicalCompatibilityAction(
-                        action = resolveAction(action, variables),
+                        action = valueResolver.resolve(action, variables),
                         controller = controller,
                         notif = notif,
                         channel = channel,
@@ -1362,7 +1340,7 @@ class ExecutionEngine(
         // retryable execution failure: replaying the end behavior could duplicate
         // an external side effect. Keep the returned action outcome authoritative
         // and surface the history failure through diagnostics instead.
-        val historyFailure = runCatching { recordHistory(record) }.exceptionOrNull()
+        val historyFailure = runCatching { historyWriter.record(record) }.exceptionOrNull()
         diagnostics.recordTimeline(
             automation,
             if (historyFailure != null) {
@@ -1381,7 +1359,7 @@ class ExecutionEngine(
             // the snapshot for explicit or coordinator-owned recovery.
             snapshots.remove(automation.id)
         }
-        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+        automationChangeNotifier.notifyChanged()
         return record
         } finally {
             try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
@@ -1398,38 +1376,21 @@ class ExecutionEngine(
 
     /** Current unresolved recovery count from the durable checkpoint ledger. */
     suspend fun recoveryBacklogCount(automationId: String): Int =
-        activeExecutionStore.recoveryRequiredCountForAutomation(automationId)
+        recoveryLedger.backlogCount(automationId)
 
     /**
      * Read-only recovery evidence for diagnostics/UI. No claim, retry or
      * acknowledgement occurs here.
      */
     suspend fun recoveryReviewItems(automationId: String): List<RecoveryReviewItem> =
-        activeExecutionStore.recoveryRequiredForAutomation(automationId).map { checkpoint ->
-            val currentNode = checkpoint.currentNodeId?.let { nodeId ->
-                checkpoint.nodeExecutions.lastOrNull { it.nodeId == nodeId }
-            } ?: checkpoint.nodeExecutions.lastOrNull()
-            RecoveryReviewItem(
-                runId = checkpoint.runId,
-                startedAt = checkpoint.startedAt,
-                updatedAt = checkpoint.updatedAt,
-                sourceStatus = (checkpoint.recoverySourceStatus ?: checkpoint.status).name,
-                nodeId = currentNode?.nodeId ?: checkpoint.currentNodeId,
-                nodeState = currentNode?.state?.name,
-                backend = currentNode?.backend,
-                verificationState = currentNode?.verificationState?.name
-                    ?: checkpoint.verificationState.name,
-                failureCode = currentNode?.failureCode,
-                message = checkpoint.message
-            )
-        }
+        recoveryLedger.reviewItems(automationId)
 
     /**
      * Discards recovery records that the user explicitly acknowledged for one
      * automation. This does not retry uncertain work or mark it successful.
      */
     suspend fun clearRecoveryBacklog(automationId: String): Int =
-        activeExecutionStore.clearRecoveryRequiredForAutomation(automationId)
+        recoveryLedger.clear(automationId)
 
     /**
      * Single owner of the engine-side half of deleting an automation. Call
@@ -1463,54 +1424,7 @@ class ExecutionEngine(
      * whose condition already holds runs immediately and a task disabled
      * while active runs its end behavior right away.
      */
-    fun notifyAutomationsChanged() {
-        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
-    }
-
-    /**
-     * Config keys that carry structured data (JSON) rather than free text:
-     * %variable substitution would corrupt them, so they are skipped.
-     */
-    private val opaqueConfigKeys = setOf("bundleJson", "action_buttons")
-
-    /**
-     * Resolves %variable placeholders (built-ins + user globals) inside every
-     * text-bearing config value before the handler sees it. Unknown names are
-     * left untouched. Pure string substitution — the variable map is resolved
-     * once per run by the caller. Opaque (structured) keys are skipped.
-     */
-    private fun resolveAction(action: Action, variables: Map<String, String>): Action {
-        if (variables.isEmpty()) return action
-        return action.copy(
-            config = action.config.mapValues { (key, value) ->
-                if (key in opaqueConfigKeys) value
-                else VariableResolver.resolve(value, variables)
-            }
-        )
-    }
-
-    /**
-     * Resolves `%CTX.<jsonpath>` selectors (Step 5) against the shared run
-     * context so a node can consume the output of an earlier node. Runs after
-     * [resolveAction] (so %NAME is already substituted) and after the previous
-     * actions executed — the context then holds what they published.
-     */
-    private fun resolveContextRefs(action: Action, runContext: WorkflowRunContext): Action =
-        action.copy(
-            config = action.config.mapValues { (key, value) ->
-                if (key in opaqueConfigKeys) value
-                else ContextVariableResolver.resolve(value, runContext)
-            }
-        )
-
-    private suspend fun resolveVariables(): Map<String, String> {
-        val builtins = runCatching { BuiltinVariables.provide(context) }.getOrDefault(emptyMap())
-        val globals = runCatching {
-            variableRepository?.snapshot(epochMillis.now())?.variables.orEmpty()
-        }.getOrDefault(emptyList())
-        if (globals.isEmpty()) return builtins
-        return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
-    }
+    fun notifyAutomationsChanged() = automationChangeNotifier.notifyChanged()
 
     /**
      * T32 fault boundary over the real canonical command. ACTION_STARTED is

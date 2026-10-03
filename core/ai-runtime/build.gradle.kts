@@ -35,6 +35,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
 

@@ -29,9 +29,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             hasApiKey = !apiKey.isNullOrBlank()
         )
         val addresses = InetAddress.getAllByName(endpoint.host).toList()
-        if (config.local) {
-            OpenAiEndpointPolicy.requireLocalAddresses(addresses)
-        }
+        OpenAiEndpointPolicy.requireAddresses(addresses, config.local)
 
         when (endpoint.scheme) {
             "https" -> getHttps(endpoint, apiKey)
@@ -44,16 +42,33 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
         config: OpenAiCompatibleProviderConfig,
         body: JsonObject,
         apiKey: String?
+    ): Flow<String> =
+        streamChatCompletionsWithHeaders(config, body, apiKey, emptyMap())
+
+    override fun streamChatCompletionsWithHeaders(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
     ): Flow<String> = AndroidOpenAiStreamingTransport.stream(
         config = config,
         body = body,
-        apiKey = apiKey
+        apiKey = apiKey,
+        gatewayHeaders = headers
     )
 
     override suspend fun postChatCompletions(
         config: OpenAiCompatibleProviderConfig,
         body: JsonObject,
         apiKey: String?
+    ): OpenAiCompatibleTransportResponse =
+        postChatCompletionsWithHeaders(config, body, apiKey, emptyMap())
+
+    override suspend fun postChatCompletionsWithHeaders(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
     ): OpenAiCompatibleTransportResponse = withContext(Dispatchers.IO) {
         val payload = body.toString().toByteArray(Charsets.UTF_8)
         require(payload.size <= MAX_REQUEST_BYTES) {
@@ -65,13 +80,14 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             hasApiKey = !apiKey.isNullOrBlank()
         )
         val addresses = InetAddress.getAllByName(endpoint.host).toList()
-        if (config.local) {
-            OpenAiEndpointPolicy.requireLocalAddresses(addresses)
-        }
+        OpenAiEndpointPolicy.requireAddresses(addresses, config.local)
 
         when (endpoint.scheme) {
-            "https" -> postHttps(endpoint, payload, apiKey)
-            "http" -> postPrivateHttp(endpoint, addresses.first(), payload)
+            "https" -> postHttps(endpoint, payload, apiKey, headers)
+            "http" -> {
+                require(headers.isEmpty()) { "Gateway headers require HTTPS" }
+                postPrivateHttp(endpoint, addresses.first(), payload)
+            }
             else -> error("Unsupported provider URL scheme")
         }
     }
@@ -158,7 +174,8 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
     private fun postHttps(
         endpoint: URI,
         payload: ByteArray,
-        apiKey: String?
+        apiKey: String?,
+        gatewayHeaders: Map<String, String>
     ): OpenAiCompatibleTransportResponse {
         val connection = endpoint.toURL().openConnection() as HttpsURLConnection
         try {
@@ -173,6 +190,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             apiKey?.takeIf(String::isNotBlank)?.let {
                 connection.setRequestProperty("Authorization", "Bearer $it")
             }
+            AndroidAiGatewayHeaders.apply(connection, gatewayHeaders)
             connection.setFixedLengthStreamingMode(payload.size)
             connection.outputStream.use { it.write(payload) }
 

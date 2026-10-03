@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.core.content.ContextCompat
@@ -49,7 +48,7 @@ import androidx.navigation.NavController
 import com.nexaflow.core.agentapi.AgentApiAuditEventV1
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.airuntime.AiRoutingMode
-import com.nexaflow.core.airuntime.AiProviderCatalog
+import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry as Registry
 import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.airuntime.AiReasoningLevel
 import com.nexaflow.core.ui.NexaFlowCard
@@ -114,20 +113,16 @@ fun AgentSettingsScreen(
         selectedProviderId = state.providerSettings.selectedProviderId
         allowCloudFallback = state.providerSettings.allowCloudFallback
     }
-    LaunchedEffect(profilePresetId, profileProtocol, providerApiKey, providerUrl, editingProfileId) {
-        kotlinx.coroutines.delay(600)
-        if (providerApiKey.length >= 8 || editingProfileId != null) {
-            viewModel.discoverProfileModels(
-                profileId = editingProfileId,
-                presetId = profilePresetId,
-                protocol = profileProtocol,
-                displayName = providerName.ifBlank { profilePresetId ?: "Custom provider" },
-                baseUrl = providerUrl,
-                modelId = providerModel,
-                local = providerLocal,
-                apiKey = providerApiKey
-            )
-        }
+    LaunchedEffect(
+        profilePresetId,
+        profileProtocol,
+        providerApiKey,
+        providerUrl,
+        providerModel,
+        providerLocal,
+        editingProfileId
+    ) {
+        viewModel.invalidateProviderDraft()
     }
 
     if (showModelPicker) {
@@ -392,6 +387,7 @@ fun AgentSettingsScreen(
                         ) {
                             RadioButton(
                                 selected = state.providerSettings.selectedProviderId == profile.id,
+                                enabled = profile.enabled,
                                 onClick = { viewModel.selectProviderProfile(profile.id) }
                             )
                             Column(Modifier.weight(1f)) {
@@ -399,7 +395,7 @@ fun AgentSettingsScreen(
                                     onClick = {
                                         editingProfileId = profile.id
                                         profilePresetId = profile.presetId?.takeIf {
-                                            AiProviderCatalog.preset(it) != null
+                                            Registry.preset(it) != null
                                         }
                                         profileProtocol = runCatching {
                                             AiProviderProtocol.valueOf(profile.protocol)
@@ -434,7 +430,7 @@ fun AgentSettingsScreen(
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )
-                    AiProviderCatalog.presets.forEach { preset ->
+                    Registry.presets.forEach { preset ->
                         TextButton(
                             onClick = {
                                 editingProfileId = null
@@ -482,8 +478,8 @@ fun AgentSettingsScreen(
                                 selected = profileProtocol == AiProviderProtocol.ANTHROPIC_MESSAGES,
                                 onClick = {
                                     profileProtocol = AiProviderProtocol.ANTHROPIC_MESSAGES
-                                    providerUrl = AiProviderCatalog.preset("claude")?.baseUrl.orEmpty()
-                                    providerModel = AiProviderCatalog.preset("claude")?.defaultModelId.orEmpty()
+                                    providerUrl = Registry.preset("claude")?.baseUrl.orEmpty()
+                                    providerModel = Registry.preset("claude")?.defaultModelId.orEmpty()
                                 },
                                 label = { Text(stringResource(R.string.ai_provider_protocol_anthropic)) }
                             )
@@ -539,20 +535,29 @@ fun AgentSettingsScreen(
                             placeholder = { Text(stringResource(R.string.ai_provider_model_hint)) },
                             singleLine = true
                         )
+                    }
+                    TextButton(
+                        onClick = {
+                            viewModel.discoverProfileModels(
+                                profileId = editingProfileId,
+                                presetId = profilePresetId,
+                                protocol = profileProtocol,
+                                displayName = providerName,
+                                baseUrl = providerUrl,
+                                modelId = providerModel,
+                                local = providerLocal,
+                                apiKey = providerApiKey
+                            )
+                        },
+                        enabled = AiProviderSetupPolicy.canDiscoverModels(state.providerProbeState)
+                    ) { Text(stringResource(R.string.ai_provider_discover_models)) }
+                    if (profilePresetId == null && state.profileModelChoices.isNotEmpty()) {
                         TextButton(
-                            onClick = {
-                                viewModel.discoverProfileModels(
-                                    profileId = editingProfileId,
-                                    presetId = profilePresetId,
-                                    protocol = profileProtocol,
-                                    displayName = providerName,
-                                    baseUrl = providerUrl,
-                                    modelId = providerModel,
-                                    local = providerLocal,
-                                    apiKey = providerApiKey
-                                )
-                            }
-                        ) { Text(stringResource(R.string.ai_provider_discover_models)) }
+                            onClick = { showModelPicker = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.ai_provider_choose_model))
+                        }
                     }
                     when (state.modelDiscoveryState) {
                         AiModelDiscoveryState.LOADING -> Text(stringResource(R.string.ai_provider_models_loading))
@@ -563,7 +568,15 @@ fun AgentSettingsScreen(
                     }
                     when (state.providerProbeState) {
                         AiProviderProbeState.TESTING -> Text(stringResource(R.string.ai_provider_testing))
-                        AiProviderProbeState.SUCCESS -> Text(stringResource(R.string.ai_provider_test_success))
+                        AiProviderProbeState.SUCCESS -> Text(
+                            buildString {
+                                append(stringResource(R.string.ai_provider_test_success))
+                                state.providerLastVerifiedAtMillis?.let {
+                                    append(" · ")
+                                    append(dateFormat.format(Date(it)))
+                                }
+                            }
+                        )
                         AiProviderProbeState.FAILED -> Text(
                             stringResource(providerProbeFailureMessageRes(state.providerProbeStatusCode))
                         )
@@ -616,76 +629,21 @@ fun AgentSettingsScreen(
                             onCheckedChange = { providerLocal = it }
                         )
                     }
-                    OutlinedTextField(
-                        value = providerApiKey,
-                        onValueChange = { if (it.length <= 16_384) providerApiKey = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.ai_provider_api_key)) },
-                        placeholder = {
-                            Text(stringResource(R.string.ai_provider_api_key_hint))
-                        },
-                        visualTransformation = PasswordVisualTransformation(),
-                        singleLine = true
+                    AiProviderCredentialActions(
+                        state = state,
+                        viewModel = viewModel,
+                        editingProfileId = editingProfileId,
+                        profilePresetId = profilePresetId,
+                        profileProtocol = profileProtocol,
+                        providerName = providerName,
+                        providerUrl = providerUrl,
+                        providerModel = providerModel,
+                        providerLocal = providerLocal,
+                        providerApiKey = providerApiKey,
+                        reasoningEffort = reasoningLevel.apiValue,
+                        onApiKeyChange = { providerApiKey = it },
+                        onSaved = { selectedTab = AiSettingsTab.AGENTS }
                     )
-                    if (editingProfileId != null) {
-                        Text(
-                            text = stringResource(R.string.ai_provider_api_key_saved),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    TextButton(
-                        onClick = {
-                            viewModel.verifyProviderDraft(
-                                profileId = editingProfileId,
-                                presetId = profilePresetId,
-                                protocol = profileProtocol,
-                                displayName = providerName,
-                                baseUrl = providerUrl,
-                                modelId = providerModel,
-                                local = providerLocal,
-                                apiKey = providerApiKey
-                            )
-                        },
-                        enabled = providerName.isNotBlank() && providerUrl.isNotBlank() &&
-                            providerModel.isNotBlank() && (providerApiKey.isNotBlank() ||
-                            state.providerProfiles.any { it.id == editingProfileId })
-                    ) {
-                        Text(stringResource(R.string.ai_provider_verify))
-                    }
-                    Button(
-                        onClick = {
-                            viewModel.saveProviderProfile(
-                                profileId = editingProfileId,
-                                presetId = profilePresetId,
-                                protocol = profileProtocol,
-                                displayName = providerName,
-                                baseUrl = providerUrl,
-                                modelId = providerModel,
-                                local = providerLocal,
-                                apiKey = providerApiKey,
-                                reasoningEffort = reasoningLevel.apiValue,
-                                onComplete = { saved ->
-                                    if (saved) {
-                                        providerApiKey = ""
-                                        selectedTab = AiSettingsTab.AGENTS
-                                    }
-                                }
-                            )
-                        },
-                        enabled = providerName.isNotBlank() && providerUrl.isNotBlank() &&
-                            providerModel.isNotBlank() && (providerApiKey.isNotBlank() ||
-                            state.providerProfiles.any { it.id == editingProfileId } ||
-                            (profilePresetId == null && providerLocal && profileProtocol ==
-                                AiProviderProtocol.OPENAI_CHAT_COMPLETIONS))
-                    ) {
-                        Text(
-                            stringResource(
-                                if (editingProfileId == null) R.string.ai_provider_add
-                                else R.string.ai_provider_save
-                            )
-                        )
-                    }
                     }
                     if (selectedTab == AiSettingsTab.AGENTS) {
                     HorizontalDivider()

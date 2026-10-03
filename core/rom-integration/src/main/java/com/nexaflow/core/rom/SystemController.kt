@@ -38,9 +38,6 @@ import com.nexaflow.domain.updates.GooglePlayUpdateEnvironment
 import com.nexaflow.domain.updates.GooglePlayUpdatePlanner
 import com.nexaflow.domain.models.SmsActivityEvent
 import com.nexaflow.domain.repositories.SmsActivityRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Suppress("TooManyFunctions", "LargeClass") // System-ops façade: many small, single-purpose device operations
 class SystemController(
@@ -50,37 +47,16 @@ class SystemController(
     private val smsAutomationId: String? = null,
     private val smsAutomationName: String? = null
 ) {
+    private val statusBarController = StatusBarController(context, capabilityProvider)
+    private val applicationPackageController = ApplicationPackageController()
+    private val systemSettingsController = SystemSettingsController(context, capabilityProvider)
     // STATUS_BAR_SERVICE is a hidden constant not in the public SDK; the raw
     // service name is used intentionally for privileged ROM integration.
     @SuppressLint("WrongConstant")
-    fun expandStatusBar(): SystemControlResult {
-        if (!capabilityProvider.isAvailable(RomCapability.STATUS_BAR_CONTROL)) {
-            return SystemControlResult.fail("Status bar control is not available at the current integration level")
-        }
-        return try {
-            val service = context.getSystemService("statusbar")
-                ?: return SystemControlResult.fail("Status bar service is unavailable")
-            RomSystemApiBridge.invokeInstance(service, "expandNotificationsPanel")
-            SystemControlResult.ok("Status bar expanded")
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to expand status bar: ${t.message}")
-        }
-    }
+    fun expandStatusBar(): SystemControlResult = statusBarController.expandStatusBar()
 
     @SuppressLint("WrongConstant")
-    fun collapseStatusBar(): SystemControlResult {
-        if (!capabilityProvider.isAvailable(RomCapability.STATUS_BAR_CONTROL)) {
-            return SystemControlResult.fail("Status bar control is not available at the current integration level")
-        }
-        return try {
-            val service = context.getSystemService("statusbar")
-                ?: return SystemControlResult.fail("Status bar service is unavailable")
-            RomSystemApiBridge.invokeInstance(service, "collapsePanels")
-            SystemControlResult.ok("Status bar collapsed")
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to collapse status bar: ${t.message}")
-        }
-    }
+    fun collapseStatusBar(): SystemControlResult = statusBarController.collapseStatusBar()
 
     fun setDoNotDisturb(enabled: Boolean): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.DND_ACCESS)) {
@@ -116,17 +92,8 @@ class SystemController(
         }
     }
 
-    fun writeSecureSetting(name: String, value: String): SystemControlResult {
-        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SECURE_SETTINGS)) {
-            return SystemControlResult.fail("Write secure settings is not available at the current integration level")
-        }
-        return try {
-            Settings.Secure.putString(context.contentResolver, name, value)
-            SystemControlResult.ok("Set $name = $value")
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to write secure setting: ${t.message}")
-        }
-    }
+    fun writeSecureSetting(name: String, value: String): SystemControlResult =
+        systemSettingsController.writeSecureSetting(name, value)
 
     fun setScreenTimeoutMillis(millis: Int): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
@@ -377,29 +344,10 @@ class SystemController(
     }
 
     /** Expands the notification shade (shell path with reflection fallback). */
-    fun expandNotifications(): SystemControlResult {
-        val shell = PrivilegedRunner.runShell("cmd statusbar expand-notifications")
-        if (shell.success) return shell
-        return expandStatusBarPanel("expandNotificationsPanel", shell)
-    }
+    fun expandNotifications(): SystemControlResult = statusBarController.expandNotifications()
 
     /** Expands the quick-settings panel (shell path with reflection fallback). */
-    fun expandQuickSettings(): SystemControlResult {
-        val shell = PrivilegedRunner.runShell("cmd statusbar expand-settings")
-        if (shell.success) return shell
-        return expandStatusBarPanel("expandSettingsPanel", shell)
-    }
-
-    private fun expandStatusBarPanel(method: String, fallback: SystemControlResult): SystemControlResult {
-        return try {
-            val service = context.getSystemService("statusbar")
-                ?: return fallback
-            RomSystemApiBridge.invokeInstance(service, method)
-            SystemControlResult.ok("Status bar expanded ($method)")
-        } catch (t: Throwable) {
-            fallback
-        }
-    }
+    fun expandQuickSettings(): SystemControlResult = statusBarController.expandQuickSettings()
 
     fun openUrl(url: String): SystemControlResult {
         if (url.isBlank()) return SystemControlResult.fail("No URL configured")
@@ -862,33 +810,10 @@ class SystemController(
     }
 
     /** Open the recent-apps screen. Requires status bar control or elevated runtime. */
-    fun openRecents(): SystemControlResult {
-        if (!capabilityProvider.isAvailable(RomCapability.STATUS_BAR_CONTROL)) {
-            return tryPrivileged(
-                command = "input keyevent KEYCODE_APP_SWITCH",
-                successMessage = "Recents opened"
-            )
-        }
-        return try {
-            val service = context.getSystemService("statusbar")
-                ?: return SystemControlResult.fail("Status bar service is unavailable")
-            RomSystemApiBridge.invokeInstance(service, "toggleRecentApps")
-            SystemControlResult.ok("Recents opened")
-        } catch (t: Throwable) {
-            tryPrivileged(
-                command = "input keyevent KEYCODE_APP_SWITCH",
-                successMessage = "Recents opened"
-            )
-        }
-    }
+    fun openRecents(): SystemControlResult = statusBarController.openRecents()
 
     /** Go to the home screen. Requires an elevated runtime or accessibility. */
-    fun goHome(): SystemControlResult {
-        return tryPrivileged(
-            command = "input keyevent KEYCODE_HOME",
-            successMessage = "Home screen shown"
-        )
-    }
+    fun goHome(): SystemControlResult = statusBarController.goHome()
 
     /** Set the ring (incoming call) volume. Requires no special permission. */
     fun setRingVolume(value: Int): SystemControlResult {
@@ -1084,7 +1009,7 @@ class SystemController(
     }
 
     /** Send an SMS text message. Requires SEND_SMS permission. */
-    fun sendSms(number: String, text: String): SystemControlResult {
+    suspend fun sendSms(number: String, text: String): SystemControlResult {
         val result = if (number.isBlank()) SystemControlResult.fail("No phone number configured") else try {
             val smsManager = context.getSystemService(android.telephony.SmsManager::class.java)
             val parts = smsManager.divideMessage(text.ifBlank { "NexaFlow automation" })
@@ -1094,10 +1019,22 @@ class SystemController(
             SystemControlResult.fail("Failed to send SMS")
         }
         smsActivityRepository?.let { repository ->
-            CoroutineScope(Dispatchers.IO).launch {
-                runCatching {
-                    repository.record(SmsActivityEvent(java.util.UUID.randomUUID().toString(), "OUTGOING_ACTION", smsAutomationId, smsAutomationName, if (result.success) "SUBMITTED" else "FAILED", if (result.success) null else "SEND_FAILED", System.currentTimeMillis()))
-                }
+            try {
+                repository.record(
+                    SmsActivityEvent(
+                        java.util.UUID.randomUUID().toString(),
+                        "OUTGOING_ACTION",
+                        smsAutomationId,
+                        smsAutomationName,
+                        if (result.success) "SUBMITTED" else "FAILED",
+                        if (result.success) null else "SEND_FAILED",
+                        System.currentTimeMillis()
+                    )
+                )
+            } catch (cancelled: java.util.concurrent.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Activity telemetry is best-effort and never changes the SMS result.
             }
         }
         return result
@@ -1162,37 +1099,11 @@ class SystemController(
         }
     }
 
-    private fun writeSystemInt(name: String, value: Int, successMessage: String): SystemControlResult {
-        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
-            return tryPrivileged(
-                command = "settings put system $name $value",
-                successMessage = successMessage
-            )
-        }
-        return try {
-            val written = Settings.System.putInt(context.contentResolver, name, value)
-            if (written) SystemControlResult.ok(successMessage)
-            else SystemControlResult.fail("The ROM rejected the change")
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to change setting: ${t.message}")
-        }
-    }
+    private fun writeSystemInt(name: String, value: Int, successMessage: String): SystemControlResult =
+        systemSettingsController.writeSystemInt(name, value, successMessage)
 
-    private fun writeSecureInt(name: String, value: Int, successMessage: String): SystemControlResult {
-        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SECURE_SETTINGS)) {
-            return tryPrivileged(
-                command = "settings put secure $name $value",
-                successMessage = successMessage
-            )
-        }
-        return try {
-            val written = Settings.Secure.putInt(context.contentResolver, name, value)
-            if (written) SystemControlResult.ok(successMessage)
-            else SystemControlResult.fail("The ROM rejected the change")
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to change setting: ${t.message}")
-        }
-    }
+    private fun writeSecureInt(name: String, value: Int, successMessage: String): SystemControlResult =
+        systemSettingsController.writeSecureInt(name, value, successMessage)
 
     fun launchApp(packageName: String): SystemControlResult {
         return try {
@@ -1347,40 +1258,14 @@ class SystemController(
         writeRomSetting(namespace, key, if (enabled) "1" else "0")
 
 
-    private fun readGlobalSetting(key: String): String? {
-        val result = PrivilegedRunner.runShell(SafeCommandBuilder.build("settings", "get", "global", key))
-        return result.message.trim().takeIf { result.success && it != "null" }
-    }
+    private fun readGlobalSetting(key: String): String? = systemSettingsController.readGlobalSetting(key)
 
-    private fun writeAndReadGlobalBoolean(key: String, enabled: Boolean): SystemControlResult {
-        val expected = if (enabled) "1" else "0"
-        val write = writeSetting("GLOBAL", key, expected)
-        if (!write.success) return write
-        return if (readGlobalSetting(key) == expected) {
-            SystemControlResult.ok("$key = $expected")
-        } else {
-            SystemControlResult.fail("$key was not accepted by this ROM")
-        }
-    }
+    private fun writeAndReadGlobalBoolean(key: String, enabled: Boolean): SystemControlResult =
+        systemSettingsController.writeAndReadGlobalBoolean(key, enabled)
 
     /** Writes any Settings key (SYSTEM/SECURE/GLOBAL) through the shell. */
-    fun writeSetting(namespace: String, key: String, value: String): SystemControlResult {
-        val ns = when (namespace.uppercase()) {
-            "SYSTEM" -> "system"
-            "SECURE" -> "secure"
-            else -> "global"
-        }
-        if (key.isBlank()) return SystemControlResult.fail("No settings key configured")
-        if (!SafeCommandBuilder.isSafeCommand(value)) {
-            return SystemControlResult.fail("Settings value rejected: unsafe characters")
-        }
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("settings", "put", ns, key, value))
-            if (shell.success) SystemControlResult.ok("$ns/$key = $value") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Settings write failed: ${t.message}")
-        }
-    }
+    fun writeSetting(namespace: String, key: String, value: String): SystemControlResult =
+        systemSettingsController.writeSetting(namespace, key, value)
 
     /** Captures a screenshot to the Pictures/NexaFlow folder. */
     fun screenshot(filename: String): SystemControlResult {
@@ -1461,26 +1346,10 @@ class SystemController(
     }
 
     /** Force-stops an app package (`am force-stop`). */
-    fun forceStopApp(pkg: String): SystemControlResult {
-        if (pkg.isBlank()) return SystemControlResult.fail("No package configured")
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("am", "force-stop", pkg))
-            if (shell.success) SystemControlResult.ok("$pkg stopped") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Force-stop failed: ${t.message}")
-        }
-    }
+    fun forceStopApp(pkg: String): SystemControlResult = applicationPackageController.forceStop(pkg)
 
     /** Clears an app's data (`pm clear`). */
-    fun clearAppData(pkg: String): SystemControlResult {
-        if (pkg.isBlank()) return SystemControlResult.fail("No package configured")
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "clear", pkg))
-            if (shell.success) SystemControlResult.ok("$pkg data cleared") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Clear data failed: ${t.message}")
-        }
-    }
+    fun clearAppData(pkg: String): SystemControlResult = applicationPackageController.clearData(pkg)
 
 
     /** Sets the location mode: OFF=0, SENSORS_ONLY=1, BATTERY_SAVING=2, HIGH_ACCURACY=3. */
@@ -1848,14 +1717,7 @@ class SystemController(
     }
 
     /** Opens the recents / all-apps drawer. */
-    fun openAppDrawer(): SystemControlResult {
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("input", "keyevent", "187"))
-            if (shell.success) SystemControlResult.ok("App drawer opened") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("App drawer failed: ${t.message}")
-        }
-    }
+    fun openAppDrawer(): SystemControlResult = statusBarController.openAppDrawer()
 
     /** Toggles picture-in-picture for the foreground activity. */
     fun togglePip(): SystemControlResult {
@@ -1916,48 +1778,16 @@ class SystemController(
     }
 
     /** Installs an APK via `pm install`. */
-    fun installApk(path: String): SystemControlResult {
-        if (path.isBlank()) return SystemControlResult.fail("No APK path")
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "install", "-r", path))
-            if (shell.success) SystemControlResult.ok("APK installed") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("APK install failed: ${t.message}")
-        }
-    }
+    fun installApk(path: String): SystemControlResult = applicationPackageController.installApk(path)
 
     /** Uninstalls a package via `pm uninstall`. */
-    fun uninstallApp(pkg: String): SystemControlResult {
-        if (pkg.isBlank()) return SystemControlResult.fail("No package")
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "uninstall", pkg))
-            if (shell.success) SystemControlResult.ok("$pkg uninstalled") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Uninstall failed: ${t.message}")
-        }
-    }
+    fun uninstallApp(pkg: String): SystemControlResult = applicationPackageController.uninstall(pkg)
 
     /** Disables a package via `pm disable-user`. */
-    fun disableApp(pkg: String): SystemControlResult {
-        if (pkg.isBlank()) return SystemControlResult.fail("No package")
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "disable-user", "--user", "0", pkg))
-            if (shell.success) SystemControlResult.ok("$pkg disabled") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Disable failed: ${t.message}")
-        }
-    }
+    fun disableApp(pkg: String): SystemControlResult = applicationPackageController.disable(pkg)
 
     /** Enables a disabled package via `pm enable`. */
-    fun enableApp(pkg: String): SystemControlResult {
-        if (pkg.isBlank()) return SystemControlResult.fail("No package")
-        return try {
-            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "enable", pkg))
-            if (shell.success) SystemControlResult.ok("$pkg enabled") else shell
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Enable failed: ${t.message}")
-        }
-    }
+    fun enableApp(pkg: String): SystemControlResult = applicationPackageController.enable(pkg)
 
     /** Sets the notification sound via ringtone manager. */
     fun setNotificationTone(tone: String): SystemControlResult {
@@ -1998,30 +1828,7 @@ class SystemController(
             "Soft restart requested")
 
     /** Toggles the status bar visibility via immersive mode (best-effort). */
-    fun toggleStatusBar(show: Boolean): SystemControlResult {
-        return try {
-            val activity = context as? android.app.Activity ?: return SystemControlResult.fail("Not an activity context")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val controller = activity.window.insetsController
-                if (show) {
-                    controller?.show(android.view.WindowInsets.Type.statusBars())
-                } else {
-                    controller?.hide(android.view.WindowInsets.Type.statusBars())
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                run {
-                    activity.window.decorView.systemUiVisibility =
-                        if (show) android.view.View.SYSTEM_UI_FLAG_VISIBLE
-                        else android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
-                            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                }
-            }
-            SystemControlResult.ok("Status bar ${if (show) "shown" else "hidden"}")
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Status bar failed: ${t.message}")
-        }
-    }
+    fun toggleStatusBar(show: Boolean): SystemControlResult = statusBarController.toggleStatusBar(show)
 
     /** Opens the contacts app. */
     fun openContacts(): SystemControlResult {

@@ -21,7 +21,8 @@ internal object AndroidOpenAiStreamingTransport {
     fun stream(
         config: OpenAiCompatibleProviderConfig,
         body: JsonObject,
-        apiKey: String?
+        apiKey: String?,
+        gatewayHeaders: Map<String, String> = emptyMap()
     ): Flow<String> = flow {
         val payload = body.toString().toByteArray(Charsets.UTF_8)
         require(payload.size <= MAX_REQUEST_BYTES) {
@@ -33,17 +34,18 @@ internal object AndroidOpenAiStreamingTransport {
             hasApiKey = !apiKey.isNullOrBlank()
         )
         val addresses = InetAddress.getAllByName(endpoint.host).toList()
-        if (config.local) {
-            OpenAiEndpointPolicy.requireLocalAddresses(addresses)
-        }
+        OpenAiEndpointPolicy.requireAddresses(addresses, config.local)
 
         when (endpoint.scheme) {
-            "https" -> streamHttps(endpoint, payload, apiKey) { emit(it) }
-            "http" -> streamPrivateHttp(
-                endpoint = endpoint,
-                address = addresses.first(),
-                payload = payload
-            ) { emit(it) }
+            "https" -> streamHttps(endpoint, payload, apiKey, gatewayHeaders) { emit(it) }
+            "http" -> {
+                require(gatewayHeaders.isEmpty()) { "Gateway headers require HTTPS" }
+                streamPrivateHttp(
+                    endpoint = endpoint,
+                    address = addresses.first(),
+                    payload = payload
+                ) { emit(it) }
+            }
             else -> error("Unsupported provider URL scheme")
         }
     }.flowOn(Dispatchers.IO)
@@ -52,6 +54,7 @@ internal object AndroidOpenAiStreamingTransport {
         endpoint: URI,
         payload: ByteArray,
         apiKey: String?,
+        gatewayHeaders: Map<String, String>,
         emitPayload: suspend (String) -> Unit
     ) {
         val connection = endpoint.toURL().openConnection() as HttpsURLConnection
@@ -67,6 +70,7 @@ internal object AndroidOpenAiStreamingTransport {
             apiKey?.takeIf(String::isNotBlank)?.let {
                 connection.setRequestProperty("Authorization", "Bearer $it")
             }
+            AndroidAiGatewayHeaders.apply(connection, gatewayHeaders)
             connection.setFixedLengthStreamingMode(payload.size)
             connection.outputStream.use { it.write(payload) }
 

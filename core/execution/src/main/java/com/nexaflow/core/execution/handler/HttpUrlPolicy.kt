@@ -2,6 +2,7 @@ package com.nexaflow.core.execution.handler
 
 import java.net.InetAddress
 import java.net.URI
+import com.nexaflow.core.common.EndpointSecurityPolicy
 
 /** Validates every DNS answer. The returned addresses must be used by the transport. */
 object HttpUrlPolicy {
@@ -20,16 +21,7 @@ object HttpUrlPolicy {
         return Destination(uri, addresses)
     }
 
-    fun isLocal(address: InetAddress): Boolean {
-        if (address.isAnyLocalAddress || address.isLoopbackAddress || address.isLinkLocalAddress ||
-            address.isSiteLocalAddress || address.isMulticastAddress) return true
-        val b = address.address.map { it.toInt() and 255 }
-        return when (b.size) {
-            4 -> b[0] == 0 || b[0] == 100 && b[1] in 64..127 || b[0] >= 224
-            16 -> b[0] and 0xfe == 0xfc || // IPv6 unique-local
-                (b.take(10).all { it == 0 } && b[10] == 255 && b[11] == 255 &&
-                    isLocal(InetAddress.getByAddress(address.address.copyOfRange(12, 16))))
-            else -> true
-        }
-    }
+    fun isLocal(address: InetAddress): Boolean =
+        EndpointSecurityPolicy.isLocalAddress(address)
+
 }

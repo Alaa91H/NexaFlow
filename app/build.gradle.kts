@@ -244,6 +244,7 @@ dependencies {
     implementation(libs.dev.rikka.shizuku.provider)
 
     // Project Modules
+    implementation(project(":core:common"))
     implementation(project(":core:database"))
     implementation(project(":core:security"))
     implementation(project(":core:agent-security"))

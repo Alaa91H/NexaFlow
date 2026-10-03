@@ -28,7 +28,8 @@ data class OpenAiCompatibleProviderConfig(
     val baseUrl: String = "",
     val modelId: String = "",
     val local: Boolean = true,
-    val reasoningEffort: String? = null
+    val reasoningEffort: String? = null,
+    val gatewaySession: Boolean = false
 )
 
 data class OpenAiCompatibleTransportResponse(
@@ -61,6 +62,14 @@ interface OpenAiCompatibleTransport {
         apiKey: String?
     ): OpenAiCompatibleTransportResponse
 
+    suspend fun postChatCompletionsWithHeaders(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
+    ): OpenAiCompatibleTransportResponse =
+        postChatCompletions(config, body, apiKey)
+
     suspend fun getModels(
         config: OpenAiCompatibleProviderConfig,
         apiKey: String?
@@ -81,10 +90,17 @@ interface OpenAiCompatibleTransport {
     ): Flow<String> = flow {
         val response = postChatCompletions(config, body, apiKey)
         if (response.statusCode !in 200..299) {
-            error("Provider returned HTTP ${response.statusCode}")
+            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
         }
         emit(response.body)
     }
+
+    fun streamChatCompletionsWithHeaders(
+        config: OpenAiCompatibleProviderConfig,
+        body: JsonObject,
+        apiKey: String?,
+        headers: Map<String, String>
+    ): Flow<String> = streamChatCompletions(config, body, apiKey)
 }
 
 class OpenAiCompatibleProvider(
@@ -97,7 +113,7 @@ class OpenAiCompatibleProvider(
         ignoreUnknownKeys = true
         explicitNulls = false
     }
-) : AiModelProvider {
+) : AiProviderAdapter {
 
     private val _descriptor =
         MutableStateFlow(descriptorFor(OpenAiCompatibleProviderConfig()))
@@ -153,6 +169,26 @@ class OpenAiCompatibleProvider(
         )
     }
 
+    override suspend fun listModels(): AiModelDiscoveryResult {
+        val result = discoverModels()
+        return AiModelDiscoveryResult(
+            success = result.success,
+            models = result.models.map {
+                AiDiscoveredModel(
+                    id = it.id,
+                    ownedBy = it.ownedBy,
+                    contextTokens = it.contextTokens
+                )
+            },
+            httpStatus = result.statusCode,
+            failure = if (result.success) {
+                null
+            } else {
+                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            }
+        )
+    }
+
     private fun parseModelInfo(element: kotlinx.serialization.json.JsonElement): OpenAiModelInfo? {
         val value = element as? JsonObject ?: return null
         val id = value["id"]?.jsonPrimitive?.contentOrNull
@@ -178,6 +214,62 @@ class OpenAiCompatibleProvider(
             id = id,
             ownedBy = ownedBy,
             contextTokens = context
+        )
+    }
+
+    override suspend fun verifyConnection(): AiConnectionTestResult {
+        val snapshot = config
+        val startedAt = System.nanoTime()
+        if (!isConfigured(snapshot)) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.providerId,
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                failure = AiConnectionFailure.UNKNOWN,
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
+        val response = try {
+            transport.postChatCompletions(
+                config = snapshot,
+                body = basicProbeBody(snapshot.modelId),
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            )
+        } catch (failure: Throwable) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.providerId,
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                failure = AiProviderFailureClassifier.fromThrowable(failure),
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
+        if (response.statusCode !in 200..299) {
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.providerId,
+                dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+                httpStatus = response.statusCode,
+                failure = AiProviderFailureClassifier.fromHttpStatus(response.statusCode),
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
+        val validBody = runCatching {
+            json.parseToJsonElement(response.body)
+                .jsonObject["choices"]
+                ?.jsonArray
+                ?.isNotEmpty() == true
+        }.getOrDefault(false)
+        return AiConnectionTestResult(
+            success = validBody,
+            providerId = snapshot.providerId,
+            dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
+            httpStatus = response.statusCode,
+            failure = if (validBody) null else AiConnectionFailure.INVALID_RESPONSE,
+            latencyMs = elapsedMillis(startedAt)
         )
     }
 
@@ -222,6 +314,22 @@ class OpenAiCompatibleProvider(
             success = true,
             statusCode = basic.statusCode,
             capabilities = capabilities
+        )
+    }
+
+    override suspend fun discoverCapabilities(
+        model: AiModelDescriptorV2
+    ): AiCapabilityResult {
+        val result = probe()
+        return AiCapabilityResult(
+            success = result.success,
+            modelId = model.id,
+            capabilities = result.capabilities,
+            failure = if (result.success) {
+                null
+            } else {
+                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            }
         )
     }
 
@@ -347,7 +455,7 @@ class OpenAiCompatibleProvider(
         apiKey: String?
     ): Boolean = runCatching {
         var sawDelta = false
-        transport.streamChatCompletions(
+        transport.streamChatCompletionsWithHeaders(
             config = snapshot,
             body = buildJsonObject {
                 put("model", snapshot.modelId)
@@ -362,7 +470,8 @@ class OpenAiCompatibleProvider(
                     )
                 }
             },
-            apiKey = apiKey
+            apiKey = apiKey,
+            headers = emptyMap()
         ).collect { raw ->
             if (raw.isBlank() || raw.trim() == "[DONE]") return@collect
             val choice = json.parseToJsonElement(raw)
@@ -384,6 +493,11 @@ class OpenAiCompatibleProvider(
         }
 
         val capabilities = _descriptor.value.capabilities
+        val gatewayHeaders = if (snapshot.gatewaySession) {
+            AiGatewaySessionPolicy.requestHeaders(request.conversationId)
+        } else {
+            emptyMap()
+        }
         if (
             request.tools.isNotEmpty() &&
             !capabilities.toolCalling &&
@@ -392,7 +506,8 @@ class OpenAiCompatibleProvider(
             emitStructuredToolFallback(
                 request = request,
                 snapshot = snapshot,
-                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank),
+                headers = gatewayHeaders
             )
             return@flow
         }
@@ -407,14 +522,15 @@ class OpenAiCompatibleProvider(
 
         val toolCalls = linkedMapOf<Int, ToolCallAccumulator>()
         var finishReason: String? = null
-        transport.streamChatCompletions(
+        transport.streamChatCompletionsWithHeaders(
             config = snapshot,
             body = effectiveRequest.toChatCompletionBody(
                 snapshot.modelId,
                 streaming = true,
                 reasoningEffort = snapshot.reasoningEffort
             ),
-            apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            apiKey = apiKeyProvider()?.takeIf(String::isNotBlank),
+            headers = gatewayHeaders
         ).collect { raw ->
             if (raw.isBlank() || raw.trim() == "[DONE]") {
                 return@collect
@@ -474,15 +590,17 @@ class OpenAiCompatibleProvider(
         .emitStructuredToolFallback(
             request: AiProviderRequest,
             snapshot: OpenAiCompatibleProviderConfig,
-            apiKey: String?
+            apiKey: String?,
+            headers: Map<String, String>
         ) {
-            val response = transport.postChatCompletions(
+            val response = transport.postChatCompletionsWithHeaders(
                 config = snapshot,
                 body = request.toStructuredFallbackBody(snapshot.modelId),
-                apiKey = apiKey
+                apiKey = apiKey,
+                headers = headers
             )
-            require(response.statusCode in 200..299) {
-                "Provider returned HTTP ${response.statusCode}"
+            if (response.statusCode !in 200..299) {
+                throw AiProviderRequestException.fromHttpStatus(response.statusCode)
             }
             val message = json.parseToJsonElement(response.body)
                 .jsonObject["choices"]

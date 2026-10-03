@@ -20,6 +20,10 @@ BUILDER_FILE = ROOT / (
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
     "AutomationBuilderScreen.kt"
 )
+BUILDER_ACTION_PRESENTATION_FILE = ROOT / (
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+    "BuilderActionPresentation.kt"
+)
 SCHEMA_EDITOR_FILE = ROOT / (
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
     "CanonicalSchemaFieldEditor.kt"
@@ -81,6 +85,7 @@ def main() -> int:
         TEST_FILE,
         SHEET_FILE,
         BUILDER_FILE,
+        BUILDER_ACTION_PRESENTATION_FILE,
         SCHEMA_EDITOR_FILE,
         SCHEMA_BRIDGE_FILE,
         OPTION_CATALOG_FILE,
@@ -175,8 +180,9 @@ def main() -> int:
             if case not in option_tests:
                 problems.append(f"option catalog tests missing {case!r}")
 
-    if BUILDER_FILE.is_file():
+    if BUILDER_FILE.is_file() and BUILDER_ACTION_PRESENTATION_FILE.is_file():
         builder = BUILDER_FILE.read_text(encoding="utf-8")
+        builder_surface = builder + "\n" + BUILDER_ACTION_PRESENTATION_FILE.read_text(encoding="utf-8")
         for token in (
             "CanonicalBuilderSchemaBridge.editingBindingForAction",
             "CanonicalSchemaFieldEditor(",
@@ -188,10 +194,10 @@ def main() -> int:
             "showAdvancedTriggerOptions",
             "showAdvancedActionOptions",
         ):
-            if token not in builder:
+            if token not in builder_surface:
                 problems.append(f"builder discovery/schema wiring missing {token!r}")
         for token in ("AutomationOptionCatalog.commonTriggerOrder", "AutomationOptionCatalog.commonActionOrder"):
-            if token in builder:
+            if token in builder_surface:
                 problems.append(f"builder must not use the removed common discovery tier: {token!r}")
         for state_name in ("expandedTriggerCategory", "expandedActionCategory"):
             if re.search(

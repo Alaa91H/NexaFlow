@@ -33,6 +33,6 @@ class SecretVault(private val secureStorage: SecureStorage) {
     private companion object {
         const val PREFIX = "vault:"
         const val MAX_SECRET_LENGTH = 16_384
-        val REFERENCE_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}")
+        val REFERENCE_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,255}")
     }
 }

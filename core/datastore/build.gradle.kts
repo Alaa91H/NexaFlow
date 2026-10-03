@@ -32,6 +32,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:ai-runtime"))
     implementation(libs.androidx.core.core.ktx)
     implementation(libs.androidx.appcompat.appcompat)
     implementation(libs.androidx.datastore.datastore.preferences)
