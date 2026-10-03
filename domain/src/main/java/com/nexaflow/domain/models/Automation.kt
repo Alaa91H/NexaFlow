@@ -66,7 +66,9 @@ data class Automation(
      * alone is deliberately NOT an authorization.
      */
     @kotlinx.serialization.Transient
-    val deepLinkToken: String? = null
+    val deepLinkToken: String? = null,
+    /** Canonical-native definitions preserved without legacy enum identities. */
+    val canonicalNodes: List<com.nexaflow.domain.canonical.CanonicalWorkflowNode> = emptyList()
 ) {
     init {
         require(workflowVersion in 1..CURRENT_WORKFLOW_VERSION) { "Unsupported workflow version" }

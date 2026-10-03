@@ -34,9 +34,12 @@ import com.nexaflow.domain.canonical.AtomicCommand
 import com.nexaflow.core.execution.compat.CanonicalCompatibilityActionDispatcher
 import com.nexaflow.core.execution.compat.CanonicalRuntimeCutoverAdapter
 import com.nexaflow.domain.canonical.CommandIdempotency
+import com.nexaflow.domain.canonical.CanonicalWorkflowNode
+import com.nexaflow.domain.canonical.NodeSchemaKind
 import com.nexaflow.domain.canonical.FaultInjectionController
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
+import com.nexaflow.domain.canonical.ConditionLogic
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.ActionExecutionResult
@@ -148,7 +151,9 @@ class ExecutionEngine(
     private val executionProgressTracker: ExecutionProgressTracker =
         ExecutionProgressTracker(),
     /** Run lifecycle fan-out; failures never affect execution. */
-    private val runListener: AutomationRunListener = AutomationRunListener.NO_OP
+    private val runListener: AutomationRunListener = AutomationRunListener.NO_OP,
+    private val canonicalNodeDispatcher: com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher? = null,
+    private val canonicalTriggerDispatcher: com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher? = null
 ) {
     private val diagnostics = ExecutionDiagnostics(
         context = context,
@@ -360,6 +365,31 @@ class ExecutionEngine(
                     runId = payloadContext.runId,
                     instanceId = "v3.trigger.$index",
                 )
+            }
+            val nativeTriggers = automation.canonicalNodes.filter { it.kind == NodeSchemaKind.TRIGGER }
+            require(nativeTriggers.isEmpty() || automation.triggers.isEmpty()) {
+                "mixed legacy and canonical triggers require unified evaluation"
+            }
+            if (nativeTriggers.isNotEmpty() && !bypassTriggerMatch) {
+                val dispatcher = canonicalTriggerDispatcher ?: error("canonical trigger runtime is not registered")
+                val result = dispatcher.evaluate(
+                    nodes = nativeTriggers,
+                    logic = if (automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL) {
+                        ConditionLogic.ALL
+                    } else ConditionLogic.ANY,
+                    occurrenceId = triggerOccurrence?.eventId,
+                )
+                require(result.decision == ConditionResult.Satisfied) {
+                    "canonical trigger graph is not currently satisfied"
+                }
+            }
+            val nativeActions = automation.canonicalNodes.filter { it.kind == NodeSchemaKind.ACTION }
+            if (nativeActions.isNotEmpty()) {
+                require(!automation.revertOnExit && nativeActions.none { it.endBehavior != null }) {
+                    "canonical actions require registered compensation and end-behavior adapters"
+                }
+                (canonicalNodeDispatcher ?: error("canonical action runtime is not registered"))
+                    .preflight(nativeActions)
             }
         }.exceptionOrNull()
         if (canonicalTriggerFailure != null) {
@@ -602,7 +632,7 @@ class ExecutionEngine(
                 automationId = automation.id,
                 workflowVersion = automation.workflowVersion,
                 workflowRevision = automation.updatedAt,
-                totalActions = automation.actions.size,
+                totalActions = automation.actions.size + automation.canonicalNodes.count { it.kind == NodeSchemaKind.ACTION },
                 nextActionIndex = 0,
                 status = DurableExecutionStatus.STARTED,
                 startedAt = startedAt,
@@ -716,7 +746,8 @@ class ExecutionEngine(
         // never flash a card.
         val progressOutcomes = mutableListOf<Boolean>()
         executionProgressTracker.start(automation, startedAt)
-        runCatching { runProgressNotifier.start(automation, automation.actions.size) }
+        val totalExecutableActions = automation.actions.size + automation.canonicalNodes.count { it.kind == NodeSchemaKind.ACTION }
+        runCatching { runProgressNotifier.start(automation, totalExecutableActions) }
         // A checkpoint is removed only after a fully known action chain. Once
         // an action starts and the coroutine is interrupted, its side effect
         // may have happened; startup recovery must be able to claim that
@@ -740,7 +771,7 @@ class ExecutionEngine(
                 // Advance the Live Update card: this step becomes active and
                 // earlier steps are colored by their recorded outcomes.
                 runCatching {
-                    runProgressNotifier.update(automation, automation.actions.size, actionIndex, progressOutcomes)
+                    runProgressNotifier.update(automation, totalExecutableActions, actionIndex, progressOutcomes)
                 }
                 // Actions run sequentially and each handler may publish to the
                 // shared context (Step 4), so %CTX selectors are resolved here —
@@ -903,7 +934,76 @@ class ExecutionEngine(
                     break
                 }
             }
-            list.also { actionChainCompleted = !checkpointRequiresRecovery }
+            if (list.size == automation.actions.size && !checkpointRequiresRecovery) {
+                val dispatcher = canonicalNodeDispatcher
+                val nativeActions = automation.canonicalNodes
+                    .filter { it.kind == NodeSchemaKind.ACTION }
+                    .sortedBy { it.sequenceIndex }
+                require(nativeActions.isEmpty() || dispatcher != null)
+                val nativeBudget = com.nexaflow.core.execution.workflow.WorkflowExecutionBudget.create()
+                for ((nativeIndex, node) in nativeActions.withIndex()) {
+                    val index = automation.actions.size + nativeIndex
+                    inProgressActionIndex = index
+                    val actionStartedAt = epochMillis.now()
+                    runCatching {
+                        runProgressNotifier.update(automation, totalExecutableActions, index, progressOutcomes)
+                    }
+                    val idempotencyKey = "${payloadContext.runId}:$index:${node.definitionId}:${node.node.id.value}"
+                    activeExecutionStore.markActionStarted(
+                        runId = payloadContext.runId,
+                        actionIndex = index,
+                        idempotencyKey = idempotencyKey,
+                        nodeId = node.node.id.value,
+                        updatedAt = actionStartedAt,
+                    ) ?: error("Missing canonical node checkpoint")
+                    val outcome = requireNotNull(dispatcher).execute(
+                        node,
+                        com.nexaflow.core.execution.canonical.CanonicalNodeExecutionContext(
+                            automation.id, payloadContext.runId, nativeBudget,
+                        ),
+                    )
+                    val uncertain = outcome.status == CapabilityStatus.PARTIAL ||
+                        outcome.status == CapabilityStatus.PENDING_USER_ACTION
+                    if (uncertain) {
+                        checkpointRequiresRecovery = true
+                        activeExecutionStore.markActionUnknown(
+                            payloadContext.runId,
+                            "Canonical node ${node.node.id.value} has an unconfirmed outcome",
+                            epochMillis.now(),
+                        ) ?: error("Unable to preserve canonical node recovery state")
+                    } else if (outcome.status == CapabilityStatus.SUCCESS) {
+                        activeExecutionStore.markActionCompleted(
+                            runId = payloadContext.runId,
+                            actionIndex = index,
+                            updatedAt = epochMillis.now(),
+                            verificationState = DurableVerificationState.NOT_REQUIRED,
+                        ) ?: error("Unable to commit canonical node completion")
+                    } else {
+                        activeExecutionStore.markActionFailed(
+                            runId = payloadContext.runId,
+                            actionIndex = index,
+                            updatedAt = epochMillis.now(),
+                            failureCode = "CANONICAL_NODE_FAILED",
+                            verificationState = DurableVerificationState.UNKNOWN,
+                        ) ?: error("Unable to commit canonical node failure")
+                    }
+                    inProgressActionIndex = null
+                    list += ActionExecutionResult(
+                        node.definitionId,
+                        outcome.status == CapabilityStatus.SUCCESS,
+                        when (outcome.status) {
+                            CapabilityStatus.SUCCESS -> "Canonical operation completed"
+                            CapabilityStatus.UNSUPPORTED -> "Canonical operation is unsupported"
+                            else -> "Canonical operation failed or needs recovery"
+                        },
+                        epochMillis.now() - actionStartedAt,
+                        outcomeUncertain = uncertain,
+                    )
+                    progressOutcomes += outcome.status == CapabilityStatus.SUCCESS
+                    if (outcome.status != CapabilityStatus.SUCCESS) break
+                }
+            }
+            list.also { actionChainCompleted = !checkpointRequiresRecovery && it.size == totalExecutableActions }
         } catch (cancellation: CancellationException) {
             // The process may have interrupted a side effect after it began.
             // Persist this classification in NonCancellable: otherwise the

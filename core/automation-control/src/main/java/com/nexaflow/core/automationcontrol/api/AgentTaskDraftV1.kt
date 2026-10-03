@@ -1,6 +1,7 @@
 package com.nexaflow.core.automationcontrol.api
 
 import kotlinx.serialization.Serializable
+import com.nexaflow.domain.canonical.CanonicalWorkflowNode
 
 /**
  * Versioned public task contract for agents and future REST/MCP/A2A adapters.
@@ -28,7 +29,8 @@ data class AgentTaskDraftV1(
     val exitActions: List<AgentActionDraftV1> = emptyList(),
     val revertOnExit: Boolean = false,
     val cooldownSeconds: Int = 0,
-    val maintenance: AgentMaintenanceDraftV1? = null
+    val maintenance: AgentMaintenanceDraftV1? = null,
+    val canonicalNodes: List<CanonicalWorkflowNode> = emptyList()
 ) {
     companion object {
         const val CURRENT_SCHEMA_VERSION = 1

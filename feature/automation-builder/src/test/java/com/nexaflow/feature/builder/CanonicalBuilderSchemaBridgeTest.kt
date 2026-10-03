@@ -149,6 +149,15 @@ class CanonicalBuilderSchemaBridgeTest {
     }
 
     @Test
+    fun secretReferenceEditorPersistsOnlyOpaqueReferenceId() {
+        val field = NodeSchemaField(CanonicalFieldId("credential"), NodeFieldType.SECRET_REFERENCE)
+        val reference = requireNotNull(parseCanonicalField(field, "service.primary"))
+        assertEquals("service.primary", canonicalValueToLegacy(reference))
+        assertNull(parseCanonicalField(field, "raw secret value"))
+        assertNull(parseCanonicalField(field, "bad/identifier"))
+    }
+
+    @Test
     fun durationEditorConvertsDisplayUnitsWithoutLosingCanonicalMilliseconds() {
         assertEquals(1_500L, durationInputToMillis("1.5", 1_000L))
         assertEquals(90_000L, durationInputToMillis("1.5", 60_000L))

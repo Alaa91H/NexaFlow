@@ -39,6 +39,15 @@ import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher
+import com.nexaflow.core.execution.canonical.CanonicalNodeHandler
+import com.nexaflow.core.execution.canonical.CanonicalNodeHandlerRegistry
+import com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher
+import com.nexaflow.domain.canonical.CanonicalCommandSemanticsCatalog
+import com.nexaflow.domain.canonical.CanonicalExecutionPlanner
+import com.nexaflow.domain.canonical.CanonicalNodeExecutionContract
+import com.nexaflow.domain.canonical.CanonicalNodeExecutionRegistry
+import com.nexaflow.domain.canonical.CanonicalNativeWorkflowPlanner
 import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.capability.AndroidCapabilityDeviceStateReader
@@ -512,7 +521,9 @@ object AppModule {
         automationRuntimeStore: AutomationRuntimeStore,
         semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter,
         runEventBridge: AgentRunEventBridge,
-        smsActivityRepository: com.nexaflow.domain.repositories.SmsActivityRepository
+        smsActivityRepository: com.nexaflow.domain.repositories.SmsActivityRepository,
+        canonicalNodeDispatcher: CanonicalNodeDispatcher,
+        canonicalTriggerDispatcher: CanonicalTriggerDispatcher
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
@@ -529,9 +540,28 @@ object AppModule {
             privilegeSnapshotInvalidator = { privilegeStateStore.refresh() },
             semanticWorkflowPlanner = semanticWorkflowPlanner,
             runListener = runEventBridge,
-            smsActivityRepository = smsActivityRepository
+            smsActivityRepository = smsActivityRepository,
+            canonicalNodeDispatcher = canonicalNodeDispatcher,
+            canonicalTriggerDispatcher = canonicalTriggerDispatcher
         )
     }
+
+    @Provides @Singleton
+    fun provideCanonicalExecutionPlanner(): CanonicalExecutionPlanner =
+        CanonicalExecutionPlanner.of(CanonicalCommandSemanticsCatalog.all())
+
+    @Provides @Singleton
+    fun provideCanonicalNodeDispatcher(
+        planner: CanonicalExecutionPlanner,
+        contracts: Set<@JvmSuppressWildcards CanonicalNodeExecutionContract>,
+        handlers: Set<@JvmSuppressWildcards CanonicalNodeHandler>,
+        capabilityStateStore: CapabilityStateStore,
+    ): CanonicalNodeDispatcher = CanonicalNodeDispatcher(
+        contracts = contracts.toList(),
+        handlers = CanonicalNodeHandlerRegistry(handlers.toList()),
+        planner = planner,
+        capabilitySnapshot = { capabilityStateStore.snapshot.value },
+    )
 
     @Provides
     @Singleton

@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">Расширенные действия</string>
+    <string name="canonical_actions_subtitle">Типизированные нативные операции</string>
+    <string name="canonical_battery_title">Порог батареи</string>
+    <string name="canonical_battery_subtitle">Условия уровня заряда и зарядки</string>
+    <string name="canonical_add_battery">Добавить условие батареи</string>
+    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_toggle_direction">Изменить направление порога</string>
+    <string name="canonical_add_delay">Добавить ожидание</string>
+    <string name="canonical_store_secret">Сохранить защищённый секрет</string>
+    <string name="canonical_secret_value">Значение секрета</string>
+    <string name="canonical_secret_store_failed">Не удалось сохранить защищённое значение. Проверьте ссылку и повторите попытку.</string>
     <string name="canonical_choose_app">Выбрать приложение</string>
     <string name="canonical_search_apps">Поиск приложений</string>
     <string name="canonical_no_apps_found">Приложения не найдены</string>
@@ -1287,4 +1298,7 @@
     <string name="option_tier_all">Все варианты</string>
     <string name="option_tier_expanded">Развернуто</string>
     <string name="option_tier_collapsed">Свернуто</string>
+    <string name="canonical_battery_charger">Charger: %1$s</string>
+    <string name="canonical_battery_charging_state">Charging state: %1$s</string>
+    <string name="canonical_mixed_trigger_error">Use either native battery conditions or legacy triggers in one automation, not both.</string>
 </resources>

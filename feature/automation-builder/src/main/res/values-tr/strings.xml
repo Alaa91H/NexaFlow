@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">Gelişmiş işlemler</string>
+    <string name="canonical_actions_subtitle">Türlü yerel işlemler</string>
+    <string name="canonical_battery_title">Pil eşiği</string>
+    <string name="canonical_battery_subtitle">Pil seviyesi ve şarj koşulları</string>
+    <string name="canonical_add_battery">Pil koşulu ekle</string>
+    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_toggle_direction">Eşik yönünü değiştir</string>
+    <string name="canonical_add_delay">Bekleme ekle</string>
+    <string name="canonical_store_secret">Korunan gizli değeri kaydet</string>
+    <string name="canonical_secret_value">Gizli değer</string>
+    <string name="canonical_secret_store_failed">Korunan değer kaydedilemedi. Başvuruyu kontrol edip yeniden deneyin.</string>
     <string name="canonical_choose_app">Uygulama seç</string>
     <string name="canonical_search_apps">Uygulama ara</string>
     <string name="canonical_no_apps_found">Uygulama bulunamadı</string>
@@ -1287,4 +1298,7 @@
     <string name="option_tier_all">Tüm seçenekler</string>
     <string name="option_tier_expanded">Genişletilmiş</string>
     <string name="option_tier_collapsed">Daraltılmış</string>
+    <string name="canonical_battery_charger">Charger: %1$s</string>
+    <string name="canonical_battery_charging_state">Charging state: %1$s</string>
+    <string name="canonical_mixed_trigger_error">Use either native battery conditions or legacy triggers in one automation, not both.</string>
 </resources>

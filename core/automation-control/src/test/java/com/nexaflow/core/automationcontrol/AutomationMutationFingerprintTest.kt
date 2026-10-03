@@ -72,4 +72,28 @@ class AutomationMutationFingerprintTest {
             )
         )
     }
+
+    @Test
+    fun canonicalNodeConfigurationIsPartOfMutationFingerprint() {
+        val field = com.nexaflow.domain.canonical.CanonicalFieldId("duration_ms")
+        val schema = com.nexaflow.domain.canonical.CanonicalNativeNodeSchemaRegistry.delay
+        fun nativeNode(durationMs: Long) = run {
+            val duration = com.nexaflow.domain.canonical.DurationValue(durationMs)
+            com.nexaflow.domain.canonical.CanonicalWorkflowNode(
+                kind = com.nexaflow.domain.canonical.NodeSchemaKind.ACTION,
+                definitionId = schema.schemaId,
+                schema = schema,
+                node = com.nexaflow.domain.canonical.WaitNode(
+                    com.nexaflow.domain.canonical.CanonicalNodeId("native.action.fingerprint"), duration,
+                ),
+                arguments = listOf(com.nexaflow.domain.canonical.NodeFieldValue(field, duration)),
+            )
+        }
+        val first = AgentTaskDraftV1(name = "Task", canonicalNodes = listOf(nativeNode(1_000L)))
+        val changed = first.copy(canonicalNodes = listOf(nativeNode(2_000L)))
+        assertNotEquals(
+            AutomationMutationFingerprint.draft(AutomationMutationKind.CREATE, null, first),
+            AutomationMutationFingerprint.draft(AutomationMutationKind.CREATE, null, changed),
+        )
+    }
 }

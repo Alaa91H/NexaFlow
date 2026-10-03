@@ -54,8 +54,32 @@ class AutomationBuilderViewModel @Inject constructor(
     private val executionEngine: ExecutionEngine,
     private val capabilityStateStore: CapabilityStateStore,
     private val privilegeStateStore: PrivilegeStateStore,
-    private val semanticWorkflowPlanner: SemanticWorkflowPlanner
+    private val semanticWorkflowPlanner: SemanticWorkflowPlanner,
+    private val secretVault: com.nexaflow.core.security.SecretVault,
+    private val canonicalContracts: Set<@JvmSuppressWildcards com.nexaflow.domain.canonical.CanonicalNodeExecutionContract>,
+    private val canonicalHandlers: Set<@JvmSuppressWildcards com.nexaflow.core.execution.canonical.CanonicalNodeHandler>,
+    private val canonicalTriggerContracts: Set<@JvmSuppressWildcards com.nexaflow.domain.canonical.CanonicalTriggerSourceContract>,
+    private val canonicalTriggerHandlers: Set<@JvmSuppressWildcards com.nexaflow.core.execution.canonical.CanonicalTriggerSourceHandler>,
 ) : ViewModel() {
+
+    /** Only definitions with both a typed contract and executable provider are discoverable. */
+    val executableCanonicalActions = canonicalContracts.mapNotNull { contract ->
+        contract.takeIf {
+            it.schema.kind == com.nexaflow.domain.canonical.NodeSchemaKind.ACTION &&
+                canonicalHandlers.any { handler -> handler.definitionId == it.definitionId }
+        }
+    }.sortedBy { it.definitionId }
+
+    /** Only sources backed by both a schema contract and a typed runtime adapter are discoverable. */
+    val executableCanonicalTriggers = canonicalTriggerContracts.mapNotNull { contract ->
+        contract.takeIf {
+            it.schema.kind == com.nexaflow.domain.canonical.NodeSchemaKind.TRIGGER &&
+                canonicalTriggerHandlers.any { handler -> handler.definitionId == it.definitionId }
+        }
+    }.sortedBy { it.definitionId }
+
+    suspend fun storeWorkflowSecret(referenceId: String, secret: String) =
+        secretVault.store(referenceId, secret)
 
     /** One capability-engine snapshot for all builder visibility decisions. */
     val capabilitySnapshot: StateFlow<CapabilitySnapshot> = capabilityStateStore.snapshot
@@ -170,6 +194,7 @@ class AutomationBuilderViewModel @Inject constructor(
         // fires at once; the engine gate stays pinned to zero.
         cooldownSeconds: Int = 0,
         maintenanceProfile: MaintenanceProfile? = null,
+        canonicalNodes: List<com.nexaflow.domain.canonical.CanonicalWorkflowNode> = emptyList(),
         // Bundled starter routines are intentionally saved disabled. This gives
         // the user one review point in the dashboard before a prebuilt routine
         // can react to a device event; manual creation keeps its existing flow.
@@ -198,6 +223,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 revertOnExit = revertOnExit,
                 cooldownSeconds = cooldownSeconds,
                 maintenanceProfile = maintenanceProfile ?: prev?.maintenanceProfile,
+                canonicalNodes = canonicalNodes.toList(),
                 deepLinkToken = prev?.id?.let { repository.getAutomationById(it)?.deepLinkToken },
                 createdAt = prev?.createdAt ?: now,
                 updatedAt = now

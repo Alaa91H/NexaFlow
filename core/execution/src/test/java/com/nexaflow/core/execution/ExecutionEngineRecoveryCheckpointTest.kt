@@ -11,6 +11,10 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
+import com.nexaflow.core.execution.canonical.CanonicalDelayDefinition
+import com.nexaflow.core.execution.canonical.CanonicalDelayHandler
+import com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher
+import com.nexaflow.core.execution.canonical.CanonicalNodeHandlerRegistry
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.execution.recovery.RecoveryDisposition
 import com.nexaflow.core.rom.model.SystemControlResult
@@ -26,6 +30,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -160,6 +165,50 @@ class ExecutionEngineRecoveryCheckpointTest {
             assertNotNull("checkpoint must survive until history is durable", checkpoint)
             assertEquals(DurableExecutionStatus.ACTION_COMPLETED, checkpoint?.status)
             assertEquals(DurableNodeExecutionState.SUCCEEDED, checkpoint?.nodeExecutions?.single()?.state)
+        } finally {
+            store.clearCheckpoint(runId)
+            store.clear(task.id)
+        }
+    }
+
+    @Test
+    fun canonicalNativeDelayExecutesAndCommitsThroughDurableCheckpoint() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = ActiveExecutionStore(context)
+        val runId = "canonical-delay-${System.nanoTime()}"
+        val task = automation().copy(
+            id = "canonical-delay-task-${System.nanoTime()}",
+            actions = emptyList(),
+            canonicalNodes = listOf(CanonicalDelayDefinition.node(1L, "native.action.delay", 0)),
+        )
+        val dispatcher = CanonicalNodeDispatcher(
+            contracts = listOf(CanonicalDelayDefinition.contract),
+            handlers = CanonicalNodeHandlerRegistry(listOf(CanonicalDelayHandler())),
+        )
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = NoopHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            activeExecutionStore = store,
+            canonicalNodeDispatcher = dispatcher,
+        )
+        assertTrue(runCatching { dispatcher.preflight(task.canonicalNodes) }.isSuccess)
+        val directOutcome = dispatcher.execute(
+            task.canonicalNodes.single(),
+            com.nexaflow.core.execution.canonical.CanonicalNodeExecutionContext(
+                task.id, runId, com.nexaflow.core.execution.workflow.WorkflowExecutionBudget.create(),
+            ),
+        )
+        assertEquals("$directOutcome", com.nexaflow.domain.capability.CapabilityStatus.SUCCESS, directOutcome.status)
+        try {
+            val record = engine.runAutomation(
+                automation = task,
+                runContext = WorkflowRunContext(runId, task.id, 1L),
+            )
+            val executionCheckpoint = store.checkpoint(runId)
+            assertEquals("${record.actionResults} $executionCheckpoint", true, record.success)
+            assertTrue("${record.message} ${record.actionResults}", record.success)
+            assertEquals(null, store.checkpoint(runId))
         } finally {
             store.clearCheckpoint(runId)
             store.clear(task.id)

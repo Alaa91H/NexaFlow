@@ -24,7 +24,8 @@ internal object AutomationMutationFingerprint {
             triggers = draft.triggers.map { it.canonical() },
             actions = draft.actions.map { it.canonical() },
             constraints = draft.constraints.map { it.canonical() },
-            exitActions = draft.exitActions.map { it.canonical() }
+            exitActions = draft.exitActions.map { it.canonical() },
+            canonicalNodes = draft.canonicalNodes.toList()
         )
         return hash(
             buildString {

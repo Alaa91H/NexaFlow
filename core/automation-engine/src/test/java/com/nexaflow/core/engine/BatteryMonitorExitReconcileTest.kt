@@ -8,6 +8,10 @@ import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
 import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher
+import com.nexaflow.core.execution.canonical.CanonicalTriggerHandlerRegistry
+import com.nexaflow.domain.canonical.CanonicalTriggerEvaluator
+import com.nexaflow.domain.canonical.CanonicalTriggerSourceRegistry
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
@@ -80,6 +84,13 @@ class BatteryMonitorExitReconcileTest {
         exitCoordinator = exitCoordinator,
         runtimeStore = runtimeStore,
         activeStore = store,
+        canonicalTriggerDispatcher = CanonicalTriggerDispatcher(
+            evaluator = CanonicalTriggerEvaluator(CanonicalTriggerSourceRegistry(listOf(CanonicalBatteryTriggerDefinition.contract))),
+            handlers = CanonicalTriggerHandlerRegistry(listOf(
+                CanonicalBatteryTriggerDefinition.handler { CanonicalBatteryTriggerDefinition.evaluate(it, 0, BatteryManager.BATTERY_STATUS_UNKNOWN, 0) },
+            )),
+            sources = CanonicalTriggerSourceRegistry(listOf(CanonicalBatteryTriggerDefinition.contract)),
+        ),
         scope = CoroutineScope(Dispatchers.Default)
     )
 

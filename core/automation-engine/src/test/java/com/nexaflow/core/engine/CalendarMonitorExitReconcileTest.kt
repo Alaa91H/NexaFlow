@@ -217,9 +217,9 @@ class CalendarMonitorExitReconcileTest {
         val monitor = monitorFor(repository, engine, store, history)
         monitor.initialize()
 
-        // Give the async re-arm + rescan a moment, then assert no exit ran and
-        // the mark survives.
-        Thread.sleep(300)
+        // Wait for async re-arm + provider reconciliation to bind the proven
+        // event end before asserting this lifecycle remains active.
+        waitUntil { AutomationRuntimeStore(context).current("cal-task")?.expectedEndAt == end }
         assertTrue(
             "no exit while the activating occurrence is still active",
             history.exits.none { it == EXIT_NOOP_MARKER }

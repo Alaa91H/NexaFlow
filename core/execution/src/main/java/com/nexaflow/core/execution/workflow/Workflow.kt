@@ -191,6 +191,9 @@ class WorkflowExecutionBudget private constructor(
     companion object {
         private const val NANOS_PER_MILLISECOND = 1_000_000L
 
+        fun create(policy: WorkflowExecutionPolicy = WorkflowExecutionPolicy()): WorkflowExecutionBudget =
+            fromPolicy(policy)
+
         internal fun fromPolicy(policy: WorkflowExecutionPolicy): WorkflowExecutionBudget =
             WorkflowExecutionBudget(policy.maxNodeVisits, policy.maxExecutionTimeMs)
     }

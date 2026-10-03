@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">إجراءات متقدمة</string>
+    <string name="canonical_actions_subtitle">عمليات أصلية ذات أنواع محددة</string>
+    <string name="canonical_battery_title">عتبة البطارية</string>
+    <string name="canonical_battery_subtitle">شروط مستوى البطارية والشحن</string>
+    <string name="canonical_add_battery">إضافة شرط بطارية</string>
+    <string name="canonical_battery_threshold">العتبة</string>
+    <string name="canonical_battery_toggle_direction">تغيير اتجاه العتبة</string>
+    <string name="canonical_battery_charger">الشاحن: %1$s</string>
+    <string name="canonical_battery_charging_state">حالة الشحن: %1$s</string>
+    <string name="canonical_mixed_trigger_error">اختر شروط البطارية الأصلية أو المحفزات التقليدية في الأتمتة، ولا تجمع بينهما.</string>
+    <string name="canonical_add_delay">إضافة انتظار</string>
+    <string name="canonical_store_secret">حفظ سر محمي</string>
+    <string name="canonical_secret_value">قيمة السر</string>
+    <string name="canonical_secret_store_failed">تعذر حفظ القيمة المحمية. تحقق من المرجع وحاول مجدداً.</string>
     <string name="canonical_choose_app">اختر تطبيقاً</string>
     <string name="canonical_search_apps">ابحث عن تطبيق</string>
     <string name="canonical_no_apps_found">لم يتم العثور على تطبيقات</string>

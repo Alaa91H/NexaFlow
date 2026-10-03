@@ -61,12 +61,32 @@ class AutomationMapperTest {
     }
 
     @Test
+    fun canonicalNativeWaitRoundTripsRoomWithoutLegacyActionIdentity() {
+        val field = com.nexaflow.domain.canonical.CanonicalFieldId("duration_ms")
+        val duration = com.nexaflow.domain.canonical.DurationValue(12_000L)
+        val schema = com.nexaflow.domain.canonical.CanonicalNativeNodeSchemaRegistry.delay
+        val nativeWait = com.nexaflow.domain.canonical.CanonicalWorkflowNode(
+            kind = com.nexaflow.domain.canonical.NodeSchemaKind.ACTION,
+            definitionId = schema.schemaId,
+            schema = schema,
+            node = com.nexaflow.domain.canonical.WaitNode(
+                com.nexaflow.domain.canonical.CanonicalNodeId("native.action.room.delay"), duration,
+            ),
+            arguments = listOf(com.nexaflow.domain.canonical.NodeFieldValue(field, duration)),
+        )
+        val source = automation.copy(actions = emptyList(), canonicalNodes = listOf(nativeWait))
+        val entity = source.toEntity()
+        assertEquals(CanonicalV3WriteState.V3_READY.name, entity.canonicalWriteState)
+        assertEquals(listOf(nativeWait), entity.toDomain().canonicalNodes)
+    }
+
+    @Test
     fun domainToEntityWritesTypedCanonicalV3() {
         val entity = automation.toEntity()
         val payload = requireNotNull(entity.canonicalWorkflowJson)
         val document = CanonicalWorkflowV3Codec.decode(payload)
 
-        assertEquals(3, document.schemaVersion)
+        assertEquals(4, document.schemaVersion)
         assertEquals(automation.id, document.workflowId)
         assertEquals(automation.triggers.size, document.triggers.size)
         assertEquals(automation.actions.size, document.actions.size)

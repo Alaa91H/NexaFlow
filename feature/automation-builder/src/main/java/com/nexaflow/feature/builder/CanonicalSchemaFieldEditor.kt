@@ -32,6 +32,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -64,10 +66,12 @@ import com.nexaflow.domain.canonical.NodeSchemaLevel
 import com.nexaflow.domain.canonical.PackageIdValue
 import com.nexaflow.domain.canonical.PercentageValue
 import com.nexaflow.domain.canonical.TextValue
+import com.nexaflow.domain.canonical.SecretReferenceValue
 import com.nexaflow.domain.canonical.TimeOfDayValue
 import com.nexaflow.domain.canonical.TimezoneValue
 import com.nexaflow.domain.canonical.UriValue
 import kotlinx.serialization.json.Json
+import kotlinx.coroutines.launch
 
 /**
  * T12 schema-driven field renderer. The canonical schema decides which fields
@@ -82,6 +86,7 @@ internal fun CanonicalSchemaFieldEditor(
     modifier: Modifier = Modifier,
 ) {
     val schema = binding.schema
+    val builderViewModel: AutomationBuilderViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
     val parseErrors = remember(schema.schemaId, config, binding.legacyKeys) {
         canonicalFieldParseErrors(schema, binding.legacyKeys, config)
     }
@@ -123,6 +128,7 @@ internal fun CanonicalSchemaFieldEditor(
                 field = field,
                 rawValue = current,
                 hasParseError = field.id.value in parseErrors,
+                onStoreSecret = { referenceId, secret -> builderViewModel.storeWorkflowSecret(referenceId, secret) },
                 onValueChange = { updated ->
                     onConfigChange(config + (legacyKey to updated))
                 },
@@ -161,6 +167,7 @@ private fun CanonicalFieldControl(
     rawValue: String,
     hasParseError: Boolean,
     onValueChange: (String) -> Unit,
+    onStoreSecret: suspend (String, String) -> Unit = { _, _ -> },
 ) {
     when (field.type) {
         NodeFieldType.BOOLEAN -> {
@@ -201,19 +208,64 @@ private fun CanonicalFieldControl(
             }
         }
         NodeFieldType.SECRET_REFERENCE -> {
-            // Canonical workflows store a secret reference, never the secret.
-            OutlinedTextField(
-                value = if (rawValue.isBlank()) "" else "••••",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = field.id.value) },
-                singleLine = true,
-                isError = hasParseError,
-                supportingText = if (hasParseError) {
-                    { Text(stringResource(R.string.canonical_field_invalid_value)) }
-                } else null,
-            )
+            var showSecretDialog by remember(field.id.value) { mutableStateOf(false) }
+            val secretScope = rememberCoroutineScope()
+            var secretInput by remember(field.id.value) { mutableStateOf("") }
+            var secretError by remember(field.id.value) { mutableStateOf(false) }
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                OutlinedTextField(
+                    value = rawValue,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = field.id.value) },
+                    singleLine = true,
+                    isError = hasParseError,
+                    supportingText = if (hasParseError) {
+                        { Text(stringResource(R.string.canonical_field_invalid_value)) }
+                    } else null,
+                )
+                Button(onClick = { secretError = false; secretInput = ""; showSecretDialog = true }) {
+                    Text(stringResource(R.string.canonical_store_secret))
+                }
+            }
+            if (showSecretDialog) {
+                AlertDialog(
+                    onDismissRequest = { secretInput = ""; showSecretDialog = false },
+                    title = { Text(stringResource(R.string.canonical_store_secret)) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = secretInput,
+                                onValueChange = { secretInput = it },
+                                visualTransformation = PasswordVisualTransformation(),
+                                singleLine = true,
+                                label = { Text(stringResource(R.string.canonical_secret_value)) },
+                                isError = secretError,
+                            )
+                            if (secretError) Text(stringResource(R.string.canonical_secret_store_failed))
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            enabled = rawValue.matches(Regex("[a-z][a-z0-9_.-]{2,127}")) && secretInput.isNotEmpty(),
+                            onClick = {
+                                val submittedSecret = secretInput
+                                secretInput = ""
+                                secretScope.launch {
+                                    runCatching { onStoreSecret(rawValue, submittedSecret) }
+                                        .onSuccess { showSecretDialog = false }
+                                        .onFailure { secretError = true }
+                                }
+                            },
+                        ) { Text(stringResource(R.string.save)) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { secretInput = ""; showSecretDialog = false }) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                    },
+                )
+            }
         }
         NodeFieldType.TIME_OF_DAY -> {
             var showPicker by remember(field.id.value) { mutableStateOf(false) }
@@ -573,7 +625,7 @@ internal fun parseCanonicalField(field: NodeSchemaField, raw: String): Canonical
                     .map { token -> parseCollectionElement(elementKind, token) }
                 CollectionValue(elementKind, items)
             }
-            NodeFieldType.SECRET_REFERENCE -> null
+            NodeFieldType.SECRET_REFERENCE -> SecretReferenceValue(raw)
         }
     }.getOrNull()
 
@@ -582,7 +634,6 @@ internal fun canonicalFieldParseErrors(
     legacyKeys: Map<String, String>,
     config: Map<String, String>,
 ): Set<String> = schema.fields.mapNotNullTo(linkedSetOf()) { field ->
-    if (field.type == NodeFieldType.SECRET_REFERENCE) return@mapNotNullTo null
     val legacyKey = legacyKeys[field.id.value] ?: field.id.value
     val raw = config[legacyKey] ?: field.default?.raw?.let(::canonicalValueToLegacy) ?: return@mapNotNullTo null
     if (raw.isBlank() && !field.alwaysRequired && field.requiredWhen.isEmpty()) return@mapNotNullTo null
@@ -619,7 +670,7 @@ internal fun canonicalValueToLegacy(value: CanonicalValue): String = when (value
     is EnumTokenValue -> value.token
     is JsonValue -> value.value.toString()
     is CollectionValue -> value.values.joinToString("|", transform = ::canonicalValueToLegacy)
-    is com.nexaflow.domain.canonical.SecretReferenceValue -> ""
+    is com.nexaflow.domain.canonical.SecretReferenceValue -> value.referenceId
     is com.nexaflow.domain.canonical.ExpressionValue -> value.source
 }
 

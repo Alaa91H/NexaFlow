@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">Erweiterte Aktionen</string>
+    <string name="canonical_actions_subtitle">Typisierte native Vorgänge</string>
+    <string name="canonical_battery_title">Akkuschwelle</string>
+    <string name="canonical_battery_subtitle">Batterie- und Ladebedingungen</string>
+    <string name="canonical_add_battery">Batteriebedingung hinzufügen</string>
+    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_toggle_direction">Schwellenrichtung ändern</string>
+    <string name="canonical_battery_charger">Ladegerät: %1$s</string>
+    <string name="canonical_battery_charging_state">Ladestatus: %1$s</string>
+    <string name="canonical_mixed_trigger_error">Verwende in einer Automation entweder native Batteriebedingungen oder herkömmliche Auslöser.</string>
+    <string name="canonical_add_delay">Verzögerung hinzufügen</string>
+    <string name="canonical_store_secret">Geschütztes Geheimnis speichern</string>
+    <string name="canonical_secret_value">Geheimniswert</string>
+    <string name="canonical_secret_store_failed">Der geschützte Wert konnte nicht gespeichert werden. Prüfen Sie die Referenz und versuchen Sie es erneut.</string>
     <string name="canonical_choose_app">App auswählen</string>
     <string name="canonical_search_apps">Apps suchen</string>
     <string name="canonical_no_apps_found">Keine Apps gefunden</string>

@@ -13,8 +13,33 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
+import com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher
 import com.nexaflow.core.execution.compat.EventSource
 import com.nexaflow.core.execution.compat.TriggerSource
+import com.nexaflow.domain.canonical.CanonicalFieldId
+import com.nexaflow.domain.canonical.CanonicalTriggerSourceContract
+import com.nexaflow.domain.canonical.CanonicalTriggerSourceKind
+import com.nexaflow.domain.canonical.CanonicalValueKind
+import com.nexaflow.domain.canonical.ConditionLogic
+import com.nexaflow.domain.canonical.DurationValue
+import com.nexaflow.domain.canonical.EnumTokenValue
+import com.nexaflow.domain.canonical.IntegerValue
+import com.nexaflow.domain.canonical.NodeFieldType
+import com.nexaflow.domain.canonical.NodeFieldValue
+import com.nexaflow.domain.canonical.NodeSchema
+import com.nexaflow.domain.canonical.NodeSchemaField
+import com.nexaflow.domain.canonical.NodeSchemaKind
+import com.nexaflow.domain.canonical.CanonicalWorkflowNode
+import com.nexaflow.domain.canonical.PredicateId
+import com.nexaflow.domain.canonical.TargetId
+import com.nexaflow.domain.canonical.ObserveNode
+import com.nexaflow.domain.canonical.CanonicalNodeId
+import com.nexaflow.domain.canonical.NodeSecurityClass
+import com.nexaflow.domain.capability.CapabilityRequirement
+import com.nexaflow.domain.capability.CapabilityId
+import com.nexaflow.domain.models.ConditionResult
+import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
@@ -40,6 +65,7 @@ class BatteryMonitor @Inject constructor(
     private val exitCoordinator: ExitCoordinator,
     private val runtimeStore: AutomationRuntimeStore,
     private val activeStore: ActiveTriggerStore,
+    private val canonicalTriggerDispatcher: CanonicalTriggerDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ) : EventSource {
 
@@ -298,13 +324,70 @@ class BatteryMonitor @Inject constructor(
         scope.launch {
             val automations = repository.getAutomations().first()
             automations.filter { it.enabled }.forEach { automation ->
+                val canonicalBatteryTriggers = automation.canonicalNodes
+                    .filter { it.kind == NodeSchemaKind.TRIGGER && it.definitionId == CanonicalBatteryTriggerDefinition.ID }
+                val canonicalBatteryEvaluation = if (canonicalBatteryTriggers.isNotEmpty()) {
+                    canonicalTriggerDispatcher.evaluate(
+                        nodes = canonicalBatteryTriggers,
+                        logic = if (automation.triggerMatch == TriggerMatchMode.ALL) ConditionLogic.ALL else ConditionLogic.ANY,
+                        occurrenceId = "battery-state:$level:$status:$plugged",
+                        evaluatorOverrides = mapOf(CanonicalBatteryTriggerDefinition.ID to { node ->
+                            CanonicalBatteryTriggerDefinition.evaluate(node, level, status, plugged)
+                        }),
+                    )
+                } else null
+                val canonicalBatteryActive = canonicalBatteryEvaluation?.decision == ConditionResult.Satisfied
+                val canonicalBatteryKey = "${automation.id}|canonical-battery"
+                if (canonicalBatteryTriggers.isNotEmpty()) {
+                    if (canonicalBatteryActive && !activeBatteryTriggers.contains(canonicalBatteryKey)) {
+                        val last = lastRunAt[automation.id] ?: 0L
+                        val now = System.currentTimeMillis()
+                        if (now - last > automation.cooldownMillis) {
+                            lastRunAt[automation.id] = now
+                            val occurrenceId = "canonical-battery:${automation.id}:${UUID.randomUUID()}"
+                            executionEngine.runAutomation(
+                                automation,
+                                triggerOccurrence = TriggerOccurrence(
+                                    matchedTriggerIndices = setOf(automation.triggers.size),
+                                    occurredAtEpochMs = System.currentTimeMillis(),
+                                    sourceId = sourceId,
+                                    eventId = occurrenceId,
+                                ),
+                                lifecycleContext = AutomationLifecycleContext(
+                                    occurrenceId = occurrenceId,
+                                    source = sourceId,
+                                    sourceKey = canonicalBatteryKey,
+                                ),
+                            )
+                            val accepted = runtimeStore.current(automation.id)?.let {
+                                it.occurrenceId == occurrenceId && it.source == sourceId
+                            } == true
+                            if (accepted) {
+                                activeBatteryTriggers.add(canonicalBatteryKey)
+                                activeStore.markActive(sourceId, canonicalBatteryKey)
+                            }
+                        }
+                    } else if (!canonicalBatteryActive && activeBatteryTriggers.contains(canonicalBatteryKey)) {
+                        when (exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)) {
+                            is ExitCoordinatorResult.Executed,
+                            ExitCoordinatorResult.NotActive,
+                            ExitCoordinatorResult.StaleOccurrence -> {
+                                activeBatteryTriggers.remove(canonicalBatteryKey)
+                                activeStore.clearAutomation(sourceId, automation.id)
+                            }
+                            ExitCoordinatorResult.AlreadyInProgress,
+                            is ExitCoordinatorResult.RecoveryRequired -> Unit
+                        }
+                    }
+                }
                 // Battery trigger: fire when the level crosses the configured
                 // threshold (ABOVE or BELOW) AND the charger type matches
                 // (AC / USB / WIRELESS / ANY). The active key includes the plug
                 // type so switching chargers (e.g. USB → wireless) re-fires.
+                val hasCanonicalBatteryTrigger = canonicalBatteryTriggers.isNotEmpty()
                 val batteryTrigger = automation.triggers.firstOrNull {
                     it.type == TriggerType.BATTERY
-                }
+                }?.takeUnless { hasCanonicalBatteryTrigger }
                 if (batteryTrigger != null) {
                     val config = batteryTrigger.config
                     val plugType = BatteryTriggerMatcher.plugTypeName(plugged)
@@ -379,7 +462,7 @@ class BatteryMonitor @Inject constructor(
                 // behavior when the configured side ends.
                 val chargerTrigger = automation.triggers.firstOrNull {
                     it.type == TriggerType.CHARGER
-                }
+                }?.takeUnless { hasCanonicalBatteryTrigger }
                 if (chargerTrigger != null) {
                     val charging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                         status == BatteryManager.BATTERY_STATUS_FULL

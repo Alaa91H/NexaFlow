@@ -9,6 +9,30 @@ import org.junit.Test
 class AgentTaskMapperTest {
 
     @Test
+    fun agentTaskUpdateCanPreserveNativeCanonicalNodesWhenDraftCarriesThem() {
+        val field = com.nexaflow.domain.canonical.CanonicalFieldId("duration_ms")
+        val duration = com.nexaflow.domain.canonical.DurationValue(8_000L)
+        val schema = com.nexaflow.domain.canonical.CanonicalNativeNodeSchemaRegistry.delay
+        val node = com.nexaflow.domain.canonical.CanonicalWorkflowNode(
+            kind = com.nexaflow.domain.canonical.NodeSchemaKind.ACTION,
+            definitionId = schema.schemaId,
+            schema = schema,
+            node = com.nexaflow.domain.canonical.WaitNode(
+                com.nexaflow.domain.canonical.CanonicalNodeId("native.action.agent.delay"), duration,
+            ),
+            arguments = listOf(com.nexaflow.domain.canonical.NodeFieldValue(field, duration)),
+        )
+        val existing = baseAutomation(1L, 2L, null).copy(canonicalNodes = listOf(node))
+        val mapped = AgentTaskMapper.toAutomation(
+            draft = AgentTaskDraftV1(name = "Updated", canonicalNodes = listOf(node)),
+            id = existing.id,
+            nowMillis = 3L,
+            existing = existing,
+        )
+        assertEquals(listOf(node), mapped.canonicalNodes)
+    }
+
+    @Test
     fun newAgentDraftDefaultsToDisabledAutomation() {
         val automation = AgentTaskMapper.toAutomation(
             draft = AgentTaskDraftV1(name = "Night routine"),

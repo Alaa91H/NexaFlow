@@ -182,6 +182,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.nexaflow.core.engine.LocationAccess
+import com.nexaflow.core.engine.CanonicalBatteryTriggerDefinition
 import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.core.execution.TriggerMatchPolicy
 import com.nexaflow.core.execution.compat.CommandRequirementCatalog
@@ -213,6 +214,10 @@ import com.nexaflow.domain.models.RoutineTemplateCatalog
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.canonical.CanonicalWorkflowNode
+import com.nexaflow.core.execution.canonical.CanonicalDelayDefinition
+import com.nexaflow.domain.canonical.DurationValue
+import com.nexaflow.domain.canonical.WaitNode
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -254,7 +259,11 @@ fun AutomationBuilderScreen(
     val actionAvailabilityByType = remember(actionOptionStates) {
         actionOptionStates.associate { it.option.actionType to it.availability }
     }
-    val supportedTriggers = remember(triggerOptionStates) { triggerOptionStates.map { it.type } }
+    val supportedTriggers = remember(triggerOptionStates, viewModel.executableCanonicalTriggers) {
+        triggerOptionStates.map { it.type } + viewModel.executableCanonicalTriggers.mapNotNull { contract ->
+            if (contract.definitionId == CanonicalBatteryTriggerDefinition.ID) TriggerType.BATTERY else null
+        }.filterNot { type -> type in triggerOptionStates.map { it.type } }
+    }
     val triggerAvailabilityByType = remember(triggerOptionStates) {
         triggerOptionStates.associate { it.type to it.availability }
     }
@@ -335,6 +344,8 @@ fun AutomationBuilderScreen(
     var expandedTriggerIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var expandedActionCardId by rememberSaveable { mutableStateOf<String?>(null) }
     val actionDrafts = rememberSaveable(saver = ActionDraftListSaver) { mutableStateListOf<ActionDraft>() }
+    val canonicalActionNodes = remember { mutableStateListOf<CanonicalWorkflowNode>() }
+    val canonicalTriggerNodes = remember { mutableStateListOf<CanonicalWorkflowNode>() }
     // Real drag-and-drop reorder state — one per reorderable list so
     // dragging in one section never disturbs the others (↕️ handle).
     val actionDrag = remember { TaskDragState<ActionDraft>() }
@@ -528,6 +539,14 @@ fun AutomationBuilderScreen(
                 )
             }
         }
+        canonicalActionNodes.clear()
+        loaded.canonicalNodes
+            .filter { it.kind == com.nexaflow.domain.canonical.NodeSchemaKind.ACTION }
+            .forEach(canonicalActionNodes::add)
+        canonicalTriggerNodes.clear()
+        loaded.canonicalNodes
+            .filter { it.kind == com.nexaflow.domain.canonical.NodeSchemaKind.TRIGGER }
+            .forEach(canonicalTriggerNodes::add)
         // Backward compatibility: the old global revert-on-exit toggle is now
         // expanded for every matching card independently, preserving duplicate
         // actions instead of merging their end behavior by type.
@@ -823,11 +842,15 @@ fun AutomationBuilderScreen(
     }
 
     fun save(closeAfterSave: Boolean = true) {
-        if (triggers.isEmpty()) {
+        if (triggers.isNotEmpty() && canonicalTriggerNodes.isNotEmpty()) {
+            showSnackbar(configurationContext.getString(R.string.canonical_mixed_trigger_error))
+            return
+        }
+        if (triggers.isEmpty() && canonicalTriggerNodes.isEmpty()) {
             showSnackbar(stringNextNeedsTrigger)
             return
         }
-        if (actionDrafts.isEmpty()) {
+        if (actionDrafts.isEmpty() && canonicalActionNodes.isEmpty()) {
             showSnackbar(stringNextNeedsAction)
             return
         }
@@ -856,6 +879,14 @@ fun AutomationBuilderScreen(
             triggers = builtTriggers,
             triggerMatch = triggerMatch,
             actions = actions,
+            canonicalNodes = buildList {
+                addAll(loadedAutomation?.canonicalNodes.orEmpty().filter {
+                    it.kind != com.nexaflow.domain.canonical.NodeSchemaKind.ACTION &&
+                        it.kind != com.nexaflow.domain.canonical.NodeSchemaKind.TRIGGER
+                })
+                addAll(canonicalActionNodes.mapIndexed { index, node -> node.copy(sequenceIndex = index) })
+                addAll(canonicalTriggerNodes.mapIndexed { index, node -> node.copy(sequenceIndex = index) })
+            },
             constraints = builtConstraints,
             exitActions = exitActions,
             // Unified end behavior: each action carries its own end behavior
@@ -1076,7 +1107,87 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(text = stringResource(R.string.section_when))
-                        NodeConfiguratorPanel(
+                        val batteryTriggerContract = viewModel.executableCanonicalTriggers.firstOrNull {
+                            it.definitionId == CanonicalBatteryTriggerDefinition.ID
+                        }
+                        if (batteryTriggerContract != null) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(stringResource(R.string.canonical_battery_title), style = MaterialTheme.typography.titleSmall)
+                                    Text(stringResource(R.string.canonical_battery_subtitle), style = MaterialTheme.typography.bodySmall)
+                                }
+                                Button(
+                                    enabled = triggers.isEmpty(),
+                                    onClick = {
+                                    canonicalTriggerNodes.add(CanonicalBatteryTriggerDefinition.node(
+                                        id = "native.trigger.${java.util.UUID.randomUUID().toString().replace("-", "")}",
+                                        sequenceIndex = canonicalTriggerNodes.size,
+                                ))
+                                }) { Text(stringResource(R.string.canonical_add_battery)) }
+                            }
+                            canonicalTriggerNodes.forEachIndexed { index, node ->
+                                val threshold = (node.arguments.firstOrNull { it.field == CanonicalBatteryTriggerDefinition.thresholdField }
+                                    ?.value as? com.nexaflow.domain.canonical.IntegerValue)?.value?.toInt() ?: 20
+                                NexaFlowCard {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("${stringResource(R.string.canonical_battery_threshold)}: $threshold%")
+                                        androidx.compose.material3.Slider(
+                                            value = threshold.toFloat(),
+                                            onValueChange = { raw ->
+                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
+                                                    id = node.node.id.value,
+                                                    sequenceIndex = index,
+                                                    thresholdPercent = raw.toInt(),
+                                                    direction = (node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "BELOW",
+                                                    chargerType = (node.arguments.getOrNull(2)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
+                                                    chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
+                                                )
+                                            },
+                                            valueRange = 0f..100f,
+                                            steps = 99,
+                                        )
+                                        val charger = (node.arguments.getOrNull(2)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY"
+                                        val chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY"
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            TextButton(onClick = {
+                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
+                                                    id = node.node.id.value,
+                                                    sequenceIndex = index,
+                                                    thresholdPercent = threshold,
+                                                    direction = if ((node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token == "BELOW") "ABOVE" else "BELOW",
+                                                    chargerType = (node.arguments.getOrNull(2)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
+                                                    chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
+                                                )
+                                            }) { Text(stringResource(R.string.canonical_battery_toggle_direction)) }
+                                            TextButton(onClick = {
+                                                val next = when (charger) { "ANY" -> "AC"; "AC" -> "USB"; "USB" -> "WIRELESS"; else -> "ANY" }
+                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
+                                                    id = node.node.id.value, sequenceIndex = index, thresholdPercent = threshold,
+                                                    direction = (node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "BELOW",
+                                                    chargerType = next, chargingState = chargingState,
+                                                )
+                                            }) { Text(stringResource(R.string.canonical_battery_charger, charger)) }
+                                            TextButton(onClick = {
+                                                val next = when (chargingState) { "ANY" -> "CHARGING"; "CHARGING" -> "NOT_CHARGING"; else -> "ANY" }
+                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
+                                                    id = node.node.id.value, sequenceIndex = index, thresholdPercent = threshold,
+                                                    direction = (node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "BELOW",
+                                                    chargerType = charger, chargingState = next,
+                                                )
+                                            }) { Text(stringResource(R.string.canonical_battery_charging_state, chargingState)) }
+                                            TextButton(onClick = { canonicalTriggerNodes.removeAt(index) }) {
+                                                Text(stringResource(R.string.remove))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (canonicalTriggerNodes.isEmpty()) NodeConfiguratorPanel(
                             title = stringResource(R.string.section_when),
                             searchQuery = triggerSearchQuery,
                             onSearchQueryChange = { triggerSearchQuery = it },
@@ -1092,9 +1203,9 @@ fun AutomationBuilderScreen(
                             }
                         ) {
                             val visibleTriggers = if (triggerSearchQuery.isBlank()) {
-                                supportedTriggers
+                                supportedTriggers.filter { it != TriggerType.BATTERY }
                             } else {
-                                supportedTriggers.filter { type ->
+                                supportedTriggers.filter { type -> type != TriggerType.BATTERY &&
                                     configurationContext.getString(type.labelRes())
                                         .contains(triggerSearchQuery, ignoreCase = true) ||
                                         configurationContext.getString(type.descRes())
@@ -1433,6 +1544,66 @@ fun AutomationBuilderScreen(
                                     expandedActionCardId = if (expanded) draft.id else null
                                 }
                                 )
+                            }
+                        }
+                        val delayDefinition = viewModel.executableCanonicalActions.firstOrNull {
+                            it.definitionId == CanonicalDelayDefinition.ID
+                        }
+                        if (delayDefinition != null) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = stringResource(R.string.canonical_actions_title), style = MaterialTheme.typography.titleSmall)
+                                    Text(text = stringResource(R.string.canonical_actions_subtitle), style = MaterialTheme.typography.bodySmall)
+                                }
+                                Button(onClick = {
+                                    canonicalActionNodes.add(
+                                        CanonicalDelayDefinition.node(
+                                            durationMs = 5_000L,
+                                            nodeId = "native.action.${java.util.UUID.randomUUID().toString().replace("-", "")}",
+                                            sequenceIndex = canonicalActionNodes.size,
+                                        ),
+                                    )
+                                }) { Text(stringResource(R.string.canonical_add_delay)) }
+                            }
+                            canonicalActionNodes.forEachIndexed { index, nativeNode ->
+                                val wait = nativeNode.node as? WaitNode
+                                if (wait != null) {
+                                    NexaFlowCard {
+                                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Text(text = nativeNode.schema.title, style = MaterialTheme.typography.titleSmall)
+                                            Text(text = "${(wait.duration.milliseconds / 1_000.0)} s", style = MaterialTheme.typography.bodySmall)
+                                            androidx.compose.material3.Slider(
+                                                value = wait.duration.milliseconds.toFloat(),
+                                                onValueChange = { raw ->
+                                                    val updatedValue = DurationValue(raw.toLong())
+                                                    canonicalActionNodes[index] = nativeNode.copy(
+                                                        node = wait.copy(duration = updatedValue),
+                                                        arguments = listOf(com.nexaflow.domain.canonical.NodeFieldValue(
+                                                            CanonicalDelayDefinition.durationField, updatedValue,
+                                                        )),
+                                                    )
+                                                },
+                                                valueRange = 0f..CanonicalDelayDefinition.MAX_DURATION_MS.toFloat(),
+                                                steps = 59,
+                                            )
+                                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                TextButton(enabled = index > 0, onClick = {
+                                                    BuilderDraftOperations.move(canonicalActionNodes, index, index - 1)
+                                                }) { Text("↑") }
+                                                TextButton(enabled = index < canonicalActionNodes.lastIndex, onClick = {
+                                                    BuilderDraftOperations.move(canonicalActionNodes, index, index + 1)
+                                                }) { Text("↓") }
+                                                TextButton(onClick = { canonicalActionNodes.removeAt(index) }) {
+                                                    Text(stringResource(R.string.remove_action))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
 

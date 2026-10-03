@@ -107,6 +107,7 @@ internal object CanonicalWorkflowV3ReadMapper {
             triggers = triggers,
             actions = actions,
             exitActions = exitActions,
+            canonicalNodes = document.canonicalNodes,
             triggerMatch = when (document.conditionLogic) {
                 ConditionLogic.ALL -> TriggerMatchMode.ALL
                 ConditionLogic.ANY -> TriggerMatchMode.ANY

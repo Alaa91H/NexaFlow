@@ -290,6 +290,11 @@ class CanonicalExecutionPlanner private constructor(
                     visit(node.ifTrue, branch)
                     node.ifFalse?.let { visit(it, "$branch-else") }
                 }
+                is WaitNode -> groups += CommandGroup(
+                    groupId = newGroupId("wait"),
+                    commands = listOf(waitCommand(node)),
+                    branchId = branchId,
+                )
                 is CanonicalActionNode -> planScope(listOf(node), branchId)
                 // Conditions and comparisons produce no commands; the runtime
                 // evaluates them before running the planned groups.

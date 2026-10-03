@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">Ações avançadas</string>
+    <string name="canonical_actions_subtitle">Operações nativas tipadas</string>
+    <string name="canonical_battery_title">Limite da bateria</string>
+    <string name="canonical_battery_subtitle">Condições de nível e carregamento</string>
+    <string name="canonical_add_battery">Adicionar condição de bateria</string>
+    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_toggle_direction">Alterar direção do limite</string>
+    <string name="canonical_add_delay">Adicionar espera</string>
+    <string name="canonical_store_secret">Guardar segredo protegido</string>
+    <string name="canonical_secret_value">Valor secreto</string>
+    <string name="canonical_secret_store_failed">Não foi possível guardar o valor protegido. Verifique a referência e tente novamente.</string>
     <string name="canonical_choose_app">Escolher aplicativo</string>
     <string name="canonical_search_apps">Pesquisar aplicativos</string>
     <string name="canonical_no_apps_found">Nenhum aplicativo encontrado</string>
@@ -1287,4 +1298,7 @@
     <string name="option_tier_all">Todas as opções</string>
     <string name="option_tier_expanded">Expandido</string>
     <string name="option_tier_collapsed">Recolhido</string>
+    <string name="canonical_battery_charger">Charger: %1$s</string>
+    <string name="canonical_battery_charging_state">Charging state: %1$s</string>
+    <string name="canonical_mixed_trigger_error">Use either native battery conditions or legacy triggers in one automation, not both.</string>
 </resources>

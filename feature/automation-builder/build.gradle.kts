@@ -100,6 +100,8 @@ dependencies {
     implementation(project(":core:plugin-sdk"))
     // Notification action buttons reuse the core model + PendingIntent builder.
     implementation(project(":core:execution"))
+    implementation(project(":core:security"))
+    implementation(project(":core:security"))
     // Every save crosses the command boundary (validation, transactions,
     // provenance, audit, events) exactly like agent mutations.
     implementation(project(":core:automation-control"))

@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">Acciones avanzadas</string>
+    <string name="canonical_actions_subtitle">Operaciones nativas tipadas</string>
+    <string name="canonical_battery_title">Umbral de batería</string>
+    <string name="canonical_battery_subtitle">Condiciones de nivel y carga</string>
+    <string name="canonical_add_battery">Añadir condición de batería</string>
+    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_toggle_direction">Cambiar dirección del umbral</string>
+    <string name="canonical_battery_charger">Cargador: %1$s</string>
+    <string name="canonical_battery_charging_state">Estado de carga: %1$s</string>
+    <string name="canonical_mixed_trigger_error">Usa condiciones nativas de batería o activadores tradicionales, pero no ambos.</string>
+    <string name="canonical_add_delay">Añadir espera</string>
+    <string name="canonical_store_secret">Guardar secreto protegido</string>
+    <string name="canonical_secret_value">Valor secreto</string>
+    <string name="canonical_secret_store_failed">No se pudo guardar el valor protegido. Comprueba la referencia e inténtalo de nuevo.</string>
     <string name="canonical_choose_app">Elegir aplicación</string>
     <string name="canonical_search_apps">Buscar aplicaciones</string>
     <string name="canonical_no_apps_found">No se encontraron aplicaciones</string>

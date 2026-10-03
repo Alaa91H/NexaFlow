@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">Actions avancées</string>
+    <string name="canonical_actions_subtitle">Opérations natives typées</string>
+    <string name="canonical_battery_title">Seuil de batterie</string>
+    <string name="canonical_battery_subtitle">Conditions de niveau et de charge</string>
+    <string name="canonical_add_battery">Ajouter une condition de batterie</string>
+    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_toggle_direction">Changer le sens du seuil</string>
+    <string name="canonical_battery_charger">Chargeur : %1$s</string>
+    <string name="canonical_battery_charging_state">État de charge : %1$s</string>
+    <string name="canonical_mixed_trigger_error">Utilisez des conditions natives de batterie ou des déclencheurs classiques, sans les mélanger.</string>
+    <string name="canonical_add_delay">Ajouter une attente</string>
+    <string name="canonical_store_secret">Enregistrer le secret protégé</string>
+    <string name="canonical_secret_value">Valeur secrète</string>
+    <string name="canonical_secret_store_failed">Impossible d’enregistrer la valeur protégée. Vérifiez la référence et réessayez.</string>
     <string name="canonical_choose_app">Choisir une application</string>
     <string name="canonical_search_apps">Rechercher des applications</string>
     <string name="canonical_no_apps_found">Aucune application trouvée</string>

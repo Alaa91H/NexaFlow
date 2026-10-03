@@ -83,7 +83,8 @@ object AgentTaskMapper {
                 dependencyAutomationIds = profile.dependencyAutomationIds.toList(),
                 recoveryPolicy = profile.recoveryPolicy.name
             )
-        }
+        },
+        canonicalNodes = automation.canonicalNodes.toList()
     )
 
     private fun fromAction(action: Action): AgentActionDraftV1 = AgentActionDraftV1(
@@ -148,7 +149,8 @@ object AgentTaskMapper {
             updatedAt = nowMillis,
             workflowVersion = Automation.CURRENT_WORKFLOW_VERSION,
             maintenanceProfile = draft.maintenance?.toMaintenanceProfile(),
-            deepLinkToken = existing?.deepLinkToken
+            deepLinkToken = existing?.deepLinkToken,
+            canonicalNodes = draft.canonicalNodes.toList()
         )
     }
 

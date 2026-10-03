@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="canonical_actions_title">Advanced actions</string>
+    <string name="canonical_actions_subtitle">Typed native operations</string>
+    <string name="canonical_battery_title">Battery threshold</string>
+    <string name="canonical_battery_subtitle">State-based battery threshold and charging filters</string>
+    <string name="canonical_add_battery">Add battery condition</string>
+    <string name="canonical_battery_threshold">Threshold</string>
+    <string name="canonical_battery_toggle_direction">Change threshold direction</string>
+    <string name="canonical_battery_charger">Charger: %1$s</string>
+    <string name="canonical_battery_charging_state">Charging state: %1$s</string>
+    <string name="canonical_mixed_trigger_error">Use either native battery conditions or legacy triggers in one automation, not both.</string>
+    <string name="canonical_add_delay">Add delay</string>
+    <string name="canonical_store_secret">Store protected secret</string>
+    <string name="canonical_secret_value">Secret value</string>
+    <string name="canonical_secret_store_failed">Could not store the protected value. Check the reference and try again.</string>
     <string name="canonical_choose_app">Choose app</string>
     <string name="canonical_search_apps">Search apps</string>
     <string name="canonical_no_apps_found">No applications found</string>
