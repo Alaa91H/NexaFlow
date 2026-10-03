@@ -25,6 +25,7 @@ class CallActionsHandler : ActionHandler {
 
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.CALL_BLOCK,
+        ActionType.CALL_BLOCK_SILENT,
         ActionType.CALL_SILENCE
     )
 
@@ -35,7 +36,10 @@ class CallActionsHandler : ActionHandler {
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
         val telecom = ctx.appContext.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
         return when (action.type) {
-            ActionType.CALL_BLOCK -> {
+            ActionType.CALL_BLOCK, ActionType.CALL_BLOCK_SILENT -> {
+                if (ctx.triggerEventData["call.blocked"] == "true") {
+                    return SystemControlResult.ok("Incoming call blocked by screening service")
+                }
                 // TelecomManager.endCall exists only from API 28; on older
                 // APIs there is no supported non-deprecated rejection path.
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -63,6 +67,9 @@ class CallActionsHandler : ActionHandler {
                 }
             }
             ActionType.CALL_SILENCE -> {
+                if (ctx.triggerEventData["call.silenced"] == "true") {
+                    return SystemControlResult.ok("Incoming call silenced by screening service")
+                }
                 // Silence the ringer for the current call without rejecting
                 // it. Best-effort on the audio stream, exactly like the
                 // screening setSilenceCall path but available at runtime.

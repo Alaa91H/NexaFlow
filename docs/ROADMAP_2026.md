@@ -4,7 +4,7 @@ Status date: 2026-09-17. This is a development roadmap, not a statement that uni
 
 ## Automate comparison
 
-[Automate](https://llamalab.com/automate/) advertises more than 400 blocks and publishes a [block reference](https://llamalab.com/automate/doc/block/index.html). NexaFlow currently has 57 trigger enum entries and 176 action enum entries, with multiple operations inside some entries. Those quantities are not directly interchangeable. There is no independent benchmark establishing NexaFlow as better in every dimension.
+[Automate](https://llamalab.com/automate/) advertises more than 400 blocks and publishes a [block reference](https://llamalab.com/automate/doc/block/index.html). NexaFlow's original catalog had 57 trigger enum entries and 176 action enum entries; four additive communication actions bring the current catalog to 57/180. Some entries contain multiple operations, so those quantities are not directly interchangeable. There is no independent benchmark establishing NexaFlow as better in every dimension.
 
 | Dimension | Current evidence | Work required before a superiority claim |
 | --- | --- | --- |

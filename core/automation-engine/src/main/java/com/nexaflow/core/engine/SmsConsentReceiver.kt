@@ -125,12 +125,16 @@ class SmsConsentReceiver : BroadcastReceiver() {
                                     occurredAtEpochMs = receivedAt,
                                     sourceId = "sms",
                                     eventId = fingerprint,
+                                    eventData = mapOf("sms.sender" to sender.take(512)),
                                 ),
                             ) } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
                             val succeeded = outcome?.success == true
                             recordSmsActivitySafely(SmsActivityEvent(eventId, "INCOMING_TRIGGER", automation.id, automation.name, if (succeeded) "SUCCESS" else "FAILED", if (succeeded) null else "EXECUTION_FAILED", System.currentTimeMillis()))
                             val reply = SmsTriggerMatcher.replyOf(automation)
-                            if (!reply.isNullOrBlank()) {
+                            if (!reply.isNullOrBlank() && automation.actions.none {
+                                    it.type == com.nexaflow.domain.models.ActionType.SMS_REPLY
+                                }
+                            ) {
                                 val resolved = VariableResolver.resolve(
                                     reply,
                                     resolveReplyVariables(context)

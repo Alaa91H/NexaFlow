@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="sms_notification_channel">Incoming messages</string>
+    <string name="sms_notification_title">New message</string>
     <string name="monitoring_channel_name">NexaFlow monitoring</string>
     <string name="monitoring_title">NexaFlow monitoring</string>
     <string name="monitoring_text">Watching your automations</string>

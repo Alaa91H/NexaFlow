@@ -55,8 +55,14 @@ data class ActionExecutionContext(
     /** Typed, scope-aware variables for this run; null in legacy/exit paths. */
     val dataRuntime: ScopedDataRuntime? = null,
     /** Optional capability execution seam for truthful execution and verification. */
-    val capabilityService: com.nexaflow.core.execution.capability.CapabilityExecutionService? = null
-)
+    val capabilityService: com.nexaflow.core.execution.capability.CapabilityExecutionService? = null,
+    /** Ephemeral event fields, e.g. incoming sender; excluded from durable run state and logs. */
+    val triggerEventData: Map<String, String> = emptyMap()
+) {
+    override fun toString(): String =
+        "ActionExecutionContext(automationId=$automationId, executionId=$executionId, nodeId=$nodeId, " +
+            "triggerEventData=<redacted>)"
+}
 
 /**
  * Executes a single [Action] type (or a small family of related types).

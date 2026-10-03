@@ -17,8 +17,8 @@ class CanonicalRuntimePipelineTest {
     private val openCapability = CapabilityRequirement.Capability(CapabilityId.SETTINGS_LAUNCH)
 
     @Test
-    fun defaultAdapterCoversAll233TypesWithFamilyOverrides() {
-        assertEquals(233, pipeline.adapter.declaredRules)
+    fun defaultAdapterCoversAll237TypesWithFamilyOverrides() {
+        assertEquals(237, pipeline.adapter.declaredRules)
     }
 
     @Test
@@ -151,7 +151,7 @@ class CanonicalRuntimePipelineTest {
     }
 
     @Test
-    fun all233TypesCanonicalizeDeterministicallyThroughTheCutoverAdapter() {
+    fun all237TypesCanonicalizeDeterministicallyThroughTheCutoverAdapter() {
         val settingsPages = PilotOpenFamily.legacyPageMappings
             .associate { it.legacyType to it.pageToken }
         for (rule in LegacyMappingTable.all()) {

@@ -1,8 +1,13 @@
 package com.nexaflow.core.engine
 
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.ConstraintType
+import com.nexaflow.domain.models.TriggerMatchMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -134,6 +139,44 @@ class SmsTriggerMatcherTest {
         )
         assertEquals("Thanks", SmsTriggerMatcher.replyOf(withReply))
         assertNull(SmsTriggerMatcher.replyOf(automation()))
+    }
+
+    @Test
+    fun blocksIncoming_requiresAMatchingEnabledTaskAndExplicitAction() {
+        val blocker = automation(from = "BANK").copy(
+            actions = listOf(Action(ActionType.SMS_BLOCK_INCOMING, emptyMap()))
+        )
+        assertTrue(SmsTriggerMatcher.blocksIncoming(blocker, "BANK", "stop"))
+        assertFalse(SmsTriggerMatcher.blocksIncoming(blocker, "OTHER", "stop"))
+        assertFalse(SmsTriggerMatcher.blocksIncoming(blocker.copy(enabled = false), "BANK", "stop"))
+        assertFalse(SmsTriggerMatcher.blocksIncoming(automation(from = "BANK"), "BANK", "stop"))
+    }
+
+    @Test
+    fun blocksIncoming_failsClosedForConstraintsAndUnmatchedAllTriggers() {
+        val blocker = automation(from = "BANK").copy(
+            actions = listOf(Action(ActionType.SMS_BLOCK_INCOMING, emptyMap())),
+        )
+        assertFalse(
+            SmsTriggerMatcher.blocksIncoming(
+                blocker.copy(constraints = listOf(Constraint(ConstraintType.SCREEN_LOCKED))),
+                "BANK",
+                "stop",
+            ),
+        )
+
+        val allTriggers = blocker.copy(
+            triggerMatch = TriggerMatchMode.ALL,
+            triggers = blocker.triggers + Trigger(TriggerType.SMS, mapOf("from" to "OTHER")),
+        )
+        assertFalse(SmsTriggerMatcher.blocksIncoming(allTriggers, "BANK", "stop"))
+        assertTrue(
+            SmsTriggerMatcher.blocksIncoming(
+                allTriggers.copy(triggers = listOf(allTriggers.triggers.first(), allTriggers.triggers.first())),
+                "BANK",
+                "stop",
+            ),
+        )
     }
 
     @Test

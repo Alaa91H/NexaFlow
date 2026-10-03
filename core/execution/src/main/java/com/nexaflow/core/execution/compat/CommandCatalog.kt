@@ -187,6 +187,10 @@ object CommandCatalog {
         // the screening service already holds; the runtime handler reports an
         // honest failure when neither is granted.
         ActionType.CALL_BLOCK to CommandSpec(minSdk = 29, strategy = ExecutionStrategy.DIRECT),
+        ActionType.CALL_BLOCK_SILENT to CommandSpec(minSdk = 29, strategy = ExecutionStrategy.DIRECT),
+        ActionType.CALL_REPLY_WITH_SMS to direct(permissions = setOf("android.permission.SEND_SMS")),
+        ActionType.SMS_REPLY to direct(permissions = setOf("android.permission.SEND_SMS")),
+        ActionType.SMS_BLOCK_INCOMING to CommandSpec(minSdk = 29, strategy = ExecutionStrategy.DIRECT),
         ActionType.CALL_SILENCE to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SEND_EMAIL to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_URL to CommandSpec.UNIVERSAL,

@@ -39,7 +39,7 @@ class CanonicalLegacyMappingsGateTest(unittest.TestCase):
         self.assertEqual(
             REQUIRED_TEST_CASES,
             (
-                "tableCoversAll233LegacyTypes",
+                "tableCoversAll237AutomationTypes",
                 "everyMappingReferencesRegisteredIdentities",
                 "canonicalizationIsDeterministicAndIdempotent",
                 "unknownInputStaysRejected",

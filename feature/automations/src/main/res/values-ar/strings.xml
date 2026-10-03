@@ -509,6 +509,13 @@
     <string name="starter_template_nightly_call_silence">كتم المتصلين المجهولين ليلاً</string>
     <string name="action_call_block">حظر المكالمة</string>
     <string name="action_call_block_sub">رفض المكالمة الواردة الحالية</string>
+    <string name="action_call_block_silent_sub">حظر المكالمة المطابقة بصمت حيثما يدعم النظام ذلك</string>
+    <string name="action_call_reply_sms">الرد على المتصل برسالة</string>
+    <string name="action_call_reply_sms_sub">إرسال رسالة إلى المتصل الذي شغّل التنفيذ</string>
+    <string name="action_sms_reply">الرد على الرسالة الواردة</string>
+    <string name="action_sms_reply_sub">إرسال رسالة إلى مرسل الرسالة التي شغّلت التنفيذ</string>
+    <string name="action_sms_block">حظر الرسائل الواردة</string>
+    <string name="action_sms_block_sub">منع تسليم الرسائل المطابقة (يتطلب دور تطبيق SMS الافتراضي)</string>
     <string name="action_call_silence">كتم المكالمة</string>
     <string name="action_call_silence_sub">كتم الرنين الحالي</string>
     <string name="constraint_type_schedule">نافذة زمنية</string>

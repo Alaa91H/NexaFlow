@@ -12,7 +12,7 @@ TEST_FILE = ROOT / (
 )
 
 REQUIRED_TEST_CASES = (
-    "goldenContractExistsAndIsValidForEachOfThe233Mappings",
+    "goldenContractExistsAndIsValidForEachOfThe237Mappings",
     "goldenOutputIsPinnedToTheReviewedIdentity",
     "migrateIsIdempotentAcrossTheWholeTable",
     "triggerAndActionGoldenSplitsMatchTheBaseline",
@@ -43,8 +43,8 @@ def main() -> int:
                 problems.append(
                     f"GoldenMigrationSuiteTest.kt matches forbidden pattern {pattern!r}"
                 )
-        if "233" not in source:
-            problems.append("GoldenMigrationSuiteTest.kt does not pin the 233 total")
+        if "237" not in source:
+            problems.append("GoldenMigrationSuiteTest.kt does not pin the 237 total")
 
     if problems:
         print("CANONICAL_GOLDEN_MIGRATION: FAIL")
@@ -54,7 +54,7 @@ def main() -> int:
 
     print(
         "CANONICAL_GOLDEN_MIGRATION: OK — golden contract, payload parity, "
-        "idempotency and serialization round-trips pinned for all 233 "
+        "idempotency and serialization round-trips pinned for all 237 "
         "mappings with mandatory T16 unit coverage"
     )
     return 0

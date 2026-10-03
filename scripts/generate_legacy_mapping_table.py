@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the T15 typed Kotlin mapping table from the T01 review inventory.
 
-Single source of truth: scripts/canonical_inventory_review.py (233/233
+Single source of truth: scripts/canonical_inventory_review.py (237/237
 REVIEWED). Trigger reviews map to ObserveNode skeletons via
 core.predicate.<name>; action reviews map to InvokeNode skeletons via
 core.operation.<name>. The generated rules intentionally consume no config
@@ -30,7 +30,7 @@ HEADER = """package com.nexaflow.domain.canonical
  * actions = {TOTAL} rules.
  *
  * Source of truth: scripts/canonical_inventory_review.py (T01 semantic
- * review, 233/233 REVIEWED). Regenerate with:
+ * review, 237/237 REVIEWED). Regenerate with:
  *
  *     python3 scripts/generate_legacy_mapping_table.py
  *
@@ -42,7 +42,7 @@ HEADER = """package com.nexaflow.domain.canonical
  * family phase upgrades values with schema type information. This is what
  * keeps the migration lossless and idempotent.
  */
-@Suppress("LargeClass") // one reviewed 233-entry table; splitting it would hide the parity contract
+@Suppress("LargeClass") // one reviewed 237-entry table; splitting it would hide the parity contract
 object LegacyMappingTable {
 
     private data class Entry(
@@ -115,8 +115,8 @@ def generate() -> str:
     actions = action_reviews()
     if len(triggers) != 57:
         raise SystemExit(f"expected 57 trigger reviews, found {len(triggers)}")
-    if len(actions) != 176:
-        raise SystemExit(f"expected 176 action reviews, found {len(actions)}")
+    if len(actions) != 180:
+        raise SystemExit(f"expected 180 action reviews, found {len(actions)}")
 
     lines: list[str] = []
     for name in sorted(triggers):
@@ -149,10 +149,10 @@ def generate() -> str:
     body = "\n".join(lines)
     header = (
         HEADER.replace("{TRIGGERS}", "57")
-        .replace("{ACTIONS}", "176")
-        .replace("{TOTAL}", "233")
+        .replace("{ACTIONS}", "180")
+        .replace("{TOTAL}", "237")
     )
-    footer = FOOTER.replace("{TOTAL}", "233")
+    footer = FOOTER.replace("{TOTAL}", "237")
     return header + body + "\n" + footer
 
 

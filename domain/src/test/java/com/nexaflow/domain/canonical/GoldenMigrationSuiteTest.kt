@@ -7,7 +7,7 @@ import org.junit.Test
 /**
  * T16 — Golden Migration Suite (plan §32.1, Gate E).
  *
- * One pinned golden contract per mapping (all 233), verified over three
+ * One pinned golden contract per mapping (all 237), verified over three
  * properties per entry:
  *
  * 1. Golden shape — (kind, target, operation/predicate) is exactly the
@@ -64,8 +64,8 @@ class GoldenMigrationSuiteTest {
     }
 
     @Test
-    fun goldenContractExistsAndIsValidForEachOfThe233Mappings() {
-        assertEquals(233, allRules.size)
+    fun goldenContractExistsAndIsValidForEachOfThe237Mappings() {
+        assertEquals(237, allRules.size)
 
         val goldens = mutableListOf<Golden>()
         for (rule in allRules) {
@@ -163,7 +163,7 @@ class GoldenMigrationSuiteTest {
             }
 
         assertEquals(57, triggerGoldens.size)
-        assertEquals(176, actionGoldens.size)
+        assertEquals(180, actionGoldens.size)
         assertTrue(triggerGoldens.all { it.nodeKind == "observe" })
         assertTrue(actionGoldens.all { it.nodeKind == "invoke" })
     }

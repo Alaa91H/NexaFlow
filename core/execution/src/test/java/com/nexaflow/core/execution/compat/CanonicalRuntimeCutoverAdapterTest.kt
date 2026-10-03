@@ -196,7 +196,7 @@ class CanonicalRuntimeCutoverAdapterTest {
     }
 
     @Test
-    fun all233CatalogContractsValidateAndPreserveReviewedIdentity() {
+    fun all237CatalogContractsValidateAndPreserveReviewedIdentity() {
         ActionType.entries.forEachIndexed { index, type ->
             val definition = AutomationNodeCatalog.definitionFor(type)
             val config = sampleConfig(definition)
@@ -256,7 +256,7 @@ class CanonicalRuntimeCutoverAdapterTest {
             assertEquals("v3.trigger.$index", plannedNode.id.value)
         }
 
-        assertEquals(233, ActionType.entries.size + TriggerType.entries.size)
+        assertEquals(237, ActionType.entries.size + TriggerType.entries.size)
     }
 
     @Test

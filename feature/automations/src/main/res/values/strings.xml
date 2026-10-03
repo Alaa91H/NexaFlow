@@ -508,6 +508,13 @@
     <string name="starter_template_nightly_call_silence">Silence unknown callers at night</string>
     <string name="action_call_block">Block call</string>
     <string name="action_call_block_sub">Reject the current incoming call</string>
+    <string name="action_call_block_silent_sub">Silently block a matching call where supported</string>
+    <string name="action_call_reply_sms">Reply to caller by SMS</string>
+    <string name="action_call_reply_sms_sub">Send a message to the caller who triggered this workflow</string>
+    <string name="action_sms_reply">Reply to incoming SMS</string>
+    <string name="action_sms_reply_sub">Send a message to the SMS sender who triggered the workflow</string>
+    <string name="action_sms_block">Block incoming SMS</string>
+    <string name="action_sms_block_sub">Suppress matching SMS delivery (requires default SMS role)</string>
     <string name="action_call_silence">Silence call</string>
     <string name="action_call_silence_sub">Silence the current ring</string>
     <string name="constraint_type_schedule">Schedule window</string>

@@ -24,7 +24,7 @@ class CanonicalBaselineGateTest(unittest.TestCase):
     )
 
     def test_frozen_surface_totals(self) -> None:
-        self.assertEqual(BASELINE_TOTAL, 233)
+        self.assertEqual(BASELINE_TOTAL, 237)
 
     def test_enum_values_ignores_comments_and_annotations(self) -> None:
         source = (

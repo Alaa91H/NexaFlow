@@ -161,8 +161,12 @@ internal val actionOptions = listOf(
     // NOTIFICATIONS
     ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.Notifications, ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message, ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_sms_reply, R.string.action_sms_reply_sub, Icons.AutoMirrored.Filled.Message, ActionType.SMS_REPLY, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_sms_block, R.string.action_sms_block_sub, Icons.Filled.Block, ActionType.SMS_BLOCK_INCOMING, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_call_block, R.string.action_call_block_sub, Icons.AutoMirrored.Filled.PhoneMissed, ActionType.CALL_BLOCK, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_call_block_silent, R.string.action_call_block_silent_sub, Icons.AutoMirrored.Filled.PhoneMissed, ActionType.CALL_BLOCK_SILENT, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_call_silence, R.string.action_call_silence_sub, Icons.Filled.PhonePaused, ActionType.CALL_SILENCE, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_call_reply_sms, R.string.action_call_reply_sms_sub, Icons.AutoMirrored.Filled.Message, ActionType.CALL_REPLY_WITH_SMS, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),

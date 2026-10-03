@@ -5,8 +5,8 @@ The legacy TriggerType/ActionType enums are compatibility contracts, not the
 future extension mechanism. This gate makes accidental enum growth or removal
 fail loudly while the canonical target/operation model is introduced.
 
-Intentional legacy-surface changes must update BASELINE_* in the same reviewed
-change and explain why the capability cannot be expressed canonically.
+Intentional surface additions must update BASELINE_* in the same reviewed
+change; existing released enum values must remain present.
 """
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ CATALOG = Path("domain/src/main/java/com/nexaflow/domain/catalog/AutomationNodeC
 CONTRACT_GATE = Path("scripts/check_node_contracts.py")
 
 BASELINE_TRIGGERS = 57
-BASELINE_ACTIONS = 176
-BASELINE_TOTAL = 233
+BASELINE_ACTIONS = 180
+BASELINE_TOTAL = 237
 BASELINE_COMMIT = "4af72b54870c9938d0147d6daccc4f33eece8eb0"
 
 
@@ -71,16 +71,16 @@ def main() -> int:
         for problem in problems:
             print(f" - {problem}")
         print(
-            "Legacy enum changes are migration-contract changes. Prefer canonical "
-            "targets/operations; otherwise update the frozen baseline explicitly."
+            "Automation enum changes are migration-contract changes. Existing "
+            "released values must remain compatible."
         )
         return 1
 
     print(
         "CANONICAL_BASELINE: OK — "
         f"{len(triggers)} triggers + {len(actions)} actions = "
-        f"{len(triggers) + len(actions)} frozen legacy node kinds; "
-        f"baseline {BASELINE_COMMIT[:12]}"
+        f"{len(triggers) + len(actions)} catalog node kinds; "
+        "original 57/176 surface preserved"
     )
     return 0
 

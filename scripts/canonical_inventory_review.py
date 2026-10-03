@@ -1,4 +1,4 @@
-"""Curated T01 semantic review for every frozen legacy automation type.
+"""Curated T01 semantic review for the preserved and additive automation surface.
 
 This module is migration inventory, not runtime code. It intentionally records
 one-to-one legacy meaning before any consolidation optimizer exists. Families
@@ -325,7 +325,11 @@ def action_reviews() -> dict[str, Review]:
     _put(out, ["SYSTEM_SEND_EMAIL"], target="core.communication.email", operation="COMPOSE_OR_SEND", caps=("ANDROID_INTENT",), **external)
     _put(out, ["SYSTEM_DIAL_NUMBER"], target="core.communication.phone", operation="DIAL", caps=("ANDROID_INTENT",), **external)
     _put(out, ["CALL_BLOCK"], target="core.communication.call", operation="REJECT", caps=("CALL_CONTROL",), **invoke)
+    _put(out, ["CALL_BLOCK_SILENT"], target="core.communication.call", operation="REJECT", caps=("CALL_CONTROL",), **invoke)
+    _put(out, ["CALL_REPLY_WITH_SMS"], target="core.communication.sms", operation="SEND", caps=("SMS_SEND",), side="EXTERNAL", idem="NON_IDEMPOTENT", retry="UNSAFE")
     _put(out, ["CALL_SILENCE"], target="core.communication.call", operation="SILENCE", caps=("AUDIO_CONTROL",), **invoke)
+    _put(out, ["SMS_REPLY"], target="core.communication.sms", operation="SEND", caps=("SMS_SEND",), side="EXTERNAL", idem="NON_IDEMPOTENT", retry="UNSAFE")
+    _put(out, ["SMS_BLOCK_INCOMING"], target="core.communication.sms", operation="SET_BLOCKED", caps=("SMS_RECEIVE", "SMS_DEFAULT_ROLE"), **invoke)
 
     # Navigation and status UI.
     for name, command in {

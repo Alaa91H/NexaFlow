@@ -485,6 +485,10 @@ enum class ActionType {
     @kotlinx.serialization.json.JsonNames("SYSTEM_OPEN_DEVICE_STORE")
     SYSTEM_OPEN_DEVICE_STORE,
     SYSTEM_SEND_SMS,
+    /** Reply to the sender of the SMS event currently executing this workflow. */
+    SMS_REPLY,
+    /** Suppress storage/delivery of a matching SMS; requires the SMS role. */
+    SMS_BLOCK_INCOMING,
     SYSTEM_SEND_REMINDER,
     SYSTEM_OPEN_SETTINGS,
     SYSTEM_WAIT,
@@ -707,6 +711,10 @@ enum class ActionType {
      * decision pre-ring; the handler records the outcome for the run history.
      */
     CALL_BLOCK,
+    /** Reject an incoming call without sending it through the decline UI path. */
+    CALL_BLOCK_SILENT,
+    /** Send a configured SMS to the caller attached to the current call event. */
+    CALL_REPLY_WITH_SMS,
     /**
      * Silences the currently ringing incoming call without rejecting it —
      * the call continues mutely. Applied pre-ring by the screening pass for

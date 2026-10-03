@@ -8,6 +8,13 @@
     <string name="agent_activity_clear_confirm">سيؤدي ذلك إلى حذف سجل نشاط الوكلاء المحلي.</string>
     <string name="settings_title">الإعدادات</string>
     <string name="section_automation">الأتمتة</string>
+    <string name="sms_default_role_title">تطبيق SMS الافتراضي</string>
+    <string name="sms_default_role_subtitle">يلزم لحظر الرسائل قبل تسليمها</string>
+    <string name="sms_default_role_active">مفعّل</string>
+    <string name="sms_default_role_set">تعيين</string>
+    <string name="sms_default_role_disclosure_title">تعيين NexaFlow كتطبيق SMS افتراضي؟</string>
+    <string name="sms_default_role_disclosure_message">سيوجه Android رسائل SMS الواردة إلى NexaFlow كي يتمكن من حظر الرسائل المطابقة. يحفظ NexaFlow الرسائل غير المحظورة، لكنه لا يوفر صندوق محادثات متكاملاً. لا تتم معالجة رسائل MMS وقد لا تصلك ما دام NexaFlow تطبيق SMS الافتراضي. يدير Android اختيارك ويمكن تغييره من إعدادات النظام.</string>
+    <string name="sms_default_role_continue">مراجعة الاختيار في النظام</string>
     <string name="accessibility_service">خدمة إمكانية الوصول</string>
 
     <string name="accessibility_disabled">متوقفة — لن تعمل مشغّلات التطبيق</string>

@@ -289,7 +289,9 @@ object WorkflowRequirementCatalog {
     ): List<String> {
         val explicit = when (actionType) {
             ActionType.SYSTEM_SEND_SMS -> listOf(Manifest.permission.SEND_SMS)
-            ActionType.CALL_BLOCK -> listOf(Manifest.permission.ANSWER_PHONE_CALLS)
+            ActionType.SMS_REPLY, ActionType.CALL_REPLY_WITH_SMS -> listOf(Manifest.permission.SEND_SMS)
+            ActionType.SMS_BLOCK_INCOMING -> listOf(Manifest.permission.RECEIVE_SMS)
+            ActionType.CALL_BLOCK, ActionType.CALL_BLOCK_SILENT -> listOf(Manifest.permission.ANSWER_PHONE_CALLS)
             ActionType.SYSTEM_FLASHLIGHT -> listOf(Manifest.permission.CAMERA)
 
             ActionType.SYSTEM_SEND_NOTIFICATION,
