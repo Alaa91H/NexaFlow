@@ -11,6 +11,124 @@ import org.junit.Test
 class NativeAiProviderAdaptersTest {
 
     @Test
+    fun openAiResponsesPreservesReasoningAndToolCallAcrossToolRoundTrip() = runTest {
+        val requests = mutableListOf<JsonObject>()
+        val provider = OpenAiResponsesProvider(
+            transport = object : OpenAiResponsesTransport {
+                override suspend fun postResponses(
+                    config: OpenAiResponsesProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ): OpenAiResponsesTransportResponse {
+                    requests += body
+                    return if (requests.size == 1) {
+                        OpenAiResponsesTransportResponse(
+                            200,
+                            """{"status":"completed","output":[{"type":"reasoning","id":"rs_1","encrypted_content":"opaque"},{"type":"function_call","call_id":"call-1","name":"device_status","arguments":"{\"full\":true}"}]}"""
+                        )
+                    } else {
+                        OpenAiResponsesTransportResponse(200, """{"status":"completed","output":[]}""")
+                    }
+                }
+
+                override suspend fun getModels(
+                    config: OpenAiResponsesProviderConfig,
+                    apiKey: String
+                ) = OpenAiResponsesTransportResponse(200, """{"data":[{"id":"gpt-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(OpenAiResponsesProviderConfig(enabled = true, modelId = "gpt-test"))
+        }
+        val firstEvents = provider.stream(request()).toList()
+        val call = (firstEvents.first { it is AiProviderEvent.ToolCall } as AiProviderEvent.ToolCall).call
+        val context = (firstEvents.first { it is AiProviderEvent.WireContext } as AiProviderEvent.WireContext)
+            .context
+        val nextRequest = request().copy(
+            messages = request().messages + AiConversationMessage(
+                role = AiRole.ASSISTANT,
+                text = "",
+                toolCalls = listOf(call),
+                providerContext = context
+            ) + AiConversationMessage(
+                role = AiRole.TOOL,
+                text = "{\"ok\":true}",
+                toolCallId = call.id,
+                toolName = call.name
+            )
+        )
+
+        provider.stream(nextRequest).toList()
+
+        val resumedInput = requests[1]["input"].toString()
+        assertTrue(resumedInput.contains("encrypted_content"))
+        assertTrue(resumedInput.contains("opaque"))
+        assertTrue(resumedInput.contains("function_call"))
+        assertTrue(resumedInput.contains("call-1"))
+        assertTrue(resumedInput.contains("function_call_output"))
+        assertTrue(resumedInput.contains("{\\\"ok\\\":true}"))
+    }
+
+    @Test
+    fun geminiPreservesThoughtSignatureAndFunctionCallAcrossToolRoundTrip() = runTest {
+        val requests = mutableListOf<JsonObject>()
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ): GeminiNativeTransportResponse {
+                    requests += body
+                    return if (requests.size == 1) {
+                        GeminiNativeTransportResponse(
+                            200,
+                            """{"candidates":[{"finishReason":"STOP","content":{"role":"model","parts":[{"functionCall":{"name":"device_status","args":{"full":true}},"thoughtSignature":"opaque-signature"}]}}]}"""
+                        )
+                    } else {
+                        GeminiNativeTransportResponse(200, """{"candidates":[{"finishReason":"STOP","content":{"parts":[{"text":"done"}]}}]}""")
+                    }
+                }
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" },
+            callIdGenerator = { "gemini-call-1" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+        val firstEvents = provider.stream(request()).toList()
+        val call = (firstEvents.first { it is AiProviderEvent.ToolCall } as AiProviderEvent.ToolCall).call
+        val context = (firstEvents.first { it is AiProviderEvent.WireContext } as AiProviderEvent.WireContext)
+            .context
+        val nextRequest = request().copy(
+            messages = request().messages + AiConversationMessage(
+                role = AiRole.ASSISTANT,
+                text = "",
+                toolCalls = listOf(call),
+                providerContext = context
+            ) + AiConversationMessage(
+                role = AiRole.TOOL,
+                text = "{\"ok\":true}",
+                toolCallId = call.id,
+                toolName = call.name
+            )
+        )
+
+        provider.stream(nextRequest).toList()
+
+        val resumedContents = requests[1]["contents"].toString()
+        assertTrue(resumedContents.contains("thoughtSignature"))
+        assertTrue(resumedContents.contains("opaque-signature"))
+        assertTrue(resumedContents.contains("functionCall"))
+        assertTrue(resumedContents.contains("functionResponse"))
+        assertTrue(resumedContents.contains("device_status"))
+    }
+
+    @Test
     fun openAiResponsesListsModelsAndParsesTextAndToolCalls() = runTest {
         val provider = OpenAiResponsesProvider(
             transport = object : OpenAiResponsesTransport {

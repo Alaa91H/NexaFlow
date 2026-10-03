@@ -17,8 +17,9 @@ import com.nexaflow.core.airuntime.OpenAiCompatibleTransport
 import com.nexaflow.core.airuntime.OpenAiResponsesProvider
 import com.nexaflow.core.airuntime.OpenAiResponsesProviderConfig
 import com.nexaflow.core.airuntime.OpenAiResponsesTransport
+import javax.inject.Inject
 
-internal class AiProviderDraftAdapterFactory(
+class AiProviderDraftAdapterFactory @Inject constructor(
     private val compatibleTransport: OpenAiCompatibleTransport,
     private val responsesTransport: OpenAiResponsesTransport,
     private val anthropicTransport: AnthropicMessagesTransport,
@@ -28,6 +29,7 @@ internal class AiProviderDraftAdapterFactory(
         profileId: String?,
         presetId: String?,
         protocol: AiProviderProtocol,
+        explicitDialect: AiApiDialect? = null,
         displayName: String,
         baseUrl: String,
         modelId: String,
@@ -38,7 +40,8 @@ internal class AiProviderDraftAdapterFactory(
         val dialect = AiProviderDefinitionRegistry.resolveDialect(
             presetId = presetId,
             storedProtocol = protocol,
-            modelId = modelId
+            modelId = modelId,
+            explicitDialect = explicitDialect
         ) ?: return null
         val id = profileId ?: presetId ?: "custom-draft"
         val gatewaySession = AiGatewayCatalog.rulesFor(presetId) != null

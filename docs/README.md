@@ -98,3 +98,6 @@ Historical reports are preserved rather than rewritten as if their observations 
 | [testing/android-validation-environment.md](testing/android-validation-environment.md) | Historical / topic reference |
 | [testing/google-play-update-engine-validation.md](testing/google-play-update-engine-validation.md) | Historical / topic reference |
 | [ux/samsung-like-options-simplification-plan-ar.md](ux/samsung-like-options-simplification-plan-ar.md) | Historical / topic reference |
+| [superpowers/specs/2026-10-03-ai-agents-automation-expansion-design-ar.md](superpowers/specs/2026-10-03-ai-agents-automation-expansion-design-ar.md) | مواصفات وخط أساس لوكلاء AI والأتمتة |
+| [superpowers/plans/2026-10-03-ai-agents-and-automation-expansion-plan-ar.md](superpowers/plans/2026-10-03-ai-agents-and-automation-expansion-plan-ar.md) | خطة تسليم الوكلاء والمحرر وموجات الأتمتة |
+| [superpowers/plans/2026-10-03-trigger-action-capability-matrix-ar.md](superpowers/plans/2026-10-03-trigger-action-capability-matrix-ar.md) | سجل عائلات المحفزات والإجراءات ومتطلبات التخصيص |

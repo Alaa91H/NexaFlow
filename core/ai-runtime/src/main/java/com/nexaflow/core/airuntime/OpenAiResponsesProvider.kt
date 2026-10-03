@@ -200,6 +200,13 @@ class OpenAiResponsesProvider(
                 }
             }
         }
+        root["output"]?.let { output ->
+            emit(
+                AiProviderEvent.WireContext(
+                    buildJsonObject { put(OPENAI_RESPONSES_OUTPUT_CONTEXT, output) }
+                )
+            )
+        }
         if (!emittedText) {
             root["output_text"]?.jsonPrimitive?.contentOrNull
                 ?.takeIf(String::isNotEmpty)
@@ -268,31 +275,71 @@ class OpenAiResponsesProvider(
                                 put("output", message.text)
                             }
                         )
-                        else -> add(
-                            buildJsonObject {
-                                put(
-                                    "role",
-                                    when (message.role) {
-                                        AiRole.SYSTEM -> "system"
-                                        AiRole.USER -> "user"
-                                        AiRole.ASSISTANT -> "assistant"
-                                        AiRole.TOOL -> "user"
-                                    }
-                                )
-                                putJsonArray("content") {
+                        else -> {
+                            val previousOutput = if (message.role == AiRole.ASSISTANT) {
+                                message.providerContext[OPENAI_RESPONSES_OUTPUT_CONTEXT]
+                                    as? kotlinx.serialization.json.JsonArray
+                            } else {
+                                null
+                            }
+                            if (previousOutput != null) {
+                                previousOutput.forEach { add(it) }
+                            } else if (
+                                message.role == AiRole.ASSISTANT && message.toolCalls.isNotEmpty()
+                            ) {
+                                if (message.text.isNotBlank()) {
                                     add(
                                         buildJsonObject {
-                                            put(
-                                                "type",
-                                                if (message.role == AiRole.ASSISTANT) "output_text"
-                                                else "input_text"
-                                            )
-                                            put("text", message.text)
+                                            put("role", "assistant")
+                                            putJsonArray("content") {
+                                                add(
+                                                    buildJsonObject {
+                                                        put("type", "output_text")
+                                                        put("text", message.text)
+                                                    }
+                                                )
+                                            }
                                         }
                                     )
                                 }
+                                message.toolCalls.forEach { call ->
+                                    add(
+                                        buildJsonObject {
+                                            put("type", "function_call")
+                                            put("call_id", call.id)
+                                            put("name", call.name)
+                                            put("arguments", call.arguments.toString())
+                                        }
+                                    )
+                                }
+                            } else {
+                                add(
+                                    buildJsonObject {
+                                        put(
+                                            "role",
+                                            when (message.role) {
+                                                AiRole.SYSTEM -> "system"
+                                                AiRole.USER -> "user"
+                                                AiRole.ASSISTANT -> "assistant"
+                                                AiRole.TOOL -> "user"
+                                            }
+                                        )
+                                        putJsonArray("content") {
+                                            add(
+                                                buildJsonObject {
+                                                    put(
+                                                        "type",
+                                                        if (message.role == AiRole.ASSISTANT) "output_text"
+                                                        else "input_text"
+                                                    )
+                                                    put("text", message.text)
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
                 }
             })
@@ -352,3 +399,5 @@ class OpenAiResponsesProvider(
         const val CHARS_PER_TOKEN = 4
     }
 }
+
+private const val OPENAI_RESPONSES_OUTPUT_CONTEXT = "openai.responses.output"

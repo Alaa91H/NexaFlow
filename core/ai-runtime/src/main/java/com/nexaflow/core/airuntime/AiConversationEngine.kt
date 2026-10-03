@@ -39,6 +39,7 @@ class AiConversationEngine(
             iteration += 1
             val pendingCalls = mutableListOf<AiToolCall>()
             val assistantText = StringBuilder()
+            var providerContext = kotlinx.serialization.json.JsonObject(emptyMap())
             val structuredMode = isStructuredFallback(provider)
             try {
                 withTimeout(turnTimeoutMillis) {
@@ -77,6 +78,12 @@ class AiConversationEngine(
                                 }
                                 pendingCalls += event.call
                             }
+                            is AiProviderEvent.WireContext -> {
+                                if (event.context.toString().length > MAX_PROVIDER_CONTEXT_CHARACTERS) {
+                                    throw ProviderContextLimitException()
+                                }
+                                providerContext = event.context
+                            }
                             is AiProviderEvent.Finished -> Unit
                         }
                     }
@@ -92,6 +99,10 @@ class AiConversationEngine(
                 emit(AiConversationEvent.Failed("tool_limit"))
                 traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "tool_limit")
                 return@flow
+            } catch (_: ProviderContextLimitException) {
+                emit(AiConversationEvent.Failed("provider_context_limit"))
+                traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "provider_context_limit")
+                return@flow
             } catch (failure: Exception) {
                 val requestFailure = failure as? AiProviderRequestException
                 registry.recordProviderFailure(
@@ -105,10 +116,15 @@ class AiConversationEngine(
                 return@flow
             }
 
-            if (assistantText.isNotEmpty()) {
+            if (
+                assistantText.isNotEmpty() || pendingCalls.isNotEmpty() ||
+                providerContext.isNotEmpty()
+            ) {
                 transcript += AiConversationMessage(
                     role = AiRole.ASSISTANT,
-                    text = assistantText.toString()
+                    text = assistantText.toString(),
+                    toolCalls = pendingCalls.toList(),
+                    providerContext = providerContext
                 )
             }
 
@@ -126,12 +142,6 @@ class AiConversationEngine(
                 traceSink?.onTerminal(AiAgentTraceOutcome.COMPLETED)
                 return@flow
             }
-
-            transcript += AiConversationMessage(
-                role = AiRole.ASSISTANT,
-                text = "",
-                toolCalls = pendingCalls.toList()
-            )
 
             for (call in pendingCalls) {
                 emit(AiConversationEvent.ToolStarted(call))
@@ -195,8 +205,12 @@ class AiConversationEngine(
         if (messages.isEmpty() || messages.size > MAX_MESSAGES) return false
         var total = 0
         for (message in messages) {
-            if (message.text.length > MAX_MESSAGE_CHARACTERS) return false
-            total += message.text.length
+            val providerContextLength = message.providerContext.toString().length
+            if (
+                message.text.length > MAX_MESSAGE_CHARACTERS ||
+                providerContextLength > MAX_PROVIDER_CONTEXT_CHARACTERS
+            ) return false
+            total += message.text.length + providerContextLength
             if (total > MAX_TRANSCRIPT_CHARACTERS) return false
         }
         return true
@@ -204,6 +218,7 @@ class AiConversationEngine(
 
     private class OutputLimitException : RuntimeException()
     private class ToolLimitException : RuntimeException()
+    private class ProviderContextLimitException : RuntimeException()
 
     companion object {
         const val DEFAULT_MAX_TOOL_ITERATIONS = 8
@@ -215,6 +230,7 @@ class AiConversationEngine(
         const val MAX_OUTPUT_CHARACTERS = 65_536
         const val MAX_TOOL_CALLS_PER_TURN = 16
         const val MAX_TOOL_ARGUMENT_CHARACTERS = 32_768
+        const val MAX_PROVIDER_CONTEXT_CHARACTERS = 65_536
         const val MAX_TOOL_NAME_LENGTH = 128
         const val MAX_CONVERSATION_ID_LENGTH = 128
     }

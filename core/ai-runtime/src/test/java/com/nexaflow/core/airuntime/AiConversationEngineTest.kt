@@ -70,6 +70,29 @@ class AiConversationEngineTest {
         assertTrue(events.last() is AiConversationEvent.Completed)
     }
 
+    @Test
+    fun providerWireContextSurvivesToolExecutionAndIsBounded() = runTest {
+        val provider = ContextSequencedProvider()
+        val engine = AiConversationEngine(
+            registry = AiProviderRegistry(listOf(provider)),
+            toolExecutor = FakeToolExecutor(),
+            maxToolIterations = 3
+        )
+
+        val events = engine.stream(
+            "conversation-context",
+            listOf(AiConversationMessage(AiRole.USER, "run tool"))
+        ).toList()
+
+        assertEquals("continuation-token", provider.secondTurnContext)
+        val completed = events.last() as AiConversationEvent.Completed
+        assertEquals(
+            "continuation-token",
+            completed.messages.first { it.role == AiRole.ASSISTANT }
+                .providerContext["test.continuation"]?.toString()?.trim('"')
+        )
+    }
+
 
     @Test
     fun providerFailureMarksHealthDegraded() = runTest {
@@ -187,6 +210,37 @@ class AiConversationEngineTest {
                 secondTurnToolCalls = request.messages
                     .filter { it.role == AiRole.ASSISTANT }
                     .sumOf { it.toolCalls.size }
+                emit(AiProviderEvent.TextDelta("done"))
+            }
+            emit(AiProviderEvent.Finished())
+        }
+    }
+
+    private class ContextSequencedProvider : AiModelProvider {
+        override val descriptor = MutableStateFlow(
+            AiProviderDescriptor(
+                id = "context-provider",
+                displayName = "Context provider",
+                capabilities = AiProviderCapabilities(toolCalling = true, local = true),
+                available = true
+            )
+        )
+        var secondTurnContext: String? = null
+
+        override fun stream(request: AiProviderRequest) = flow {
+            if (request.messages.none { it.role == AiRole.ASSISTANT }) {
+                emit(AiProviderEvent.ToolCall(AiToolCall(
+                    id = "call-context",
+                    name = "nexaflow.list_tasks",
+                    arguments = buildJsonObject {}
+                )))
+                emit(AiProviderEvent.WireContext(buildJsonObject {
+                    put("test.continuation", "continuation-token")
+                }))
+            } else {
+                secondTurnContext = request.messages
+                    .first { it.role == AiRole.ASSISTANT }
+                    .providerContext["test.continuation"]?.toString()?.trim('"')
                 emit(AiProviderEvent.TextDelta("done"))
             }
             emit(AiProviderEvent.Finished())

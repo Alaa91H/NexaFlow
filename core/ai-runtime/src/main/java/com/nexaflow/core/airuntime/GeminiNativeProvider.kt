@@ -230,6 +230,14 @@ class GeminiNativeProvider(
                     }
                 }
             }
+        val responseParts = candidate?.get("content")?.jsonObject?.get("parts")
+        if (responseParts is kotlinx.serialization.json.JsonArray) {
+            emit(
+                AiProviderEvent.WireContext(
+                    buildJsonObject { put(GEMINI_CONTENT_PARTS_CONTEXT, responseParts) }
+                )
+            )
+        }
         emit(
             AiProviderEvent.Finished(
                 candidate?.get("finishReason")?.jsonPrimitive?.contentOrNull
@@ -267,18 +275,28 @@ class GeminiNativeProvider(
                                     }
                                 )
                             } else {
-                                if (message.text.isNotBlank()) {
-                                    add(buildJsonObject { put("text", message.text) })
+                                val previousParts = if (message.role == AiRole.ASSISTANT) {
+                                    message.providerContext[GEMINI_CONTENT_PARTS_CONTEXT]
+                                        as? kotlinx.serialization.json.JsonArray
+                                } else {
+                                    null
                                 }
-                                message.toolCalls.forEach { call ->
-                                    add(
-                                        buildJsonObject {
-                                            putJsonObject("functionCall") {
-                                                put("name", call.name)
-                                                put("args", call.arguments)
+                                if (previousParts != null) {
+                                    previousParts.forEach { add(it) }
+                                } else {
+                                    if (message.text.isNotBlank()) {
+                                        add(buildJsonObject { put("text", message.text) })
+                                    }
+                                    message.toolCalls.forEach { call ->
+                                        add(
+                                            buildJsonObject {
+                                                putJsonObject("functionCall") {
+                                                    put("name", call.name)
+                                                    put("args", call.arguments)
+                                                }
                                             }
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -346,3 +364,5 @@ class GeminiNativeProvider(
         const val MAX_MODELS = 512
     }
 }
+
+private const val GEMINI_CONTENT_PARTS_CONTEXT = "gemini.content.parts"
