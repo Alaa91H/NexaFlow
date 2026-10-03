@@ -7,7 +7,7 @@ import com.nexaflow.core.agentruntime.AgentRunEvent
 import com.nexaflow.core.agentruntime.AgentRunEventType
 import com.nexaflow.core.agentruntime.AgentRunStatus
 import com.nexaflow.core.database.AgentApprovalEntity
-import com.nexaflow.core.database.AgentRunDao
+import com.nexaflow.core.database.AgentRunTransactionDao
 import com.nexaflow.core.database.AgentRunEntity
 import com.nexaflow.core.database.AgentRunEventEntity
 import com.nexaflow.core.security.InMemorySecureStorage
@@ -37,19 +37,19 @@ sealed interface AgentRunStartResult {
 /** Durable run ledger. Event codes are constrained to low-cardinality, payload-free facts. */
 @Singleton
 class AgentRunRepository private constructor(
-    private val dao: AgentRunDao,
+    private val dao: AgentRunTransactionDao,
     private val secureStorage: SecureStorage,
     private val nowMillis: () -> Long,
     private val idGenerator: () -> String
 ) {
     @Inject
-    constructor(dao: AgentRunDao, secureStorage: SecureStorage) :
+    constructor(dao: AgentRunTransactionDao, secureStorage: SecureStorage) :
         this(dao, secureStorage, System::currentTimeMillis, { UUID.randomUUID().toString() })
 
-    constructor(dao: AgentRunDao) :
+    constructor(dao: AgentRunTransactionDao) :
         this(dao, InMemorySecureStorage(), System::currentTimeMillis, { UUID.randomUUID().toString() })
 
-    internal constructor(dao: AgentRunDao, nowMillis: () -> Long, idGenerator: () -> String, testOnly: Unit = Unit) :
+    internal constructor(dao: AgentRunTransactionDao, nowMillis: () -> Long, idGenerator: () -> String, testOnly: Unit = Unit) :
         this(dao, InMemorySecureStorage(), nowMillis, idGenerator)
 
     private val fingerprintKeyMutex = Mutex()
