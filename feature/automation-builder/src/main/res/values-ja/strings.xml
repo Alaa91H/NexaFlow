@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+            <string name="canonical_browse">参照</string>
+    <string name="canonical_latitude">緯度</string>
+    <string name="canonical_longitude">経度</string>
+<string name="canonical_choose_time">時刻を選択</string>
+    <string name="canonical_choose_date">日付を選択</string>
+<string name="canonical_field_invalid_value">有効な値を入力してください。</string>
     <string name="builder_title">新しいタスク</string>
 
     <string name="save">保存</string>

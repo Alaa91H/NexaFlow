@@ -4,7 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -15,7 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.canonical.BooleanValue
 import com.nexaflow.domain.canonical.CanonicalValue
@@ -56,11 +67,22 @@ internal fun CanonicalSchemaFieldEditor(
     modifier: Modifier = Modifier,
 ) {
     val schema = binding.schema
+    val parseErrors = remember(schema.schemaId, config, binding.legacyKeys) {
+        canonicalFieldParseErrors(schema, binding.legacyKeys, config)
+    }
     val values = remember(schema.schemaId, config) {
         schema.fields.mapNotNull { field ->
             val legacyKey = binding.legacyKeys[field.id.value] ?: field.id.value
             val raw = config[legacyKey] ?: field.default?.raw?.let(::canonicalValueToLegacy)
-            raw?.let { parseCanonicalField(field, it) }?.let { NodeFieldValue(field.id, it) }
+            raw?.let { value ->
+                val parsed = parseCanonicalField(field, value)
+                when {
+                    parsed != null -> NodeFieldValue(field.id, parsed)
+                    field.type != NodeFieldType.SECRET_REFERENCE && value.isNotBlank() ->
+                        NodeFieldValue(field.id, TextValue(value))
+                    else -> null
+                }
+            }
         }
     }
     var disclosureLevelName by rememberSaveable(schema.schemaId) {
@@ -85,6 +107,7 @@ internal fun CanonicalSchemaFieldEditor(
             CanonicalFieldControl(
                 field = field,
                 rawValue = current,
+                hasParseError = field.id.value in parseErrors,
                 onValueChange = { updated ->
                     onConfigChange(config + (legacyKey to updated))
                 },
@@ -121,6 +144,7 @@ internal fun CanonicalSchemaFieldEditor(
 private fun CanonicalFieldControl(
     field: NodeSchemaField,
     rawValue: String,
+    hasParseError: Boolean,
     onValueChange: (String) -> Unit,
 ) {
     when (field.type) {
@@ -135,6 +159,10 @@ private fun CanonicalFieldControl(
                     onCheckedChange = { onValueChange(it.toString()) },
                 )
             }
+            if (hasParseError) Text(
+                stringResource(R.string.canonical_field_invalid_value),
+                color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+            )
         }
         NodeFieldType.ENUM_TOKEN -> {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -151,6 +179,10 @@ private fun CanonicalFieldControl(
                         )
                     }
                 }
+                if (hasParseError) Text(
+                    stringResource(R.string.canonical_field_invalid_value),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                )
             }
         }
         NodeFieldType.SECRET_REFERENCE -> {
@@ -162,7 +194,162 @@ private fun CanonicalFieldControl(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = field.id.value) },
                 singleLine = true,
+                isError = hasParseError,
+                supportingText = if (hasParseError) {
+                    { Text(stringResource(R.string.canonical_field_invalid_value)) }
+                } else null,
             )
+        }
+        NodeFieldType.TIME_OF_DAY -> {
+            var showPicker by remember(field.id.value) { mutableStateOf(false) }
+            val parts = rawValue.split(":")
+            val hour = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, 23) ?: 8
+            val minute = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, 59) ?: 0
+            val pickerState = rememberTimePickerState(initialHour = hour, initialMinute = minute)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = rawValue,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.weight(1f),
+                    label = { Text(text = field.id.value) },
+                    singleLine = true,
+                    isError = hasParseError,
+                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
+                )
+                Button(onClick = { showPicker = true }) { Text(stringResource(R.string.canonical_choose_time)) }
+            }
+            if (showPicker) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showPicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onValueChange("%02d:%02d".format(pickerState.hour, pickerState.minute))
+                            showPicker = false
+                        }) { Text(stringResource(R.string.ok)) }
+                    },
+                    dismissButton = { TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.cancel)) } },
+                    text = { TimePicker(state = pickerState) },
+                )
+            }
+        }
+        NodeFieldType.DATE -> {
+            var showPicker by remember(field.id.value) { mutableStateOf(false) }
+            val initialMillis = remember(rawValue) {
+                runCatching { LocalDate.parse(rawValue).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }
+                    .getOrDefault(System.currentTimeMillis())
+            }
+            val pickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = rawValue,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.weight(1f),
+                    label = { Text(text = field.id.value) },
+                    singleLine = true,
+                    isError = hasParseError,
+                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
+                )
+                Button(onClick = { showPicker = true }) { Text(stringResource(R.string.canonical_choose_date)) }
+            }
+            if (showPicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showPicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            pickerState.selectedDateMillis?.let { millis ->
+                                onValueChange(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString())
+                            }
+                            showPicker = false
+                        }) { Text(stringResource(R.string.ok)) }
+                    },
+                    dismissButton = { TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.cancel)) } },
+                ) { DatePicker(state = pickerState) }
+            }
+        }
+        NodeFieldType.TIMEZONE_ID -> {
+            val zones = remember { java.util.TimeZone.getAvailableIDs().sorted() }
+            var expanded by remember(field.id.value) { mutableStateOf(false) }
+            Column {
+                OutlinedTextField(
+                    value = rawValue,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(field.id.value) },
+                    singleLine = true,
+                    isError = hasParseError,
+                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
+                    trailingIcon = {
+                        TextButton(onClick = { expanded = true }) {
+                            Text(stringResource(R.string.canonical_browse))
+                        }
+                    },
+                )
+                androidx.compose.material3.DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    zones.forEach { zone ->
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { Text(zone) },
+                            onClick = { onValueChange(zone); expanded = false },
+                        )
+                    }
+                }
+            }
+        }
+        NodeFieldType.COLLECTION -> {
+            val hint = remember(field.collectionElementKind) {
+                when (field.collectionElementKind) {
+                    CanonicalValueKind.PACKAGE_ID -> "com.example.app | org.example.app"
+                    CanonicalValueKind.URI -> "content://... | https://..."
+                    CanonicalValueKind.INTEGER, CanonicalValueKind.DURATION_MS,
+                    CanonicalValueKind.TIMESTAMP_MS -> "1 | 2 | 3"
+                    else -> "value 1 | value 2"
+                }
+            }
+            OutlinedTextField(
+                value = rawValue,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(field.id.value) },
+                placeholder = { Text(hint) },
+                isError = hasParseError,
+                supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
+            )
+        }
+        NodeFieldType.JSON -> {
+            OutlinedTextField(
+                value = rawValue,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(field.id.value) },
+                minLines = 3,
+                maxLines = 8,
+                isError = hasParseError,
+                supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
+            )
+        }
+        NodeFieldType.COORDINATE -> {
+            val coordinates = rawValue.split(",", limit = 2)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = coordinates.getOrNull(0).orEmpty(),
+                    onValueChange = { onValueChange("$it,${coordinates.getOrNull(1).orEmpty()}") },
+                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.canonical_latitude)) },
+                    isError = hasParseError,
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = coordinates.getOrNull(1).orEmpty(),
+                    onValueChange = { onValueChange("${coordinates.getOrNull(0).orEmpty()},$it") },
+                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.canonical_longitude)) },
+                    isError = hasParseError,
+                    singleLine = true,
+                )
+            }
+            if (hasParseError) Text(stringResource(R.string.canonical_field_invalid_value), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
         }
         else -> {
             OutlinedTextField(
@@ -171,7 +358,10 @@ private fun CanonicalFieldControl(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = field.id.value) },
                 singleLine = field.type != NodeFieldType.TEXT,
-                supportingText = if (field.minimum != null || field.maximum != null) {
+                isError = hasParseError,
+                supportingText = if (hasParseError) {
+                    { Text(stringResource(R.string.canonical_field_invalid_value)) }
+                } else if (field.minimum != null || field.maximum != null) {
                     {
                         Text(
                             text = listOfNotNull(field.minimum, field.maximum)
@@ -186,7 +376,7 @@ private fun CanonicalFieldControl(
     }
 }
 
-private fun parseCanonicalField(field: NodeSchemaField, raw: String): CanonicalValue? =
+internal fun parseCanonicalField(field: NodeSchemaField, raw: String): CanonicalValue? =
     runCatching {
         if (field.expressionCapable && EXPRESSION_MARKER.containsMatchIn(raw)) {
             return@runCatching ExpressionValue(raw, canonicalKindFor(field.type))
@@ -232,7 +422,19 @@ private fun parseCanonicalField(field: NodeSchemaField, raw: String): CanonicalV
         }
     }.getOrNull()
 
-private fun canonicalValueToLegacy(value: CanonicalValue): String = when (value) {
+internal fun canonicalFieldParseErrors(
+    schema: com.nexaflow.domain.canonical.NodeSchema,
+    legacyKeys: Map<String, String>,
+    config: Map<String, String>,
+): Set<String> = schema.fields.mapNotNullTo(linkedSetOf()) { field ->
+    if (field.type == NodeFieldType.SECRET_REFERENCE) return@mapNotNullTo null
+    val legacyKey = legacyKeys[field.id.value] ?: field.id.value
+    val raw = config[legacyKey] ?: field.default?.raw?.let(::canonicalValueToLegacy) ?: return@mapNotNullTo null
+    if (raw.isBlank() && !field.alwaysRequired && field.requiredWhen.isEmpty()) return@mapNotNullTo null
+    if (parseCanonicalField(field, raw) == null) field.id.value else null
+}
+
+internal fun canonicalValueToLegacy(value: CanonicalValue): String = when (value) {
     is BooleanValue -> value.value.toString()
     is IntegerValue -> value.value.toString()
     is DecimalValue -> value.value

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">Selected write tools require confirmation by default. Clear this only when you accept automatic writes.</string>
     <string name="activity_history_title">Activity history</string>
     <string name="activity_history_subtitle">Executions, blocked calls, and NexaFlow SMS events</string>
     <string name="agent_activity_clear">Clear</string>

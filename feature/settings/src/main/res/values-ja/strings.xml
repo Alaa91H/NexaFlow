@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">選択した書き込みツールは既定で確認を求めます。自動書き込みを許容する場合のみ解除してください。</string>
     <string name="settings_title">設定</string>
     <string name="section_automation">自動化</string>
     <string name="accessibility_service">アクセシビリティサービス</string>

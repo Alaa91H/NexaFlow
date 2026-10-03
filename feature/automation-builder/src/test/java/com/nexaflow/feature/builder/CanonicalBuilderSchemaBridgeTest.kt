@@ -2,6 +2,10 @@ package com.nexaflow.feature.builder
 
 import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import com.nexaflow.domain.catalog.NodeConfigValueType
+import com.nexaflow.domain.canonical.CanonicalFieldId
+import com.nexaflow.domain.canonical.CanonicalValueKind
+import com.nexaflow.domain.canonical.NodeFieldType
+import com.nexaflow.domain.canonical.NodeSchemaField
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
@@ -101,5 +105,46 @@ class CanonicalBuilderSchemaBridgeTest {
         assertTrue("WIFI" in page.allowedTokens)
         assertTrue("SETTINGS" in page.allowedTokens)
         assertTrue("SYSTEM_UPDATE" in page.allowedTokens)
+    }
+
+    @Test
+    fun schemaEditorSurfacesMalformedTypedInputAndDoesNotSilentlyDropIt() {
+        val binding = requireNotNull(
+            CanonicalBuilderSchemaBridge.editingBindingForAction(ActionType.SYSTEM_BRIGHTNESS),
+        )
+
+        val errors = canonicalFieldParseErrors(
+            schema = binding.schema,
+            legacyKeys = binding.legacyKeys,
+            config = mapOf("value" to "not-a-number"),
+        )
+
+        assertTrue("value" in errors)
+    }
+
+    @Test
+    fun specializedTypedValuesRoundTripThroughLegacyEditorBoundary() {
+        val cases = listOf(
+            NodeFieldType.TIME_OF_DAY to "08:35",
+            NodeFieldType.DATE to "2026-10-03",
+            NodeFieldType.TIMEZONE_ID to "Europe/Berlin",
+            NodeFieldType.PACKAGE_ID to "com.example.app",
+            NodeFieldType.URI to "content://com.example/items/1",
+            NodeFieldType.COORDINATE to "52.52,13.405",
+            NodeFieldType.JSON to "{\"enabled\":true}",
+        )
+
+        cases.forEach { (type, raw) ->
+            val parsed = requireNotNull(parseCanonicalField(NodeSchemaField(CanonicalFieldId("value"), type), raw))
+            assertEquals("round trip for $type", raw, canonicalValueToLegacy(parsed))
+        }
+
+        val collection = NodeSchemaField(
+            id = CanonicalFieldId("packages"),
+            type = NodeFieldType.COLLECTION,
+            collectionElementKind = CanonicalValueKind.PACKAGE_ID,
+        )
+        val parsedList = requireNotNull(parseCanonicalField(collection, "com.one.app|org.two.app"))
+        assertEquals("com.one.app|org.two.app", canonicalValueToLegacy(parsedList))
     }
 }

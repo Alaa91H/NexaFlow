@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+            <string name="canonical_browse">浏览</string>
+    <string name="canonical_latitude">纬度</string>
+    <string name="canonical_longitude">经度</string>
+<string name="canonical_choose_time">选择时间</string>
+    <string name="canonical_choose_date">选择日期</string>
+<string name="canonical_field_invalid_value">请输入有效值。</string>
     <string name="builder_title">新任务</string>
 
     <string name="save">保存</string>

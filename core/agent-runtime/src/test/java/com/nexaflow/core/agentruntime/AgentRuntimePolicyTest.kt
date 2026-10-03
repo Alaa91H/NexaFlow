@@ -76,6 +76,7 @@ class AgentRuntimePolicyTest {
     @Test
     fun allowedToolExecutesWithoutRequiringUnconfiguredApproval() = runTest {
         val source = FakeExecutor("tasks.read")
+        source.tools.value = source.tools.value.map { it.copy(readOnly = true) }
         val executor = PolicyFilteredAgentToolExecutor(
             agentId = "assistant",
             source = source,
@@ -84,6 +85,47 @@ class AgentRuntimePolicyTest {
         )
 
         val result = executor.execute(call("tasks.read"))
+
+        assertFalse(result.isError)
+        assertEquals(1, source.executions)
+    }
+
+    @Test
+    fun allowedWriteToolRequiresApprovalEvenWhenSavedPolicyHasNoApprovalEntry() = runTest {
+        val source = FakeExecutor("nexaflow.create_task")
+        var approvalRequested = false
+        val executor = PolicyFilteredAgentToolExecutor(
+            agentId = "assistant",
+            source = source,
+            policy = AgentPolicy(allowedToolNames = setOf("nexaflow.create_task")),
+            approvalGate = AgentToolApprovalGate { _, _, _ ->
+                approvalRequested = true
+                false
+            }
+        )
+
+        val result = executor.execute(call("nexaflow.create_task"))
+
+        assertTrue(approvalRequested)
+        assertTrue(result.isError)
+        assertEquals("approval_denied", result.output.jsonObject["error"]?.jsonPrimitive?.content)
+        assertEquals(0, source.executions)
+    }
+
+    @Test
+    fun aPersistedExplicitApprovalOptOutIsHonoredForAnAllowedWriteTool() = runTest {
+        val source = FakeExecutor("nexaflow.create_task")
+        val executor = PolicyFilteredAgentToolExecutor(
+            agentId = "assistant",
+            source = source,
+            policy = AgentPolicy(
+                allowedToolNames = setOf("nexaflow.create_task"),
+                approvalOptionalToolNames = setOf("nexaflow.create_task")
+            ),
+            approvalGate = AgentToolApprovalGate { _, _, _ -> error("explicit opt-out should not request approval") }
+        )
+
+        val result = executor.execute(call("nexaflow.create_task"))
 
         assertFalse(result.isError)
         assertEquals(1, source.executions)

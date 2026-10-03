@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">تتطلب أدوات الكتابة المحددة موافقة افتراضياً. أزل التحديد فقط إذا قبلت التنفيذ التلقائي.</string>
     <string name="activity_history_title">سجل النشاط</string>
     <string name="activity_history_subtitle">التنفيذات والمكالمات المحجوبة وأحداث رسائل NexaFlow</string>
     <string name="agent_activity_clear">مسح</string>

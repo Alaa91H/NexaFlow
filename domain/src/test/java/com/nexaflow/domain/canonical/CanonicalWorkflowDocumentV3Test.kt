@@ -28,6 +28,18 @@ class CanonicalWorkflowDocumentV3Test {
         )
         assertFalse(document.requiresLegacyFallback)
         assertEquals(emptyList<String>(), document.actions.single().suppliedConfigKeys)
+        assertEquals("core.audio.ringer_mode", document.actions.single().targetId)
+        assertEquals("core.operation.set_value", document.actions.single().semanticId)
+    }
+
+    @Test
+    fun v3IdentityFieldsRemainOptionalWhenReadingExistingDocuments() {
+        val legacyV3 = """{"schemaVersion":3,"workflowId":"old","conditionLogic":"ANY","triggers":[],"actions":[{"sourceType":"SYSTEM_BRIGHTNESS","node":{"canonicalType":"set_value","id":"v3.action.0","target":"core.display.brightness","value":{"canonicalType":"integer","value":40,"kind":"INTEGER"},"arguments":{"entries":[]},"primitive":"SET_VALUE"}}],"exitActions":[],"requiresLegacyFallback":false}"""
+
+        val decoded = CanonicalWorkflowV3Codec.decode(legacyV3)
+
+        assertEquals(null, decoded.actions.single().targetId)
+        assertEquals(null, decoded.actions.single().semanticId)
     }
 
     @Test

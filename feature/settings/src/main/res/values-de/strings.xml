@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">Ausgewählte Schreibwerkzeuge erfordern standardmäßig eine Bestätigung. Deaktiviere dies nur bei automatischen Schreibvorgängen.</string>
     <string name="settings_title">Einstellungen</string>
     <string name="section_automation">Automatisierung</string>
     <string name="accessibility_service">Barrierefreiheitsdienst</string>

@@ -49,6 +49,8 @@ data class AgentDefinition(
 data class AgentPolicy(
     val allowedToolNames: Set<String> = emptySet(),
     val approvalRequiredToolNames: Set<String> = emptySet(),
+    /** Explicit, user-chosen opt-out from the default approval on write/unknown tools. */
+    val approvalOptionalToolNames: Set<String> = emptySet(),
     val allowCloudData: Boolean = false,
     val maxConcurrentRuns: Int = 1
 ) {
@@ -58,6 +60,10 @@ data class AgentPolicy(
         require(approvalRequiredToolNames.size <= MAX_TOOLS)
         require(approvalRequiredToolNames.all(::validToolName))
         require(allowedToolNames.containsAll(approvalRequiredToolNames))
+        require(approvalOptionalToolNames.size <= MAX_TOOLS)
+        require(approvalOptionalToolNames.all(::validToolName))
+        require(allowedToolNames.containsAll(approvalOptionalToolNames))
+        require(approvalRequiredToolNames.intersect(approvalOptionalToolNames).isEmpty())
         require(maxConcurrentRuns in 1..MAX_CONCURRENT_RUNS)
     }
 

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+            <string name="canonical_browse">Browse</string>
+    <string name="canonical_latitude">Latitude</string>
+    <string name="canonical_longitude">Longitude</string>
+<string name="canonical_choose_time">Choose time</string>
+    <string name="canonical_choose_date">Choose date</string>
+<string name="canonical_field_invalid_value">Enter a valid value.</string>
     <string name="builder_title">New Task</string>
 
     <string name="save">Save</string>

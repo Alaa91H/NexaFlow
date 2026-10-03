@@ -38,10 +38,12 @@ class PolicyFilteredAgentToolExecutor(
 
     override suspend fun execute(call: AiToolCall): AiToolResult {
         executionGuard.rejectionCode(call)?.let { return failure(call, it) }
+        val definition = source.tools.value.firstOrNull { it.name == call.name }
         val failure = when {
             call.name !in policy.allowedToolNames -> "tool_not_allowed"
-            source.tools.value.none { it.name == call.name } -> "tool_unavailable"
-            call.name in policy.approvalRequiredToolNames &&
+            definition == null -> "tool_unavailable"
+            (call.name in policy.approvalRequiredToolNames ||
+                call.name !in policy.approvalOptionalToolNames && !definition.readOnly) &&
                 !approvalGate.approve(agentId, call, onApprovalRequested) -> "approval_denied"
             else -> null
         }

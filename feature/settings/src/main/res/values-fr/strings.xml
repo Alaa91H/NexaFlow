@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">Les outils d’écriture sélectionnés exigent une confirmation par défaut. Désactivez-la uniquement si vous acceptez les écritures automatiques.</string>
     <string name="settings_title">Paramètres</string>
     <string name="section_automation">Automatisation</string>
     <string name="accessibility_service">Service d\u2019accessibilité</string>

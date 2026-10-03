@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">Для выбранных инструментов записи по умолчанию требуется подтверждение. Отключайте его, только если допускаете автоматическую запись.</string>
     <string name="settings_title">Настройки</string>
     <string name="section_automation">Автоматизация</string>
     <string name="accessibility_service">Служба специальных возможностей</string>

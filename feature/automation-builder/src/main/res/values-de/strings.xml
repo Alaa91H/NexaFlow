@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+            <string name="canonical_browse">Durchsuchen</string>
+    <string name="canonical_latitude">Breitengrad</string>
+    <string name="canonical_longitude">Längengrad</string>
+<string name="canonical_choose_time">Zeit wählen</string>
+    <string name="canonical_choose_date">Datum wählen</string>
+<string name="canonical_field_invalid_value">Gib einen gültigen Wert ein.</string>
     <string name="builder_title">Neue Aufgabe</string>
 
     <string name="save">Speichern</string>

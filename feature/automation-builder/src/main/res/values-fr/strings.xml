@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+            <string name="canonical_browse">Parcourir</string>
+    <string name="canonical_latitude">Latitude</string>
+    <string name="canonical_longitude">Longitude</string>
+<string name="canonical_choose_time">Choisir heure</string>
+    <string name="canonical_choose_date">Choisir date</string>
+<string name="canonical_field_invalid_value">Saisissez une valeur valide.</string>
     <string name="builder_title">Nouvelle tâche</string>
 
     <string name="save">Enregistrer</string>

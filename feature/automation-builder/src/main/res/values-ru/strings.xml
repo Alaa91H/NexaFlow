@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+            <string name="canonical_browse">Обзор</string>
+    <string name="canonical_latitude">Широта</string>
+    <string name="canonical_longitude">Долгота</string>
+<string name="canonical_choose_time">Выбрать время</string>
+    <string name="canonical_choose_date">Выбрать дату</string>
+<string name="canonical_field_invalid_value">Введите допустимое значение.</string>
     <string name="builder_title">Новая задача</string>
 
     <string name="save">Сохранить</string>

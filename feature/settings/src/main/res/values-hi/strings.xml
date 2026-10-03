@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">चुने गए लेखन टूल के लिए डिफ़ॉल्ट रूप से पुष्टि आवश्यक है। स्वचालित लेखन स्वीकार होने पर ही इसे बंद करें।</string>
     <string name="settings_title">सेटिंग्स</string>
     <string name="section_automation">ऑटोमेशन</string>
     <string name="accessibility_service">एक्सेसिबिलिटी सेवा</string>

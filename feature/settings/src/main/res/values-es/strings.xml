@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">Las herramientas de escritura seleccionadas requieren confirmación de forma predeterminada. Desactívala solo si aceptas escrituras automáticas.</string>
     <string name="settings_title">Ajustes</string>
     <string name="section_automation">Automatización</string>
     <string name="accessibility_service">Servicio de accesibilidad</string>

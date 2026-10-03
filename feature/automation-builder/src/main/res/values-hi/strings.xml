@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+            <string name="canonical_browse">ब्राउज़ करें</string>
+    <string name="canonical_latitude">अक्षांश</string>
+    <string name="canonical_longitude">देशांतर</string>
+<string name="canonical_choose_time">समय चुनें</string>
+    <string name="canonical_choose_date">तारीख चुनें</string>
+<string name="canonical_field_invalid_value">मान्य मान दर्ज करें।</string>
     <string name="builder_title">नया कार्य</string>
 
     <string name="save">सहेजें</string>

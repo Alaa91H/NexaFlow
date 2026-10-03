@@ -49,6 +49,10 @@ data class CanonicalWorkflowDocumentV3(
 data class CanonicalPersistedNodeV3(
     val sourceType: String,
     val node: CanonicalNode,
+    /** Stable canonical identity; null only for pre-identity V3 payloads. */
+    val targetId: String? = null,
+    /** Operation for action nodes or predicate for trigger nodes. */
+    val semanticId: String? = null,
     val preservedConfig: List<CanonicalLegacyEntryV3> = emptyList(),
     /**
      * Presence ledger for compatibility rehydration. Keys are non-secret
@@ -250,6 +254,8 @@ object CanonicalWorkflowV3Codec {
         return CanonicalPersistedNodeV3(
             sourceType = legacyType,
             node = planned.node.withCanonicalId(instanceId),
+            targetId = contract.schema.target.value,
+            semanticId = (contract.schema.operation?.value ?: contract.schema.predicate?.value),
             preservedConfig = safePreserved.map {
                 CanonicalLegacyEntryV3(it.key, it.rawValue)
             },

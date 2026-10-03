@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">Seçilen yazma araçları varsayılan olarak onay ister. Otomatik yazmayı kabul ediyorsanız kapatın.</string>
     <string name="settings_title">Ayarlar</string>
     <string name="section_automation">Otomasyon</string>
     <string name="accessibility_service">Erişilebilirlik hizmeti</string>

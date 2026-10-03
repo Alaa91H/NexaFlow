@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="managed_agent_approval_hint">所选写入工具默认需要确认。仅在接受自动写入时取消此选项。</string>
     <string name="settings_title">设置</string>
     <string name="section_automation">自动化</string>
     <string name="accessibility_service">无障碍服务</string>

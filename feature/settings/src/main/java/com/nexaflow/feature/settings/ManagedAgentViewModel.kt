@@ -32,6 +32,7 @@ data class ManagedAgentDraft(
     val modelId: String = "",
     val allowedToolNames: Set<String> = emptySet(),
     val approvalRequiredToolNames: Set<String> = emptySet(),
+    val approvalOptionalToolNames: Set<String> = emptySet(),
     val allowCloudData: Boolean = false,
     val enabled: Boolean = false,
     val maxTurns: String = "8",
@@ -119,6 +120,7 @@ class ManagedAgentViewModel @Inject constructor(
             val policy = AgentPolicy(
                 allowedToolNames = draft.allowedToolNames,
                 approvalRequiredToolNames = draft.approvalRequiredToolNames,
+                approvalOptionalToolNames = draft.approvalOptionalToolNames,
                 allowCloudData = draft.allowCloudData
             )
             val now = System.currentTimeMillis()
@@ -182,6 +184,7 @@ class ManagedAgentViewModel @Inject constructor(
         modelId = modelId.orEmpty(),
         allowedToolNames = policy.allowedToolNames,
         approvalRequiredToolNames = policy.approvalRequiredToolNames,
+        approvalOptionalToolNames = policy.approvalOptionalToolNames,
         allowCloudData = policy.allowCloudData,
         enabled = enabled,
         maxTurns = budget.maxTurns.toString(),

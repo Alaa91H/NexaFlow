@@ -258,12 +258,17 @@ private fun ManagedAgentEditor(
             }
         }
         Text(stringResource(R.string.managed_agent_approval_required), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.managed_agent_approval_hint),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall
+        )
         FlowChips {
             draft.allowedToolNames.forEach { name ->
                 FilterChip(
                     selected = name in draft.approvalRequiredToolNames,
                     onClick = {
-                        update { value -> value.copy(approvalRequiredToolNames = value.approvalRequiredToolNames.toggle(name)) }
+                        update { value -> value.toggleApprovalRequirement(name) }
                     },
                     label = { Text(name) }
                 )
