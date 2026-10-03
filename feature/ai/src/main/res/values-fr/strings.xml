@@ -17,4 +17,7 @@
     <string name="ai_chat_tool_limit">La boucle d’outils a atteint sa limite de sécurité.</string>
     <string name="ai_chat_provider_failure">Le fournisseur de modèle n’a pas pu terminer la réponse.</string>
     <string name="ai_chat_voice_input">Saisie vocale</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="ai_chat_agent_settings">Agent settings</string>
 </resources>

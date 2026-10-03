@@ -17,4 +17,7 @@
     <string name="ai_chat_tool_limit">工具循环已达到安全限制。</string>
     <string name="ai_chat_provider_failure">模型提供方无法完成响应。</string>
     <string name="ai_chat_voice_input">语音输入</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="ai_chat_agent_settings">Agent settings</string>
 </resources>
