@@ -1,16 +1,20 @@
 package com.nexaflow.feature.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,11 +31,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.nexaflow.core.agentruntime.AgentDefinition
+import com.nexaflow.core.agentruntime.AgentMemoryEntry
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 
@@ -48,7 +54,25 @@ fun ManagedAgentScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+    var memoryAgentId by remember { mutableStateOf<String?>(null) }
+    var memoryDraft by remember { mutableStateOf<AgentMemoryEntry?>(null) }
+    var deleteMemoryId by remember { mutableStateOf<String?>(null) }
+    var exportJson by remember { mutableStateOf<String?>(null) }
+    var showMemoryExportConfirmation by remember { mutableStateOf(false) }
+    var memoryExportError by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val content = exportJson
+        exportJson = null
+        if (uri != null && content != null) {
+            memoryExportError = !runCatching {
+                context.contentResolver.openOutputStream(uri)?.bufferedWriter(Charsets.UTF_8)?.use { it.write(content) }
+                    ?: error("Unable to open selected export destination")
+            }.isSuccess
+        }
+    }
     val pendingDelete = state.definitions.firstOrNull { it.id == pendingDeleteId }
+    val memoryState by viewModel.memory.collectAsState()
     Scaffold(
         topBar = {
             NexaFlowTopBar(
@@ -114,6 +138,10 @@ fun ManagedAgentScreen(
                             onRun = {
                                 navController.navigate(ManagedAgentDestination.runRoute(definition.id))
                             },
+                            onMemory = {
+                                memoryAgentId = definition.id
+                                viewModel.openMemory(definition.id)
+                            },
                             onDelete = { pendingDeleteId = definition.id }
                         )
                     }
@@ -140,6 +168,77 @@ fun ManagedAgentScreen(
             }
         )
     }
+    memoryAgentId?.let { agentId ->
+        val agentName = state.definitions.firstOrNull { it.id == agentId }?.name.orEmpty()
+        AgentMemoryDialog(
+            agentName = agentName,
+            state = memoryState,
+            onDismiss = {
+                memoryAgentId = null
+                memoryDraft = null
+                deleteMemoryId = null
+                showMemoryExportConfirmation = false
+                memoryExportError = false
+                viewModel.closeMemory()
+            },
+            onAdd = { memoryDraft = null; viewModel.editMemory() },
+            onEdit = { entry -> memoryDraft = entry; viewModel.editMemory(entry) },
+            onDelete = { entry -> deleteMemoryId = entry.id },
+            onExport = { showMemoryExportConfirmation = true },
+            exportError = memoryExportError
+        )
+        if (memoryState.editMode) {
+            MemoryEditorDialog(
+                existing = memoryDraft,
+                onDismiss = { memoryDraft = null; viewModel.cancelMemoryEdit() },
+                onSave = { title, content, days ->
+                    viewModel.saveMemory(title, content, days, memoryDraft)
+                },
+                errorCode = memoryState.errorCode
+            )
+        }
+        if (showMemoryExportConfirmation) {
+            AlertDialog(
+                onDismissRequest = { showMemoryExportConfirmation = false },
+                title = { Text(stringResource(R.string.managed_agent_memory_export_title)) },
+                text = { Text(stringResource(R.string.managed_agent_memory_export_warning, agentName)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showMemoryExportConfirmation = false
+                        viewModel.exportMemory(agentId) { content ->
+                            if (content == null) memoryExportError = true
+                            else {
+                                memoryExportError = false
+                                exportJson = content
+                                exportLauncher.launch("NexaFlow-agent-memory.json")
+                            }
+                        }
+                    }) { Text(stringResource(R.string.managed_agent_memory_export)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showMemoryExportConfirmation = false }) {
+                        Text(stringResource(R.string.managed_agent_cancel))
+                    }
+                }
+            )
+        }
+        val pendingMemoryDelete = memoryState.entries.firstOrNull { it.id == deleteMemoryId }
+        pendingMemoryDelete?.let { entry ->
+            AlertDialog(
+                onDismissRequest = { deleteMemoryId = null },
+                title = { Text(stringResource(R.string.managed_agent_memory_delete_title)) },
+                text = { Text(entry.title) },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.deleteMemory(entry); deleteMemoryId = null }) {
+                        Text(stringResource(R.string.managed_agent_memory_delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { deleteMemoryId = null }) { Text(stringResource(R.string.managed_agent_cancel)) }
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -147,6 +246,7 @@ private fun ManagedAgentCard(
     definition: AgentDefinition,
     onEdit: () -> Unit,
     onRun: () -> Unit,
+    onMemory: () -> Unit,
     onDelete: () -> Unit
 ) {
     NexaFlowCard {
@@ -174,9 +274,97 @@ private fun ManagedAgentCard(
                 Text(stringResource(R.string.managed_agent_run))
             }
             TextButton(onClick = onEdit) { Text(stringResource(R.string.managed_agent_edit)) }
+            TextButton(onClick = onMemory) { Text(stringResource(R.string.managed_agent_memory)) }
             TextButton(onClick = onDelete) { Text(stringResource(R.string.managed_agent_delete)) }
         }
     }
+}
+
+@Composable
+private fun AgentMemoryDialog(
+    agentName: String,
+    state: ManagedAgentMemoryUiState,
+    onDismiss: () -> Unit,
+    onAdd: () -> Unit,
+    onEdit: (AgentMemoryEntry) -> Unit,
+    onDelete: (AgentMemoryEntry) -> Unit,
+    onExport: () -> Unit,
+    exportError: Boolean
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.managed_agent_memory_title, agentName)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.managed_agent_memory_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                state.errorCode?.let {
+                    Text(stringResource(R.string.managed_agent_memory_error), color = MaterialTheme.colorScheme.error)
+                }
+                if (exportError) Text(
+                    stringResource(R.string.managed_agent_memory_export_error),
+                    color = MaterialTheme.colorScheme.error
+                )
+                TextButton(onClick = onExport, enabled = !state.loading) {
+                    Text(stringResource(R.string.managed_agent_memory_export))
+                }
+                if (state.loading) CircularProgressIndicator()
+                else if (state.entries.isEmpty()) {
+                    Text(stringResource(R.string.managed_agent_memory_empty))
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.heightIn(max = 360.dp)) {
+                        items(state.entries, key = AgentMemoryEntry::id) { entry ->
+                            NexaFlowCard {
+                                Text(entry.title, fontWeight = FontWeight.SemiBold)
+                                Text(entry.content, maxLines = 4, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                val expiry = entry.expiresAtMillis
+                                if (expiry != null) Text(
+                                    stringResource(R.string.managed_agent_memory_expires, java.text.DateFormat.getDateInstance().format(java.util.Date(expiry))),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(onClick = { onEdit(entry) }) { Text(stringResource(R.string.managed_agent_memory_edit)) }
+                                    TextButton(onClick = { onDelete(entry) }) { Text(stringResource(R.string.managed_agent_memory_delete)) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onAdd, enabled = !state.loading) { Text(stringResource(R.string.managed_agent_memory_add)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.managed_agent_cancel)) } }
+    )
+}
+
+@Composable
+private fun MemoryEditorDialog(
+    existing: AgentMemoryEntry?,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String) -> Unit,
+    errorCode: String?
+) {
+    var title by remember(existing?.id) { mutableStateOf(existing?.title.orEmpty()) }
+    var content by remember(existing?.id) { mutableStateOf(existing?.content.orEmpty()) }
+    var expiryDays by remember(existing?.id) {
+        mutableStateOf(existing?.expiresAtMillis?.let { expiry ->
+            (((expiry - System.currentTimeMillis()).coerceAtLeast(0L) + MILLIS_PER_DAY - 1) / MILLIS_PER_DAY).toString()
+        } ?: "0")
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(if (existing == null) R.string.managed_agent_memory_add else R.string.managed_agent_memory_edit)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(title, { title = it.take(AgentMemoryEntry.MAX_TITLE_CHARACTERS) }, label = { Text(stringResource(R.string.managed_agent_memory_note_title)) }, singleLine = true)
+                OutlinedTextField(content, { content = it.take(AgentMemoryEntry.MAX_CONTENT_CHARACTERS) }, label = { Text(stringResource(R.string.managed_agent_memory_content)) }, minLines = 4, maxLines = 8)
+                OutlinedTextField(expiryDays, { candidate -> expiryDays = candidate.filter(Char::isDigit).take(3) }, label = { Text(stringResource(R.string.managed_agent_memory_expiry_days)) }, singleLine = true)
+                Text(stringResource(R.string.managed_agent_memory_expiry_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (errorCode != null) Text(stringResource(R.string.managed_agent_memory_error), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        confirmButton = { TextButton(onClick = { onSave(title, content, expiryDays) }) { Text(stringResource(R.string.managed_agent_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.managed_agent_cancel)) } }
+    )
 }
 
 @Composable
@@ -325,6 +513,8 @@ private fun BudgetField(value: String, label: Int, onValueChange: (String) -> Un
         modifier = Modifier.fillMaxWidth()
     )
 }
+
+private const val MILLIS_PER_DAY = 86_400_000L
 
 private fun Set<String>.toggle(value: String): Set<String> =
     if (value in this) this - value else this + value

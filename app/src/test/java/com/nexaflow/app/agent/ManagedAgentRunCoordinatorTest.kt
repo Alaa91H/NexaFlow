@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.agentruntime.AgentBudget
 import com.nexaflow.core.agentruntime.AgentDefinition
 import com.nexaflow.core.agentruntime.AgentPolicy
+import com.nexaflow.core.agentruntime.AgentMemoryEntry
 import com.nexaflow.core.agentruntime.AgentRunStatus
 import com.nexaflow.core.agentruntime.ManagedAgentRunEvent
 import com.nexaflow.core.airuntime.AiModelProvider
@@ -20,7 +21,9 @@ import com.nexaflow.core.airuntime.AiToolDefinition
 import com.nexaflow.core.airuntime.AiToolExecutor
 import com.nexaflow.core.airuntime.AiToolResult
 import com.nexaflow.core.database.AppDatabase
+import com.nexaflow.core.security.InMemorySecureStorage
 import com.nexaflow.data.agents.AgentDefinitionRepository
+import com.nexaflow.data.agents.AgentMemoryRepository
 import com.nexaflow.data.agents.AgentRunRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -64,6 +67,7 @@ class ManagedAgentRunCoordinatorTest {
         val coordinator = ManagedAgentRunCoordinator(
             definitions = definitionRepository,
             runs = runRepository,
+            memories = AgentMemoryRepository(InMemorySecureStorage()),
             registry = registry,
             tools = tool,
             context = ApplicationProvider.getApplicationContext()
@@ -116,6 +120,7 @@ class ManagedAgentRunCoordinatorTest {
         val coordinator = ManagedAgentRunCoordinator(
             definitions = definitions,
             runs = runs,
+            memories = AgentMemoryRepository(InMemorySecureStorage()),
             registry = registry,
             tools = FakeTools(),
             context = ApplicationProvider.getApplicationContext()
@@ -152,6 +157,7 @@ class ManagedAgentRunCoordinatorTest {
         val coordinator = ManagedAgentRunCoordinator(
             definitions = definitions,
             runs = runs,
+            memories = AgentMemoryRepository(InMemorySecureStorage()),
             registry = registry,
             tools = tools,
             context = ApplicationProvider.getApplicationContext()
@@ -162,7 +168,10 @@ class ManagedAgentRunCoordinatorTest {
                 name = "Tool capped",
                 providerProfileId = "local-profile",
                 modelId = "local-model",
-                policy = AgentPolicy(allowedToolNames = setOf("automation.create")),
+                policy = AgentPolicy(
+                    allowedToolNames = setOf("automation.create"),
+                    approvalOptionalToolNames = setOf("automation.create")
+                ),
                 budget = AgentBudget(maxTurns = 4, maxToolCalls = 1),
                 enabled = true,
                 createdAtMillis = 1,
@@ -179,6 +188,45 @@ class ManagedAgentRunCoordinatorTest {
         assertEquals("tool_limit", runs.find(runId)?.outcomeCode)
     }
 
+    @Test
+    fun onlyTheSelectedAgentsActiveSavedNotesArePassedAsUntrustedContext() = runBlocking {
+        val provider = ApprovalProvider()
+        val definitions = AgentDefinitionRepository(database.agentDefinitionDao())
+        val memories = AgentMemoryRepository(InMemorySecureStorage())
+        val coordinator = ManagedAgentRunCoordinator(
+            definitions = definitions,
+            runs = AgentRunRepository(database.agentRunDao()),
+            memories = memories,
+            registry = AiProviderRegistry(listOf(provider)),
+            tools = FakeTools(),
+            context = ApplicationProvider.getApplicationContext(),
+        )
+        val definition = AgentDefinition(
+            id = "agent-memory",
+            name = "Memory agent",
+            providerProfileId = "local-profile",
+            modelId = "local-model",
+            policy = AgentPolicy(
+                allowedToolNames = setOf("automation.create"),
+                approvalOptionalToolNames = setOf("automation.create")
+            ),
+            enabled = true,
+            createdAtMillis = 1,
+            updatedAtMillis = 1,
+        )
+        definitions.create(definition)
+        memories.save(AgentMemoryEntry("note-1", definition.id, "Preference", "Likes quiet notifications", 1))
+        memories.save(AgentMemoryEntry("note-2", "other-agent", "Private", "must never cross over", 1))
+
+        val events = coordinator.runAgent(definition.id, "Hello", "memory-request").toList()
+
+        assertTrue(events.none { it is ManagedAgentRunEvent.Failed })
+        val userMessage = requireNotNull(provider.lastRequest).messages.first { it.role == AiRole.USER }.text
+        assertTrue(userMessage.contains("Likes quiet notifications"))
+        assertTrue(userMessage.contains("untrusted reference data"))
+        assertFalse(userMessage.contains("must never cross over"))
+    }
+
     private class ApprovalProvider : AiModelProvider {
         override val descriptor = MutableStateFlow(
             AiProviderDescriptor(
@@ -190,9 +238,11 @@ class ManagedAgentRunCoordinatorTest {
             )
         )
         var requests = 0
+        var lastRequest: AiProviderRequest? = null
 
         override fun stream(request: AiProviderRequest) = flow {
             requests++
+            lastRequest = request
             val hasToolResult = request.messages.any { it.role == AiRole.TOOL }
             if (!hasToolResult) {
                 emit(AiProviderEvent.ToolCall(
@@ -240,7 +290,7 @@ class ManagedAgentRunCoordinatorTest {
         override val tools = MutableStateFlow(
             listOf(AiToolDefinition("automation.create", "Create an automation", buildJsonObject {
                 put("type", "object")
-            }))
+            }, readOnly = true))
         )
         var executions = 0
 

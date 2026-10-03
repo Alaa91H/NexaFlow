@@ -393,4 +393,22 @@
     <string name="managed_agent_run_deadline">実行時間の上限を超えました。</string>
     <string name="managed_agent_run_approval_invalid">承認期限切れ、またはポリシー変更。</string>
     <string name="managed_agent_cost_unknown_hint">費用を検証できません。上限設定時は実行を拒否します。</string>
+    <string name="managed_agent_memory_export">プライベートメモをエクスポート</string>
+    <string name="managed_agent_memory_export_title">エージェントメモリをエクスポートしますか？</string>
+    <string name="managed_agent_memory_export_warning">%1$s用に作成したメモを、選択した保存先に読み取り可能なJSONとして保存します。エクスポートファイルにアクセスできる人は誰でも内容を読めます。</string>
+    <string name="managed_agent_memory_export_error">選択した保存先にメモをエクスポートできませんでした。</string>
+    <string name="managed_agent_memory">エージェントメモリ</string>
+    <string name="managed_agent_memory_title">%1$sのメモリ</string>
+    <string name="managed_agent_memory_hint">任意のユーザー作成メモです。この端末上で暗号化され、期限を設定でき、このエージェントだけが参照データとして使用できます。</string>
+    <string name="managed_agent_memory_empty">保存されたメモはありません。</string>
+    <string name="managed_agent_memory_add">メモを追加</string>
+    <string name="managed_agent_memory_edit">メモを編集</string>
+    <string name="managed_agent_memory_delete">メモを削除</string>
+    <string name="managed_agent_memory_delete_title">このプライベートメモを削除しますか？</string>
+    <string name="managed_agent_memory_note_title">メモのタイトル</string>
+    <string name="managed_agent_memory_content">プライベートメモの内容</string>
+    <string name="managed_agent_memory_expiry_days">有効期限（日、0は無期限）</string>
+    <string name="managed_agent_memory_expiry_hint">1～365日、または無期限の場合は0を入力してください。</string>
+    <string name="managed_agent_memory_expires">有効期限：%1$s</string>
+    <string name="managed_agent_memory_error">プライベートメモを読み取れないか保存できません。メモと端末の安全なストレージを確認してください。</string>
 </resources>

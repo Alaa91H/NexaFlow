@@ -393,4 +393,22 @@
     <string name="managed_agent_run_deadline">Tempo máximo excedido.</string>
     <string name="managed_agent_run_approval_invalid">Aprovação expirou ou a política mudou.</string>
     <string name="managed_agent_cost_unknown_hint">Custo não verificável; execuções com limite são bloqueadas.</string>
+    <string name="managed_agent_memory_export">Exportar notas privadas</string>
+    <string name="managed_agent_memory_export_title">Exportar a memória do agente?</string>
+    <string name="managed_agent_memory_export_warning">As notas que você escreveu para %1$s serão salvas como JSON legível no destino que escolher. Qualquer pessoa com acesso ao arquivo exportado poderá lê-las.</string>
+    <string name="managed_agent_memory_export_error">Não foi possível exportar as notas para esse destino.</string>
+    <string name="managed_agent_memory">Memória do agente</string>
+    <string name="managed_agent_memory_title">Memória de %1$s</string>
+    <string name="managed_agent_memory_hint">Notas opcionais escritas por você. São criptografadas neste dispositivo, podem expirar e somente este agente pode usá-las como dados de referência.</string>
+    <string name="managed_agent_memory_empty">Nenhuma nota salva.</string>
+    <string name="managed_agent_memory_add">Adicionar nota</string>
+    <string name="managed_agent_memory_edit">Editar nota</string>
+    <string name="managed_agent_memory_delete">Excluir nota</string>
+    <string name="managed_agent_memory_delete_title">Excluir esta nota privada?</string>
+    <string name="managed_agent_memory_note_title">Título da nota</string>
+    <string name="managed_agent_memory_content">Conteúdo da nota privada</string>
+    <string name="managed_agent_memory_expiry_days">Expira em dias (0 = nunca)</string>
+    <string name="managed_agent_memory_expiry_hint">Digite de 1 a 365 dias ou 0 para nunca expirar.</string>
+    <string name="managed_agent_memory_expires">Expira em %1$s</string>
+    <string name="managed_agent_memory_error">Não foi possível ler ou salvar a memória privada. Verifique a nota e o armazenamento seguro do dispositivo.</string>
 </resources>

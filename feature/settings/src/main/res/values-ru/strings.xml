@@ -393,4 +393,22 @@
     <string name="managed_agent_run_deadline">Превышено время выполнения.</string>
     <string name="managed_agent_run_approval_invalid">Подтверждение истекло или политика изменилась.</string>
     <string name="managed_agent_cost_unknown_hint">Стоимость нельзя проверить; запуски с лимитом блокируются.</string>
+    <string name="managed_agent_memory_export">Экспортировать личные заметки</string>
+    <string name="managed_agent_memory_export_title">Экспортировать память агента?</string>
+    <string name="managed_agent_memory_export_warning">Созданные вами заметки для %1$s будут сохранены в читаемом формате JSON в выбранном месте. Любой, у кого есть доступ к файлу, сможет их прочитать.</string>
+    <string name="managed_agent_memory_export_error">Не удалось экспортировать заметки в выбранное место.</string>
+    <string name="managed_agent_memory">Память агента</string>
+    <string name="managed_agent_memory_title">Память: %1$s</string>
+    <string name="managed_agent_memory_hint">Необязательные заметки, созданные вами. Они шифруются на этом устройстве, могут иметь срок действия и доступны только этому агенту как справочные данные.</string>
+    <string name="managed_agent_memory_empty">Сохранённых заметок нет.</string>
+    <string name="managed_agent_memory_add">Добавить заметку</string>
+    <string name="managed_agent_memory_edit">Изменить заметку</string>
+    <string name="managed_agent_memory_delete">Удалить заметку</string>
+    <string name="managed_agent_memory_delete_title">Удалить эту личную заметку?</string>
+    <string name="managed_agent_memory_note_title">Заголовок заметки</string>
+    <string name="managed_agent_memory_content">Содержимое личной заметки</string>
+    <string name="managed_agent_memory_expiry_days">Срок действия в днях (0 = никогда)</string>
+    <string name="managed_agent_memory_expiry_hint">Введите от 1 до 365 дней или 0, чтобы срок не истекал.</string>
+    <string name="managed_agent_memory_expires">Истекает: %1$s</string>
+    <string name="managed_agent_memory_error">Не удалось прочитать или сохранить личную память. Проверьте заметку и защищённое хранилище устройства.</string>
 </resources>

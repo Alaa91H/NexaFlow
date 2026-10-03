@@ -390,4 +390,22 @@
     <string name="managed_agent_run_deadline">Run exceeded its time limit.</string>
     <string name="managed_agent_run_approval_invalid">Approval expired or agent/device policy changed.</string>
     <string name="managed_agent_cost_unknown_hint">Cost reporting is unavailable; capped runs fail closed.</string>
+    <string name="managed_agent_memory_export">Export private notes</string>
+    <string name="managed_agent_memory_export_title">Export agent memory?</string>
+    <string name="managed_agent_memory_export_warning">This writes the user-authored notes for %1$s as readable JSON to a destination you choose. Anyone with the exported file may read them.</string>
+    <string name="managed_agent_memory_export_error">The notes could not be exported to that destination.</string>
+    <string name="managed_agent_memory">Agent memory</string>
+    <string name="managed_agent_memory_title">Memory for %1$s</string>
+    <string name="managed_agent_memory_hint">Optional, user-written notes. They are encrypted on this device, expire when selected, and only this agent can use them as reference data.</string>
+    <string name="managed_agent_memory_empty">No saved notes.</string>
+    <string name="managed_agent_memory_add">Add note</string>
+    <string name="managed_agent_memory_edit">Edit note</string>
+    <string name="managed_agent_memory_delete">Delete note</string>
+    <string name="managed_agent_memory_delete_title">Delete this private note?</string>
+    <string name="managed_agent_memory_note_title">Note title</string>
+    <string name="managed_agent_memory_content">Private note content</string>
+    <string name="managed_agent_memory_expiry_days">Expires in days (0 = never)</string>
+    <string name="managed_agent_memory_expiry_hint">Enter 1 to 365 days, or 0 for no expiry.</string>
+    <string name="managed_agent_memory_expires">Expires %1$s</string>
+    <string name="managed_agent_memory_error">Could not read or save private memory. Check the note and device secure storage.</string>
 </resources>

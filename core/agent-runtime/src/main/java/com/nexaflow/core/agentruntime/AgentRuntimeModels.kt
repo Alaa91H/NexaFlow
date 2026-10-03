@@ -41,6 +41,35 @@ data class AgentDefinition(
     }
 }
 
+/** User-authored, private context scoped to one agent; never a run-log payload. */
+@Serializable
+data class AgentMemoryEntry(
+    val id: String,
+    val agentId: String,
+    val title: String,
+    val content: String,
+    val createdAtMillis: Long,
+    val expiresAtMillis: Long? = null,
+) {
+    init {
+        require(ID_PATTERN.matches(id) && ID_PATTERN.matches(agentId))
+        require(title.isNotBlank() && title.length <= MAX_TITLE_CHARACTERS)
+        require(content.isNotBlank() && content.length <= MAX_CONTENT_CHARACTERS)
+        require(createdAtMillis >= 0L)
+        require(expiresAtMillis == null || expiresAtMillis > createdAtMillis)
+    }
+
+    fun isActiveAt(nowMillis: Long): Boolean = expiresAtMillis == null || expiresAtMillis > nowMillis
+
+    companion object {
+        private val ID_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}")
+        const val MAX_TITLE_CHARACTERS = 120
+        const val MAX_CONTENT_CHARACTERS = 16_384
+        const val MAX_ENTRIES_PER_AGENT = 64
+        const val MAX_TOTAL_CONTENT_CHARACTERS = 131_072
+    }
+}
+
 /**
  * Least-privilege tool policy. Approval requirements must be a subset of the
  * allowlist so a confirmation can never grant a tool the agent was not given.

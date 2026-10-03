@@ -393,4 +393,22 @@
     <string name="managed_agent_run_deadline">समय-सीमा पूरी हुई।</string>
     <string name="managed_agent_run_approval_invalid">अनुमति समाप्त हुई या नीति बदली।</string>
     <string name="managed_agent_cost_unknown_hint">लागत सत्यापन नहीं; सीमा वाले रन रोक दिए जाते हैं।</string>
+    <string name="managed_agent_memory_export">निजी नोट निर्यात करें</string>
+    <string name="managed_agent_memory_export_title">एजेंट मेमोरी निर्यात करें?</string>
+    <string name="managed_agent_memory_export_warning">%1$s के लिए आपके लिखे नोट आपकी चुनी हुई जगह पर पढ़ने योग्य JSON के रूप में सहेजे जाएँगे। निर्यात की गई फ़ाइल तक पहुँच रखने वाला कोई भी व्यक्ति उन्हें पढ़ सकता है।</string>
+    <string name="managed_agent_memory_export_error">उस जगह पर नोट निर्यात नहीं किए जा सके।</string>
+    <string name="managed_agent_memory">एजेंट मेमोरी</string>
+    <string name="managed_agent_memory_title">%1$s की मेमोरी</string>
+    <string name="managed_agent_memory_hint">वैकल्पिक, आपके द्वारा लिखे गए नोट। ये इस डिवाइस पर एन्क्रिप्ट होते हैं, चुनी गई अवधि पर समाप्त हो सकते हैं, और केवल यह एजेंट इन्हें संदर्भ डेटा के रूप में उपयोग कर सकता है।</string>
+    <string name="managed_agent_memory_empty">कोई नोट सहेजा नहीं गया।</string>
+    <string name="managed_agent_memory_add">नोट जोड़ें</string>
+    <string name="managed_agent_memory_edit">नोट संपादित करें</string>
+    <string name="managed_agent_memory_delete">नोट हटाएँ</string>
+    <string name="managed_agent_memory_delete_title">यह निजी नोट हटाएँ?</string>
+    <string name="managed_agent_memory_note_title">नोट शीर्षक</string>
+    <string name="managed_agent_memory_content">निजी नोट सामग्री</string>
+    <string name="managed_agent_memory_expiry_days">दिनों में समाप्ति (0 = कभी नहीं)</string>
+    <string name="managed_agent_memory_expiry_hint">1 से 365 दिन दर्ज करें, या कभी समाप्त न होने के लिए 0।</string>
+    <string name="managed_agent_memory_expires">%1$s को समाप्त होगा</string>
+    <string name="managed_agent_memory_error">निजी मेमोरी पढ़ी या सहेजी नहीं जा सकी। नोट और डिवाइस के सुरक्षित स्टोरेज की जाँच करें।</string>
 </resources>

@@ -391,4 +391,22 @@
     <string name="managed_agent_run_deadline">Se superó el tiempo máximo.</string>
     <string name="managed_agent_run_approval_invalid">La aprobación caducó o cambió la política.</string>
     <string name="managed_agent_cost_unknown_hint">El coste no se verifica; se bloquean ejecuciones con límite.</string>
+    <string name="managed_agent_memory_export">Exportar notas privadas</string>
+    <string name="managed_agent_memory_export_title">¿Exportar la memoria del agente?</string>
+    <string name="managed_agent_memory_export_warning">Las notas que escribiste para %1$s se guardarán como JSON legible en el destino que elijas. Cualquiera que acceda al archivo exportado podrá leerlas.</string>
+    <string name="managed_agent_memory_export_error">No se pudieron exportar las notas a ese destino.</string>
+    <string name="managed_agent_memory">Memoria del agente</string>
+    <string name="managed_agent_memory_title">Memoria de %1$s</string>
+    <string name="managed_agent_memory_hint">Notas opcionales escritas por ti. Se cifran en este dispositivo, pueden caducar y solo este agente puede usarlas como datos de referencia.</string>
+    <string name="managed_agent_memory_empty">No hay notas guardadas.</string>
+    <string name="managed_agent_memory_add">Añadir nota</string>
+    <string name="managed_agent_memory_edit">Editar nota</string>
+    <string name="managed_agent_memory_delete">Eliminar nota</string>
+    <string name="managed_agent_memory_delete_title">¿Eliminar esta nota privada?</string>
+    <string name="managed_agent_memory_note_title">Título de la nota</string>
+    <string name="managed_agent_memory_content">Contenido de la nota privada</string>
+    <string name="managed_agent_memory_expiry_days">Caduca en días (0 = nunca)</string>
+    <string name="managed_agent_memory_expiry_hint">Introduce de 1 a 365 días, o 0 para que no caduque.</string>
+    <string name="managed_agent_memory_expires">Caduca el %1$s</string>
+    <string name="managed_agent_memory_error">No se pudo leer ni guardar la memoria privada. Revisa la nota y el almacenamiento seguro del dispositivo.</string>
 </resources>

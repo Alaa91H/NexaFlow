@@ -393,4 +393,22 @@
     <string name="managed_agent_run_deadline">Délai maximal dépassé.</string>
     <string name="managed_agent_run_approval_invalid">Approbation expirée ou politique modifiée.</string>
     <string name="managed_agent_cost_unknown_hint">Coût non vérifiable ; les exécutions plafonnées sont bloquées.</string>
+    <string name="managed_agent_memory_export">Exporter les notes privées</string>
+    <string name="managed_agent_memory_export_title">Exporter la mémoire de l’agent ?</string>
+    <string name="managed_agent_memory_export_warning">Les notes que vous avez rédigées pour %1$s seront enregistrées en JSON lisible à l’emplacement de votre choix. Toute personne ayant accès au fichier exporté pourra les lire.</string>
+    <string name="managed_agent_memory_export_error">Impossible d’exporter les notes vers cet emplacement.</string>
+    <string name="managed_agent_memory">Mémoire de l’agent</string>
+    <string name="managed_agent_memory_title">Mémoire de %1$s</string>
+    <string name="managed_agent_memory_hint">Notes facultatives rédigées par vous. Elles sont chiffrées sur cet appareil, peuvent expirer et seul cet agent peut les utiliser comme données de référence.</string>
+    <string name="managed_agent_memory_empty">Aucune note enregistrée.</string>
+    <string name="managed_agent_memory_add">Ajouter une note</string>
+    <string name="managed_agent_memory_edit">Modifier la note</string>
+    <string name="managed_agent_memory_delete">Supprimer la note</string>
+    <string name="managed_agent_memory_delete_title">Supprimer cette note privée ?</string>
+    <string name="managed_agent_memory_note_title">Titre de la note</string>
+    <string name="managed_agent_memory_content">Contenu de la note privée</string>
+    <string name="managed_agent_memory_expiry_days">Expiration en jours (0 = jamais)</string>
+    <string name="managed_agent_memory_expiry_hint">Saisissez 1 à 365 jours, ou 0 sans expiration.</string>
+    <string name="managed_agent_memory_expires">Expire le %1$s</string>
+    <string name="managed_agent_memory_error">Impossible de lire ou enregistrer la mémoire privée. Vérifiez la note et le stockage sécurisé de l’appareil.</string>
 </resources>

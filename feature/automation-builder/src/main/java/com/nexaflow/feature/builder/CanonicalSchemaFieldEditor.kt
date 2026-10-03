@@ -40,6 +40,8 @@ import java.text.Collator
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.math.BigDecimal
+import java.math.RoundingMode
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.canonical.BooleanValue
 import com.nexaflow.domain.canonical.CanonicalValue
@@ -243,6 +245,40 @@ private fun CanonicalFieldControl(
                     dismissButton = { TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.cancel)) } },
                     text = { TimePicker(state = pickerState) },
                 )
+            }
+        }
+        NodeFieldType.DURATION_MS -> {
+            var unitMillis by remember(field.id.value) { mutableStateOf(1_000L) }
+            val displayed = durationDisplayValue(rawValue, unitMillis)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                OutlinedTextField(
+                    value = displayed,
+                    onValueChange = { input ->
+                        if (input.isBlank()) {
+                            onValueChange("")
+                        } else {
+                            val milliseconds = durationInputToMillis(input, unitMillis)
+                            onValueChange(milliseconds?.toString() ?: input)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(field.id.value) },
+                    singleLine = true,
+                    isError = hasParseError,
+                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    DURATION_UNITS.forEach { (label, millis) ->
+                        SelectChip(
+                            selected = unitMillis == millis,
+                            onClick = { unitMillis = millis },
+                            label = label,
+                        )
+                    }
+                }
             }
         }
         NodeFieldType.DATE -> {
@@ -553,6 +589,19 @@ internal fun canonicalFieldParseErrors(
     if (parseCanonicalField(field, raw) == null) field.id.value else null
 }
 
+internal fun durationInputToMillis(input: String, unitMillis: Long): Long? = runCatching {
+    require(unitMillis > 0L)
+    BigDecimal(input).multiply(BigDecimal.valueOf(unitMillis)).longValueExact()
+}.getOrNull()?.takeIf { it >= 0L }
+
+internal fun durationDisplayValue(rawMillis: String, unitMillis: Long): String = runCatching {
+    require(unitMillis > 0L)
+    BigDecimal(rawMillis)
+        .divide(BigDecimal.valueOf(unitMillis), 3, RoundingMode.HALF_UP)
+        .stripTrailingZeros()
+        .toPlainString()
+}.getOrDefault(rawMillis)
+
 internal fun canonicalValueToLegacy(value: CanonicalValue): String = when (value) {
     is BooleanValue -> value.value.toString()
     is IntegerValue -> value.value.toString()
@@ -595,6 +644,13 @@ private fun canonicalKindFor(type: NodeFieldType): CanonicalValueKind = when (ty
 }
 
 private val EXPRESSION_MARKER = Regex("%(?:CTX\\.|[A-Za-z_])")
+private val DURATION_UNITS = listOf(
+    "ms" to 1L,
+    "s" to 1_000L,
+    "min" to 60_000L,
+    "h" to 3_600_000L,
+    "d" to 86_400_000L,
+)
 
 private fun parseCollectionElement(
     kind: CanonicalValueKind,

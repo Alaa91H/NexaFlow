@@ -393,4 +393,22 @@
     <string name="managed_agent_run_deadline">Zaman sınırı aşıldı.</string>
     <string name="managed_agent_run_approval_invalid">Onay süresi doldu veya ilke değişti.</string>
     <string name="managed_agent_cost_unknown_hint">Maliyet doğrulanamıyor; sınırlı çalışmalar engellenir.</string>
+    <string name="managed_agent_memory_export">Özel notları dışa aktar</string>
+    <string name="managed_agent_memory_export_title">Ajan belleği dışa aktarılsın mı?</string>
+    <string name="managed_agent_memory_export_warning">%1$s için yazdığınız notlar, seçtiğiniz konuma okunabilir JSON olarak kaydedilir. Dışa aktarılan dosyaya erişen herkes notları okuyabilir.</string>
+    <string name="managed_agent_memory_export_error">Notlar bu konuma aktarılamadı.</string>
+    <string name="managed_agent_memory">Ajan belleği</string>
+    <string name="managed_agent_memory_title">%1$s için bellek</string>
+    <string name="managed_agent_memory_hint">İsteğe bağlı, sizin yazdığınız notlar. Bu cihazda şifrelenir, süre sonunda silinebilir ve yalnızca bu ajan tarafından başvuru verisi olarak kullanılabilir.</string>
+    <string name="managed_agent_memory_empty">Kaydedilmiş not yok.</string>
+    <string name="managed_agent_memory_add">Not ekle</string>
+    <string name="managed_agent_memory_edit">Notu düzenle</string>
+    <string name="managed_agent_memory_delete">Notu sil</string>
+    <string name="managed_agent_memory_delete_title">Bu özel not silinsin mi?</string>
+    <string name="managed_agent_memory_note_title">Not başlığı</string>
+    <string name="managed_agent_memory_content">Özel not içeriği</string>
+    <string name="managed_agent_memory_expiry_days">Gün cinsinden süre (0 = süresiz)</string>
+    <string name="managed_agent_memory_expiry_hint">1–365 gün veya süresiz için 0 girin.</string>
+    <string name="managed_agent_memory_expires">Son kullanma: %1$s</string>
+    <string name="managed_agent_memory_error">Özel bellek okunamadı veya kaydedilemedi. Notu ve cihazın güvenli depolamasını kontrol edin.</string>
 </resources>

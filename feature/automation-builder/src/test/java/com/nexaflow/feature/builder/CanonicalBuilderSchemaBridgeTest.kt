@@ -147,4 +147,13 @@ class CanonicalBuilderSchemaBridgeTest {
         val parsedList = requireNotNull(parseCanonicalField(collection, "com.one.app|org.two.app"))
         assertEquals("com.one.app|org.two.app", canonicalValueToLegacy(parsedList))
     }
+
+    @Test
+    fun durationEditorConvertsDisplayUnitsWithoutLosingCanonicalMilliseconds() {
+        assertEquals(1_500L, durationInputToMillis("1.5", 1_000L))
+        assertEquals(90_000L, durationInputToMillis("1.5", 60_000L))
+        assertEquals("1.5", durationDisplayValue("90000", 60_000L))
+        assertEquals(null, durationInputToMillis("1.5", 1L))
+        assertEquals(null, durationInputToMillis("9223372036854775808", 1L))
+    }
 }

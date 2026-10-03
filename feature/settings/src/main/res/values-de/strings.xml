@@ -391,4 +391,22 @@
     <string name="managed_agent_run_deadline">Zeitlimit überschritten.</string>
     <string name="managed_agent_run_approval_invalid">Genehmigung abgelaufen oder Agent-/Geräterichtlinie geändert.</string>
     <string name="managed_agent_cost_unknown_hint">Kosten fehlen; Läufe mit Kostenlimit werden blockiert.</string>
+    <string name="managed_agent_memory_export">Private Notizen exportieren</string>
+    <string name="managed_agent_memory_export_title">Agentenspeicher exportieren?</string>
+    <string name="managed_agent_memory_export_warning">Die von Ihnen verfassten Notizen für %1$s werden als lesbares JSON an einem Ziel Ihrer Wahl gespeichert. Jeder mit Zugriff auf die exportierte Datei kann sie lesen.</string>
+    <string name="managed_agent_memory_export_error">Die Notizen konnten nicht an dieses Ziel exportiert werden.</string>
+    <string name="managed_agent_memory">Agentenspeicher</string>
+    <string name="managed_agent_memory_title">Speicher für %1$s</string>
+    <string name="managed_agent_memory_hint">Optionale, selbst verfasste Notizen. Sie werden auf diesem Gerät verschlüsselt, können ablaufen und stehen nur diesem Agenten als Referenzdaten zur Verfügung.</string>
+    <string name="managed_agent_memory_empty">Keine Notizen gespeichert.</string>
+    <string name="managed_agent_memory_add">Notiz hinzufügen</string>
+    <string name="managed_agent_memory_edit">Notiz bearbeiten</string>
+    <string name="managed_agent_memory_delete">Notiz löschen</string>
+    <string name="managed_agent_memory_delete_title">Diese private Notiz löschen?</string>
+    <string name="managed_agent_memory_note_title">Notiztitel</string>
+    <string name="managed_agent_memory_content">Inhalt der privaten Notiz</string>
+    <string name="managed_agent_memory_expiry_days">Läuft nach Tagen ab (0 = nie)</string>
+    <string name="managed_agent_memory_expiry_hint">Geben Sie 1 bis 365 Tage oder 0 für unbegrenzt ein.</string>
+    <string name="managed_agent_memory_expires">Läuft ab am %1$s</string>
+    <string name="managed_agent_memory_error">Privater Speicher konnte nicht gelesen oder gespeichert werden. Prüfen Sie die Notiz und den sicheren Gerätespeicher.</string>
 </resources>

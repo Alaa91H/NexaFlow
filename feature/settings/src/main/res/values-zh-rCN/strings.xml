@@ -393,4 +393,22 @@
     <string name="managed_agent_run_deadline">运行超出时间限制。</string>
     <string name="managed_agent_run_approval_invalid">批准已过期或策略已更改。</string>
     <string name="managed_agent_cost_unknown_hint">费用无法验证；设置上限时将安全地阻止运行。</string>
+    <string name="managed_agent_memory_export">导出私人笔记</string>
+    <string name="managed_agent_memory_export_title">导出智能体记忆？</string>
+    <string name="managed_agent_memory_export_warning">为 %1$s 编写的笔记将以可读 JSON 格式保存到你选择的位置。任何能访问导出文件的人都可以读取这些笔记。</string>
+    <string name="managed_agent_memory_export_error">无法将笔记导出到该位置。</string>
+    <string name="managed_agent_memory">智能体记忆</string>
+    <string name="managed_agent_memory_title">%1$s 的记忆</string>
+    <string name="managed_agent_memory_hint">可选的用户编写笔记。内容在此设备上加密，可设置过期时间，且仅此智能体可将其用作参考数据。</string>
+    <string name="managed_agent_memory_empty">没有已保存的笔记。</string>
+    <string name="managed_agent_memory_add">添加笔记</string>
+    <string name="managed_agent_memory_edit">编辑笔记</string>
+    <string name="managed_agent_memory_delete">删除笔记</string>
+    <string name="managed_agent_memory_delete_title">删除此私人笔记？</string>
+    <string name="managed_agent_memory_note_title">笔记标题</string>
+    <string name="managed_agent_memory_content">私人笔记内容</string>
+    <string name="managed_agent_memory_expiry_days">过期天数（0 = 永不过期）</string>
+    <string name="managed_agent_memory_expiry_hint">请输入 1 到 365 天，或输入 0 表示永不过期。</string>
+    <string name="managed_agent_memory_expires">过期时间：%1$s</string>
+    <string name="managed_agent_memory_error">无法读取或保存私人记忆。请检查笔记和设备安全存储。</string>
 </resources>

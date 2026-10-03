@@ -391,4 +391,22 @@
     <string name="managed_agent_run_deadline">تجاوز التشغيل المهلة المحددة.</string>
     <string name="managed_agent_run_approval_invalid">انتهت الموافقة أو تغيرت سياسة الوكيل/الجهاز.</string>
     <string name="managed_agent_cost_unknown_hint">لا تتوفر بيانات موثوقة للتكلفة؛ يُرفض التشغيل عند تحديد سقف.</string>
+    <string name="managed_agent_memory_export">تصدير الملاحظات الخاصة</string>
+    <string name="managed_agent_memory_export_title">تصدير ذاكرة الوكيل؟</string>
+    <string name="managed_agent_memory_export_warning">سيُحفظ ما كتبته من ملاحظات للوكيل %1$s بصيغة JSON مقروءة في وجهة تختارها. سيتمكن أي شخص يصل إلى الملف المصدّر من قراءتها.</string>
+    <string name="managed_agent_memory_export_error">تعذر تصدير الملاحظات إلى الوجهة المحددة.</string>
+    <string name="managed_agent_memory">ذاكرة الوكيل</string>
+    <string name="managed_agent_memory_title">ذاكرة %1$s</string>
+    <string name="managed_agent_memory_hint">ملاحظات اختيارية تكتبها بنفسك. تُشفّر على هذا الجهاز، ويمكن أن تنتهي صلاحيتها، ولا يستخدمها إلا هذا الوكيل كبيانات مرجعية.</string>
+    <string name="managed_agent_memory_empty">لا توجد ملاحظات محفوظة.</string>
+    <string name="managed_agent_memory_add">إضافة ملاحظة</string>
+    <string name="managed_agent_memory_edit">تعديل الملاحظة</string>
+    <string name="managed_agent_memory_delete">حذف الملاحظة</string>
+    <string name="managed_agent_memory_delete_title">حذف هذه الملاحظة الخاصة؟</string>
+    <string name="managed_agent_memory_note_title">عنوان الملاحظة</string>
+    <string name="managed_agent_memory_content">محتوى الملاحظة الخاصة</string>
+    <string name="managed_agent_memory_expiry_days">تنتهي بعد عدد الأيام (0 = بلا انتهاء)</string>
+    <string name="managed_agent_memory_expiry_hint">أدخل من 1 إلى 365 يوماً، أو 0 بلا انتهاء.</string>
+    <string name="managed_agent_memory_expires">تنتهي %1$s</string>
+    <string name="managed_agent_memory_error">تعذرت قراءة الذاكرة الخاصة أو حفظها. تحقق من الملاحظة والتخزين الآمن للجهاز.</string>
 </resources>
