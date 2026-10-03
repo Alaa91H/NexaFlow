@@ -90,6 +90,28 @@ class AgentRuntimePolicyTest {
     }
 
     @Test
+    fun liveExecutionGuardRevokesAnAlreadySnapshottedToolBeforeItsSideEffect() = runTest {
+        val source = FakeExecutor("nexaflow.create_task")
+        var definitionStillCurrent = true
+        val executor = PolicyFilteredAgentToolExecutor(
+            agentId = "assistant",
+            source = source,
+            policy = AgentPolicy(allowedToolNames = setOf("nexaflow.create_task")),
+            approvalGate = AgentToolApprovalGate { _, _, _ -> true },
+            executionGuard = AgentToolExecutionGuard {
+                if (definitionStillCurrent) null else "agent_definition_changed"
+            }
+        )
+
+        definitionStillCurrent = false
+        val result = executor.execute(call("nexaflow.create_task"))
+
+        assertTrue(result.isError)
+        assertEquals("agent_definition_changed", result.output.jsonObject["error"]?.jsonPrimitive?.content)
+        assertEquals(0, source.executions)
+    }
+
+    @Test
     fun budgetLedgerEnforcesTurnsCallsOutputDeadlineAndUnknownCost() {
         var now = 100L
         val ledger = AgentBudgetLedger(

@@ -9,6 +9,7 @@ import com.nexaflow.core.agentruntime.AgentBudgetLedger
 import com.nexaflow.core.agentruntime.AgentDefinition
 import com.nexaflow.core.agentruntime.AgentRunStatus
 import com.nexaflow.core.agentruntime.AgentToolApprovalGate
+import com.nexaflow.core.agentruntime.AgentToolExecutionGuard
 import com.nexaflow.core.agentruntime.ManagedAgentRunEvent
 import com.nexaflow.core.agentruntime.ManagedAgentRunUseCase
 import com.nexaflow.core.agentruntime.PolicyFilteredAgentToolExecutor
@@ -39,7 +40,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.JsonObject
 import com.nexaflow.core.agentruntime.AgentRun
 
 @Singleton
@@ -141,6 +145,15 @@ class ManagedAgentRunCoordinator @Inject constructor(
                     val redactedArguments = AiTraceRedactor.redactElement(call.arguments).toString()
                         .take(AiTraceRedactor.MAX_PREVIEW_CHARS)
                     send(ManagedAgentRunEvent.ApprovalRequired(approvalId, call.name, redactedArguments))
+                },
+                executionGuard = AgentToolExecutionGuard { call ->
+                    val live = definitions.find(definition.id)
+                    when {
+                        live == null || !live.enabled -> "agent_disabled"
+                        live.revision != definition.revision -> "agent_definition_changed"
+                        call.name !in live.policy.allowedToolNames -> "tool_not_allowed"
+                        else -> null
+                    }
                 }
             )
             val budgetExecutor = BudgetedToolExecutor(policyExecutor, ledger)
@@ -154,6 +167,7 @@ class ManagedAgentRunCoordinator @Inject constructor(
 
             var terminalStatus = AgentRunStatus.FAILED
             var terminalCode = "engine_incomplete"
+            var fatalToolFailure: String? = null
             withTimeout(definition.budget.maxDurationMillis) {
                 engine.stream(
                     conversationId = run.id,
@@ -175,10 +189,17 @@ class ManagedAgentRunCoordinator @Inject constructor(
                             }
                         }
                         is AiConversationEvent.ToolStarted -> runs.recordToolActivity(run.id, started = true)
-                        is AiConversationEvent.ToolFinished -> runs.recordToolActivity(run.id, started = false)
+                        is AiConversationEvent.ToolFinished -> {
+                            runs.recordToolActivity(run.id, started = false)
+                            val toolError = (event.result.output as? JsonObject)
+                                ?.get("error")?.jsonPrimitive?.contentOrNull
+                            if (toolError in TERMINAL_TOOL_FAILURES) fatalToolFailure = toolError
+                        }
                         is AiConversationEvent.Completed -> {
-                            terminalStatus = AgentRunStatus.COMPLETED
-                            terminalCode = "completed"
+                            if (fatalToolFailure == null) {
+                                terminalStatus = AgentRunStatus.COMPLETED
+                                terminalCode = "completed"
+                            }
                         }
                         is AiConversationEvent.Unavailable -> terminalCode = "provider_unavailable"
                         is AiConversationEvent.Failed -> {
@@ -187,6 +208,10 @@ class ManagedAgentRunCoordinator @Inject constructor(
                         }
                     }
                 }
+            }
+            fatalToolFailure?.let { code ->
+                terminalStatus = AgentRunStatus.FAILED
+                terminalCode = code
             }
             val usage = ledger.usage()
             runs.recordUsage(
@@ -213,11 +238,12 @@ class ManagedAgentRunCoordinator @Inject constructor(
 
     override suspend fun resolveApproval(approvalId: String, approved: Boolean): Boolean {
         val approval = runs.findApproval(approvalId) ?: return false
-        val currentRevision = definitions.find(approval.agentId)?.revision ?: return false
+        val currentDefinition = definitions.find(approval.agentId) ?: return false
+        if (!currentDefinition.enabled) return false
         return runs.resolveApproval(
             approvalId = approvalId,
             decision = if (approved) AgentApprovalDecision.APPROVED else AgentApprovalDecision.DENIED,
-            currentDefinitionRevision = currentRevision,
+            currentDefinitionRevision = currentDefinition.revision,
             currentDeviceBindingHash = deviceBindingHash()
         )
     }
@@ -286,7 +312,12 @@ class ManagedAgentRunCoordinator @Inject constructor(
         const val APPROVAL_WINDOW_MILLIS = 5 * 60_000L
         val SAFE_FAILURE_CODES = setOf(
             "invalid_conversation", "output_limit", "tool_limit", "provider_context_limit",
-            "provider_failure", "tool_iteration_limit", "turn_limit"
+            "provider_failure", "tool_iteration_limit", "turn_limit", "agent_disabled",
+            "agent_definition_changed", "deadline_exceeded", "tool_not_allowed"
+        )
+        val TERMINAL_TOOL_FAILURES = setOf(
+            "tool_limit", "deadline_exceeded", "agent_disabled",
+            "agent_definition_changed", "tool_not_allowed"
         )
     }
 }

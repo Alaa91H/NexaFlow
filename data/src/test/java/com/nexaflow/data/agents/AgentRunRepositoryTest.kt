@@ -10,6 +10,7 @@ import com.nexaflow.core.database.AppDatabase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import java.security.MessageDigest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -48,6 +49,10 @@ class AgentRunRepositoryTest {
         val run = assertIs<AgentRunStartResult.Created>(created).run
         assertFalse(run.idempotencyKeyHash.contains("secret-request-key"))
         assertFalse(run.requestFingerprint.contains("private prompt"))
+        val guessablePromptHash = MessageDigest.getInstance("SHA-256")
+            .digest("private prompt".toByteArray())
+            .joinToString("") { "%02x".format(it) }
+        assertFalse("Persisted fingerprint must be keyed, not a prompt digest", run.requestFingerprint == guessablePromptHash)
         assertIs<AgentRunStartResult.Existing>(
             repository.start("agent-one", "secret-request-key", "private prompt", 3, 2, 60_000)
         )

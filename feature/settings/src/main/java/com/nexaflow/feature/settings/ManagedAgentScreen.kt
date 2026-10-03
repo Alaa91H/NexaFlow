@@ -251,13 +251,7 @@ private fun ManagedAgentEditor(
                 FilterChip(
                     selected = tool.name in draft.allowedToolNames,
                     onClick = {
-                        update { value ->
-                            val names = value.allowedToolNames.toggle(tool.name)
-                            value.copy(
-                                allowedToolNames = names,
-                                approvalRequiredToolNames = value.approvalRequiredToolNames intersect names
-                            )
-                        }
+                        update { value -> value.toggleTool(tool) }
                     },
                     label = { Text(tool.name) }
                 )

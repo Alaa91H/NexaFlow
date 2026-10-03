@@ -10,13 +10,22 @@ import com.nexaflow.core.database.AgentApprovalEntity
 import com.nexaflow.core.database.AgentRunDao
 import com.nexaflow.core.database.AgentRunEntity
 import com.nexaflow.core.database.AgentRunEventEntity
+import com.nexaflow.core.security.InMemorySecureStorage
+import com.nexaflow.core.security.SecureStorage
 import java.security.MessageDigest
+import java.security.SecureRandom
+import java.util.Base64
 import java.util.UUID
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 sealed interface AgentRunStartResult {
     data class Created(val run: AgentRun) : AgentRunStartResult
@@ -26,16 +35,25 @@ sealed interface AgentRunStartResult {
 }
 
 /** Durable run ledger. Event codes are constrained to low-cardinality, payload-free facts. */
+@Singleton
 class AgentRunRepository private constructor(
     private val dao: AgentRunDao,
+    private val secureStorage: SecureStorage,
     private val nowMillis: () -> Long,
     private val idGenerator: () -> String
 ) {
     @Inject
-    constructor(dao: AgentRunDao) : this(dao, System::currentTimeMillis, { UUID.randomUUID().toString() })
+    constructor(dao: AgentRunDao, secureStorage: SecureStorage) :
+        this(dao, secureStorage, System::currentTimeMillis, { UUID.randomUUID().toString() })
+
+    constructor(dao: AgentRunDao) :
+        this(dao, InMemorySecureStorage(), System::currentTimeMillis, { UUID.randomUUID().toString() })
 
     internal constructor(dao: AgentRunDao, nowMillis: () -> Long, idGenerator: () -> String, testOnly: Unit = Unit) :
-        this(dao, nowMillis, idGenerator)
+        this(dao, InMemorySecureStorage(), nowMillis, idGenerator)
+
+    private val fingerprintKeyMutex = Mutex()
+    @Volatile private var cachedFingerprintKey: ByteArray? = null
 
     suspend fun start(
         agentId: String,
@@ -49,7 +67,7 @@ class AgentRunRepository private constructor(
         require(requestFingerprint.isNotBlank() && requestFingerprint.length <= 256)
         require(definitionRevision > 0L && maxConcurrentRuns in 1..8)
         val idempotencyHash = sha256("$agentId\u0000$idempotencyKey")
-        val fingerprintHash = sha256(requestFingerprint)
+        val fingerprintHash = hmac(awaitFingerprintKey(), requestFingerprint)
         dao.findByIdempotency(agentId, idempotencyHash)?.let { existing ->
             val run = existing.toRun()
             return if (run.requestFingerprint == fingerprintHash) {
@@ -273,8 +291,30 @@ class AgentRunRepository private constructor(
     private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")
         .digest(value.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
 
+    private suspend fun awaitFingerprintKey(): ByteArray = fingerprintKeyMutex.withLock {
+        cachedFingerprintKey?.let { return@withLock it }
+        val stored = secureStorage.get(FINGERPRINT_KEY_NAME)
+        val key = stored?.let { runCatching { Base64.getDecoder().decode(it) }.getOrNull() }
+            ?.takeIf { it.size == FINGERPRINT_KEY_BYTES }
+            ?: ByteArray(FINGERPRINT_KEY_BYTES).also { generated ->
+                SecureRandom().nextBytes(generated)
+                secureStorage.put(FINGERPRINT_KEY_NAME, Base64.getEncoder().encodeToString(generated))
+            }
+        cachedFingerprintKey = key
+        key
+    }
+
+    private fun hmac(key: ByteArray, value: String): String {
+        val mac = Mac.getInstance("HmacSHA256")
+        mac.init(SecretKeySpec(key, "HmacSHA256"))
+        return mac.doFinal(value.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+    }
+
     companion object {
         const val MAX_RUN_HISTORY = 500
+        private const val FINGERPRINT_KEY_NAME = "managed-agent-run-fingerprint-v1"
+        private const val FINGERPRINT_KEY_BYTES = 32
         private val SAFE_CODE = Regex("[a-z][a-z0-9_]{0,63}")
     }
 }

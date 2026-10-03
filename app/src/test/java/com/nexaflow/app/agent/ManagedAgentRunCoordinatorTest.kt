@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -106,6 +107,78 @@ class ManagedAgentRunCoordinatorTest {
         assertEquals(2, provider.requests)
     }
 
+    @Test
+    fun configuredCostCapFailsClosedBeforeCallingProviderWithoutUsagePricing() = runBlocking {
+        val provider = ApprovalProvider()
+        val registry = AiProviderRegistry(listOf(provider))
+        val definitions = AgentDefinitionRepository(database.agentDefinitionDao())
+        val runs = AgentRunRepository(database.agentRunDao())
+        val coordinator = ManagedAgentRunCoordinator(
+            definitions = definitions,
+            runs = runs,
+            registry = registry,
+            tools = FakeTools(),
+            context = ApplicationProvider.getApplicationContext()
+        )
+        definitions.create(
+            AgentDefinition(
+                id = "agent-cost-capped",
+                name = "Cost capped",
+                providerProfileId = "local-profile",
+                modelId = "local-model",
+                budget = AgentBudget(maxCostMicros = 1_000),
+                enabled = true,
+                createdAtMillis = 1,
+                updatedAtMillis = 1
+            )
+        )
+
+        val events = coordinator.runAgent("agent-cost-capped", "hello", "cost-request").toList()
+
+        val runId = (events.first { it is ManagedAgentRunEvent.Queued } as ManagedAgentRunEvent.Queued).runId
+        assertTrue(events.any { it == ManagedAgentRunEvent.Failed(runId, "cost_unknown") })
+        assertEquals(0, provider.requests)
+        assertEquals(AgentRunStatus.FAILED, runs.find(runId)?.status)
+        assertEquals("cost_unknown", runs.find(runId)?.outcomeCode)
+    }
+
+    @Test
+    fun toolBudgetExhaustionIsPersistedAsFailureEvenIfProviderThenResponds() = runBlocking {
+        val provider = ExhaustingProvider()
+        val registry = AiProviderRegistry(listOf(provider))
+        val definitions = AgentDefinitionRepository(database.agentDefinitionDao())
+        val runs = AgentRunRepository(database.agentRunDao())
+        val tools = FakeTools()
+        val coordinator = ManagedAgentRunCoordinator(
+            definitions = definitions,
+            runs = runs,
+            registry = registry,
+            tools = tools,
+            context = ApplicationProvider.getApplicationContext()
+        )
+        definitions.create(
+            AgentDefinition(
+                id = "agent-tool-capped",
+                name = "Tool capped",
+                providerProfileId = "local-profile",
+                modelId = "local-model",
+                policy = AgentPolicy(allowedToolNames = setOf("automation.create")),
+                budget = AgentBudget(maxTurns = 4, maxToolCalls = 1),
+                enabled = true,
+                createdAtMillis = 1,
+                updatedAtMillis = 1
+            )
+        )
+
+        val events = coordinator.runAgent("agent-tool-capped", "work", "tool-request").toList()
+
+        val runId = (events.first { it is ManagedAgentRunEvent.Queued } as ManagedAgentRunEvent.Queued).runId
+        assertTrue(events.any { it == ManagedAgentRunEvent.Failed(runId, "tool_limit") })
+        assertEquals(1, tools.executions)
+        assertEquals(AgentRunStatus.FAILED, runs.find(runId)?.status)
+        assertEquals("tool_limit", runs.find(runId)?.outcomeCode)
+    }
+
     private class ApprovalProvider : AiModelProvider {
         override val descriptor = MutableStateFlow(
             AiProviderDescriptor(
@@ -134,6 +207,30 @@ class ManagedAgentRunCoordinatorTest {
                 ))
             } else {
                 emit(AiProviderEvent.TextDelta("The automation was created."))
+            }
+            emit(AiProviderEvent.Finished())
+        }
+    }
+
+    private class ExhaustingProvider : AiModelProvider {
+        override val descriptor = MutableStateFlow(
+            AiProviderDescriptor(
+                id = "local-profile",
+                displayName = "Local",
+                modelId = "local-model",
+                capabilities = AiProviderCapabilities(toolCalling = true, streaming = true, local = true),
+                available = true
+            )
+        )
+        private var requests = 0
+
+        override fun stream(request: AiProviderRequest) = flow {
+            requests++
+            when (requests) {
+                1, 2 -> emit(AiProviderEvent.ToolCall(
+                    AiToolCall("call-$requests", "automation.create", buildJsonObject {})
+                ))
+                else -> emit(AiProviderEvent.TextDelta("All done."))
             }
             emit(AiProviderEvent.Finished())
         }

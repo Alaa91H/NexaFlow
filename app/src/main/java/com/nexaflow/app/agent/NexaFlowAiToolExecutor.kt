@@ -38,7 +38,9 @@ class NexaFlowAiToolExecutor(
             AiToolDefinition(
                 name = tool.name,
                 description = tool.description,
-                inputSchema = tool.inputSchema
+                inputSchema = tool.inputSchema,
+                readOnly = tool.readOnly,
+                destructive = tool.destructive
             )
         }
     )

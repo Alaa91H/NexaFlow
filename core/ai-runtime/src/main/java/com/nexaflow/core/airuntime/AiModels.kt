@@ -24,7 +24,10 @@ data class AiConversationMessage(
 data class AiToolDefinition(
     val name: String,
     val description: String,
-    val inputSchema: JsonObject
+    val inputSchema: JsonObject,
+    /** Unknown tools are treated as write-capable by managed-agent policy. */
+    val readOnly: Boolean = false,
+    val destructive: Boolean = false
 )
 
 data class AiToolCall(

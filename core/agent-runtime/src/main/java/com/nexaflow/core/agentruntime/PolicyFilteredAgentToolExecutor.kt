@@ -13,13 +13,19 @@ fun interface AgentToolApprovalGate {
     suspend fun approve(agentId: String, call: AiToolCall, onRequested: suspend (String, AiToolCall) -> Unit): Boolean
 }
 
+fun interface AgentToolExecutionGuard {
+    /** Return a safe rejection code when the live definition no longer authorizes this call. */
+    suspend fun rejectionCode(call: AiToolCall): String?
+}
+
 /** Enforces the agent's allowlist at discovery and execution time. */
 class PolicyFilteredAgentToolExecutor(
     private val agentId: String,
     private val source: AiToolExecutor,
     private val policy: AgentPolicy,
     private val approvalGate: AgentToolApprovalGate,
-    private val onApprovalRequested: suspend (String, AiToolCall) -> Unit = { _, _ -> }
+    private val onApprovalRequested: suspend (String, AiToolCall) -> Unit = { _, _ -> },
+    private val executionGuard: AgentToolExecutionGuard = AgentToolExecutionGuard { null }
 ) : AiToolExecutor {
     init {
         require(agentId.isNotBlank())
@@ -31,6 +37,7 @@ class PolicyFilteredAgentToolExecutor(
     )
 
     override suspend fun execute(call: AiToolCall): AiToolResult {
+        executionGuard.rejectionCode(call)?.let { return failure(call, it) }
         val failure = when {
             call.name !in policy.allowedToolNames -> "tool_not_allowed"
             source.tools.value.none { it.name == call.name } -> "tool_unavailable"
@@ -38,15 +45,16 @@ class PolicyFilteredAgentToolExecutor(
                 !approvalGate.approve(agentId, call, onApprovalRequested) -> "approval_denied"
             else -> null
         }
-        if (failure != null) {
-            return AiToolResult(
-                callId = call.id,
-                toolName = call.name,
-                output = buildJsonObject { put("error", failure) },
-                isError = true
-            )
-        }
+        if (failure != null) return failure(call, failure)
+        executionGuard.rejectionCode(call)?.let { return failure(call, it) }
         return source.execute(call)
     }
+
+    private fun failure(call: AiToolCall, code: String) = AiToolResult(
+        callId = call.id,
+        toolName = call.name,
+        output = buildJsonObject { put("error", code) },
+        isError = true
+    )
 
 }
