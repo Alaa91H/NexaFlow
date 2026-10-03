@@ -2,6 +2,7 @@
     <string name="ai_chat_title">ذكاء NexaFlow</string>
     <string name="ai_chat_no_provider">لم يتم إعداد مزود نموذج</string>
     <string name="ai_chat_clear">مسح</string>
+    <string name="ai_chat_agent_settings">إعدادات الوكيل</string>
     <string name="ai_chat_provider_required">يلزم إعداد مزود نموذج</string>
     <string name="ai_chat_provider_required_detail">واجهة الدردشة جاهزة. صِل نموذجًا محليًا أو سحابيًا لبدء تنفيذ أوامر الأتمتة باللغة الطبيعية.</string>
     <string name="ai_chat_welcome">اسأل NexaFlow</string>

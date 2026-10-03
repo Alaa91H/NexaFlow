@@ -11,6 +11,41 @@ import org.junit.Test
 class NativeAiProviderAdaptersTest {
 
     @Test
+    fun geminiUsesJsonSchemaFieldForToolDeclarationsAfterModelListVerification() = runTest {
+        var generationRequest: JsonObject? = null
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ): GeminiNativeTransportResponse {
+                    generationRequest = body
+                    return GeminiNativeTransportResponse(
+                        200,
+                        """{"candidates":[{"content":{"parts":[{"text":"ready"}]}}]}"""
+                    )
+                }
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+
+        assertTrue(provider.verifyConnection().success)
+        provider.stream(request()).toList()
+
+        val declaration = generationRequest!!["tools"].toString()
+        assertTrue(declaration.contains("parametersJsonSchema"))
+        assertFalse(declaration.contains("\"parameters\":"))
+    }
+
+    @Test
     fun openAiResponsesPreservesReasoningAndToolCallAcrossToolRoundTrip() = runTest {
         val requests = mutableListOf<JsonObject>()
         val provider = OpenAiResponsesProvider(
