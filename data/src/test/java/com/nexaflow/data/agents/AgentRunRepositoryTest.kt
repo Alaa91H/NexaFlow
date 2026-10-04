@@ -112,6 +112,30 @@ class AgentRunRepositoryTest {
     }
 
     @Test
+    fun approvalCallFingerprintIsKeyedBeforeItIsPersisted() = runTest {
+        val run = assertIs<AgentRunStartResult.Created>(
+            repository.start("agent-one", "approval-key", "request", 2, 1, 60_000)
+        ).run
+        assertTrue(repository.markRunning(run.id))
+        val unkeyedFingerprint = "c".repeat(64)
+        val approval = AgentApproval(
+            id = "approval-keyed",
+            runId = run.id,
+            agentId = run.agentId,
+            definitionRevision = run.definitionRevision,
+            toolName = "automation.create",
+            callFingerprint = unkeyedFingerprint,
+            deviceBindingHash = "b".repeat(64),
+            expiresAtMillis = 10_000
+        )
+
+        assertTrue(repository.createApproval(approval))
+
+        val persistedFingerprint = requireNotNull(repository.findApproval(approval.id)).callFingerprint
+        assertFalse("Approval fingerprints must be keyed before persistence", persistedFingerprint == unkeyedFingerprint)
+    }
+
+    @Test
     fun approvalWaiterImmediatelySeesDecisionThatArrivedBeforeSubscription() = runTest {
         val run = assertIs<AgentRunStartResult.Created>(
             repository.start("agent-one", "key", "request", 2, 1, 60_000)
