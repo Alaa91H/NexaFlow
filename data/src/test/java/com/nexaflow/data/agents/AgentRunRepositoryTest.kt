@@ -85,6 +85,34 @@ class AgentRunRepositoryTest {
     }
 
     @Test
+    fun processRecoveryInterruptsRunAndInvalidatesPendingApproval() = runTest {
+        val run = assertIs<AgentRunStartResult.Created>(
+            repository.start("agent-one", "approval-recovery", "request", 2, 1, 60_000)
+        ).run
+        assertTrue(repository.markRunning(run.id))
+        assertTrue(repository.createApproval(AgentApproval(
+            id = "approval-recovery",
+            runId = run.id,
+            agentId = run.agentId,
+            definitionRevision = run.definitionRevision,
+            toolName = "automation.create",
+            callFingerprint = "d".repeat(64),
+            deviceBindingHash = "e".repeat(64),
+            expiresAtMillis = 10_000
+        )))
+
+        assertEquals(1, repository.recoverInFlight())
+
+        assertEquals(AgentRunStatus.INTERRUPTED, repository.find(run.id)?.status)
+        assertEquals(AgentApprovalDecision.INVALIDATED, repository.findApproval("approval-recovery")?.decision)
+        assertFalse(repository.resolveApproval(
+            "approval-recovery", AgentApprovalDecision.APPROVED, run.definitionRevision, "e".repeat(64)
+        ))
+        assertEquals(listOf("QUEUED", "STARTED", "APPROVAL_REQUESTED", "TERMINAL"),
+            repository.observeEvents(run.id).first().map { it.type.name })
+    }
+
+    @Test
     fun approvalMustMatchDefinitionAndDeviceAndCanOnlyBeConsumedOnce() = runTest {
         val run = assertIs<AgentRunStartResult.Created>(
             repository.start("agent-one", "key", "request", 2, 1, 60_000)
@@ -109,6 +137,30 @@ class AgentRunRepositoryTest {
         assertTrue(repository.resolveApproval("approval-one", AgentApprovalDecision.APPROVED, 2, deviceHash))
         assertFalse(repository.resolveApproval("approval-one", AgentApprovalDecision.APPROVED, 2, deviceHash))
         assertEquals(AgentRunStatus.RUNNING, repository.find(run.id)?.status)
+    }
+
+    @Test
+    fun approvalCallFingerprintIsKeyedBeforeItIsPersisted() = runTest {
+        val run = assertIs<AgentRunStartResult.Created>(
+            repository.start("agent-one", "approval-key", "request", 2, 1, 60_000)
+        ).run
+        assertTrue(repository.markRunning(run.id))
+        val unkeyedFingerprint = "c".repeat(64)
+        val approval = AgentApproval(
+            id = "approval-keyed",
+            runId = run.id,
+            agentId = run.agentId,
+            definitionRevision = run.definitionRevision,
+            toolName = "automation.create",
+            callFingerprint = unkeyedFingerprint,
+            deviceBindingHash = "b".repeat(64),
+            expiresAtMillis = 10_000
+        )
+
+        assertTrue(repository.createApproval(approval))
+
+        val persistedFingerprint = requireNotNull(repository.findApproval(approval.id)).callFingerprint
+        assertFalse("Approval fingerprints must be keyed before persistence", persistedFingerprint == unkeyedFingerprint)
     }
 
     @Test

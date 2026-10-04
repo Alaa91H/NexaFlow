@@ -165,9 +165,12 @@ class AgentRunRepository private constructor(
             run.status != AgentRunStatus.RUNNING) return false
         val now = nowMillis()
         if (approval.expiresAtMillis <= now) return false
+        val keyedApproval = approval.copy(
+            callFingerprint = hmac(awaitFingerprintKey(), approval.callFingerprint)
+        )
         return dao.requestApprovalAndWait(
             run.toEntity(),
-            approval.toEntity(now),
+            keyedApproval.toEntity(now),
             run.event(AgentRunEventType.APPROVAL_REQUESTED, "approval_requested", 0L, now),
             now
         )

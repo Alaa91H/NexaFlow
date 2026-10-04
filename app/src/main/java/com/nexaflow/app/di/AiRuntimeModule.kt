@@ -10,6 +10,7 @@ import com.nexaflow.app.ai.AndroidAnthropicMessagesTransport
 import com.nexaflow.app.ai.VaultBackedAiCredentialStore
 import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.airuntime.AiConversationEngine
+import com.nexaflow.core.airuntime.AiAgentTraceRecorder
 import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
 import com.nexaflow.core.airuntime.AiModelRegistry
@@ -43,6 +44,10 @@ import kotlinx.coroutines.launch
 @Module
 @InstallIn(SingletonComponent::class)
 object AiRuntimeModule {
+
+    @Provides
+    @Singleton
+    fun provideAiAgentTraceRecorder(): AiAgentTraceRecorder = AiAgentTraceRecorder()
 
     @Provides
     @Singleton
