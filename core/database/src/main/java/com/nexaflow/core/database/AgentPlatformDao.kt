@@ -8,6 +8,42 @@ import androidx.room.Query
 @Dao
 interface AgentPlatformDao {
 
+    @Query("SELECT * FROM agent_automation_approvals WHERE decision IS NULL AND expiresAt > :now ORDER BY expiresAt ASC")
+    suspend fun pendingAutomationApprovals(now: Long): List<AgentAutomationApprovalEntity>
+
+    @Query("UPDATE agent_automation_approvals SET decision = 'REJECTED', approvedAt = :now WHERE id = :id AND agentId = :agentId AND contentHash = :contentHash AND decision IS NULL AND expiresAt > :now")
+    suspend fun rejectAutomationApproval(id: String, agentId: String, contentHash: String, now: Long): Int
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertAutomationApproval(approval: AgentAutomationApprovalEntity)
+
+    @Query("SELECT * FROM agent_automation_approvals WHERE id = :id LIMIT 1")
+    suspend fun findAutomationApproval(id: String): AgentAutomationApprovalEntity?
+
+    @Query("UPDATE agent_automation_approvals SET approvedAt = :now, decision = 'APPROVED' WHERE id = :id AND agentId = :agentId AND contentHash = :contentHash AND riskLevel = :riskLevel AND decision IS NULL AND expiresAt > :now")
+    suspend fun approveAutomationContent(
+        id: String,
+        agentId: String,
+        contentHash: String,
+        riskLevel: String,
+        now: Long
+    ): Int
+
+    @Query("UPDATE agent_automation_approvals SET approvedAt = :now, decision = 'CONSUMED' WHERE id = :id AND agentId = :agentId AND contentHash = :contentHash AND riskLevel = :riskLevel AND decision = 'APPROVED' AND expiresAt > :now")
+    suspend fun consumeAutomationApproval(
+        id: String,
+        agentId: String,
+        contentHash: String,
+        riskLevel: String,
+        now: Long
+    ): Int
+
+    @Query("DELETE FROM agent_automation_approvals WHERE expiresAt <= :now OR decision = 'CONSUMED'")
+    suspend fun pruneAutomationApprovals(now: Long): Int
+
+    @Query("UPDATE automation_api_metadata SET approvedContentHash = :contentHash WHERE automationId = :automationId AND origin = 'AGENT'")
+    suspend fun bindApprovedAutomationContent(automationId: String, contentHash: String): Int
+
     @Query("SELECT * FROM automation_api_metadata WHERE automationId = :automationId")
     suspend fun getAutomationMetadata(automationId: String): AutomationApiMetadataEntity?
 

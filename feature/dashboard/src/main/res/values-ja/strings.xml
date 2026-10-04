@@ -292,4 +292,6 @@
     <string name="trigger_wear_event">Wear OS ウォッチ</string>
 
     <string name="ask_nexaflow">NexaFlow に質問…</string>
+
+    <string name="task_restore_failed">タスクの以前の設定を復元できませんでした: %1$s</string>
 </resources>

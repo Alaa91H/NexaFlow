@@ -292,4 +292,6 @@
     <string name="trigger_wear_event">Часы Wear OS</string>
 
     <string name="ask_nexaflow">Спросить NexaFlow…</string>
+
+    <string name="task_restore_failed">Не удалось восстановить прежние настройки задачи: %1$s</string>
 </resources>

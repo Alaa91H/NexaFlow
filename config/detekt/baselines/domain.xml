@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>SwallowedException:RetryExecutorTest.kt:RetryExecutorTest$e: IllegalArgumentException</ID>
+    <ID>TooGenericExceptionCaught:ConditionExpressionEvaluator.kt:ConditionExpressionEvaluator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WorkflowMigrationOrchestrator.kt:WorkflowMigrationOrchestrator$failure: Exception</ID>
+  </CurrentIssues>
+</SmellBaseline>

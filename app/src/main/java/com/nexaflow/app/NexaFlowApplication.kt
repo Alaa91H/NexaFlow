@@ -112,7 +112,11 @@ class NexaFlowApplication : Application() {
                 .distinctUntilChanged()
                 .collect { settings ->
                     runCatching {
-                        agentApiServer.setLanAccessEnabled(settings.lanAccessEnabled)
+                        if (settings.lanAccessEnabled) {
+                            agentNetworkPreferences.setLanAccessEnabled(false)
+                            Log.w(TAG, "Disabled cleartext LAN access; authenticated TLS is unavailable")
+                        }
+                        agentApiServer.setLanAccessEnabled(false)
                     }.onFailure { error ->
                         Log.e(TAG, "Agent API network rebind failed", error)
                     }

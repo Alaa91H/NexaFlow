@@ -67,6 +67,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:database"))
     implementation(libs.com.squareup.okhttp3.okhttp)
     testImplementation(libs.com.squareup.okhttp3.mockwebserver)
     testImplementation(libs.com.squareup.okhttp3.okhttp.tls)

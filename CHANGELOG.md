@@ -1,5 +1,20 @@
 # Changelog
 
+## [v3.91.6] - 2026-10-04
+
+### Security — Agent access and automation approvals
+
+- Added read-only, standard, time-limited, and permanent agent grant modes. New pairings use standard access by default, while permanent full access requires explicit confirmation.
+- Added single-use, content-bound approvals for high-risk agent automation changes and revalidated approval hashes immediately before execution.
+- Revoke an agent's credential family and active sessions when a rotated refresh token is reused; preserve compatibility with previously stored security records.
+- Disabled agent access over the local network until encrypted TLS transport is available.
+
+### Reliability and validation
+
+- Preserve coroutine cancellation in critical automation paths and validate paired Wear command sources before handling requests.
+- Added hostile HTTP parser, grant-scope, database migration, Wear registry, and execution-control regression coverage.
+- Corrected README catalog facts, archived dated audit reports, and added CI guardrails for stale counts and suppression budgets.
+
 ## [Unreleased]
 
 ## [v3.91.5] - 2026-10-04

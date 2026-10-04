@@ -5,6 +5,7 @@ import com.nexaflow.core.automationcontrol.api.AgentTaskMapper
 import com.nexaflow.core.automationcontrol.api.AgentTaskMappingError
 import com.nexaflow.core.automationcontrol.api.AgentTaskMappingException
 import com.nexaflow.core.automationcontrol.risk.AgentRiskEvaluator
+import com.nexaflow.core.automationcontrol.risk.AgentRiskLevel
 import com.nexaflow.core.automationcontrol.validation.AgentWorkflowValidationReport
 import com.nexaflow.core.automationcontrol.validation.AgentWorkflowValidator
 import com.nexaflow.core.execution.dryrun.WorkflowDryRunInput
@@ -48,7 +49,9 @@ data class AutomationMutationContext(
      * actorId. Null means the caller explicitly opted out of idempotency.
      */
     val idempotencyKey: String? = null,
-    val riskLevel: String? = null
+    val riskLevel: String? = null,
+    /** One-time app-issued token bound to the exact agent-authored content. */
+    val approvalId: String? = null
 )
 
 fun interface AutomationDryRunInspector {
@@ -87,6 +90,12 @@ sealed interface AutomationMutationResult {
     ) : AutomationMutationResult
 
     data object IdempotencyConflict : AutomationMutationResult
+
+    data class ApprovalRequired(
+        val contentHash: String,
+        val riskLevel: String,
+        val approvalId: String
+    ) : AutomationMutationResult
 
     data class Rejected(
         val report: AutomationPreflightReport
@@ -143,6 +152,11 @@ class AutomationCommandService(
     private val repository: AutomationRepository,
     private val dryRunInspector: AutomationDryRunInspector,
     private val mutationPersistence: AutomationMutationPersistence,
+    private val approvalDao: com.nexaflow.core.database.AgentPlatformDao? = null,
+    private val approvalHash: AgentAutomationContentHasher = AgentAutomationContentHasher { AgentAutomationApprovalHash.of(it) },
+    private val approvalRiskGate: AgentAutomationRiskGate = AgentAutomationRiskGate { automation ->
+        AgentRiskEvaluator.evaluate(automation).level.ordinal >= AgentRiskLevel.HIGH.ordinal
+    },
     private val auditSink: AutomationAuditSink = AutomationAuditSink.NO_OP,
     private val mutationObserver: AutomationMutationObserver = AutomationMutationObserver.NO_OP,
     private val clockMillis: () -> Long = System::currentTimeMillis,
@@ -674,14 +688,111 @@ class AutomationCommandService(
     ): AutomationMutationResult {
         // Plan §18: the persisted risk level is always system-computed from
         // the definition being written, never a caller-supplied hint.
+        val risk = AgentRiskEvaluator.evaluate(automation)
+        val contentHash = approvalHash.hash(automation)
+        if (request.context.origin == AutomationMutationOrigin.AGENT && approvalRiskGate.requiresApproval(automation)) {
+            val dao = approvalDao ?: return AutomationMutationResult.ApprovalRequired(
+                contentHash,
+                risk.level.name,
+                ""
+            )
+            val approval = request.context.approvalId?.let { approvalId ->
+                val agentId = request.context.agentId ?: return@let null
+                dao.findAutomationApproval(approvalId)?.takeIf {
+                    it.agentId == agentId && it.contentHash == contentHash &&
+                        it.riskLevel == risk.level.name &&
+                        it.decision == "APPROVED" && it.expiresAt > clockMillis()
+                }
+            }
+            if (approval == null) {
+                val id = UUID.randomUUID().toString()
+                dao.pruneAutomationApprovals(clockMillis())
+                dao.insertAutomationApproval(
+                    com.nexaflow.core.database.AgentAutomationApprovalEntity(
+                        id = id,
+                        agentId = request.context.agentId.orEmpty(),
+                        contentHash = contentHash,
+                        riskLevel = risk.level.name,
+                        definitionSummary = approvalSummary(automation),
+                        expiresAt = clockMillis() + 5 * 60_000L
+                    )
+                )
+                auditSink.record(
+                    AutomationAuditEvent(
+                        eventType = "AGENT_AUTOMATION_APPROVAL_REQUESTED",
+                        outcome = "PENDING",
+                        actorId = request.context.actorId,
+                        agentId = request.context.agentId,
+                        automationId = automation.id,
+                        requestId = request.context.requestId,
+                        transport = request.context.transport,
+                        details = mapOf("riskLevel" to risk.level.name, "contentHash" to contentHash),
+                        createdAt = clockMillis()
+                    )
+                )
+                return AutomationMutationResult.ApprovalRequired(contentHash, risk.level.name, id)
+            }
+            if (dao.consumeAutomationApproval(
+                    approval.id,
+                    approval.agentId,
+                    contentHash,
+                    risk.level.name,
+                    clockMillis()
+                ) != 1
+            ) {
+                return AutomationMutationResult.ApprovalRequired(contentHash, risk.level.name, approval.id)
+            }
+            dao.bindApprovedAutomationContent(automation.id, contentHash)
+            auditSink.record(
+                AutomationAuditEvent(
+                    eventType = "AGENT_AUTOMATION_APPROVAL_CONSUMED",
+                    outcome = "APPROVED",
+                    actorId = request.context.actorId,
+                    agentId = request.context.agentId,
+                    automationId = automation.id,
+                    requestId = request.context.requestId,
+                    transport = request.context.transport,
+                    details = mapOf("riskLevel" to risk.level.name, "contentHash" to contentHash),
+                    createdAt = clockMillis()
+                )
+            )
+        }
         val effectiveRequest = request.copy(
             context = request.context.copy(
-                riskLevel = AgentRiskEvaluator.evaluate(automation).level.name
+                riskLevel = risk.level.name
             )
         )
         val result = mutationPersistence.commit(effectiveRequest)
         return toMutationResult(result, automation, report, effectiveRequest)
     }
+
+    private fun approvalSummary(automation: Automation): String = buildString {
+        appendLine("Task: ${automation.name.take(160)}")
+        appendLine("Enabled: ${automation.enabled}; trigger matching: ${automation.triggerMatch}")
+        automation.triggers.take(12).forEachIndexed { index, trigger ->
+            appendLine("Trigger ${index + 1}: ${trigger.type} ${reviewConfig(trigger.config)}")
+        }
+        automation.actions.take(20).forEachIndexed { index, action ->
+            appendLine("Action ${index + 1}: ${action.type} ${reviewConfig(action.config)}")
+        }
+        automation.exitActions.take(10).forEachIndexed { index, action ->
+            appendLine("Exit action ${index + 1}: ${action.type} ${reviewConfig(action.config)}")
+        }
+        automation.constraints.take(12).forEachIndexed { index, constraint ->
+            appendLine("Constraint ${index + 1}: ${constraint.type} ${reviewConfig(constraint.config)}")
+        }
+    }.take(MAX_APPROVAL_SUMMARY_LENGTH)
+
+    private fun reviewConfig(config: Map<String, String>): Map<String, String> =
+        config.toSortedMap().entries.take(24).associate { (key, value) ->
+            val normalizedKey = key.lowercase()
+            val safeValue = if (SECRET_KEY_PARTS.any(normalizedKey::contains)) {
+                "[REDACTED]"
+            } else {
+                value.take(180)
+            }
+            key.take(80) to safeValue
+        }
 
     private suspend fun toMutationResult(
         result: AutomationPersistenceResult,
@@ -766,5 +877,7 @@ class AutomationCommandService(
 
     private companion object {
         const val MAX_ID_ATTEMPTS = 8
+        const val MAX_APPROVAL_SUMMARY_LENGTH = 4_000
+        val SECRET_KEY_PARTS = listOf("token", "secret", "password", "api_key", "apikey", "authorization", "credential")
     }
 }

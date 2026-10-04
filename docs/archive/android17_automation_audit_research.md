@@ -1,3 +1,5 @@
+> Historical archive — originally android17_automation_audit_research.md; archived 2026-10-04
+
 > **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](README.md) for the supported project overview and current validation status.
 
 # Android 17 automation audit research

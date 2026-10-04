@@ -171,6 +171,10 @@ class WearDeviceRegistry @Inject constructor(
     fun findByInstallId(watchInstallId: String): WearDeviceDescriptor? =
         _devices.value.firstOrNull { it.watchInstallId == watchInstallId }
 
+    /** Accept commands only from a node with a current NexaFlow watch advertisement. */
+    fun isKnownNode(nodeId: String): Boolean =
+        nodeId.isNotBlank() && _devices.value.any { it.nodeId == nodeId }
+
     private fun applyReachableNodes(nodeIds: Set<String>) {
         reachableNodeIds = nodeIds
         val observedAt = System.currentTimeMillis()

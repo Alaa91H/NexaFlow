@@ -416,4 +416,26 @@
     <string name="sms_default_role_set">Festlegen</string>
     <string name="sms_default_role_subtitle">Zum Blockieren von SMS vor der Zustellung erforderlich</string>
     <string name="sms_default_role_title">Standard-SMS-App</string>
+    <string name="agent_permanent_access_warning">Warnung: Gekoppelte Agenten haben dauerhaften Vollzugriff. Prüfe Anfragen und widerrufe nicht mehr vertrauenswürdige Agenten.</string>
+    <string name="agent_reduce_permissions">Berechtigungen reduzieren</string>
+    <string name="agent_lan_access_tls_required">LAN-Zugriff ist vorübergehend nicht verfügbar, bis verschlüsselte TLS-Verbindungen unterstützt werden.</string>
+
+    <string name="agent_grant_mode_read_only">Nur Lesezugriff</string>
+    <string name="agent_grant_mode_standard">Standardzugriff</string>
+    <string name="agent_grant_mode_timed_full_access">Vollzugriff für eine Stunde</string>
+    <string name="agent_permanent_access_confirm_title">Dauerhaften Vollzugriff bestätigen</string>
+    <string name="agent_permanent_access_confirm">Dauerhaften Vollzugriff gewähren</string>
+    <string name="agent_automation_approval_title">Hochriskante Agentenaufgabe genehmigen</string>
+    <string name="agent_automation_approval_help">Prüfen Sie vor der Genehmigung die genaue Aufgabendefinition. Genehmigungen laufen nach fünf Minuten ab und sind einmalig verwendbar.</string>
+    <string name="agent_automation_approval_agent_id">ID des gekoppelten Agenten</string>
+    <string name="agent_automation_approval_id">Genehmigungs-ID</string>
+    <string name="agent_automation_approval_hash">Exakter Hash des Aufgabeninhalts</string>
+    <string name="agent_automation_approval_confirm">Diese Definition genehmigen</string>
+    <string name="agent_automation_approval_token">Genehmigungs-ID (fünf Minuten gültig): %1$s</string>
+    <string name="agent_automation_approval_none">Keine ausstehende hochriskante Agentenaufgabe.</string>
+    <string name="agent_automation_approval_pending">Risiko %1$s · Agent %2$s · läuft ab %3$s</string>
+    <string name="agent_automation_approval_review">Aufgabe prüfen</string>
+    <string name="agent_automation_approval_review_title">Aufgabe mit Risiko %1$s prüfen</string>
+    <string name="agent_automation_approval_summary_unavailable">Aufgabendetails sind nicht verfügbar. Genehmigen Sie diese Anfrage nicht.</string>
+    <string name="agent_automation_approval_reject">Ablehnen</string>
 </resources>

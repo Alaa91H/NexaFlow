@@ -418,4 +418,26 @@
     <string name="sms_default_role_set">Ayarla</string>
     <string name="sms_default_role_subtitle">SMS’leri teslimden önce engellemek için gerekli</string>
     <string name="sms_default_role_title">Varsayılan SMS uygulaması</string>
+    <string name="agent_permanent_access_warning">Uyarı: Eşleştirilen aracıların kalıcı tam erişimi var. İstekleri inceleyin ve artık güvenmediğiniz aracıların erişimini kaldırın.</string>
+    <string name="agent_reduce_permissions">İzinleri azalt</string>
+    <string name="agent_lan_access_tls_required">Şifreli TLS bağlantıları desteklenene kadar LAN erişimi geçici olarak kullanılamaz.</string>
+
+    <string name="agent_grant_mode_read_only">Salt okunur</string>
+    <string name="agent_grant_mode_standard">Standart erişim</string>
+    <string name="agent_grant_mode_timed_full_access">Bir saat boyunca tam erişim</string>
+    <string name="agent_permanent_access_confirm_title">Kalıcı tam erişimi onayla</string>
+    <string name="agent_permanent_access_confirm">Kalıcı erişim ver</string>
+    <string name="agent_automation_approval_title">Yüksek riskli aracı görevini onayla</string>
+    <string name="agent_automation_approval_help">Onaylamadan önce görev tanımının tamamını inceleyin. Onaylar beş dakika sonra sona erer ve yalnızca bir kez kullanılabilir.</string>
+    <string name="agent_automation_approval_agent_id">Eşleştirilen aracı kimliği</string>
+    <string name="agent_automation_approval_id">Onay kimliği</string>
+    <string name="agent_automation_approval_hash">Görev içeriğinin tam özeti</string>
+    <string name="agent_automation_approval_confirm">Bu tanımı onayla</string>
+    <string name="agent_automation_approval_token">Onay kimliği (beş dakika geçerli): %1$s</string>
+    <string name="agent_automation_approval_none">Onay bekleyen yüksek riskli aracı görevi yok.</string>
+    <string name="agent_automation_approval_pending">Risk %1$s · Aracı %2$s · sona erme %3$s</string>
+    <string name="agent_automation_approval_review">Görevi incele</string>
+    <string name="agent_automation_approval_review_title">%1$s riskli görevi incele</string>
+    <string name="agent_automation_approval_summary_unavailable">Görev ayrıntıları kullanılamıyor. Bu isteği onaylamayın.</string>
+    <string name="agent_automation_approval_reject">Reddet</string>
 </resources>

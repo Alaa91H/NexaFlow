@@ -68,10 +68,16 @@ object AgentHttpRequestParser {
             if (separator <= 0) {
                 throw protocol(400, "bad_header", "Malformed request header")
             }
-            val name = line.substring(0, separator).trim().lowercase(Locale.US)
+            val rawName = line.substring(0, separator)
+            val name = rawName.lowercase(Locale.US)
             val value = line.substring(separator + 1).trim()
-            if (name.isEmpty() || name.length > 128 || value.length > 8192) {
+            if (name.length > 128 || value.length > 8192) {
                 throw protocol(431, "header_too_large", "Request header is too large")
+            }
+            if (name.any { !it.isHeaderTokenCharacter() } ||
+                value.any { (it.code < 0x20 && it != '\t') || it.code == 0x7f }
+            ) {
+                throw protocol(400, "bad_header", "Malformed request header")
             }
             if (headers.put(name, value) != null) {
                 throw protocol(400, "duplicate_header", "Duplicate request header")
@@ -126,6 +132,10 @@ object AgentHttpRequestParser {
 
     private fun protocol(status: Int, code: String, message: String) =
         AgentHttpProtocolException(status, code, message)
+
+    private fun Char.isHeaderTokenCharacter(): Boolean =
+        this in 'a'..'z' || this in 'A'..'Z' || this in '0'..'9' ||
+            this in "!#$%&'*+-.^_`|~"
 
     private val ALLOWED_METHODS = setOf("GET", "POST", "PUT", "PATCH", "DELETE")
 }

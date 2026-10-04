@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">Отправить сообщение отправителю, запустившему сценарий</string>
     <string name="call_block_silent_hint">Блокирует подходящий вызов и скрывает уведомление, если это поддерживается Android.</string>
     <string name="reply_message">Текст ответа</string>
+
+    <string name="task_restore_failed">Не удалось восстановить прежние настройки задачи</string>
 </resources>

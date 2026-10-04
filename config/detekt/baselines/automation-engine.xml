@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyCatchBlock:MonitoringService.kt:MonitoringService${}</ID>
+    <ID>TooGenericExceptionCaught:AutomationAlarmReceiver.kt:AutomationAlarmReceiver$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AutomationScheduler.kt:AutomationScheduler$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ExitCoordinator.kt:ExitCoordinator$failure: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>

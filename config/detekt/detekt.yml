@@ -54,6 +54,15 @@ coroutines:
   active: true
   GlobalCoroutineUsage:
     active: false
+  SuspendFunSwallowedCancellation:
+    active: true
+
+empty-blocks:
+  active: true
+  severity: error
+  EmptyCatchBlock:
+    active: true
+    allowedExceptionNameRegex: '^$'
 
 naming:
   active: true
@@ -69,9 +78,11 @@ naming:
 exceptions:
   active: true
   TooGenericExceptionCaught:
-    active: false
+    active: true
+    severity: warning
   SwallowedException:
-    active: false
+    active: true
+    severity: warning
   PrintStackTrace:
     active: false
 

@@ -13,6 +13,7 @@ import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.core.database.AgentApprovalValidator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -107,6 +108,26 @@ class ExecutionEngineControlFlowTest {
         val record = engine.runAutomation(automation)
         assertTrue(record.success)
         assertEquals(listOf("SYSTEM_SEND_NOTIFICATION"), handler.executions)
+    }
+
+    @Test
+    fun `agent execution is blocked when approved content no longer matches`() = runBlocking {
+        val handler = TestActionHandler()
+        val history = FakeHistoryRepository()
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = history,
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            agentApprovalValidator = AgentApprovalValidator { false }
+        )
+        val record = engine.runAgentWithConditionGate(
+            testAutomation(listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, emptyMap())))
+        )
+
+        assertFalse(record.success)
+        assertTrue(record.message.contains("approval", ignoreCase = true))
+        assertTrue(handler.executions.isEmpty())
     }
 
     @Test

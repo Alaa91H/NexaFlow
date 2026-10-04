@@ -58,6 +58,7 @@ subprojects {
     apply(plugin = "dev.detekt")
     extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         config.setFrom(files("$detektConfigDir/detekt.yml"))
+        baseline.set(file("$detektConfigDir/baselines/${project.name}.xml"))
         buildUponDefaultConfig.set(true)
         ignoreFailures.set(false)
         parallel.set(true)
@@ -77,6 +78,12 @@ tasks.register("detekt") {
     group = "verification"
     description = "Runs Detekt on every module (aggregate gate)."
     dependsOn(subprojects.map { it.tasks.named("detekt") })
+}
+
+tasks.register("detektBaseline") {
+    group = "verification"
+    description = "Regenerates reviewed Detekt baselines for all modules."
+    dependsOn(subprojects.map { it.tasks.named("detektBaseline") })
 }
 
 tasks.register("verifyVersionCodeEncoding") {

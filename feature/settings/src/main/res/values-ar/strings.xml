@@ -416,4 +416,25 @@
     <string name="managed_agent_memory_expiry_hint">أدخل من 1 إلى 365 يوماً، أو 0 بلا انتهاء.</string>
     <string name="managed_agent_memory_expires">تنتهي %1$s</string>
     <string name="managed_agent_memory_error">تعذرت قراءة الذاكرة الخاصة أو حفظها. تحقق من الملاحظة والتخزين الآمن للجهاز.</string>
+    <string name="agent_permanent_access_warning">تحذير: للوكلاء المقترنين وصول كامل دائم. راجع الطلبات وألغِ وصول الوكلاء الذين لم تعد تثق بهم.</string>
+    <string name="agent_permanent_access_confirm_title">تأكيد الوصول الكامل الدائم</string>
+    <string name="agent_permanent_access_confirm">منح وصول دائم</string>
+    <string name="agent_reduce_permissions">خفض الصلاحيات</string>
+    <string name="agent_lan_access_tls_required">الوصول عبر الشبكة المحلية غير متاح مؤقتًا حتى دعم اتصالات TLS المشفرة.</string>
+    <string name="agent_grant_mode_read_only">للقراءة فقط</string>
+    <string name="agent_grant_mode_standard">وصول قياسي</string>
+    <string name="agent_grant_mode_timed_full_access">وصول كامل لمدة ساعة</string>
+    <string name="agent_automation_approval_title">الموافقة على مهمة وكيل عالية الخطورة</string>
+    <string name="agent_automation_approval_help">راجع تعريف المهمة كاملًا قبل اعتماده. تنتهي الموافقة بعد خمس دقائق وتُستخدم مرة واحدة.</string>
+    <string name="agent_automation_approval_agent_id">معرّف الوكيل المقترن</string>
+    <string name="agent_automation_approval_hash">بصمة محتوى المهمة الدقيقة</string>
+    <string name="agent_automation_approval_id">معرّف الموافقة</string>
+    <string name="agent_automation_approval_confirm">اعتماد هذا التعريف</string>
+    <string name="agent_automation_approval_token">معرّف الموافقة (صالح لخمس دقائق): %1$s</string>
+    <string name="agent_automation_approval_none">لا توجد مهام وكيل عالية الخطورة بانتظار الموافقة.</string>
+    <string name="agent_automation_approval_pending">خطورة %1$s · الوكيل %2$s · تنتهي %3$s</string>
+    <string name="agent_automation_approval_review">مراجعة المهمة</string>
+    <string name="agent_automation_approval_review_title">مراجعة مهمة خطورتها %1$s</string>
+    <string name="agent_automation_approval_summary_unavailable">تفاصيل المهمة غير متاحة. لا توافق على هذا الطلب.</string>
+    <string name="agent_automation_approval_reject">رفض</string>
 </resources>

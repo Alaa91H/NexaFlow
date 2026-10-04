@@ -7,9 +7,10 @@ import java.net.InetAddress
 /**
  * Host-header policy for the local agent server.
  *
- * Loopback is always accepted. Private/link-local numeric IP hosts are accepted
- * only after the user explicitly enables LAN exposure. DNS hostnames are never
- * accepted in LAN mode, which keeps the HTTP boundary resistant to DNS rebinding.
+ * Loopback is always accepted. Cleartext LAN access remains disabled until the
+ * listener has an authenticated TLS transport; a preference alone cannot enable it.
+ * DNS hostnames are never accepted in LAN mode, which keeps the HTTP boundary
+ * resistant to DNS rebinding when secure LAN transport becomes available.
  */
 class AgentApiHostPolicy {
 
@@ -18,8 +19,10 @@ class AgentApiHostPolicy {
         private set
 
     fun setLanAccessEnabled(enabled: Boolean) {
-        lanAccessEnabled = enabled
+        lanAccessEnabled = enabled && LAN_TLS_TRANSPORT_AVAILABLE
     }
+
+    fun supportsLanAccess(): Boolean = LAN_TLS_TRANSPORT_AVAILABLE
 
     fun isAllowed(hostHeader: String?): Boolean {
         val host = normalizeHost(hostHeader) ?: return false
@@ -91,6 +94,7 @@ class AgentApiHostPolicy {
     }
 
     private companion object {
+        const val LAN_TLS_TRANSPORT_AVAILABLE = false
         val IPV4 = Regex(
             """(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}"""
         )

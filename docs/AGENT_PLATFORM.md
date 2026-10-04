@@ -53,8 +53,8 @@ NexaFlow Chat / Cloud Agents / Local Agents / Local Models
 - REST/OpenAPI 3.1 is the universal compatibility API.
 - A2A is used for agent-to-agent discovery and delegation.
 - Android Binder/AIDL is used for same-device agents.
-- NexaFlow Bridge supports desktop/local agents over stdio MCP, USB/ADB and
-  trusted LAN connections.
+- NexaFlow Bridge supports desktop/local agents over stdio MCP and USB/ADB;
+  LAN is fail-closed until authenticated TLS with fingerprint pinning exists.
 - Remote access uses an outbound encrypted relay. The phone is never exposed as
   an unauthenticated public listener.
 
@@ -115,7 +115,7 @@ the complete scope set with one choice.
 
 Implemented foundation:
 
-- [x] Room schema 21 agent control-plane ledger
+- [x] Room-backed agent control-plane ledger (see `AppDatabase` for the current schema version)
 - [x] automation API provenance metadata
 - [x] redacted agent audit events
 - [x] hashed idempotency keys with bounded replay metadata
@@ -340,9 +340,8 @@ Implemented USB/desktop foundation:
 
 The bridge intentionally keeps Android loopback-only by default. USB mode uses
 `adb forward`, so no phone port is exposed to the LAN. Settings -> AI & Agents
-contains the separate private-LAN switch; enabling it requires the Android 17
-local-network permission when applicable and rebinds the authenticated server.
-Disabling Agent Access also disables persisted LAN exposure.
+contains the LAN control, disabled while authenticated TLS is unavailable.
+The server always binds loopback even if an older preference requested LAN.
 
 ## Phase 13 - event subscriptions
 
@@ -479,8 +478,8 @@ V1 is complete when a user can:
 
 1. enable AI Agent Access;
 2. pair an agent once;
-3. grant permanent full access once;
-4. receive no per-task approval prompts after that grant;
+3. pair with standard scoped access by default;
+4. approve each high-risk task definition by exact content hash;
 5. let the agent read the real capability/catalog inventory;
 6. preview and validate a schedule;
 7. dry-run a workflow;

@@ -73,4 +73,66 @@ class AgentHttpRequestParserTest {
 
         assertEquals("duplicate_header", error.code)
     }
+
+    @Test
+    fun rejectsNegativeAndNonNumericContentLength() {
+        listOf("-1", "one").forEach { length ->
+            val raw = (
+                "POST /api/v1/tasks HTTP/1.1\r\n" +
+                    "Host: 127.0.0.1\r\n" +
+                    "Content-Length: $length\r\n\r\n"
+                ).toByteArray()
+            val error = assertThrows(AgentHttpProtocolException::class.java) {
+                AgentHttpRequestParser.read(ByteArrayInputStream(raw))
+            }
+            assertEquals("invalid_content_length", error.code)
+        }
+    }
+
+    @Test
+    fun rejectsControlCharactersInHeaderValues() {
+        val raw = (
+            "GET /api/v1/tasks HTTP/1.1\r\n" +
+                "Host: localhost\nInjected: yes\r\n\r\n"
+            ).toByteArray()
+        val error = assertThrows(AgentHttpProtocolException::class.java) {
+            AgentHttpRequestParser.read(ByteArrayInputStream(raw))
+        }
+        assertEquals("bad_header", error.code)
+    }
+
+    @Test
+    fun rejectsHeaderBlocksOverTheLimit() {
+        val raw = ByteArrayInputStream(ByteArray(AgentHttpRequestParser.MAX_HEADER_BYTES + 1) { 65 })
+        val error = assertThrows(AgentHttpProtocolException::class.java) {
+            AgentHttpRequestParser.read(raw)
+        }
+        assertEquals("headers_too_large", error.code)
+    }
+
+    @Test
+    fun rejectsRequestWithTooManyHeaders() {
+        val raw = buildString {
+            append("GET /api/v1/tasks HTTP/1.1\r\n")
+            repeat(AgentHttpRequestParser.MAX_HEADERS + 1) { append("X-$it: a\r\n") }
+            append("\r\n")
+        }.toByteArray()
+        val error = assertThrows(AgentHttpProtocolException::class.java) {
+            AgentHttpRequestParser.read(ByteArrayInputStream(raw))
+        }
+        assertEquals("too_many_headers", error.code)
+    }
+
+    @Test
+    fun rejectsBodyTruncatedBeforeDeclaredLength() {
+        val raw = (
+            "POST /api/v1/tasks HTTP/1.1\r\n" +
+                "Host: localhost\r\n" +
+                "Content-Length: 5\r\n\r\nabc"
+            ).toByteArray()
+        val error = assertThrows(AgentHttpProtocolException::class.java) {
+            AgentHttpRequestParser.read(ByteArrayInputStream(raw))
+        }
+        assertEquals("truncated_body", error.code)
+    }
 }

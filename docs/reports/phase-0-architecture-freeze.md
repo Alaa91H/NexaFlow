@@ -18,9 +18,9 @@
 | `docs/architecture/architecture-current.md` | توثيق المسؤوليات والمسار الحالي والقيود المعمارية. |
 | `docs/architecture/architecture-target.md` | توثيق التدفق المستهدف والعقود وحدود Android والأمن. |
 | `docs/architecture/architecture-migration.md` | خطة migration additive وخريطة كل مكوّن قائم إلى امتداده. |
-| `docs/capability-execution-architecture-audit.md` | تدقيق طبقة capability والخلفيات. |
+| `docs/archive/capability-execution-architecture-audit.md` | تدقيق طبقة capability والخلفيات. |
 | `docs/capability-execution-contracts.md` | عقد resolver/policy/backend/result والتحقق. |
-| `docs/production-runtime-architecture-audit.md` | تدقيق الفجوات الإنتاجية الموجودة. |
+| `docs/archive/production-runtime-architecture-audit.md` | تدقيق الفجوات الإنتاجية الموجودة. |
 | `docs/production-runtime-contracts.md` | عقود event/state/data/durable/resource/vault/observability. |
 | `domain/.../capability/CapabilityModels.kt` | نماذج capability والسياسة والنتيجة والحالة المنظمة. |
 | `core:execution/.../capability/CapabilityRuntime.kt` | registry/resolver/policy evaluator/execution service/diagnostics. |

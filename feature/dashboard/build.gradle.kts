@@ -76,6 +76,7 @@ composeCompiler {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     implementation(libs.androidx.core.core.ktx)
     implementation(platform(libs.androidx.compose.compose.bom))
     implementation(libs.androidx.compose.ui.ui)

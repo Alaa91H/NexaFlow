@@ -2,12 +2,17 @@
 
 ## Access model
 
-The product surface is intentionally binary:
+New pairing requests default to scoped standard access. Existing grants keep
+their stored mode for compatibility and are shown with a warning until the
+user reviews or reduces them. Available modes are read-only, standard, timed
+full access (one hour), and permanent full access. Permanent full access must
+be selected explicitly in the client and should be reduced when no longer
+needed.
 
 ```text
 AI Agent Access
 ○ Disabled
-● Full permanent access
+● Read-only / Standard / Timed full / Permanent full
 ```
 
 After one pairing, the agent operates without per-task prompts until the
@@ -27,9 +32,10 @@ user revokes it. Internally, access is still least-privilege machinery:
 
 - Pairing challenges are single-use, expire in 5 minutes and lock after
   bounded failures.
-- The permanent credential is a refresh token; only its SHA-256 hash is
-  stored. Every session exchange **rotates** it, so a replayed credential
-  fails closed.
+- The long-lived credential is a refresh token; only its SHA-256 hash is
+  stored. Every session exchange **rotates** it. Reuse of the immediately
+  previous token revokes the agent credential family and active sessions,
+  and emits a redacted audit record.
 - Access sessions are short-lived (15 minutes default, max 8 per agent).
 - Transport binding (package/certificate/transport key) is verified on
   issuance and on every use; mismatches fail closed.
@@ -55,7 +61,15 @@ Agents reference secrets (`secret://…`, `vault:…`) but can never read them:
 
 Every committed definition carries a system-computed risk level
 (`LOW/MEDIUM/HIGH/CRITICAL` from `AgentRiskEvaluator`: shell/package/destructive
-actions, remote triggers, graph size). It feeds audit, telemetry and
-debugging — never per-task prompts under full access. Capability-level
-enforcement at execution time stays in the domain `RiskEngine`, and Android
-runtime/special permissions remain authoritative regardless of grants.
+actions, remote triggers, graph size). Agent-originated HIGH and CRITICAL
+definitions are rejected until the exact content hash receives a one-time
+approval in the app. Approval records are agent-bound, expire after five
+minutes, and are consumed when used. Runtime capability-level enforcement
+stays in the domain `RiskEngine`, and Android runtime/special permissions
+remain authoritative regardless of grants.
+
+## Network boundary
+
+Agent API listeners bind to loopback. LAN access is deliberately disabled
+until an authenticated TLS listener with client certificate fingerprint
+pinning is available. A stored LAN preference cannot widen the bind address.

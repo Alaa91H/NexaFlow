@@ -47,6 +47,8 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.nexaflow.core.agentapi.AgentApiAuditEventV1
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
+import com.nexaflow.core.agentsecurity.AgentGrantMode
+import com.nexaflow.core.database.AgentAutomationApprovalEntity
 import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry as Registry
 import com.nexaflow.core.airuntime.AiProviderProtocol
@@ -67,6 +69,8 @@ fun AgentSettingsScreen(
     val context = LocalContext.current
     var agentName by rememberSaveable { mutableStateOf("") }
     var showRevokeAll by rememberSaveable { mutableStateOf(false) }
+    var confirmPermanentPairing by rememberSaveable { mutableStateOf(false) }
+    var requestedGrantMode by rememberSaveable { mutableStateOf(AgentGrantMode.STANDARD) }
     var copiedPayload by rememberSaveable { mutableStateOf(false) }
     var providerName by rememberSaveable { mutableStateOf("") }
     var providerUrl by rememberSaveable { mutableStateOf("") }
@@ -84,6 +88,7 @@ fun AgentSettingsScreen(
     var selectedProviderId by rememberSaveable { mutableStateOf<String?>(null) }
     var allowCloudFallback by rememberSaveable { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableStateOf(AiSettingsTab.AGENTS) }
+    var approvalUnderReview by remember { mutableStateOf<AgentAutomationApprovalEntity?>(null) }
     var reasoningLevel by rememberSaveable { mutableStateOf(AiReasoningLevel.BALANCED) }
     var showModelPicker by rememberSaveable { mutableStateOf(false) }
     var showClearActivityDialog by rememberSaveable { mutableStateOf(false) }
@@ -167,6 +172,26 @@ fun AgentSettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showRevokeAll = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (confirmPermanentPairing) {
+        AlertDialog(
+            onDismissRequest = { confirmPermanentPairing = false },
+            title = { Text(stringResource(R.string.agent_permanent_access_confirm_title)) },
+            text = { Text(stringResource(R.string.agent_permanent_access_warning)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmPermanentPairing = false
+                    copiedPayload = false
+                    viewModel.createPairing(agentName, AgentGrantMode.PERMANENT_FULL_ACCESS)
+                }) { Text(stringResource(R.string.agent_permanent_access_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmPermanentPairing = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -327,6 +352,11 @@ fun AgentSettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace
                     )
+                    Text(
+                        text = stringResource(R.string.agent_lan_access_tls_required),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -360,7 +390,7 @@ fun AgentSettingsScreen(
                         }
                         Switch(
                             checked = state.lanAccessEnabled,
-                            enabled = state.accessEnabled,
+                            enabled = state.accessEnabled && state.lanAccessSupported,
                             onCheckedChange = { enabled ->
                                 when {
                                     !enabled -> viewModel.setLanAccessEnabled(false)
@@ -791,10 +821,51 @@ fun AgentSettingsScreen(
                         singleLine = true,
                         enabled = state.accessEnabled
                     )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf(
+                            AgentGrantMode.READ_ONLY,
+                            AgentGrantMode.STANDARD,
+                            AgentGrantMode.TIMED_FULL_ACCESS,
+                            AgentGrantMode.PERMANENT_FULL_ACCESS
+                        ).chunked(2).forEach { rowModes ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                rowModes.forEach { mode ->
+                                    FilterChip(
+                                        selected = requestedGrantMode == mode,
+                                        onClick = { requestedGrantMode = mode },
+                                        label = {
+                                            Text(
+                                                stringResource(
+                                                    when (mode) {
+                                                        AgentGrantMode.READ_ONLY -> R.string.agent_grant_mode_read_only
+                                                        AgentGrantMode.STANDARD -> R.string.agent_grant_mode_standard
+                                                        AgentGrantMode.TIMED_FULL_ACCESS -> R.string.agent_grant_mode_timed_full_access
+                                                        AgentGrantMode.PERMANENT_FULL_ACCESS -> R.string.agent_full_access
+                                                        AgentGrantMode.UNKNOWN -> R.string.agent_grant_mode_standard
+                                                    }
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (requestedGrantMode == AgentGrantMode.PERMANENT_FULL_ACCESS) {
+                        Text(
+                            stringResource(R.string.agent_permanent_access_warning),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                     Button(
                         onClick = {
-                            copiedPayload = false
-                            viewModel.createPairing(agentName)
+                            if (requestedGrantMode == AgentGrantMode.PERMANENT_FULL_ACCESS) {
+                                confirmPermanentPairing = true
+                            } else {
+                                copiedPayload = false
+                                viewModel.createPairing(agentName, requestedGrantMode)
+                            }
                         },
                         enabled = state.accessEnabled && agentName.isNotBlank()
                     ) {
@@ -898,12 +969,59 @@ fun AgentSettingsScreen(
                     TrustedAgentCard(
                         agent = agent,
                         dateFormat = dateFormat,
+                        onReducePermissions = {
+                            viewModel.setAgentGrantMode(agent.agentId, AgentGrantMode.STANDARD)
+                        },
                         onRevoke = { viewModel.revokeAgent(agent.agentId) }
                     )
                 }
                 item(key = "revoke_all_agents") {
                     TextButton(onClick = { showRevokeAll = true }) {
                         Text(stringResource(R.string.agent_revoke_all))
+                    }
+                }
+            }
+
+            if (selectedTab == AiSettingsTab.AGENTS) item(key = "agent_automation_approval") {
+                NexaFlowCard {
+                    Text(
+                        stringResource(R.string.agent_automation_approval_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        stringResource(R.string.agent_automation_approval_help),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (state.pendingAutomationApprovals.isEmpty()) {
+                        Text(
+                            stringResource(R.string.agent_automation_approval_none),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    state.pendingAutomationApprovals.forEach { approval ->
+                        HorizontalDivider()
+                        Text(
+                            stringResource(
+                                R.string.agent_automation_approval_pending,
+                                approval.riskLevel,
+                                approval.agentId,
+                                DateFormat.getDateTimeInstance().format(Date(approval.expiresAt))
+                            ),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        TextButton(onClick = { approvalUnderReview = approval }) {
+                            Text(stringResource(R.string.agent_automation_approval_review))
+                        }
+                    }
+                    state.latestAutomationApprovalId?.let { token ->
+                        Text(
+                            stringResource(R.string.agent_automation_approval_token, token),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -947,12 +1065,58 @@ fun AgentSettingsScreen(
             }
         }
     }
+
+    approvalUnderReview?.let { approval ->
+        AlertDialog(
+            onDismissRequest = { approvalUnderReview = null },
+            title = {
+                Text(stringResource(R.string.agent_automation_approval_review_title, approval.riskLevel))
+            },
+            text = {
+                SelectionContainer {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(stringResource(R.string.agent_automation_approval_agent_id, approval.agentId))
+                        Text(approval.definitionSummary.ifBlank {
+                            stringResource(R.string.agent_automation_approval_summary_unavailable)
+                        })
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.approveAutomation(
+                        approval.id,
+                        approval.agentId,
+                        approval.contentHash,
+                        approval.riskLevel
+                    )
+                    approvalUnderReview = null
+                }) {
+                    Text(stringResource(R.string.agent_automation_approval_confirm))
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        viewModel.rejectAutomation(approval)
+                        approvalUnderReview = null
+                    }) {
+                        Text(stringResource(R.string.agent_automation_approval_reject))
+                    }
+                    TextButton(onClick = { approvalUnderReview = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            }
+        )
+    }
 }
 
 @Composable
 private fun TrustedAgentCard(
     agent: AgentGrantRecord,
     dateFormat: DateFormat,
+    onReducePermissions: () -> Unit,
     onRevoke: () -> Unit
 ) {
     NexaFlowCard {
@@ -968,7 +1132,15 @@ private fun TrustedAgentCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = stringResource(R.string.agent_full_access),
+            text = stringResource(
+                when (agent.mode) {
+                    AgentGrantMode.READ_ONLY -> R.string.agent_grant_mode_read_only
+                    AgentGrantMode.STANDARD -> R.string.agent_grant_mode_standard
+                    AgentGrantMode.TIMED_FULL_ACCESS -> R.string.agent_grant_mode_timed_full_access
+                    AgentGrantMode.PERMANENT_FULL_ACCESS,
+                    AgentGrantMode.UNKNOWN -> R.string.agent_full_access
+                }
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -978,6 +1150,18 @@ private fun TrustedAgentCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+        if (agent.mode == AgentGrantMode.PERMANENT_FULL_ACCESS ||
+            agent.mode == AgentGrantMode.UNKNOWN
+        ) {
+            Text(
+                stringResource(R.string.agent_permanent_access_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+            TextButton(onClick = onReducePermissions) {
+                Text(stringResource(R.string.agent_reduce_permissions))
+            }
         }
         TextButton(onClick = onRevoke) {
             Text(stringResource(R.string.agent_revoke))

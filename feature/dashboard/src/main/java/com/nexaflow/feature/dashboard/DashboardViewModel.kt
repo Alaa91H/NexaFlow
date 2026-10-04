@@ -1,6 +1,7 @@
 package com.nexaflow.feature.dashboard
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.automationcontrol.AutomationCommandService
@@ -8,6 +9,7 @@ import com.nexaflow.core.automationcontrol.AutomationMutationResult
 import com.nexaflow.core.automationcontrol.HumanAutomationMutations
 import com.nexaflow.core.automationcontrol.api.AgentTaskMapper
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.common.runCatchingCancellable
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.data.backup.BackupManager
@@ -108,19 +110,27 @@ class DashboardViewModel @Inject constructor(
                     return@launch
                 }
             }
+            var stateRestoreFailed = false
             if (!enabled) {
                 // Strict: when disabling, immediately attempt to run "when task ends"
-                try {
+                val cleanup = runCatchingCancellable {
                     executionEngine.runDisableCleanup(automation)
-                } catch (_: Exception) {}
+                }
+                cleanup.exceptionOrNull()?.let {
+                    stateRestoreFailed = true
+                    Log.w(TAG, "Could not restore task state after disabling ${automation.id}", it)
+                    _executionMessage.value = appContext.getString(R.string.task_restore_failed, automation.name)
+                }
             } else {
                 // Strict: when enabling, if triggers already match, run immediately
-                try {
-                    executionEngine.runWithConditionGate(automation)
-                } catch (_: Exception) {}
+                runCatchingCancellable { executionEngine.runWithConditionGate(automation) }
+                    .exceptionOrNull()?.let {
+                        Log.w(TAG, "Could not evaluate enabled task ${automation.id}", it)
+                        _executionMessage.value = appContext.getString(R.string.task_update_failed, automation.name)
+                    }
             }
             // Show toast if enabled for this task
-            if (automation.showToastOnToggle) {
+            if (automation.showToastOnToggle && !stateRestoreFailed) {
                 val message = if (enabled) {
                     appContext.getString(R.string.task_enabled_toast, automation.name)
                 } else {
@@ -394,6 +404,7 @@ class DashboardViewModel @Inject constructor(
     private companion object {
         /** P0.2 token entropy: 128 bits, base64url — ~22 chars, unguessable. */
         const val TOKEN_BYTES = 16
+        const val TAG = "DashboardViewModel"
 
         fun newDeepLinkToken(): String {
             val bytes = ByteArray(TOKEN_BYTES)

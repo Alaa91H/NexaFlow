@@ -1,9 +1,11 @@
 package com.nexaflow.feature.builder
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.engine.BatteryMonitor
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.common.runCatchingCancellable
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowExecutionPlan
@@ -275,16 +277,19 @@ class AutomationBuilderViewModel @Inject constructor(
             draftId = persisted.id
             // Strict: if the task was enabled and now disabled, run exit immediately
             if (wasEnabled && nowDisabled) {
-                try {
-                    executionEngine.runDisableCleanup(prev)
-                } catch (_: Exception) {}
+                val cleanup = runCatchingCancellable { executionEngine.runDisableCleanup(prev) }
+                cleanup.exceptionOrNull()?.let {
+                    Log.w(TAG, "Could not restore task state after editing ${prev.id}", it)
+                    _saveError.value = SAVE_RESTORE_FAILED
+                }
             }
             // Strict: if the task is newly enabled and triggers already match, run immediately
             val nowEnabled = persisted.enabled
             if (!wasEnabled && nowEnabled) {
-                try {
-                    executionEngine.runWithConditionGate(persisted)
-                } catch (_: Exception) {}
+                runCatchingCancellable { executionEngine.runWithConditionGate(persisted) }
+                    .exceptionOrNull()?.let {
+                        Log.w(TAG, "Could not evaluate newly enabled task ${persisted.id}", it)
+                    }
             }
             // Battery triggers only evaluate on ACTION_BATTERY_CHANGED broadcasts;
             // a task saved while the level is already steady below the threshold
@@ -339,6 +344,8 @@ class AutomationBuilderViewModel @Inject constructor(
 
     private companion object {
         const val SAVE_REJECTED = "rejected"
+        const val SAVE_RESTORE_FAILED = "restore_failed"
+        const val TAG = "AutomationBuilderViewModel"
     }
 
 }

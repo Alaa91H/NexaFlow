@@ -6,7 +6,12 @@ import com.nexaflow.core.agentapi.AgentApiAuditEventV1
 import com.nexaflow.core.agentapi.AgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiServer
 import com.nexaflow.core.agentsecurity.AgentAccessManager
+import com.nexaflow.core.database.AgentPlatformDao
+import com.nexaflow.core.database.AgentAutomationApprovalEntity
+import com.nexaflow.core.automationcontrol.AutomationAuditEvent
+import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
+import com.nexaflow.core.agentsecurity.AgentGrantMode
 import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
 import com.nexaflow.core.airuntime.AiAuthScheme
@@ -61,10 +66,14 @@ data class AgentSettingsUiState(
     val accessEnabled: Boolean = false,
     val serverPort: Int = 0,
     val lanAccessEnabled: Boolean = false,
+    val lanAccessSupported: Boolean = false,
     val activeSessionCount: Int = 0,
     val pendingPairingCount: Int = 0,
     val agents: List<AgentGrantRecord> = emptyList(),
     val activity: List<AgentApiAuditEventV1> = emptyList(),
+    val latestAutomationApprovalId: String? = null,
+    val latestAutomationApprovalExpiresAt: Long? = null,
+    val pendingAutomationApprovals: List<AgentAutomationApprovalEntity> = emptyList(),
     val pairing: AgentPairingUi? = null,
     val providerSettings: AiProviderSettings = AiProviderSettings(),
     val providerApiKeyConfigured: Boolean = false,
@@ -88,7 +97,9 @@ class AgentSettingsViewModel @Inject constructor(
     private val provider: OpenAiCompatibleProvider,
     private val providerRegistry: AiProviderRegistry,
     private val credentialStore: AiCredentialStore,
-    private val providerAdapterFactory: AiProviderDraftAdapterFactory
+    private val providerAdapterFactory: AiProviderDraftAdapterFactory,
+    private val agentPlatformDao: AgentPlatformDao,
+    private val auditSink: AutomationAuditSink
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AgentSettingsUiState())
@@ -116,14 +127,22 @@ class AgentSettingsViewModel @Inject constructor(
 
     fun setLanAccessEnabled(enabled: Boolean) {
         viewModelScope.launch {
+            if (enabled) {
+                runCatching { agentNetworkPreferences.setLanAccessEnabled(false) }
+                reload(operationFailed = true)
+                return@launch
+            }
             val success = runCatching {
-                agentNetworkPreferences.setLanAccessEnabled(enabled)
+                agentNetworkPreferences.setLanAccessEnabled(false)
             }.isSuccess
             reload(operationFailed = !success)
         }
     }
 
-    fun createPairing(displayName: String) {
+    fun createPairing(
+        displayName: String,
+        requestedMode: AgentGrantMode = AgentGrantMode.STANDARD
+    ) {
         val normalizedName = displayName.trim()
         if (normalizedName.isBlank() || normalizedName.length > MAX_AGENT_NAME_LENGTH) {
             _state.value = _state.value.copy(operationFailed = true)
@@ -135,7 +154,8 @@ class AgentSettingsViewModel @Inject constructor(
                 accessManager.beginPairing(
                     AgentIdentityRequest(
                         agentId = "agent.ui." + UUID.randomUUID(),
-                        displayName = normalizedName
+                        displayName = normalizedName,
+                        requestedMode = requestedMode
                     )
                 )
             }.getOrNull()
@@ -158,6 +178,7 @@ class AgentSettingsViewModel @Inject constructor(
                 put("mcpPath", AgentApiServer.MCP_PATH)
                 put("challengeId", result.offer.challengeId)
                 put("challengeSecret", result.offer.challengeSecret)
+                put("requestedMode", requestedMode.name)
                 put("expiresAt", result.offer.expiresAt)
             }.toString()
 
@@ -181,6 +202,87 @@ class AgentSettingsViewModel @Inject constructor(
                 accessManager.revokeAgent(agentId)
             }.getOrDefault(false)
             reload(operationFailed = !success)
+        }
+    }
+
+    fun setAgentGrantMode(agentId: String, mode: AgentGrantMode) {
+        viewModelScope.launch {
+            val success = runCatching { accessManager.updateGrantMode(agentId, mode) }
+                .getOrDefault(false)
+            reload(operationFailed = !success)
+        }
+    }
+
+    fun approveAutomation(
+        approvalId: String,
+        agentId: String,
+        contentHash: String,
+        riskLevel: String
+    ) {
+        if (approvalId.isBlank() || agentId.isBlank() ||
+            !contentHash.matches(Regex("[A-Za-z0-9_-]{43}")) ||
+            riskLevel !in setOf("HIGH", "CRITICAL")
+        ) {
+            _state.value = _state.value.copy(operationFailed = true)
+            return
+        }
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val success = runCatching {
+                agentPlatformDao.approveAutomationContent(
+                    approvalId,
+                    agentId,
+                    contentHash,
+                    riskLevel,
+                    now
+                ) == 1
+            }.getOrDefault(false)
+            val refreshed = runCatching {
+                agentPlatformDao.pendingAutomationApprovals(System.currentTimeMillis())
+            }.getOrDefault(emptyList())
+            _state.value = _state.value.copy(
+                pendingAutomationApprovals = refreshed,
+                latestAutomationApprovalId = approvalId.takeIf { success },
+                latestAutomationApprovalExpiresAt = agentPlatformDao
+                    .findAutomationApproval(approvalId)?.expiresAt?.takeIf { success },
+                operationFailed = !success
+            )
+        }
+    }
+
+    fun rejectAutomation(approval: AgentAutomationApprovalEntity) {
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val success = runCatching {
+                agentPlatformDao.rejectAutomationApproval(
+                    approval.id,
+                    approval.agentId,
+                    approval.contentHash,
+                    now
+                ) == 1
+            }.getOrDefault(false)
+            if (success) {
+                runCatching {
+                    auditSink.record(
+                        AutomationAuditEvent(
+                            eventType = "AGENT_AUTOMATION_APPROVAL",
+                            outcome = "REJECTED",
+                            actorId = "HUMAN_SETTINGS",
+                            agentId = approval.agentId,
+                            automationId = approval.id,
+                            details = mapOf("riskLevel" to approval.riskLevel),
+                            createdAt = now
+                        )
+                    )
+                }
+            }
+            val pending = runCatching {
+                agentPlatformDao.pendingAutomationApprovals(System.currentTimeMillis())
+            }.getOrDefault(emptyList())
+            _state.value = _state.value.copy(
+                pendingAutomationApprovals = pending,
+                operationFailed = !success
+            )
         }
     }
 
@@ -672,9 +774,16 @@ class AgentSettingsViewModel @Inject constructor(
         val activity = runCatching {
             runtime.latestAudit(MAX_ACTIVITY_ROWS)
         }.getOrElse { emptyList() }
+        val pendingAutomationApprovals = runCatching {
+            agentPlatformDao.pruneAutomationApprovals(System.currentTimeMillis())
+            agentPlatformDao.pendingAutomationApprovals(System.currentTimeMillis())
+        }.getOrElse { emptyList() }
         val networkSettings = runCatching {
             agentNetworkPreferences.current()
         }.getOrDefault(com.nexaflow.core.datastore.AgentNetworkSettings())
+        if (networkSettings.lanAccessEnabled) {
+            runCatching { agentNetworkPreferences.setLanAccessEnabled(false) }
+        }
         val providerSettings = runCatching {
             providerPreferences.current()
         }.getOrDefault(AiProviderSettings())
@@ -689,11 +798,13 @@ class AgentSettingsViewModel @Inject constructor(
             loading = false,
             accessEnabled = security?.accessEnabled ?: false,
             serverPort = AgentApiServer.currentPort,
-            lanAccessEnabled = networkSettings.lanAccessEnabled,
+            lanAccessEnabled = false,
+            lanAccessSupported = false,
             activeSessionCount = security?.activeSessionCount ?: 0,
             pendingPairingCount = security?.pendingPairingCount ?: 0,
             agents = agents,
             activity = activity,
+            pendingAutomationApprovals = pendingAutomationApprovals,
             pairing = pairing,
             providerSettings = providerSettings,
             providerApiKeyConfigured = providerApiKeyConfigured,

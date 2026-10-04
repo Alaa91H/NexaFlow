@@ -2,6 +2,7 @@ package com.nexaflow.data.repository
 
 import androidx.room.withTransaction
 import com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest
+import com.nexaflow.core.automationcontrol.AutomationMutationOrigin
 import com.nexaflow.core.automationcontrol.AutomationMutationKind
 import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
 import com.nexaflow.core.automationcontrol.AutomationPersistenceResult
@@ -17,9 +18,9 @@ import com.nexaflow.data.mapper.toEntity
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.workflow.AutomationDependencyValidator
 import com.nexaflow.domain.workflow.WorkflowValidationIssue
+import java.util.UUID
 import java.security.MessageDigest
 import java.util.Base64
-import java.util.UUID
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -187,6 +188,10 @@ class RoomAutomationMutationPersistence(
         }
 
         val revision = INITIAL_REVISION
+        val approvedHash = request.automation.takeIf {
+            request.context.origin == AutomationMutationOrigin.AGENT &&
+                request.context.riskLevel in HIGH_RISK_LEVELS && request.context.approvalId != null
+        }?.let { com.nexaflow.core.automationcontrol.AgentAutomationApprovalHash.of(it) }
         automationDao.insertAutomation(request.automation.toEntity())
         agentPlatformDao.upsertAutomationMetadata(
             AutomationApiMetadataEntity(
@@ -204,6 +209,7 @@ class RoomAutomationMutationPersistence(
                 riskLevel = request.context.riskLevel,
                 revision = revision,
                 definitionUpdatedAt = request.automation.updatedAt,
+                approvedContentHash = approvedHash,
                 createdAt = request.occurredAt,
                 updatedAt = request.occurredAt
             )
@@ -291,6 +297,12 @@ class RoomAutomationMutationPersistence(
             automationDao.deleteAutomation(currentEntity)
             agentPlatformDao.deleteAutomationMetadata(automationId)
         } else {
+            val approvedHash = request.automation.takeIf {
+                request.context.origin == AutomationMutationOrigin.AGENT &&
+                    request.context.riskLevel in HIGH_RISK_LEVELS && request.context.approvalId != null
+            }?.let { com.nexaflow.core.automationcontrol.AgentAutomationApprovalHash.of(it) } ?: if (
+                request.context.origin == AutomationMutationOrigin.AGENT
+            ) null else metadata.approvedContentHash
             automationDao.insertAutomation(request.automation.toEntity())
             agentPlatformDao.upsertAutomationMetadata(
                 metadata.copy(
@@ -302,6 +314,7 @@ class RoomAutomationMutationPersistence(
                     requestId = request.context.requestId,
                     conversationId = request.context.conversationId,
                     riskLevel = request.context.riskLevel,
+                    approvedContentHash = approvedHash,
                     revision = newRevision,
                     definitionUpdatedAt = request.automation.updatedAt,
                     updatedAt = request.occurredAt
@@ -545,6 +558,7 @@ class RoomAutomationMutationPersistence(
 
     private companion object {
         const val INITIAL_REVISION = 1L
+        val HIGH_RISK_LEVELS = setOf("HIGH", "CRITICAL")
         const val DEFAULT_IDEMPOTENCY_RETENTION_MS = 7L * 24L * 60L * 60L * 1000L
         const val DEFAULT_AUDIT_RETENTION_MS = 90L * 24L * 60L * 60L * 1000L
         const val DEFAULT_MAX_AUDIT_ROWS = 10_000

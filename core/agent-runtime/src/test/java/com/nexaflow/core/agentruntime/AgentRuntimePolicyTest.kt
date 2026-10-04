@@ -132,6 +132,37 @@ class AgentRuntimePolicyTest {
     }
 
     @Test
+    fun explicitlyElevatedWriteToolCannotOptOutOfApproval() = runTest {
+        val source = FakeExecutor("nexaflow.run_root_action")
+        var approvalRequested = false
+        source.tools.value = source.tools.value.map { it.copy(destructive = true) }
+        val approvedPolicy = AgentPolicy(
+            allowedToolNames = setOf("nexaflow.run_root_action"),
+            approvalOptionalToolNames = setOf("nexaflow.run_root_action")
+        )
+        val effectivePolicy = approvedPolicy.copy(
+            approvalOptionalToolNames = approvedPolicy.approvalOptionalToolNames -
+                source.tools.value.filter { it.destructive || !it.readOnly }.map { it.name }.toSet()
+        )
+        val executor = PolicyFilteredAgentToolExecutor(
+            agentId = "assistant",
+            source = source,
+            policy = effectivePolicy,
+            approvalGate = AgentToolApprovalGate { _, _, _ ->
+                approvalRequested = true
+                false
+            }
+        )
+
+        val result = executor.execute(call("nexaflow.run_root_action"))
+
+        assertTrue(approvalRequested)
+        assertTrue(result.isError)
+        assertEquals("approval_denied", result.output.jsonObject["error"]?.jsonPrimitive?.content)
+        assertEquals(0, source.executions)
+    }
+
+    @Test
     fun liveExecutionGuardRevokesAnAlreadySnapshottedToolBeforeItsSideEffect() = runTest {
         val source = FakeExecutor("nexaflow.create_task")
         var definitionStillCurrent = true

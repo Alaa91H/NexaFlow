@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>TooGenericExceptionCaught:AiConversationEngine.kt:AiConversationEngine$failure: Exception</ID>
+    <ID>TooGenericExceptionCaught:GeminiNativeProvider.kt:GeminiNativeProvider$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:OpenAiCompatibleProvider.kt:OpenAiCompatibleProvider$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:OpenAiResponsesProvider.kt:OpenAiResponsesProvider$failure: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>

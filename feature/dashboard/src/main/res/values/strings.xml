@@ -14,6 +14,7 @@
     <string name="task_deleted">Deleted: %1$s</string>
     <string name="task_delete_failed">Couldn\'t delete: %1$s</string>
     <string name="task_update_failed">Couldn\'t update: %1$s</string>
+    <string name="task_restore_failed">Couldn\'t restore the task\'s previous settings: %1$s</string>
     <string name="section_routines">Scheduled tasks</string>
     <string name="new_routine">New task</string>
     <string name="empty_automations_title">No tasks yet</string>

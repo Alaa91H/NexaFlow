@@ -312,6 +312,7 @@
     <string name="quick_save">حفظ سريع</string>
     <string name="saved_successfully">تم حفظ المهمة</string>
     <string name="save_failed">تعذر حفظ المهمة</string>
+    <string name="task_restore_failed">تعذر استعادة إعدادات المهمة السابقة</string>
     <string name="next_needs_trigger">أضف شرطاً واحداً على الأقل أولاً</string>
     <string name="edit_task_title">تعديل المهمة</string>
     <string name="battery_trigger_title">مستوى البطارية</string>

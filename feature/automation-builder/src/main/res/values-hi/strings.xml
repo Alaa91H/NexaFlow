@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">इस वर्कफ़्लो को शुरू करने वाले प्रेषक को संदेश भेजें</string>
     <string name="call_block_silent_hint">Android के समर्थन पर मिलती-जुलती कॉल रोकें और उसकी सूचना छिपाएँ।</string>
     <string name="reply_message">जवाबी संदेश</string>
+
+    <string name="task_restore_failed">कार्य की पिछली सेटिंग बहाल नहीं की जा सकीं</string>
 </resources>

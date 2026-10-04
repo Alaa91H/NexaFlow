@@ -1,8 +1,10 @@
 # NexaFlow Agent Pairing
 
-One pairing grants permanent full access. There are two transports to the
-same pairing backend (`AgentAccessManager`); both enforce the 5-minute,
-single-use, lockout-on-abuse challenge lifecycle.
+New pairing requests default to standard scoped access. The client must
+explicitly request timed or permanent full access when needed. Existing
+grants retain their persisted mode until changed. There are two transports
+to the same pairing backend (`AgentAccessManager`); both enforce the
+5-minute, single-use, lockout-on-abuse challenge lifecycle.
 
 ## QR / payload pairing (any agent)
 
@@ -11,12 +13,18 @@ single-use, lockout-on-abuse challenge lifecycle.
    `challengeSecret` and the `pairingPath`
    (`/api/v1/auth/pair/complete`).
 2. The agent (or `nexaflow-agent pair --payload …`) POSTs the challenge to
-   `pairingPath` and receives the permanent refresh credential.
+   `pairingPath` and receives a refresh credential bounded by the requested
+   grant mode.
 3. The agent exchanges it at `/api/v1/auth/session` for short-lived Bearer
    sessions from then on.
 
 Give the payload only to the agent you want to trust. It expires in
 5 minutes and cannot be reused.
+
+HIGH and CRITICAL agent-authored tasks are rejected with a content hash until
+the user reviews and approves that exact definition in Settings → AI & Agents.
+Approval ids expire after five minutes and can authorize only one matching
+commit for that agent.
 
 ## Android IPC pairing (same-device agents)
 

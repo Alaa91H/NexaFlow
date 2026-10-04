@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>TooGenericExceptionCaught:NfcController.kt:NfcController$t: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>

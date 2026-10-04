@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyCatchBlock:ExecutionEngine.kt:ExecutionEngine${}</ID>
+    <ID>TooGenericExceptionCaught:CanonicalCompatibilityActionDispatcher.kt:CanonicalCompatibilityActionDispatcher$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CapabilityRuntime.kt:CapabilityExecutionService$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CapabilityRuntime.kt:CapabilityExecutionService$throwable: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CapabilityRuntime.kt:throwable: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CapabilityStateStore.kt:CapabilityStateStore$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ExecutionEngine.kt:ExecutionEngine$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ExecutionHistoryWriter.kt:ExecutionHistoryWriter$failure: Exception</ID>
+    <ID>TooGenericExceptionCaught:PluginConditionClient.kt:PluginConditionClient$failure: Exception</ID>
+    <ID>TooGenericExceptionCaught:PluginFireClient.kt:PluginFireClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ReminderScheduler.kt:ReminderScheduler$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:RomSettingsActionHandler.kt:RomSettingsActionHandler$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TaskManager.kt:TaskManager$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:TriggerEvaluationSession.kt:TriggerExpressionEvaluator$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:WorkflowInterpreter.kt:WorkflowInterpreter$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:WorkflowInterpreter.kt:WorkflowInterpreter$failure: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>

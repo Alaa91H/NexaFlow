@@ -292,4 +292,6 @@
     <string name="trigger_wear_event">Wear OS saati</string>
 
     <string name="ask_nexaflow">NexaFlow’a sor…</string>
+
+    <string name="task_restore_failed">Görevin önceki ayarları geri yüklenemedi: %1$s</string>
 </resources>

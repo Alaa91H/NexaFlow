@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">Enviar uma mensagem para quem iniciou este fluxo</string>
     <string name="call_block_silent_hint">Impede uma chamada correspondente e oculta sua notificação quando o Android oferece suporte.</string>
     <string name="reply_message">Mensagem de resposta</string>
+
+    <string name="task_restore_failed">Não foi possível restaurar as configurações anteriores da tarefa</string>
 </resources>

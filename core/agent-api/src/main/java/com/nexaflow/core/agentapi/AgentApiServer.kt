@@ -4,7 +4,12 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,6 +25,7 @@ class AgentApiServer(
     private val preferredPort: Int = DEFAULT_PORT
 ) {
     private val handlers = Semaphore(MAX_CONCURRENT_CLIENTS)
+    private val activeByAddress = ConcurrentHashMap<String, Int>()
 
     @Volatile
     private var running = false
@@ -34,15 +40,17 @@ class AgentApiServer(
     fun initialize() {
         if (running) return
         hostPolicy.setLanAccessEnabled(lanAccessEnabled)
+        lanAccessEnabled = hostPolicy.lanAccessEnabled
         running = true
         job = scope.launch(Dispatchers.IO) { acceptLoop() }
     }
 
     @Synchronized
     fun setLanAccessEnabled(enabled: Boolean) {
-        if (lanAccessEnabled == enabled && running) return
-        lanAccessEnabled = enabled
         hostPolicy.setLanAccessEnabled(enabled)
+        val permitted = hostPolicy.lanAccessEnabled
+        if (lanAccessEnabled == permitted && running) return
+        lanAccessEnabled = permitted
         if (running) {
             stopLocked()
             initialize()
@@ -66,7 +74,8 @@ class AgentApiServer(
     }
 
     private suspend fun acceptLoop() {
-        val bindAddress = if (lanAccessEnabled) ALL_INTERFACES else LOOPBACK
+        // Never trust the preference alone to widen a cleartext listener.
+        val bindAddress = LOOPBACK
         val address = InetAddress.getByName(bindAddress)
         val server = runCatching {
             ServerSocket(preferredPort, SOCKET_BACKLOG, address)
@@ -79,7 +88,7 @@ class AgentApiServer(
         try {
             while (running && scope.isActive) {
                 val client = runCatching { server.accept() }.getOrNull() ?: break
-                if (!handlers.tryAcquire()) {
+                if (!tryAcquire(client)) {
                     respond(
                         client,
                         AgentHttpResponse(
@@ -96,7 +105,7 @@ class AgentApiServer(
                     try {
                         handleClient(client)
                     } finally {
-                        handlers.release()
+                        release(client)
                     }
                 }
             }
@@ -108,6 +117,11 @@ class AgentApiServer(
     }
 
     private suspend fun handleClient(client: Socket) {
+        val deadline = REQUEST_DEADLINE_EXECUTOR.schedule(
+            { runCatching { client.close() } },
+            REQUEST_DEADLINE_MS,
+            TimeUnit.MILLISECONDS
+        )
         try {
             client.soTimeout = SOCKET_TIMEOUT_MS
             val request = AgentHttpRequestParser.read(client.getInputStream())
@@ -141,7 +155,9 @@ class AgentApiServer(
                     mapOf("Content-Type" to "application/json; charset=utf-8")
                 )
             )
-        } catch (_: Throwable) {
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
             respond(
                 client,
                 AgentHttpResponse(
@@ -152,7 +168,33 @@ class AgentApiServer(
                 )
             )
         } finally {
+            deadline.cancel(false)
             runCatching { client.close() }
+        }
+    }
+
+    private fun tryAcquire(client: Socket): Boolean {
+        if (!handlers.tryAcquire()) return false
+        val address = client.inetAddress?.hostAddress.orEmpty()
+        val allowed = AtomicBoolean(false)
+        activeByAddress.compute(address) { _, current ->
+            val count = current ?: 0
+            if (count >= MAX_CLIENTS_PER_ADDRESS) {
+                current
+            } else {
+                allowed.set(true)
+                count + 1
+            }
+        }
+        if (!allowed.get()) handlers.release()
+        return allowed.get()
+    }
+
+    private fun release(client: Socket) {
+        handlers.release()
+        val address = client.inetAddress?.hostAddress.orEmpty()
+        activeByAddress.computeIfPresent(address) { _, count ->
+            if (count <= 1) null else count - 1
         }
     }
 
@@ -213,6 +255,11 @@ class AgentApiServer(
         private const val SOCKET_BACKLOG = 8
         private const val SOCKET_TIMEOUT_MS = 5_000
         private const val MAX_CONCURRENT_CLIENTS = 8
+        private const val MAX_CLIENTS_PER_ADDRESS = 2
+        private const val REQUEST_DEADLINE_MS = 15_000L
+        private val REQUEST_DEADLINE_EXECUTOR = ScheduledThreadPoolExecutor(1) { runnable ->
+            Thread(runnable, "NexaFlow-Agent-RequestDeadline").apply { isDaemon = true }
+        }
 
         @Volatile
         var currentPort: Int = 0

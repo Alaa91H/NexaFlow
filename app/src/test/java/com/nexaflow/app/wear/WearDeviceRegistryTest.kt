@@ -114,4 +114,18 @@ class WearDeviceRegistryTest {
         assertFalse(registry.acceptSnapshot("node-future", unsupported))
         assertTrue(registry.devices.value.isEmpty())
     }
+
+    @Test
+    fun `commands are accepted only from a node with a known advertisement`() {
+        val snapshot = WearCapabilitySnapshot(
+            watchInstallId = "trusted-watch",
+            capabilities = setOf(WearCapability.PROTOCOL_V1.name),
+            updatedAtEpochMs = 3_000L
+        )
+
+        assertFalse(registry.isKnownNode("unregistered-node"))
+        assertTrue(registry.acceptSnapshot("trusted-node", snapshot))
+        assertTrue(registry.isKnownNode("trusted-node"))
+        assertFalse(registry.isKnownNode(""))
+    }
 }

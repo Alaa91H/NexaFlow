@@ -37,6 +37,7 @@ kotlin {
 
 dependencies {
     implementation(project(":domain"))
+    implementation(project(":core:database"))
     api(project(":core:execution"))
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.core)

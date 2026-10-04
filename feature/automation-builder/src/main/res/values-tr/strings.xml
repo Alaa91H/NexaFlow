@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">Bu iş akışını başlatan gönderene mesaj gönder</string>
     <string name="call_block_silent_hint">Android destekliyorsa eşleşen aramayı engeller ve bildirimini gizler.</string>
     <string name="reply_message">Yanıt mesajı</string>
+
+    <string name="task_restore_failed">Görevin önceki ayarları geri yüklenemedi</string>
 </resources>

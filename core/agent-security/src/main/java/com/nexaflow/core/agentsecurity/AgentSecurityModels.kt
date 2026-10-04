@@ -1,6 +1,12 @@
 package com.nexaflow.core.agentsecurity
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 @Serializable
 enum class AgentScope {
@@ -22,9 +28,26 @@ enum class AgentScope {
     }
 }
 
-@Serializable
+@Serializable(with = AgentGrantModeSerializer::class)
 enum class AgentGrantMode {
-    PERMANENT_FULL_ACCESS
+    READ_ONLY,
+    STANDARD,
+    TIMED_FULL_ACCESS,
+    PERMANENT_FULL_ACCESS,
+    UNKNOWN
+}
+
+/** Unknown persisted authority modes must never silently grant access. */
+object AgentGrantModeSerializer : KSerializer<AgentGrantMode> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("AgentGrantMode", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): AgentGrantMode =
+        runCatching { AgentGrantMode.valueOf(decoder.decodeString()) }
+            .getOrDefault(AgentGrantMode.UNKNOWN)
+
+    override fun serialize(encoder: Encoder, value: AgentGrantMode) =
+        encoder.encodeString(value.name)
 }
 
 /**
@@ -51,7 +74,8 @@ data class AgentIdentityBinding(
 data class AgentIdentityRequest(
     val agentId: String,
     val displayName: String,
-    val binding: AgentIdentityBinding = AgentIdentityBinding()
+    val binding: AgentIdentityBinding = AgentIdentityBinding(),
+    val requestedMode: AgentGrantMode = AgentGrantMode.STANDARD
 )
 
 @Serializable
@@ -61,6 +85,7 @@ data class AgentGrantRecord(
     val mode: AgentGrantMode = AgentGrantMode.PERMANENT_FULL_ACCESS,
     val scopes: Set<AgentScope> = AgentScope.FULL_ACCESS,
     val binding: AgentIdentityBinding = AgentIdentityBinding(),
+    val expiresAt: Long? = null,
     val createdAt: Long,
     val lastUsedAt: Long? = null,
     val revokedAt: Long? = null
@@ -74,6 +99,8 @@ data class AgentCredentialRecord(
     val createdAt: Long,
     val lastUsedAt: Long? = null,
     val rotatedAt: Long? = null,
+    val previousRefreshSecretHash: String? = null,
+    val previousRotatedAt: Long? = null,
     val revokedAt: Long? = null
 )
 

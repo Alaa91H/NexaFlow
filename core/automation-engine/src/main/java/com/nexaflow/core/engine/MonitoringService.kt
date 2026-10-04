@@ -24,6 +24,7 @@ import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -195,7 +196,11 @@ class MonitoringService : Service() {
                 val suBin = com.nexaflow.core.rom.SystemAppStatusDetector.isSuBinaryAvailable()
                 val shizuku = com.nexaflow.core.rom.PrivilegedRunner.isShizukuGranted()
                 Log.i(TAG, "startup elevated check: rootAvailable=$rootAvail suBin=$suBin shizukuGranted=$shizuku sdk=${android.os.Build.VERSION.SDK_INT}")
-            } catch (_: Throwable) {}
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Exception) {
+                Log.w(TAG, "Startup elevated-capability check failed", error)
+            }
             activeTriggerStore.purgeExpired()
             // A process/service restart can occur after a range end or after a
             // failed exit. Reconcile durable lifecycle state before callbacks

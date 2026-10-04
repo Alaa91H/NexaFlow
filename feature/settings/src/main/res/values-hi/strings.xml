@@ -418,4 +418,26 @@
     <string name="sms_default_role_set">सेट करें</string>
     <string name="sms_default_role_subtitle">SMS पहुँचने से पहले ब्लॉक करने के लिए आवश्यक</string>
     <string name="sms_default_role_title">डिफ़ॉल्ट SMS ऐप</string>
+    <string name="agent_permanent_access_warning">चेतावनी: जुड़े हुए एजेंटों के पास स्थायी पूर्ण पहुँच है। अनुरोधों की समीक्षा करें और जिन एजेंटों पर भरोसा नहीं है उनकी पहुँच रद्द करें।</string>
+    <string name="agent_reduce_permissions">अनुमतियाँ कम करें</string>
+    <string name="agent_lan_access_tls_required">एन्क्रिप्टेड TLS कनेक्शन समर्थित होने तक LAN पहुँच अस्थायी रूप से उपलब्ध नहीं है।</string>
+
+    <string name="agent_grant_mode_read_only">केवल पढ़ने की अनुमति</string>
+    <string name="agent_grant_mode_standard">मानक पहुँच</string>
+    <string name="agent_grant_mode_timed_full_access">एक घंटे के लिए पूर्ण पहुँच</string>
+    <string name="agent_permanent_access_confirm_title">स्थायी पूर्ण पहुँच की पुष्टि करें</string>
+    <string name="agent_permanent_access_confirm">स्थायी पहुँच दें</string>
+    <string name="agent_automation_approval_title">उच्च जोखिम वाले एजेंट कार्य को मंज़ूरी दें</string>
+    <string name="agent_automation_approval_help">मंज़ूरी देने से पहले कार्य की सटीक परिभाषा की समीक्षा करें। मंज़ूरियाँ पाँच मिनट बाद समाप्त हो जाती हैं और केवल एक बार उपयोग की जा सकती हैं।</string>
+    <string name="agent_automation_approval_agent_id">जोड़े गए एजेंट की ID</string>
+    <string name="agent_automation_approval_id">मंज़ूरी ID</string>
+    <string name="agent_automation_approval_hash">कार्य सामग्री का सटीक हैश</string>
+    <string name="agent_automation_approval_confirm">इस परिभाषा को मंज़ूरी दें</string>
+    <string name="agent_automation_approval_token">मंज़ूरी ID (पाँच मिनट तक मान्य): %1$s</string>
+    <string name="agent_automation_approval_none">कोई उच्च जोखिम वाला एजेंट कार्य मंज़ूरी के लिए लंबित नहीं है।</string>
+    <string name="agent_automation_approval_pending">जोखिम %1$s · एजेंट %2$s · समाप्ति %3$s</string>
+    <string name="agent_automation_approval_review">कार्य की समीक्षा करें</string>
+    <string name="agent_automation_approval_review_title">%1$s जोखिम वाले कार्य की समीक्षा करें</string>
+    <string name="agent_automation_approval_summary_unavailable">कार्य का विवरण उपलब्ध नहीं है। इस अनुरोध को मंज़ूरी न दें।</string>
+    <string name="agent_automation_approval_reject">अस्वीकार करें</string>
 </resources>

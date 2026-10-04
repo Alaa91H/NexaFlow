@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">Nachricht an den Absender senden, der diesen Ablauf ausgelöst hat</string>
     <string name="call_block_silent_hint">Blockiert einen passenden Anruf und unterdrückt dessen Benachrichtigung, sofern Android dies unterstützt.</string>
     <string name="reply_message">Antwortnachricht</string>
+
+    <string name="task_restore_failed">Die vorherigen Aufgabeneinstellungen konnten nicht wiederhergestellt werden</string>
 </resources>

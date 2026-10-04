@@ -10,11 +10,17 @@ import com.nexaflow.core.agentruntime.ManagedAgentRunUseCase
 import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.automationcontrol.AutomationCommandService
 import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
+import com.nexaflow.core.automationcontrol.AgentAutomationApprovalHash
+import com.nexaflow.core.automationcontrol.AgentAutomationContentHasher
+import com.nexaflow.core.automationcontrol.AgentAutomationRiskGate
+import com.nexaflow.core.automationcontrol.risk.AgentRiskEvaluator
+import com.nexaflow.core.automationcontrol.risk.AgentRiskLevel
 import com.nexaflow.core.automationcontrol.WorkflowDryRunInspector
 import com.nexaflow.core.common.AppDispatchers
 import com.nexaflow.core.automationcontrol.schedule.AgentSchedulePreviewService
 import com.nexaflow.core.automationcontrol.simulation.AgentSimulationService
 import com.nexaflow.core.database.AgentPlatformDao
+import com.nexaflow.core.database.AgentApprovalValidator
 import com.nexaflow.core.database.AgentDefinitionDao
 import com.nexaflow.core.database.AgentRunDao
 import com.nexaflow.core.database.AppDatabase
@@ -190,8 +196,24 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAgentAccessManager(agentSecurityStore: AgentSecurityStore): AgentAccessManager {
-        return AgentAccessManager(agentSecurityStore)
+    fun provideAgentAccessManager(
+        agentSecurityStore: AgentSecurityStore,
+        agentPlatformDao: AgentPlatformDao
+    ): AgentAccessManager {
+        return AgentAccessManager(agentSecurityStore) { agentId, detectedAt ->
+            agentPlatformDao.insertAudit(
+                com.nexaflow.core.database.AgentAuditEntity(
+                    id = java.util.UUID.randomUUID().toString(),
+                    eventType = "AGENT_REFRESH_TOKEN_REUSE",
+                    outcome = "CREDENTIAL_REVOKED",
+                    actorId = "SYSTEM",
+                    agentId = agentId,
+                    detailsJson = "{\"reason\":\"previous_refresh_token_reused\"}",
+                    createdAt = detectedAt
+                )
+            )
+            agentPlatformDao.pruneAuditToNewest(500)
+        }
     }
 
     @Provides
@@ -319,6 +341,34 @@ object AppModule {
         automationDao = automationDao,
         agentPlatformDao = agentPlatformDao
     )
+
+    @Provides
+    @Singleton
+    fun provideAgentAutomationApprovalHash(): AgentAutomationContentHasher =
+        AgentAutomationContentHasher { automation -> AgentAutomationApprovalHash.of(automation) }
+
+    @Provides
+    @Singleton
+    fun provideAgentAutomationRiskGate(): AgentAutomationRiskGate =
+        AgentAutomationRiskGate { automation ->
+            AgentRiskEvaluator.evaluate(automation).level.ordinal >= AgentRiskLevel.HIGH.ordinal
+        }
+
+    @Provides
+    @Singleton
+    fun provideAgentApprovalValidator(
+        agentPlatformDao: AgentPlatformDao,
+        hash: AgentAutomationContentHasher,
+        riskGate: AgentAutomationRiskGate
+    ): AgentApprovalValidator = object : AgentApprovalValidator {
+        override suspend fun isApproved(automation: com.nexaflow.domain.models.Automation): Boolean {
+            val metadata = agentPlatformDao.getAutomationMetadata(automation.id)
+            val hasAgentOrigin = metadata?.origin == "AGENT" ||
+                metadata?.creatorAgentId != null || metadata?.lastAgentId != null
+            return !hasAgentOrigin || !riskGate.requiresApproval(automation) ||
+                metadata.approvedContentHash == hash.hash(automation)
+        }
+    }
 
     @Provides
     @Singleton
@@ -482,11 +532,17 @@ object AppModule {
         workflowDryRunService: WorkflowDryRunService,
         mutationPersistence: AutomationMutationPersistence,
         auditSink: AutomationAuditSink,
-        eventBridge: AgentAutomationEventBridge
+        eventBridge: AgentAutomationEventBridge,
+        agentPlatformDao: AgentPlatformDao,
+        agentAutomationApprovalHash: AgentAutomationContentHasher,
+        agentAutomationRiskGate: AgentAutomationRiskGate
     ): AutomationCommandService = AutomationCommandService(
         repository = automationRepository,
         dryRunInspector = WorkflowDryRunInspector(workflowDryRunService),
         mutationPersistence = mutationPersistence,
+        approvalDao = agentPlatformDao,
+        approvalHash = agentAutomationApprovalHash,
+        approvalRiskGate = agentAutomationRiskGate,
         auditSink = auditSink,
         mutationObserver = eventBridge
     )
@@ -522,6 +578,7 @@ object AppModule {
         semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter,
         runEventBridge: AgentRunEventBridge,
         smsActivityRepository: com.nexaflow.domain.repositories.SmsActivityRepository,
+        agentApprovalValidator: AgentApprovalValidator,
         canonicalNodeDispatcher: CanonicalNodeDispatcher,
         canonicalTriggerDispatcher: CanonicalTriggerDispatcher
     ): ExecutionEngine {
@@ -541,6 +598,7 @@ object AppModule {
             semanticWorkflowPlanner = semanticWorkflowPlanner,
             runListener = runEventBridge,
             smsActivityRepository = smsActivityRepository,
+            agentApprovalValidator = agentApprovalValidator,
             canonicalNodeDispatcher = canonicalNodeDispatcher,
             canonicalTriggerDispatcher = canonicalTriggerDispatcher
         )

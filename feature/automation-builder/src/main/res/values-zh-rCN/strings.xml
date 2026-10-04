@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">向触发此工作流的发件人发送消息</string>
     <string name="call_block_silent_hint">在 Android 支持时拦截匹配来电并隐藏其通知。</string>
     <string name="reply_message">回复内容</string>
+
+    <string name="task_restore_failed">无法恢复任务的先前设置</string>
 </resources>

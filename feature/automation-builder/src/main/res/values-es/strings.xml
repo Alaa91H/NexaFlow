@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">Enviar un mensaje a quien inició este flujo</string>
     <string name="call_block_silent_hint">Impide una llamada coincidente y su notificación cuando Android lo admite.</string>
     <string name="reply_message">Mensaje de respuesta</string>
+
+    <string name="task_restore_failed">No se pudo restaurar la configuración anterior de la tarea</string>
 </resources>

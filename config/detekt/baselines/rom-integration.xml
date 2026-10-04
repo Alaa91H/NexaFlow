@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>SwallowedException:SystemController.kt:SystemController$denied: SecurityException</ID>
+    <ID>SwallowedException:SystemController.kt:SystemController$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ApplicationPackageController.kt:ApplicationPackageController$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NetworkModeController.kt:NetworkModeController$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PrivilegedRunner.kt:PrivilegedRunner$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ShizukuShellBridge.kt:ShizukuShellBridge$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:StatusBarController.kt:StatusBarController$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SystemController.kt:SystemController$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SystemController.kt:SystemController$t2: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SystemController.kt:SystemController$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SystemSettingsController.kt:SystemSettingsController$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:UserShellService.kt:UserShellService$t: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>

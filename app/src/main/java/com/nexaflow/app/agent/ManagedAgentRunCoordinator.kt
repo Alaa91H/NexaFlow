@@ -141,10 +141,14 @@ class ManagedAgentRunCoordinator @Inject constructor(
             val approvalGate = AgentToolApprovalGate { agent, call, onRequested ->
                 requestApproval(definition, run.id, agent, call, onRequested)
             }
+            val effectivePolicy = definition.policy.copy(
+                approvalOptionalToolNames = definition.policy.approvalOptionalToolNames -
+                    allowedTools.filter { it.destructive || !it.readOnly }.map { it.name }.toSet()
+            )
             val policyExecutor = PolicyFilteredAgentToolExecutor(
                 agentId = definition.id,
                 source = tools,
-                policy = definition.policy,
+                policy = effectivePolicy,
                 approvalGate = approvalGate,
                 onApprovalRequested = { approvalId, call ->
                     val redactedArguments = AiTraceRedactor.redactElement(call.arguments).toString()

@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">このワークフローを開始した送信者にメッセージを送信</string>
     <string name="call_block_silent_hint">Androidが対応する場合、一致した着信を拒否して通知を抑止します。</string>
     <string name="reply_message">返信メッセージ</string>
+
+    <string name="task_restore_failed">タスクの以前の設定を復元できませんでした</string>
 </resources>

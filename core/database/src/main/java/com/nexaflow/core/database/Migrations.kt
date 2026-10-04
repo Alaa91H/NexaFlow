@@ -445,6 +445,28 @@ object Migrations {
         }
     }
 
+    /** v25 -> v26: one-time approvals bound to the exact agent task content hash. */
+    val MIGRATION_25_26 = object : Migration(25, 26) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `agent_automation_approvals` (" +
+                    "`id` TEXT NOT NULL, `agentId` TEXT NOT NULL, `contentHash` TEXT NOT NULL, " +
+                    "`riskLevel` TEXT NOT NULL, `definitionSummary` TEXT NOT NULL DEFAULT '', " +
+                    "`expiresAt` INTEGER NOT NULL, `approvedAt` INTEGER, " +
+                    "PRIMARY KEY(`id`))"
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_agent_automation_approvals_agentId_expiresAt` ON `agent_automation_approvals` (`agentId`, `expiresAt`)")
+        }
+    }
+
+    /** v26 -> v27: persisted approval binding and explicit review decision. */
+    val MIGRATION_26_27 = object : Migration(26, 27) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automation_api_metadata` ADD COLUMN `approvedContentHash` TEXT")
+            db.execSQL("ALTER TABLE `agent_automation_approvals` ADD COLUMN `decision` TEXT")
+        }
+    }
+
 
     val ALL = listOf(
         MIGRATION_1_2,
@@ -470,6 +492,8 @@ object Migrations {
         MIGRATION_21_22,
         MIGRATION_22_23,
         MIGRATION_23_24,
-        MIGRATION_24_25
+        MIGRATION_24_25,
+        MIGRATION_25_26,
+        MIGRATION_26_27
     )
 }

@@ -44,7 +44,9 @@ data class AgentApiTaskMutationRequestV1(
     val conversationId: String? = null,
     val requestId: String? = null,
     val riskLevel: String? = null,
-    val requireExecutable: Boolean = true
+    val requireExecutable: Boolean = true,
+    /** User approval token for the exact high-risk definition being committed. */
+    val approvalId: String? = null
 )
 
 @Serializable
@@ -71,7 +73,9 @@ data class AgentApiValidationV1(
 @Serializable
 data class AgentApiPairingCompletionRequestV1(
     val challengeId: String,
-    val challengeSecret: String
+    val challengeSecret: String,
+    val requestedMode: com.nexaflow.core.agentsecurity.AgentGrantMode =
+        com.nexaflow.core.agentsecurity.AgentGrantMode.STANDARD
 )
 
 @Serializable

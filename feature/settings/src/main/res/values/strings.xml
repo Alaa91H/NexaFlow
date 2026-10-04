@@ -272,6 +272,9 @@
     <string name="agent_trusted_title">Trusted agents</string>
     <string name="agent_none">No agents are paired</string>
     <string name="agent_full_access">Full permanent access</string>
+    <string name="agent_grant_mode_read_only">Read-only</string>
+    <string name="agent_grant_mode_standard">Standard access</string>
+    <string name="agent_grant_mode_timed_full_access">Full access for one hour</string>
     <string name="agent_active_sessions">%1$d active session(s)</string>
     <string name="agent_revoke">Revoke</string>
     <string name="agent_revoke_all">Revoke all</string>
@@ -415,4 +418,22 @@
     <string name="managed_agent_memory_expiry_hint">Enter 1 to 365 days, or 0 for no expiry.</string>
     <string name="managed_agent_memory_expires">Expires %1$s</string>
     <string name="managed_agent_memory_error">Could not read or save private memory. Check the note and device secure storage.</string>
+    <string name="agent_permanent_access_warning">Warning: paired agents have permanent full access. Review requests and revoke agents you no longer trust.</string>
+    <string name="agent_permanent_access_confirm_title">Confirm permanent full access</string>
+    <string name="agent_permanent_access_confirm">Grant permanent access</string>
+    <string name="agent_reduce_permissions">Reduce permissions</string>
+    <string name="agent_automation_approval_title">Approve a high-risk agent task</string>
+    <string name="agent_automation_approval_help">Review the exact task definition before approving it. Approvals expire after five minutes and can be used once.</string>
+    <string name="agent_automation_approval_agent_id">Paired agent ID</string>
+    <string name="agent_automation_approval_id">Approval ID</string>
+    <string name="agent_automation_approval_hash">Exact task content hash</string>
+    <string name="agent_automation_approval_confirm">Approve this definition</string>
+    <string name="agent_automation_approval_token">Approval ID (valid for five minutes): %1$s</string>
+    <string name="agent_automation_approval_none">No pending high-risk agent tasks.</string>
+    <string name="agent_automation_approval_pending">%1$s risk · Agent %2$s · expires %3$s</string>
+    <string name="agent_automation_approval_review">Review task</string>
+    <string name="agent_automation_approval_review_title">Review %1$s risk task</string>
+    <string name="agent_automation_approval_summary_unavailable">Task details are unavailable. Do not approve this request.</string>
+    <string name="agent_automation_approval_reject">Reject</string>
+    <string name="agent_lan_access_tls_required">LAN access is temporarily unavailable until encrypted TLS connections are supported.</string>
 </resources>

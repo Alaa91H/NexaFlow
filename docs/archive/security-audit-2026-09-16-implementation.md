@@ -1,3 +1,5 @@
+> Historical archive — originally security-audit-2026-09-16-implementation.md; archived 2026-10-04
+
 # External ingress audit implementation — 2026-09-16
 
 The supplied v3.73 audit was applied while integrating published main (`fc1f9913`) with preserved local changes. The release candidate retains the newer single-task import/export and schema-19 functionality. Publication and validation status are recorded in [VALIDATION.md](VALIDATION.md).

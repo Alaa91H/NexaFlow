@@ -10,6 +10,17 @@ fun Throwable.rethrowIfCancellation() {
     if (this is CancellationException) throw this
 }
 
+/** Suspend counterpart: ordinary failures become results, cancellation propagates. */
+suspend inline fun <T> runCatchingCancellable(
+    crossinline block: suspend () -> T
+): Result<T> = try {
+    Result.success(block())
+} catch (cancellation: CancellationException) {
+    throw cancellation
+} catch (exception: Exception) {
+    Result.failure(exception)
+}
+
 /** Equivalent to runCatching, except cancellation is never converted to Result.failure. */
 inline fun <T> runCatchingPreservingCancellation(block: () -> T): Result<T> =
     try {

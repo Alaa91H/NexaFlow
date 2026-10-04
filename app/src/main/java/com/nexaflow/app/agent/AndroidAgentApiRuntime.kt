@@ -50,7 +50,7 @@ class AndroidAgentApiRuntime @Inject constructor(
     }
 
     override suspend fun onEnabled(automation: Automation) {
-        executionEngine.runWithConditionGate(automation)
+        executionEngine.runAgentWithConditionGate(automation)
     }
 
     override suspend fun onDisabled(automation: Automation) {

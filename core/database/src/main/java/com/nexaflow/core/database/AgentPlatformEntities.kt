@@ -1,7 +1,13 @@
 package com.nexaflow.core.database
 
+import com.nexaflow.domain.models.Automation
+
 import androidx.room.Entity
 import androidx.room.Index
+
+fun interface AgentApprovalValidator {
+    suspend fun isApproved(automation: Automation): Boolean
+}
 
 @Entity(
     tableName = "automation_api_metadata",
@@ -29,6 +35,8 @@ data class AutomationApiMetadataEntity(
     val revision: Long,
     /** Mirrors Automation.updatedAt so out-of-band first-party edits can be detected. */
     val definitionUpdatedAt: Long,
+    /** Exact canonical approval for the current agent-authored definition. */
+    val approvedContentHash: String? = null,
     val createdAt: Long,
     val updatedAt: Long
 )
@@ -74,4 +82,19 @@ data class AgentIdempotencyEntity(
     val resultRevision: Long? = null,
     val createdAt: Long,
     val expiresAt: Long
+)
+
+@Entity(
+    tableName = "agent_automation_approvals",
+    indices = [Index(value = ["agentId", "expiresAt"])]
+)
+data class AgentAutomationApprovalEntity(
+    @androidx.room.PrimaryKey val id: String,
+    val agentId: String,
+    val contentHash: String,
+    val riskLevel: String,
+    val definitionSummary: String = "",
+    val expiresAt: Long,
+    val approvedAt: Long? = null,
+    val decision: String? = null
 )

@@ -292,4 +292,6 @@
     <string name="trigger_wear_event">Wear OS 手表</string>
 
     <string name="ask_nexaflow">询问 NexaFlow…</string>
+
+    <string name="task_restore_failed">无法恢复任务的先前设置：%1$s</string>
 </resources>

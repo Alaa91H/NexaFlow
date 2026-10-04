@@ -14,6 +14,7 @@
     <string name="task_deleted">تم الحذف: %1$s</string>
     <string name="task_delete_failed">تعذر الحذف: %1$s</string>
     <string name="task_update_failed">تعذر التحديث: %1$s</string>
+    <string name="task_restore_failed">تعذر استعادة إعدادات المهمة السابقة: %1$s</string>
     <string name="section_routines">المهام المجدولة</string>
     <string name="new_routine">مهمة جديدة</string>
     <string name="empty_automations_title">لا توجد مهام بعد</string>

@@ -418,4 +418,26 @@
     <string name="sms_default_role_set">设为默认</string>
     <string name="sms_default_role_subtitle">在短信送达前进行拦截所需</string>
     <string name="sms_default_role_title">默认短信应用</string>
+    <string name="agent_permanent_access_warning">警告：已配对的代理拥有永久完全访问权限。请检查请求并撤销不再信任的代理。</string>
+    <string name="agent_reduce_permissions">降低权限</string>
+    <string name="agent_lan_access_tls_required">在支持加密 TLS 连接之前，局域网访问暂不可用。</string>
+
+    <string name="agent_grant_mode_read_only">只读</string>
+    <string name="agent_grant_mode_standard">标准访问</string>
+    <string name="agent_grant_mode_timed_full_access">一小时完全访问权限</string>
+    <string name="agent_permanent_access_confirm_title">确认永久完全访问权限</string>
+    <string name="agent_permanent_access_confirm">授予永久访问权限</string>
+    <string name="agent_automation_approval_title">批准高风险代理任务</string>
+    <string name="agent_automation_approval_help">批准前请检查完整且准确的任务定义。批准将在五分钟后失效，并且只能使用一次。</string>
+    <string name="agent_automation_approval_agent_id">已配对代理 ID</string>
+    <string name="agent_automation_approval_id">批准 ID</string>
+    <string name="agent_automation_approval_hash">任务内容的准确哈希值</string>
+    <string name="agent_automation_approval_confirm">批准此定义</string>
+    <string name="agent_automation_approval_token">批准 ID（五分钟内有效）：%1$s</string>
+    <string name="agent_automation_approval_none">没有待批准的高风险代理任务。</string>
+    <string name="agent_automation_approval_pending">风险 %1$s · 代理 %2$s · 到期时间 %3$s</string>
+    <string name="agent_automation_approval_review">查看任务</string>
+    <string name="agent_automation_approval_review_title">查看 %1$s 风险任务</string>
+    <string name="agent_automation_approval_summary_unavailable">无法获取任务详情。请勿批准此请求。</string>
+    <string name="agent_automation_approval_reject">拒绝</string>
 </resources>

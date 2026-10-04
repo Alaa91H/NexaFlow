@@ -14,6 +14,7 @@ import com.nexaflow.core.execution.WEAR_PATH_SYNC_REQUEST
 import com.nexaflow.core.execution.WEAR_PATH_TOGGLE_COMMAND
 import com.nexaflow.core.execution.WEAR_TOGGLE_SEPARATOR
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
@@ -21,8 +22,6 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -46,9 +45,8 @@ class WearCommandListenerService : WearableListenerService() {
         fun commandService(): AutomationCommandService
         fun wearSyncManager(): WearSyncManager
         fun wearDeviceRegistry(): WearDeviceRegistry
+        @ApplicationScope fun applicationScope(): CoroutineScope
     }
-
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val entryPoint: WearBridgeEntryPoint by lazy {
         EntryPointAccessors.fromApplication(
@@ -71,6 +69,10 @@ class WearCommandListenerService : WearableListenerService() {
     }
 
     override fun onMessageReceived(event: MessageEvent) {
+        if (!entryPoint.wearDeviceRegistry().isKnownNode(event.sourceNodeId)) {
+            Log.w(TAG, "Ignoring Wear command from unregistered node")
+            return
+        }
         when (event.path) {
             WEAR_PATH_RUN_COMMAND -> handleRunCommand(event.data)
             WEAR_PATH_TOGGLE_COMMAND -> handleToggleCommand(event.data)
@@ -86,7 +88,7 @@ class WearCommandListenerService : WearableListenerService() {
      * forever whenever the phone process started while the watch was away.
      */
     private fun handleSyncRequest() {
-        serviceScope.launch {
+        entryPoint.applicationScope().launch(Dispatchers.IO) {
             runCatching {
                 entryPoint.wearSyncManager().pushNow()
             }.onFailure {
@@ -98,13 +100,13 @@ class WearCommandListenerService : WearableListenerService() {
     private fun handleRunCommand(data: ByteArray) {
         val automationId = data.toString(Charsets.UTF_8).trim()
         if (automationId.isBlank()) return
-        serviceScope.launch {
+        entryPoint.applicationScope().launch(Dispatchers.IO) {
             val automation = entryPoint.automationRepository().getAutomationById(automationId)
                 ?: return@launch
             runCatching {
-                entryPoint.executionEngine().forceRun(automation)
+                entryPoint.executionEngine().runWithConditionGate(automation)
             }.onFailure {
-                Log.w(TAG, "Wear force-run failed for automation $automationId", it)
+                Log.w(TAG, "Wear guarded run failed for automation $automationId", it)
             }
         }
     }
@@ -117,7 +119,7 @@ class WearCommandListenerService : WearableListenerService() {
         val enabledStr = payload.substring(separatorIndex + 1)
         val enabled = enabledStr.toBooleanStrictOrNull() ?: return
         if (automationId.isBlank()) return
-        serviceScope.launch {
+        entryPoint.applicationScope().launch(Dispatchers.IO) {
             runCatching {
                 val repository = entryPoint.automationRepository()
                 val automation = repository.getAutomationById(automationId)
@@ -149,7 +151,6 @@ class WearCommandListenerService : WearableListenerService() {
     }
 
     override fun onDestroy() {
-        serviceScope.cancel()
         super.onDestroy()
     }
 

@@ -1,3 +1,5 @@
+> Historical archive — originally NETWORK_MODE_RESEARCH_2026.md; archived 2026-10-04
+
 > **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](README.md) for the supported project overview and current validation status.
 
 # Network Mode Root Research — 2026-08-27

@@ -2,6 +2,10 @@ package com.nexaflow.core.agentsecurity
 
 import com.nexaflow.core.security.SecureStorage
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -49,8 +53,199 @@ class AgentAccessManagerTest {
         val replay = recreated.exchangeRefreshToken(bootstrap.refreshToken)
         val second = recreated.exchangeRefreshToken(first.credential.rotatedRefreshToken)
 
-        assertEquals(AgentSessionIssueResult.InvalidToken, replay)
-        assertTrue(second is AgentSessionIssueResult.Issued)
+        assertEquals(AgentSessionIssueResult.Revoked, replay)
+        assertEquals(AgentSessionIssueResult.InvalidToken, second)
+        assertEquals(0, fixture.manager.status().activeSessionCount)
+        assertTrue(fixture.manager.listActiveGrants().isEmpty())
+    }
+
+    @Test
+    fun olderPersistedCredentialWithoutReplayFieldsDeserializesWithNullDefaults() {
+        val stored = """
+            {
+              "credentialId":"credential-1",
+              "agentId":"agent.test",
+              "refreshSecretHash":"hash",
+              "createdAt":1,
+              "lastUsedAt":2,
+              "rotatedAt":2,
+              "revokedAt":null
+            }
+        """.trimIndent()
+
+        val decoded = Json.Default
+            .decodeFromString(AgentCredentialRecord.serializer(), stored)
+
+        assertEquals(null, decoded.previousRefreshSecretHash)
+        assertEquals(null, decoded.previousRotatedAt)
+    }
+
+    @Test
+    fun unknownGrantModeDeserializesAsFailClosedUnknown() {
+        val stored = """
+            {"agentId":"agent.test","displayName":"Agent","mode":"FUTURE_MODE","createdAt":1}
+        """.trimIndent()
+        val decoded = Json.Default.decodeFromString(AgentGrantRecord.serializer(), stored)
+        assertEquals(AgentGrantMode.UNKNOWN, decoded.mode)
+    }
+
+    @Test
+    fun newPairingUsesStandardScopesAndElevatedPermissionIsDenied() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val started = fixture.manager.beginPairing(identity()) as AgentPairingStartResult.Started
+        val paired = fixture.manager.completePairing(
+            started.offer.challengeId,
+            started.offer.challengeSecret
+        ) as AgentPairingCompletionResult.Granted
+        val session = fixture.manager.exchangeRefreshToken(paired.credential.refreshToken)
+            as AgentSessionIssueResult.Issued
+        val grant = fixture.manager.listActiveGrants().single()
+
+        assertEquals(AgentGrantMode.STANDARD, grant.mode)
+        assertTrue(grant.scopes.contains(AgentScope.TASKS_CREATE))
+        assertFalse(grant.scopes.contains(AgentScope.ELEVATED_REQUEST))
+        assertEquals(
+            AgentAuthorizationResult.ScopeDenied,
+            fixture.manager.authorize(session.credential.accessToken, setOf(AgentScope.ELEVATED_REQUEST))
+        )
+    }
+
+    @Test
+    fun everyOperationHasADeclaredScopeAndEveryScopeIsRepresented() {
+        assertTrue(AgentOperation.entries.isNotEmpty())
+        assertTrue(AgentOperation.entries.all { it.requiredScopes.isNotEmpty() })
+        assertEquals(
+            AgentScope.entries.toSet(),
+            AgentOperation.entries.flatMap { it.requiredScopes }.toSet()
+        )
+        assertEquals(AgentScope.TASKS_ENABLE, AgentOperation.TASK_DISABLE.requiredScopes.single())
+        assertEquals(AgentScope.TASKS_RUN, AgentOperation.TASK_RUN.requiredScopes.single())
+    }
+
+    @Test
+    fun everyOperationIsDeniedWhenItsRequiredScopeIsAbsent() = runTest {
+        AgentOperation.entries.forEachIndexed { index, operation ->
+            val fixture = fixture()
+            fixture.manager.setAccessEnabled(true)
+            val bootstrap = (
+                fixture.manager.grantAccess(
+                    identity("agent.$index").copy(requestedMode = AgentGrantMode.READ_ONLY)
+                ) as AgentGrantResult.Granted
+                ).credential
+            val session = fixture.manager.exchangeRefreshToken(bootstrap.refreshToken)
+                as AgentSessionIssueResult.Issued
+
+            val result = fixture.manager.authorize(
+                session.credential.accessToken,
+                operation.requiredScopes
+            )
+            val readOnlyScopes = setOf(AgentScope.TASKS_READ, AgentScope.CATALOG_READ, AgentScope.HISTORY_READ)
+            val expected = if (readOnlyScopes.containsAll(operation.requiredScopes)) {
+                AgentAuthorizationResult.Authorized(
+                    "agent.$index",
+                    readOnlyScopes
+                )
+            } else {
+                AgentAuthorizationResult.ScopeDenied
+            }
+            assertEquals("operation=$operation scopes=${operation.requiredScopes}", expected, result)
+        }
+    }
+
+    @Test
+    fun pairingCompletionCannotUpgradeModeSelectedWhenChallengeWasCreated() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val started = fixture.manager.beginPairing(
+            identity().copy(requestedMode = AgentGrantMode.STANDARD)
+        ) as AgentPairingStartResult.Started
+
+        val upgraded = fixture.manager.completePairing(
+            started.offer.challengeId,
+            started.offer.challengeSecret,
+            requestedMode = AgentGrantMode.PERMANENT_FULL_ACCESS
+        )
+
+        assertEquals(AgentPairingCompletionResult.InvalidChallenge, upgraded)
+        assertTrue(fixture.manager.listActiveGrants().isEmpty())
+        val completed = fixture.manager.completePairing(
+            started.offer.challengeId,
+            started.offer.challengeSecret,
+            requestedMode = AgentGrantMode.STANDARD
+        )
+        assertTrue(completed is AgentPairingCompletionResult.Granted)
+        assertEquals(AgentGrantMode.STANDARD, fixture.manager.listActiveGrants().single().mode)
+    }
+
+    @Test
+    fun timedFullAccessExpiresAndCanBeDowngraded() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val grant = (fixture.manager.grantPermanentAccess(identity()) as AgentGrantResult.Granted)
+        val session = fixture.manager.exchangeRefreshToken(grant.credential.refreshToken)
+            as AgentSessionIssueResult.Issued
+        val current = fixture.store.read().grants.single()
+        assertTrue(fixture.manager.updateGrantMode(current.agentId, AgentGrantMode.TIMED_FULL_ACCESS))
+        val timed = fixture.manager.listActiveGrants().single()
+        assertEquals(fixture.now + 60 * 60 * 1000L, timed.expiresAt)
+        fixture.now = checkNotNull(timed.expiresAt)
+        assertEquals(
+            AgentAuthorizationResult.Revoked,
+            fixture.manager.authorize(session.credential.accessToken, setOf(AgentScope.TASKS_READ))
+        )
+        assertTrue(fixture.manager.listActiveGrants().isEmpty())
+    }
+
+    @Test
+    fun timedFullAccessCanBeDowngradedBeforeExpiry() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        fixture.manager.grantPermanentAccess(identity())
+        val current = fixture.store.read().grants.single()
+        assertTrue(fixture.manager.updateGrantMode(current.agentId, AgentGrantMode.TIMED_FULL_ACCESS))
+        assertTrue(fixture.manager.updateGrantMode(current.agentId, AgentGrantMode.READ_ONLY))
+        assertEquals(AgentGrantMode.READ_ONLY, fixture.manager.listActiveGrants().single().mode)
+    }
+
+    @Test
+    fun replayListenerReceivesOnlyAgentAndTimestamp() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val bootstrap = (fixture.manager.grantPermanentAccess(identity()) as AgentGrantResult.Granted)
+            .credential
+        val rotated = fixture.manager.exchangeRefreshToken(bootstrap.refreshToken)
+            as AgentSessionIssueResult.Issued
+        var event: Pair<String, Long>? = null
+        val observingManager = AgentAccessManager(
+            store = fixture.store,
+            clockMillis = { fixture.now },
+            refreshReplayListener = { agentId, detectedAt -> event = agentId to detectedAt }
+        )
+
+        assertEquals(AgentSessionIssueResult.Revoked, observingManager.exchangeRefreshToken(bootstrap.refreshToken))
+        assertEquals("agent.test" to fixture.now, event)
+        assertFalse(rotated.credential.rotatedRefreshToken.isBlank())
+    }
+
+    @Test
+    fun concurrentRefreshReplayRevokesTheCredentialFamily() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val bootstrap = (
+            fixture.manager.grantPermanentAccess(identity()) as AgentGrantResult.Granted
+            ).credential
+
+        val results = coroutineScope {
+            List(2) {
+                async { fixture.manager.exchangeRefreshToken(bootstrap.refreshToken) }
+            }.awaitAll()
+        }
+
+        assertEquals(1, results.count { it is AgentSessionIssueResult.Issued })
+        assertEquals(1, results.count { it == AgentSessionIssueResult.Revoked })
+        assertTrue(fixture.manager.listActiveGrants().isEmpty())
+        assertEquals(0, fixture.manager.status().activeSessionCount)
     }
 
     @Test

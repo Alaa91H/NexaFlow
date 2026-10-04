@@ -1,7 +1,9 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import android.util.Log
 import com.nexaflow.core.common.EpochMillis
+import com.nexaflow.core.database.AgentApprovalValidator
 import com.nexaflow.core.compat.ExecutionChannelSelector
 import com.nexaflow.core.compat.ExecutionProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
@@ -69,6 +71,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.NonCancellable
 import java.time.ZonedDateTime
 import java.util.UUID
+
 
 /**
  * Executes tasks. Action dispatch is delegated to an [ActionRegistry] so new
@@ -153,7 +156,8 @@ class ExecutionEngine(
     /** Run lifecycle fan-out; failures never affect execution. */
     private val runListener: AutomationRunListener = AutomationRunListener.NO_OP,
     private val canonicalNodeDispatcher: com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher? = null,
-    private val canonicalTriggerDispatcher: com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher? = null
+    private val canonicalTriggerDispatcher: com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher? = null,
+    private val agentApprovalValidator: AgentApprovalValidator? = null
 ) {
     private val diagnostics = ExecutionDiagnostics(
         context = context,
@@ -186,6 +190,7 @@ class ExecutionEngine(
     )
 
     companion object {
+        private const val TAG = "ExecutionEngine"
         /** Prefix used by UI callers to present a manual condition rejection accurately. */
         const val MANUAL_CONDITION_NOT_MET_PREFIX = "Conditions not satisfied; "
 
@@ -274,6 +279,8 @@ class ExecutionEngine(
         triggerOccurrence: TriggerOccurrence? = null,
         /** Explicit user-approved manual paths may bypass the automatic trigger gate. */
         bypassTriggerMatch: Boolean = false,
+        /** Set only by an authenticated agent execution route. */
+        agentOrigin: Boolean = false,
         /** Optional durable history label for explicit caller intent (for example Force Run). */
         recordMessagePrefix: String = ""
     ): ExecutionRecord {
@@ -285,6 +292,20 @@ class ExecutionEngine(
         // runs correlate their durable history row with the structured trace
         // without timestamp guessing.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
+
+        if (agentOrigin && !hasCurrentAgentApproval(automation)) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = false,
+                message = "Blocked: agent approval is missing or no longer matches this task",
+                executedAt = startedAt
+            )
+            historyWriter.record(record)
+            diagnostics.recordTimeline(automation, "AGENT_APPROVAL_REJECTED", record, startedAt, payloadContext.runId)
+            return record
+        }
 
         // Single-flight admission is intentionally process-local. The durable
         // checkpoint store handles crash recovery; this guard prevents two live
@@ -1071,7 +1092,11 @@ class ExecutionEngine(
         return record
         } finally {
             runningAutomationIds.remove(automation.id)
-            try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
+            try {
+                wakeLock?.let { if (it.isHeld) it.release() }
+            } catch (error: Exception) {
+                Log.w(TAG, "Unable to release execution wake lock", error)
+            }
         }
     }
 
@@ -1109,6 +1134,40 @@ class ExecutionEngine(
             startedAt = startedAt
         )
         return record
+    }
+
+    /** Agent API run path; fails closed unless the stored approval still matches. */
+    suspend fun runAgentWithConditionGate(automation: Automation): ExecutionRecord {
+        if (!hasCurrentAgentApproval(automation)) {
+            val startedAt = epochMillis.now()
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = false,
+                message = "Blocked: agent approval is missing or no longer matches this task",
+                executedAt = startedAt
+            )
+            historyWriter.record(record)
+            diagnostics.recordTimeline(automation, "AGENT_APPROVAL_REJECTED", record, startedAt)
+            return record
+        }
+        if (automation.requiresTimeRangeForEndBehavior) {
+            val startedAt = epochMillis.now()
+            return diagnostics.rejectIncompleteTimeRange(
+                automation,
+                startedAt,
+                WorkflowRunContext.create(automation.id, startedAt).runId
+            )
+        }
+        if (manualAdmissionEvaluator.describe(automation).kind != ManualBlockKind.NONE) {
+            return runWithConditionGate(automation)
+        }
+        return runAutomation(automation, bypassTriggerMatch = true, agentOrigin = true)
+    }
+
+    private suspend fun hasCurrentAgentApproval(automation: Automation): Boolean {
+        return agentApprovalValidator?.isApproved(automation) == true
     }
 
     /**
@@ -1422,7 +1481,11 @@ class ExecutionEngine(
         automationChangeNotifier.notifyChanged()
         return record
         } finally {
-            try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
+            try {
+                wakeLock?.let { if (it.isHeld) it.release() }
+            } catch (error: Exception) {
+                Log.w(TAG, "Unable to release exit wake lock", error)
+            }
         }
     }
 

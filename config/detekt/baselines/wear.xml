@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>TooGenericExceptionCaught:WearViewModel.kt:WearViewModel$e: Exception</ID>
+  </CurrentIssues>
+</SmellBaseline>

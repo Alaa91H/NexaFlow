@@ -418,4 +418,26 @@
     <string name="sms_default_role_set">設定</string>
     <string name="sms_default_role_subtitle">配信前にSMSをブロックするために必要</string>
     <string name="sms_default_role_title">既定のSMSアプリ</string>
+    <string name="agent_permanent_access_warning">警告: ペアリング済みエージェントには恒久的なフルアクセスがあります。リクエストを確認し、信頼できなくなったエージェントを取り消してください。</string>
+    <string name="agent_reduce_permissions">権限を縮小</string>
+    <string name="agent_lan_access_tls_required">暗号化TLS接続に対応するまで、LANアクセスは一時的に利用できません。</string>
+
+    <string name="agent_grant_mode_read_only">読み取り専用</string>
+    <string name="agent_grant_mode_standard">標準アクセス</string>
+    <string name="agent_grant_mode_timed_full_access">1時間のフルアクセス</string>
+    <string name="agent_permanent_access_confirm_title">恒久的なフルアクセスを確認</string>
+    <string name="agent_permanent_access_confirm">恒久的なアクセスを付与</string>
+    <string name="agent_automation_approval_title">高リスクのエージェントタスクを承認</string>
+    <string name="agent_automation_approval_help">承認する前に、タスクの定義を正確に確認してください。承認は5分で期限切れになり、1回のみ使用できます。</string>
+    <string name="agent_automation_approval_agent_id">ペア設定済みエージェントID</string>
+    <string name="agent_automation_approval_id">承認ID</string>
+    <string name="agent_automation_approval_hash">タスク内容の正確なハッシュ</string>
+    <string name="agent_automation_approval_confirm">この定義を承認</string>
+    <string name="agent_automation_approval_token">承認ID（有効期限5分）：%1$s</string>
+    <string name="agent_automation_approval_none">承認待ちの高リスクエージェントタスクはありません。</string>
+    <string name="agent_automation_approval_pending">リスク %1$s · エージェント %2$s · 期限 %3$s</string>
+    <string name="agent_automation_approval_review">タスクを確認</string>
+    <string name="agent_automation_approval_review_title">リスク %1$s のタスクを確認</string>
+    <string name="agent_automation_approval_summary_unavailable">タスクの詳細を表示できません。この要求は承認しないでください。</string>
+    <string name="agent_automation_approval_reject">拒否</string>
 </resources>

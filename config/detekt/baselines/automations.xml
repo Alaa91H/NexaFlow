@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyCatchBlock:AutomationDetailsViewModel.kt:AutomationDetailsViewModel${}</ID>
+    <ID>TooGenericExceptionCaught:AutomationDetailsViewModel.kt:AutomationDetailsViewModel$failure: Exception</ID>
+  </CurrentIssues>
+</SmellBaseline>

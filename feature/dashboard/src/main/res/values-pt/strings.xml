@@ -292,4 +292,6 @@
     <string name="trigger_wear_event">Relógio Wear OS</string>
 
     <string name="ask_nexaflow">Perguntar ao NexaFlow…</string>
+
+    <string name="task_restore_failed">Não foi possível restaurar as configurações anteriores da tarefa: %1$s</string>
 </resources>

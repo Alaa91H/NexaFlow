@@ -1312,4 +1312,6 @@
     <string name="action_sms_reply_sub">Envoyer un message à l’expéditeur à l’origine de ce flux</string>
     <string name="call_block_silent_hint">Bloque l’appel correspondant et masque sa notification lorsque Android le permet.</string>
     <string name="reply_message">Message de réponse</string>
+
+    <string name="task_restore_failed">Impossible de restaurer les paramètres précédents de la tâche</string>
 </resources>

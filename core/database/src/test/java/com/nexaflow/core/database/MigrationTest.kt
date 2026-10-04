@@ -25,6 +25,32 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 class MigrationTest {
 
+    @Test
+    fun migrate26To27_addsApprovalBindingAndDecisionWithoutDroppingRows() {
+        helper.createDatabase(26).apply {
+            execSQL(
+                "INSERT INTO `agent_automation_approvals` " +
+                    "(`id`, `agentId`, `contentHash`, `riskLevel`, `definitionSummary`, `expiresAt`, `approvedAt`) " +
+                    "VALUES ('approval-1', 'agent-1', 'hash', 'HIGH', 'review', 1000, NULL)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(27, listOf(Migrations.MIGRATION_26_27))
+        migrated.prepare(
+            "SELECT decision FROM `agent_automation_approvals` WHERE id='approval-1'"
+        ).use {
+            assertTrue(it.step())
+            assertTrue(it.isNull(0))
+        }
+        migrated.prepare("PRAGMA table_info(`automation_api_metadata`)").use { stmt ->
+            var found = false
+            while (stmt.step()) found = found || stmt.getText(1) == "approvedContentHash"
+            assertTrue(found)
+        }
+        migrated.close()
+    }
+
     @Test fun migrate20To21BackfillsProvenanceAndCreatesAgentLedger() {
         helper.createDatabase(20).apply {
             execSQL(
@@ -195,6 +221,35 @@ class MigrationTest {
         migrated.prepare("SELECT COUNT(*) FROM agent_approvals").use {
             assertTrue(it.step())
             assertEquals(0L, it.getLong(0))
+        }
+        migrated.close()
+    }
+
+    @Test fun migrate25To26CreatesAgentAutomationApprovals() {
+        helper.createDatabase(25).close()
+        val migrated = helper.runMigrationsAndValidate(26, listOf(Migrations.MIGRATION_25_26))
+        migrated.prepare("PRAGMA table_info(agent_automation_approvals)").use { statement ->
+            val columns = mutableSetOf<String>()
+            while (statement.step()) columns += statement.getText(1)
+            assertTrue("contentHash" in columns)
+            assertTrue("approvedAt" in columns)
+            assertFalse("decision" in columns)
+        }
+        migrated.close()
+    }
+
+    @Test fun migrate26To27AddsExecutionApprovalBinding() {
+        helper.createDatabase(26).close()
+        val migrated = helper.runMigrationsAndValidate(27, listOf(Migrations.MIGRATION_26_27))
+        migrated.prepare("PRAGMA table_info(automation_api_metadata)").use { statement ->
+            val columns = mutableSetOf<String>()
+            while (statement.step()) columns += statement.getText(1)
+            assertTrue("approvedContentHash" in columns)
+        }
+        migrated.prepare("PRAGMA table_info(agent_automation_approvals)").use { statement ->
+            val columns = mutableSetOf<String>()
+            while (statement.step()) columns += statement.getText(1)
+            assertTrue("decision" in columns)
         }
         migrated.close()
     }

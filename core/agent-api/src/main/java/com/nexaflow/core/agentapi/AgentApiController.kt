@@ -245,7 +245,8 @@ class AgentApiController(
         return when (
             val result = accessManager.completePairing(
                 challengeId = body.challengeId,
-                challengeSecret = body.challengeSecret
+                challengeSecret = body.challengeSecret,
+                requestedMode = body.requestedMode
             )
         ) {
             is AgentPairingCompletionResult.Granted -> respond(
@@ -753,6 +754,16 @@ class AgentApiController(
                 )
             }
         }
+        is AutomationMutationResult.ApprovalRequired -> error(
+            428,
+            "human_approval_required",
+            "Open Agent Settings and approve this exact high-risk definition before retrying",
+            mapOf(
+                "contentHash" to result.contentHash,
+                "riskLevel" to result.riskLevel,
+                "approvalId" to result.approvalId
+            )
+        )
         AutomationMutationResult.IdempotencyConflict ->
             error(409, "idempotency_conflict", "Idempotency key was already used for another request")
         is AutomationMutationResult.Rejected -> error(
@@ -845,7 +856,8 @@ class AgentApiController(
         requestId = requestId,
         conversationId = conversationId,
         idempotencyKey = idempotencyKey,
-        riskLevel = riskLevel
+        riskLevel = riskLevel,
+        approvalId = approvalId
     )
 
     private fun operationFor(method: String, path: String): AgentOperation? {

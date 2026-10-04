@@ -4,7 +4,7 @@ NexaFlow is an Android automation application built with Kotlin and Jetpack Comp
 
 ## Current implementation
 
-The source catalog contains **57 trigger enum entries (55 in the general picker)** and **176 action enum entries**. `CONNECTIVITY` is retained for older tasks and `PLUGIN_EVENT` uses a separate plugin flow. The sensor trigger offers **12 modes**; these are configurations of one trigger, not 12 additional enum entries. Counts describe implemented catalog coverage, not certification that every function works on every phone.
+The generated [capability catalog](docs/CAPABILITY_CATALOG.md) lists the current trigger and action types. Counts describe implemented catalog coverage, not certification that every function works on every phone. `CONNECTIVITY` is retained for older tasks and `PLUGIN_EVENT` uses a separate plugin flow; sensor modes are configurations of one trigger.
 
 - Schedules, app/device events, connectivity, location, notifications, messages and hardware sensor conditions.
 - Ordered actions, workflow context, constraints, execution history, cooldowns and exit/revert behavior.
@@ -14,7 +14,7 @@ The source catalog contains **57 trigger enum entries (55 in the general picker)
 - HTTPS requests with configurable method, body, headers, timeout, retries and output path. Private-network destinations require explicit opt-in.
 - Local authenticated webhooks and revocable task links. Custom-scheme execution requires confirmation.
 - Full backup and single-task sharing. Imported tasks stay disabled for review; external execution tokens are removed.
-- Room database schema 21, explicit data-preserving migrations, durable agent provenance/audit/idempotency ledgers, DataStore preferences, widgets and a foreground monitoring service.
+- Room database with explicit data-preserving migrations, durable agent provenance/audit/idempotency ledgers, DataStore preferences, widgets and a foreground monitoring service.
 
 See the [generated catalog](docs/CAPABILITY_CATALOG.md), [configuration reference](docs/CONFIGURATION.md), [security model](docs/SECURITY.md) and [validation record](docs/VALIDATION.md).
 

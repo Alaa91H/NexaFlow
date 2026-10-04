@@ -319,6 +319,7 @@
     <string name="quick_save">Quick save</string>
     <string name="saved_successfully">Task saved</string>
     <string name="save_failed">Couldn\'t save task</string>
+    <string name="task_restore_failed">Couldn\'t restore the task\'s previous settings</string>
     <string name="next_needs_trigger">Add at least one condition first</string>
     <string name="edit_task_title">Edit task</string>
     <string name="battery_trigger_title">Battery level</string>

@@ -16,7 +16,8 @@ class AgentAccessManager(
     private val secretGenerator: () -> String = { AgentTokenCodec.newSecret() },
     private val sessionDurationMs: Long = DEFAULT_SESSION_DURATION_MS,
     private val pairingDurationMs: Long = DEFAULT_PAIRING_DURATION_MS,
-    private val maxPairingAttempts: Int = DEFAULT_MAX_PAIRING_ATTEMPTS
+    private val maxPairingAttempts: Int = DEFAULT_MAX_PAIRING_ATTEMPTS,
+    private val refreshReplayListener: suspend (agentId: String, detectedAt: Long) -> Unit = { _, _ -> }
 ) {
 
     init {
@@ -47,6 +48,10 @@ class AgentAccessManager(
     suspend fun grantPermanentAccess(
         request: AgentIdentityRequest
     ): AgentGrantResult {
+        return grantAccess(request.copy(requestedMode = AgentGrantMode.PERMANENT_FULL_ACCESS))
+    }
+
+    suspend fun grantAccess(request: AgentIdentityRequest): AgentGrantResult {
         validateIdentity(request)
         val now = clockMillis()
         return store.mutate { state ->
@@ -56,8 +61,45 @@ class AgentAccessManager(
             if (!canGrantAgent(state, request.agentId)) {
                 return@mutate state to AgentGrantResult.CapacityExceeded
             }
-            val (next, credential) = applyPermanentGrant(state, request, now)
+            val mode = request.requestedMode.takeUnless { it == AgentGrantMode.UNKNOWN }
+                ?: AgentGrantMode.STANDARD
+            val (next, credential) = applyPermanentGrant(state, request, now, mode)
             next to AgentGrantResult.Granted(credential)
+        }
+    }
+
+    suspend fun updateGrantMode(agentId: String, mode: AgentGrantMode): Boolean {
+        if (agentId.isBlank() || mode == AgentGrantMode.UNKNOWN) return false
+        val now = clockMillis()
+        return store.mutate { state ->
+            val grant = state.grants.firstOrNull { it.agentId == agentId && it.revokedAt == null }
+                ?: return@mutate state to false
+            if (grant.mode == AgentGrantMode.PERMANENT_FULL_ACCESS &&
+                mode == AgentGrantMode.PERMANENT_FULL_ACCESS
+            ) return@mutate state to false
+            val scopes = when (mode) {
+                AgentGrantMode.READ_ONLY -> setOf(
+                    AgentScope.TASKS_READ, AgentScope.CATALOG_READ, AgentScope.HISTORY_READ
+                )
+                AgentGrantMode.STANDARD -> setOf(
+                    AgentScope.TASKS_READ, AgentScope.TASKS_CREATE, AgentScope.TASKS_UPDATE,
+                    AgentScope.TASKS_DELETE, AgentScope.TASKS_ENABLE,
+                    AgentScope.CATALOG_READ, AgentScope.HISTORY_READ
+                )
+                AgentGrantMode.TIMED_FULL_ACCESS,
+                AgentGrantMode.PERMANENT_FULL_ACCESS -> AgentScope.FULL_ACCESS
+                AgentGrantMode.UNKNOWN -> emptySet()
+            }
+            val expiresAt = if (mode == AgentGrantMode.TIMED_FULL_ACCESS) {
+                now + TIMED_FULL_ACCESS_DURATION_MS
+            } else {
+                null
+            }
+            val next = state.copy(grants = state.grants.map {
+                if (it.agentId == agentId) it.copy(mode = mode, scopes = scopes, expiresAt = expiresAt)
+                else it
+            })
+            next to (grant.agentId == agentId)
         }
     }
 
@@ -98,7 +140,8 @@ class AgentAccessManager(
     suspend fun completePairing(
         challengeId: String,
         challengeSecret: String,
-        presentedBinding: AgentIdentityBinding? = null
+        presentedBinding: AgentIdentityBinding? = null,
+        requestedMode: AgentGrantMode? = null
     ): AgentPairingCompletionResult {
         if (challengeId.isBlank() || challengeSecret.isBlank()) {
             return AgentPairingCompletionResult.InvalidChallenge
@@ -146,6 +189,9 @@ class AgentAccessManager(
             ) {
                 return@mutate state to AgentPairingCompletionResult.InvalidChallenge
             }
+            if (requestedMode != null && requestedMode != challenge.request.requestedMode) {
+                return@mutate state to AgentPairingCompletionResult.InvalidChallenge
+            }
             val effectiveRequest = challenge.request.copy(
                 binding = presentedBinding
                     ?.let { presented -> storedBinding.mergeMissing(presented) }
@@ -163,7 +209,9 @@ class AgentAccessManager(
             val (next, credential) = applyPermanentGrant(
                 consumedState,
                 effectiveRequest,
-                now
+                now,
+                effectiveRequest.requestedMode.takeUnless { it == AgentGrantMode.UNKNOWN }
+                    ?: AgentGrantMode.STANDARD
             )
             next to AgentPairingCompletionResult.Granted(credential)
         }
@@ -176,7 +224,8 @@ class AgentAccessManager(
         val parsed = AgentTokenCodec.parse(refreshToken)
             ?: return AgentSessionIssueResult.InvalidToken
         val now = clockMillis()
-        return store.mutate { state ->
+        var replayedAgentId: String? = null
+        val result = store.mutate { state ->
             if (!state.accessEnabled) {
                 return@mutate state to AgentSessionIssueResult.Disabled
             }
@@ -184,6 +233,13 @@ class AgentAccessManager(
                 it.credentialId == parsed.id && it.revokedAt == null
             } ?: return@mutate state to AgentSessionIssueResult.InvalidToken
             if (!AgentTokenCodec.matches(credential.refreshSecretHash, parsed.secret)) {
+                val reused = credential.previousRefreshSecretHash
+                    ?.let { AgentTokenCodec.matches(it, parsed.secret) } == true
+                if (reused) {
+                    replayedAgentId = credential.agentId
+                    return@mutate revokeAgentState(state, credential.agentId, now) to
+                        AgentSessionIssueResult.Revoked
+                }
                 return@mutate state to AgentSessionIssueResult.InvalidToken
             }
             val grant = state.grants.firstOrNull {
@@ -206,7 +262,9 @@ class AgentAccessManager(
             val refreshedCredential = credential.copy(
                 refreshSecretHash = AgentTokenCodec.hash(rotatedRefreshSecret),
                 lastUsedAt = now,
-                rotatedAt = now
+                rotatedAt = now,
+                previousRefreshSecretHash = credential.refreshSecretHash,
+                previousRotatedAt = now
             )
             val nextSessions = boundedSessions(
                 state.sessions.filter {
@@ -235,6 +293,8 @@ class AgentAccessManager(
                 )
             )
         }
+        replayedAgentId?.let { refreshReplayListener(it, now) }
+        return result
     }
 
     suspend fun authorize(
@@ -255,15 +315,21 @@ class AgentAccessManager(
             if (!AgentTokenCodec.matches(session.accessSecretHash, parsed.secret)) {
                 return@mutate state to AgentAuthorizationResult.InvalidToken
             }
+            val grant = state.grants.firstOrNull {
+                it.agentId == session.agentId && it.revokedAt == null
+            } ?: return@mutate state to AgentAuthorizationResult.Revoked
+            if (grant.mode == AgentGrantMode.UNKNOWN ||
+                (grant.expiresAt != null && grant.expiresAt <= now)
+            ) {
+                return@mutate revokeAgentState(state, grant.agentId, now) to
+                    AgentAuthorizationResult.Revoked
+            }
             if (session.expiresAt <= now) {
                 val next = state.copy(
                     sessions = state.sessions.filterNot { it.sessionId == session.sessionId }
                 )
                 return@mutate next to AgentAuthorizationResult.Expired
             }
-            val grant = state.grants.firstOrNull {
-                it.agentId == session.agentId && it.revokedAt == null
-            } ?: return@mutate state to AgentAuthorizationResult.Revoked
             if (!grant.binding.matches(presentedBinding)) {
                 return@mutate state to AgentAuthorizationResult.BindingMismatch
             }
@@ -292,20 +358,25 @@ class AgentAccessManager(
         return store.mutate { state ->
             val found = state.grants.any { it.agentId == agentId && it.revokedAt == null }
             if (!found) return@mutate state to false
-            val next = state.copy(
-                grants = state.grants.map {
-                    if (it.agentId == agentId && it.revokedAt == null) it.copy(revokedAt = now)
-                    else it
-                },
-                credentials = state.credentials.filterNot { it.agentId == agentId },
-                sessions = state.sessions.filterNot { it.agentId == agentId },
-                pairingChallenges = state.pairingChallenges.filterNot {
-                    it.request.agentId == agentId
-                }
-            )
-            next to true
+            revokeAgentState(state, agentId, now) to true
         }
     }
+
+    private fun revokeAgentState(
+        state: AgentSecurityStateV1,
+        agentId: String,
+        now: Long
+    ): AgentSecurityStateV1 = state.copy(
+        grants = state.grants.map {
+            if (it.agentId == agentId && it.revokedAt == null) it.copy(revokedAt = now)
+            else it
+        },
+        credentials = state.credentials.filterNot { it.agentId == agentId },
+        sessions = state.sessions.filterNot { it.agentId == agentId },
+        pairingChallenges = state.pairingChallenges.filterNot {
+            it.request.agentId == agentId
+        }
+    )
 
     suspend fun revokeAllAgents(): Int {
         val now = clockMillis()
@@ -348,13 +419,31 @@ class AgentAccessManager(
     private fun applyPermanentGrant(
         state: AgentSecurityStateV1,
         request: AgentIdentityRequest,
-        now: Long
+        now: Long,
+        mode: AgentGrantMode = AgentGrantMode.PERMANENT_FULL_ACCESS
     ): Pair<AgentSecurityStateV1, AgentBootstrapCredential> {
         val refreshSecret = secretGenerator()
         val credentialId = nextId()
         val grant = AgentGrantRecord(
             agentId = request.agentId,
             displayName = request.displayName,
+            mode = mode,
+            scopes = when (mode) {
+                AgentGrantMode.READ_ONLY -> setOf(
+                    AgentScope.TASKS_READ, AgentScope.CATALOG_READ, AgentScope.HISTORY_READ
+                )
+                AgentGrantMode.STANDARD -> setOf(
+                    AgentScope.TASKS_READ, AgentScope.TASKS_CREATE, AgentScope.TASKS_UPDATE,
+                    AgentScope.TASKS_DELETE, AgentScope.TASKS_ENABLE,
+                    AgentScope.CATALOG_READ, AgentScope.HISTORY_READ
+                )
+                AgentGrantMode.TIMED_FULL_ACCESS,
+                AgentGrantMode.PERMANENT_FULL_ACCESS -> AgentScope.FULL_ACCESS
+                AgentGrantMode.UNKNOWN -> emptySet()
+            },
+            expiresAt = if (mode == AgentGrantMode.TIMED_FULL_ACCESS) {
+                now + TIMED_FULL_ACCESS_DURATION_MS
+            } else null,
             binding = request.binding,
             createdAt = now
         )
@@ -463,6 +552,7 @@ class AgentAccessManager(
         const val MAX_RETAINED_GRANTS = 128
         const val MAX_DISPLAY_NAME_LENGTH = 128
         const val MAX_BINDING_VALUE_LENGTH = 256
+        private const val TIMED_FULL_ACCESS_DURATION_MS = 60 * 60 * 1000L
         val AGENT_ID_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}")
     }
 }

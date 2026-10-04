@@ -292,4 +292,6 @@
     <string name="trigger_wear_event">Wear OS घड़ी</string>
 
     <string name="ask_nexaflow">NexaFlow से पूछें…</string>
+
+    <string name="task_restore_failed">कार्य की पिछली सेटिंग बहाल नहीं की जा सकीं: %1$s</string>
 </resources>

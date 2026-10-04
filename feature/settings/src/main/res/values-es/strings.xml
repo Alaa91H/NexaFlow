@@ -416,4 +416,26 @@
     <string name="sms_default_role_set">Configurar</string>
     <string name="sms_default_role_subtitle">Necesaria para bloquear SMS antes de su entrega</string>
     <string name="sms_default_role_title">Aplicación de SMS predeterminada</string>
+    <string name="agent_permanent_access_warning">Aviso: Los agentes vinculados tienen acceso total permanente. Revisa las solicitudes y revoca los agentes que ya no sean de confianza.</string>
+    <string name="agent_reduce_permissions">Reducir permisos</string>
+    <string name="agent_lan_access_tls_required">El acceso LAN no está disponible temporalmente hasta que se admitan conexiones TLS cifradas.</string>
+
+    <string name="agent_grant_mode_read_only">Solo lectura</string>
+    <string name="agent_grant_mode_standard">Acceso estándar</string>
+    <string name="agent_grant_mode_timed_full_access">Acceso completo durante una hora</string>
+    <string name="agent_permanent_access_confirm_title">Confirmar acceso completo permanente</string>
+    <string name="agent_permanent_access_confirm">Conceder acceso permanente</string>
+    <string name="agent_automation_approval_title">Aprobar una tarea de agente de alto riesgo</string>
+    <string name="agent_automation_approval_help">Revisa la definición exacta de la tarea antes de aprobarla. Las aprobaciones caducan en cinco minutos y solo se pueden usar una vez.</string>
+    <string name="agent_automation_approval_agent_id">ID del agente vinculado</string>
+    <string name="agent_automation_approval_id">ID de aprobación</string>
+    <string name="agent_automation_approval_hash">Hash exacto del contenido de la tarea</string>
+    <string name="agent_automation_approval_confirm">Aprobar esta definición</string>
+    <string name="agent_automation_approval_token">ID de aprobación (válido durante cinco minutos): %1$s</string>
+    <string name="agent_automation_approval_none">No hay tareas de agente de alto riesgo pendientes.</string>
+    <string name="agent_automation_approval_pending">Riesgo %1$s · Agente %2$s · caduca %3$s</string>
+    <string name="agent_automation_approval_review">Revisar tarea</string>
+    <string name="agent_automation_approval_review_title">Revisar tarea de riesgo %1$s</string>
+    <string name="agent_automation_approval_summary_unavailable">No se pueden ver los detalles de la tarea. No apruebes esta solicitud.</string>
+    <string name="agent_automation_approval_reject">Rechazar</string>
 </resources>

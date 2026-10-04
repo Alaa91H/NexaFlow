@@ -418,4 +418,26 @@
     <string name="sms_default_role_set">Definir</string>
     <string name="sms_default_role_subtitle">Necessário para bloquear SMS antes da entrega</string>
     <string name="sms_default_role_title">App de SMS padrão</string>
+    <string name="agent_permanent_access_warning">Aviso: os agentes vinculados têm acesso total permanente. Revise as solicitações e revogue agentes que já não sejam confiáveis.</string>
+    <string name="agent_reduce_permissions">Reduzir permissões</string>
+    <string name="agent_lan_access_tls_required">O acesso LAN está temporariamente indisponível até haver suporte a conexões TLS criptografadas.</string>
+
+    <string name="agent_grant_mode_read_only">Somente leitura</string>
+    <string name="agent_grant_mode_standard">Acesso padrão</string>
+    <string name="agent_grant_mode_timed_full_access">Acesso total por uma hora</string>
+    <string name="agent_permanent_access_confirm_title">Confirmar acesso total permanente</string>
+    <string name="agent_permanent_access_confirm">Conceder acesso permanente</string>
+    <string name="agent_automation_approval_title">Aprovar uma tarefa de agente de alto risco</string>
+    <string name="agent_automation_approval_help">Revise a definição exata da tarefa antes de aprová-la. As aprovações expiram após cinco minutos e só podem ser usadas uma vez.</string>
+    <string name="agent_automation_approval_agent_id">ID do agente emparelhado</string>
+    <string name="agent_automation_approval_id">ID de aprovação</string>
+    <string name="agent_automation_approval_hash">Hash exato do conteúdo da tarefa</string>
+    <string name="agent_automation_approval_confirm">Aprovar esta definição</string>
+    <string name="agent_automation_approval_token">ID de aprovação (válido por cinco minutos): %1$s</string>
+    <string name="agent_automation_approval_none">Não há tarefas de agente de alto risco aguardando aprovação.</string>
+    <string name="agent_automation_approval_pending">Risco %1$s · Agente %2$s · expira em %3$s</string>
+    <string name="agent_automation_approval_review">Revisar tarefa</string>
+    <string name="agent_automation_approval_review_title">Revisar tarefa de risco %1$s</string>
+    <string name="agent_automation_approval_summary_unavailable">Os detalhes da tarefa não estão disponíveis. Não aprove esta solicitação.</string>
+    <string name="agent_automation_approval_reject">Rejeitar</string>
 </resources>

@@ -418,4 +418,26 @@
     <string name="sms_default_role_set">Назначить</string>
     <string name="sms_default_role_subtitle">Требуется для блокировки SMS до доставки</string>
     <string name="sms_default_role_title">SMS-приложение по умолчанию</string>
+    <string name="agent_permanent_access_warning">Предупреждение: связанные агенты имеют постоянный полный доступ. Проверяйте запросы и отзывайте доступ у агентов, которым больше не доверяете.</string>
+    <string name="agent_reduce_permissions">Сократить разрешения</string>
+    <string name="agent_lan_access_tls_required">Доступ по LAN временно недоступен до поддержки зашифрованных TLS-соединений.</string>
+
+    <string name="agent_grant_mode_read_only">Только чтение</string>
+    <string name="agent_grant_mode_standard">Стандартный доступ</string>
+    <string name="agent_grant_mode_timed_full_access">Полный доступ на один час</string>
+    <string name="agent_permanent_access_confirm_title">Подтвердить постоянный полный доступ</string>
+    <string name="agent_permanent_access_confirm">Предоставить постоянный доступ</string>
+    <string name="agent_automation_approval_title">Одобрить задачу агента с высоким уровнем риска</string>
+    <string name="agent_automation_approval_help">Перед одобрением проверьте точное описание задачи. Срок действия одобрения — пять минут, использовать его можно один раз.</string>
+    <string name="agent_automation_approval_agent_id">ID связанного агента</string>
+    <string name="agent_automation_approval_id">ID одобрения</string>
+    <string name="agent_automation_approval_hash">Точный хеш содержимого задачи</string>
+    <string name="agent_automation_approval_confirm">Одобрить это описание</string>
+    <string name="agent_automation_approval_token">ID одобрения (действует пять минут): %1$s</string>
+    <string name="agent_automation_approval_none">Нет ожидающих одобрения задач агентов с высоким уровнем риска.</string>
+    <string name="agent_automation_approval_pending">Риск %1$s · Агент %2$s · срок до %3$s</string>
+    <string name="agent_automation_approval_review">Проверить задачу</string>
+    <string name="agent_automation_approval_review_title">Проверить задачу с риском %1$s</string>
+    <string name="agent_automation_approval_summary_unavailable">Сведения о задаче недоступны. Не одобряйте этот запрос.</string>
+    <string name="agent_automation_approval_reject">Отклонить</string>
 </resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>TooGenericExceptionCaught:AndroidAgentApiRuntime.kt:AndroidAgentApiRuntime$failure: Exception</ID>
+    <ID>TooGenericExceptionCaught:LocationCheckWorker.kt:LocationCheckWorker$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MainActivity.kt:MainActivity$t: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>

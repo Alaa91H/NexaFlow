@@ -8,9 +8,9 @@ import com.nexaflow.domain.models.TriggerType
  * Plan §18 - agent-mutation risk classification.
  *
  * Scores an automation definition for audit, telemetry, routing and
- * debugging. It never gates mutations: full permanent access means no
- * per-task approval dialogs. The system-computed level (not any
- * caller-supplied hint) is what the service persists into API metadata.
+ * debugging and is also consumed by mutation policy to decide whether an
+ * agent-authored definition requires explicit user approval. The system-
+ * computed level (not any caller-supplied hint) is what the service persists.
  *
  * Rules are deliberately transparent and family-based so agents and users
  * can predict them; capability-level enforcement stays in the domain
