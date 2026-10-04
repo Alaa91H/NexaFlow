@@ -1,4 +1,12 @@
-# Validation record — v3.74 candidate
+# Validation record
+
+## Current checkout — v3.91.8 baseline audit, 2026-10-05
+
+The source audit and current local validation status are recorded in [`AUDIT.md`](AUDIT.md) and [`MASTER_PLAN_STATUS_2026-10-05.md`](MASTER_PLAN_STATUS_2026-10-05.md). Repository catalog/locale/suppression/README checks and the release-signing guard unittest passed. `detekt` completed. The combined `lintDebug` run did not finish because its Gradle daemon stopped advancing at `automation-builder` after reaching approximately 4.3 GB resident memory. A broad `testDebugUnitTest --continue` run executed the datastore module and reported 5/46 failures: DataStore could not rename a temporary file over an existing file. A Java probe confirmed this host's `File.renameTo(existingTarget)` returns `false`. The same baseline passed the `testDebugUnitTest` workflow gate on Ubuntu in [GitHub Actions run 37227693119](https://github.com/Alaa91H/NexaFlow/actions/runs/37227693119), confirming the Windows-local failures are host-specific. The broad local run continued into execution test compilation, then was interrupted after no visible progress for several minutes; the local test task is **not passed**.
+
+`app-debug.apk` and `wear-debug.apk` were built and their V2 signatures verified; the app signer is `Android Debug`. The merged release manifest audit passed. A release packaging task without production credentials failed closed as expected. A local debug-opt-in release build reached R8 but was stopped under host resource pressure before producing an APK. No production-signed release APK, remote CI result, tag, or release asset is claimed. Full-history secret scanning was unavailable (`gitleaks`/`trufflehog` not installed), and there was no connected device; device and OEM checks remain `NOT TESTED`.
+
+## Historical validation record — v3.74 candidate
 
 Status: local integration checks passed. CI and publication are still pending until the commit, push, tag and release workflow complete.
 

@@ -17,7 +17,11 @@ val nexaFlowApplicationId = providers.gradleProperty("nexaflow.applicationId").g
 // Release signing: prefer the project keystore (keystore/keystore.properties,
 // gitignored — carries the SAME key that signed the currently installed app,
 // so updates install over it without data loss). Falls back to CI-provided
-// env vars, then to the debug keystore so ad-hoc builds never break.
+// env vars. Debug signing is available only with -PallowDebugSigning=true for
+// explicitly disposable local builds.
+val allowDebugSigning = providers.gradleProperty("allowDebugSigning")
+    .map(String::toBoolean)
+    .getOrElse(false)
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore/keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -133,8 +137,7 @@ android {
 
     signingConfigs {
         create("release") {
-            // Only configure when a real keystore is available; the release
-            // build type falls back to the debug config otherwise.
+            // Only configure when a real keystore is available.
             if (releaseSigningConfigured) {
                 storeFile = releaseStoreFile
                 storePassword = releaseStorePassword
@@ -152,11 +155,31 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Sign with the project keystore when configured; otherwise fall
-            // back to the debug keystore so CI/ad-hoc builds stay installable.
-            signingConfig = signingConfigs.findByName("release")?.takeIf {
+            val productionSigning = signingConfigs.findByName("release")?.takeIf {
                 it.storeFile?.exists() == true
-            } ?: signingConfigs.getByName("debug")
+            }
+            if (productionSigning != null) {
+                signingConfig = productionSigning
+            } else if (allowDebugSigning) {
+                logger.warn("Release APK uses debug signing because -PallowDebugSigning=true was explicitly set.")
+                signingConfig = signingConfigs.getByName("debug")
+            } else {
+                // Keep task discovery/configuration usable for lint and tests.
+                // Fail only when an unsigned release artifact is requested.
+                tasks.configureEach {
+                    if (name.startsWith("assembleRelease", ignoreCase = true) ||
+                        name.startsWith("bundleRelease", ignoreCase = true) ||
+                        name.startsWith("packageRelease", ignoreCase = true)
+                    ) {
+                        doFirst {
+                            throw GradleException(
+                                "Release builds require production signing. Configure the release keystore, " +
+                                    "or pass -PallowDebugSigning=true only for a disposable local build."
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
     compileOptions {

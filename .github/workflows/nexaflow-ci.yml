@@ -541,10 +541,16 @@ jobs:
         test -n "$NEXAFLOW_KEYSTORE_PASSWORD" || { echo "Version tags require NEXAFLOW_KEYSTORE_PASSWORD." >&2; exit 1; }
         test -n "$NEXAFLOW_KEY_ALIAS" || { echo "Version tags require NEXAFLOW_KEY_ALIAS." >&2; exit 1; }
         test -n "$NEXAFLOW_KEY_PASSWORD" || { echo "Version tags require NEXAFLOW_KEY_PASSWORD." >&2; exit 1; }
-    - name: Build with Gradle
+    - name: Build untagged APKs with explicit debug signing opt-in
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       env:
         # Google Maps API key for the embedded map picker; baked into every
         # distributed APK so the map works for all users, not just local builds.
+        NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
+      run: ./gradlew assembleDebug assembleRelease -PallowDebugSigning=true
+    - name: Build production-signed tag APKs
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleDebug assembleRelease
     - name: Verify packaged version matches release tag

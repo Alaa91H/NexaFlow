@@ -23,6 +23,15 @@
 
 ## [Unreleased]
 
+### Security and CI
+
+- Require explicit production signing for release artifacts; allow debug signing only through an explicit disposable-build opt-in.
+- Make untagged CI builds opt into debug signing while version-tag builds require production signing credentials.
+
+### Validation
+
+- Add regression tests for the local release-signing guard and tag-aware CI build selection.
+
 ## [v3.91.7] - 2026-10-04
 
 ### Security — Managed agent approvals and recovery
