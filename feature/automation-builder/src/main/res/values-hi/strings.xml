@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="canonical_actions_title">उन्नत कार्रवाइयाँ</string>
-    <string name="canonical_actions_subtitle">टाइप की गई नेटिव क्रियाएँ</string>
     <string name="canonical_battery_title">बैटरी सीमा</string>
     <string name="canonical_battery_subtitle">बैटरी स्तर और चार्जिंग शर्तें</string>
     <string name="canonical_add_battery">बैटरी शर्त जोड़ें</string>
@@ -1101,7 +1099,6 @@
     <string name="http_output_path">प्रतिक्रिया को संदर्भ पथ पर सहेजें (वैकल्पिक)</string>
     <string name="http_output_path_hint">बाद की क्रियाएँ इसे %CTX चयनकर्ताओं से पढ़ सकती हैं।</string>
     <string name="wait_quick_timer">क्विक टाइमर</string>
-    <string name="wait_custom_duration">कस्टम अवधि (सेकंड)</string>
     <string name="wait_1_min">1 मिनट</string>
     <string name="wait_5_min">5 मिनट</string>
     <string name="wait_10_min">10 मिनट</string>
@@ -1234,7 +1231,6 @@
     <string name="migrate_banner_button">अभी माइग्रेट करें</string>
     <string name="clamp_range">मान %1$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
     <string name="clamp_range_unit">मान %1$s %2$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
-    <string name="wait_unit_seconds">सेकंड</string>
     <string name="http_retry_timing_label">पुनः प्रयास समय</string>
     <string name="http_retry_base_ms">आधार: %1$d ms</string>
     <string name="http_retry_cap_ms">सीमा: %1$d ms</string>

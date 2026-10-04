@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="canonical_actions_title">Расширенные действия</string>
-    <string name="canonical_actions_subtitle">Типизированные нативные операции</string>
     <string name="canonical_battery_title">Порог батареи</string>
     <string name="canonical_battery_subtitle">Условия уровня заряда и зарядки</string>
     <string name="canonical_add_battery">Добавить условие батареи</string>
@@ -1101,7 +1099,6 @@
     <string name="http_output_path">Сохранить ответ по пути контекста (необязательно)</string>
     <string name="http_output_path_hint">Последующие действия могут читать его через селекторы %CTX.</string>
     <string name="wait_quick_timer">Быстрый таймер</string>
-    <string name="wait_custom_duration">Своя длительность (секунды)</string>
     <string name="wait_1_min">1 мин</string>
     <string name="wait_5_min">5 мин</string>
     <string name="wait_10_min">10 мин</string>
@@ -1234,7 +1231,6 @@
     <string name="migrate_banner_button">Мигрировать сейчас</string>
     <string name="clamp_range">Значение должно быть между %1$s — оно было скорректировано</string>
     <string name="clamp_range_unit">Значение должно быть между %1$s %2$s — оно было скорректировано</string>
-    <string name="wait_unit_seconds">секунд</string>
     <string name="http_retry_timing_label">Интервал повторов</string>
     <string name="http_retry_base_ms">База: %1$d мс</string>
     <string name="http_retry_cap_ms">Потолок: %1$d мс</string>

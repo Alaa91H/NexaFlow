@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="canonical_actions_title">Advanced actions</string>
-    <string name="canonical_actions_subtitle">Typed native operations</string>
     <string name="canonical_battery_title">Battery threshold</string>
     <string name="canonical_battery_subtitle">State-based battery threshold and charging filters</string>
     <string name="canonical_add_battery">Add battery condition</string>
@@ -1125,7 +1123,6 @@
     <string name="http_output_path">Store response at context path (optional)</string>
     <string name="http_output_path_hint">Later actions can read it via %CTX selectors.</string>
     <string name="wait_quick_timer">Quick timer</string>
-    <string name="wait_custom_duration">Custom duration (seconds)</string>
     <string name="wait_1_min">1 min</string>
     <string name="wait_5_min">5 min</string>
     <string name="wait_10_min">10 min</string>
@@ -1258,7 +1255,6 @@
     <string name="migrate_banner_button">Migrate now</string>
     <string name="clamp_range">Value must be between %1$s — it was adjusted to fit</string>
     <string name="clamp_range_unit">Value must be between %1$s %2$s — it was adjusted to fit</string>
-    <string name="wait_unit_seconds">seconds</string>
     <string name="http_retry_timing_label">Retry timing</string>
     <string name="http_retry_base_ms">Base: %1$d ms</string>
     <string name="http_retry_cap_ms">Cap: %1$d ms</string>

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="canonical_actions_title">إجراءات متقدمة</string>
-    <string name="canonical_actions_subtitle">عمليات أصلية ذات أنواع محددة</string>
     <string name="canonical_battery_title">عتبة البطارية</string>
     <string name="canonical_battery_subtitle">شروط مستوى البطارية والشحن</string>
     <string name="canonical_add_battery">إضافة شرط بطارية</string>
@@ -1115,7 +1113,6 @@
     <string name="http_output_path">تخزين الاستجابة في مسار السياق (اختياري)</string>
     <string name="http_output_path_hint">يمكن للإجراءات اللاحقة قراءته عبر محددات %CTX.</string>
     <string name="wait_quick_timer">مؤقت سريع</string>
-    <string name="wait_custom_duration">مدة مخصصة (بالثواني)</string>
     <string name="wait_1_min">دقيقة واحدة</string>
     <string name="wait_5_min">5 دقائق</string>
     <string name="wait_10_min">10 دقائق</string>
@@ -1248,7 +1245,6 @@
     <string name="migrate_banner_button">الترحيل الآن</string>
     <string name="clamp_range">يجب أن تكون القيمة بين %1$s — تم تعديلها لتلائم</string>
     <string name="clamp_range_unit">يجب أن تكون القيمة بين %1$s %2$s — تم تعديلها لتلائم</string>
-    <string name="wait_unit_seconds">ثانية</string>
     <string name="http_retry_timing_label">توقيت إعادة المحاولة</string>
     <string name="http_retry_base_ms">الأساس: %1$d مللي ثانية</string>
     <string name="http_retry_cap_ms">الحد الأقصى: %1$d مللي ثانية</string>

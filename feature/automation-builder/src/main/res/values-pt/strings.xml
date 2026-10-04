@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="canonical_actions_title">Ações avançadas</string>
-    <string name="canonical_actions_subtitle">Operações nativas tipadas</string>
     <string name="canonical_battery_title">Limite da bateria</string>
     <string name="canonical_battery_subtitle">Condições de nível e carregamento</string>
     <string name="canonical_add_battery">Adicionar condição de bateria</string>
@@ -1101,7 +1099,6 @@
     <string name="http_output_path">Armazenar resposta no caminho de contexto (opcional)</string>
     <string name="http_output_path_hint">Ações posteriores podem lê-lo via seletores %CTX.</string>
     <string name="wait_quick_timer">Temporizador rápido</string>
-    <string name="wait_custom_duration">Duração personalizada (segundos)</string>
     <string name="wait_1_min">1 min</string>
     <string name="wait_5_min">5 min</string>
     <string name="wait_10_min">10 min</string>
@@ -1234,7 +1231,6 @@
     <string name="migrate_banner_button">Migrar agora</string>
     <string name="clamp_range">O valor deve estar entre %1$s — foi ajustado</string>
     <string name="clamp_range_unit">O valor deve estar entre %1$s %2$s — foi ajustado</string>
-    <string name="wait_unit_seconds">segundos</string>
     <string name="http_retry_timing_label">Tempo entre tentativas</string>
     <string name="http_retry_base_ms">Base: %1$d ms</string>
     <string name="http_retry_cap_ms">Limite: %1$d ms</string>

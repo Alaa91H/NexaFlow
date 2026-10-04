@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="canonical_actions_title">Gelişmiş işlemler</string>
-    <string name="canonical_actions_subtitle">Türlü yerel işlemler</string>
     <string name="canonical_battery_title">Pil eşiği</string>
     <string name="canonical_battery_subtitle">Pil seviyesi ve şarj koşulları</string>
     <string name="canonical_add_battery">Pil koşulu ekle</string>
@@ -1101,7 +1099,6 @@
     <string name="http_output_path">Yanıtı bağlam yoluna kaydet (isteğe bağlı)</string>
     <string name="http_output_path_hint">Sonraki eylemler %CTX seçicileriyle okuyabilir.</string>
     <string name="wait_quick_timer">Hızlı zamanlayıcı</string>
-    <string name="wait_custom_duration">Özel süre (saniye)</string>
     <string name="wait_1_min">1 dk</string>
     <string name="wait_5_min">5 dk</string>
     <string name="wait_10_min">10 dk</string>
@@ -1234,7 +1231,6 @@
     <string name="migrate_banner_button">Şimdi taşı</string>
     <string name="clamp_range">Değer %1$s arasında olmalı — sığacak şekilde ayarlandı</string>
     <string name="clamp_range_unit">Değer %1$s %2$s arasında olmalı — sığacak şekilde ayarlandı</string>
-    <string name="wait_unit_seconds">saniye</string>
     <string name="http_retry_timing_label">Yeniden deneme zamanlaması</string>
     <string name="http_retry_base_ms">Temel: %1$d ms</string>
     <string name="http_retry_cap_ms">Üst sınır: %1$d ms</string>

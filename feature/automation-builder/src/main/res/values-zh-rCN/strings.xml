@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="canonical_actions_title">高级操作</string>
-    <string name="canonical_actions_subtitle">类型化原生操作</string>
     <string name="canonical_battery_title">电量阈值</string>
     <string name="canonical_battery_subtitle">电池电量和充电条件</string>
     <string name="canonical_add_battery">添加电池条件</string>
@@ -1101,7 +1099,6 @@
     <string name="http_output_path">将响应存储到上下文路径（可选）</string>
     <string name="http_output_path_hint">后续操作可通过 %CTX 选择器读取。</string>
     <string name="wait_quick_timer">快速计时</string>
-    <string name="wait_custom_duration">自定义时长（秒）</string>
     <string name="wait_1_min">1 分钟</string>
     <string name="wait_5_min">5 分钟</string>
     <string name="wait_10_min">10 分钟</string>
@@ -1234,7 +1231,6 @@
     <string name="migrate_banner_button">立即迁移</string>
     <string name="clamp_range">数值必须在 %1$s 之间 — 已自动调整</string>
     <string name="clamp_range_unit">数值必须在 %1$s %2$s 之间 — 已自动调整</string>
-    <string name="wait_unit_seconds">秒</string>
     <string name="http_retry_timing_label">重试间隔</string>
     <string name="http_retry_base_ms">基础：%1$d 毫秒</string>
     <string name="http_retry_cap_ms">上限：%1$d 毫秒</string>
