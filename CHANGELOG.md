@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [v3.91.5] - 2026-10-04
+
+### Added — Communication automations
+
+- Added separate call actions for silent blocking, explicit rejection, and SMS replies, with configurable sender and call conditions.
+- Added incoming SMS actions for blocking messages and replying with a configurable message. Replies use the sender from the triggering message, so no separate recipient entry is needed.
+- Added an optional Android default-SMS-app role setting. NexaFlow can block an incoming SMS before delivery only after the user selects it as the default SMS app; the setting is not required for other app features.
+
+### Improved — Safety and localization
+
+- Disclose Android's default-SMS-app requirement and MMS limitations before requesting the role; keep messages and phone numbers out of persistent diagnostics.
+- Translate the new communication controls and disclosures across the shipped locales.
+- Skip incoming-message notifications when notification permission is unavailable, while continuing message handling and automation.
 ## [v3.91.4] - 2026-10-03
 
 ### Added — Managed AI agents
