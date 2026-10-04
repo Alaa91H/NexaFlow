@@ -20,6 +20,7 @@ import com.nexaflow.core.airuntime.AiToolCall
 import com.nexaflow.core.airuntime.AiToolDefinition
 import com.nexaflow.core.airuntime.AiToolExecutor
 import com.nexaflow.core.airuntime.AiToolResult
+import com.nexaflow.core.airuntime.AiAgentTraceRecorder
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.security.InMemorySecureStorage
 import com.nexaflow.data.agents.AgentDefinitionRepository
@@ -62,6 +63,7 @@ class ManagedAgentRunCoordinatorTest {
         val tool = FakeTools()
         val provider = ApprovalProvider()
         val registry = AiProviderRegistry(listOf(provider))
+        val traces = AiAgentTraceRecorder()
         val definitionRepository = AgentDefinitionRepository(database.agentDefinitionDao())
         val runRepository = AgentRunRepository(database.agentRunDao())
         val coordinator = ManagedAgentRunCoordinator(
@@ -70,6 +72,7 @@ class ManagedAgentRunCoordinatorTest {
             memories = AgentMemoryRepository(InMemorySecureStorage()),
             registry = registry,
             tools = tool,
+            traceRecorder = traces,
             context = ApplicationProvider.getApplicationContext()
         )
         val definition = AgentDefinition(
@@ -109,6 +112,14 @@ class ManagedAgentRunCoordinatorTest {
         assertTrue(persistedEvents.none { it.safeCode.contains("private") || it.safeCode.contains("account") })
         assertFalse(persistedEvents.toString().contains("private user prompt"))
         assertEquals(2, provider.requests)
+        val trace = traces.list().single()
+        assertEquals(runId, trace.conversationId)
+        assertEquals("COMPLETED", trace.outcome.name)
+        assertEquals("local-profile", trace.providerId)
+        assertEquals("local-model", trace.modelId)
+        assertEquals("private user prompt".length, trace.userChars)
+        assertFalse(trace.toString().contains("private user prompt"))
+        assertFalse(trace.toString().contains("secret-account-value"))
     }
 
     @Test

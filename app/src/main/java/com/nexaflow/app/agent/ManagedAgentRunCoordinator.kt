@@ -24,6 +24,8 @@ import com.nexaflow.core.airuntime.AiToolCall
 import com.nexaflow.core.airuntime.AiToolExecutor
 import com.nexaflow.core.airuntime.AiToolResult
 import com.nexaflow.core.airuntime.AiTraceRedactor
+import com.nexaflow.core.airuntime.AiAgentTraceRecorder
+import com.nexaflow.core.airuntime.AiAgentTraceOutcome
 import com.nexaflow.data.agents.AgentDefinitionRepository
 import com.nexaflow.data.agents.AgentRunRepository
 import com.nexaflow.data.agents.AgentRunStartResult
@@ -57,6 +59,7 @@ class ManagedAgentRunCoordinator @Inject constructor(
     private val memories: AgentMemoryRepository,
     private val registry: AiProviderRegistry,
     private val tools: AiToolExecutor,
+    private val traceRecorder: AiAgentTraceRecorder = AiAgentTraceRecorder(),
     @ApplicationContext private val context: Context
 ) : ManagedAgentRunUseCase {
 
@@ -79,6 +82,7 @@ class ManagedAgentRunCoordinator @Inject constructor(
         }
 
         var runId: String? = null
+        var traceSession: AiAgentTraceRecorder.Session? = null
         try {
             val now = System.currentTimeMillis()
             val start = runs.start(
@@ -137,6 +141,14 @@ class ManagedAgentRunCoordinator @Inject constructor(
                 return@channelFlow
             }
 
+            val activeTrace = traceRecorder.startSession(
+                conversationId = run.id,
+                userChars = prompt.length,
+                providerId = providerDescriptor.id,
+                modelId = providerDescriptor.modelId
+            )
+            traceSession = activeTrace
+
             val ledger = AgentBudgetLedger(definition.budget)
             val approvalGate = AgentToolApprovalGate { agent, call, onRequested ->
                 requestApproval(definition, run.id, agent, call, onRequested)
@@ -169,6 +181,7 @@ class ManagedAgentRunCoordinator @Inject constructor(
             val engine = AiConversationEngine(
                 registry = registry,
                 toolExecutor = budgetExecutor,
+                traceSink = activeTrace,
                 turnTimeoutMillis = minOf(definition.budget.maxDurationMillis, AiConversationEngine.DEFAULT_TURN_TIMEOUT_MS),
                 maxToolIterations = definition.budget.maxTurns + 1,
                 allowTurn = { ledger.beginTurn() == AgentBudgetDecision.ALLOWED }
@@ -238,12 +251,14 @@ class ManagedAgentRunCoordinator @Inject constructor(
                 send(ManagedAgentRunEvent.Failed(run.id, terminalCode))
             }
         } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
+            traceSession?.onTerminal(AiAgentTraceOutcome.FAILED, "deadline_exceeded")
             runId?.let { runs.finish(it, AgentRunStatus.FAILED, "deadline_exceeded") }
             send(ManagedAgentRunEvent.Failed(runId, "deadline_exceeded"))
         } catch (cancelled: CancellationException) {
             runId?.let { withContext(NonCancellable) { runs.finish(it, AgentRunStatus.CANCELLED, "cancelled") } }
             throw cancelled
         } catch (_: Exception) {
+            traceSession?.onTerminal(AiAgentTraceOutcome.FAILED, "run_failed")
             runId?.let { runs.finish(it, AgentRunStatus.FAILED, "run_failed") }
             send(ManagedAgentRunEvent.Failed(runId, "run_failed"))
         }
