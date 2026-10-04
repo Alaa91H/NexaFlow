@@ -18,7 +18,7 @@ import com.nexaflow.core.execution.capability.CapabilityActionMapper
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
 import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
 import com.nexaflow.core.execution.capability.toSystemControlResult
-import com.nexaflow.core.execution.handler.ActionExecutionContext
+import com.nexaflow.core.execution.handler.ActionExecutionContextFactory
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.core.execution.variables.ScopedDataRuntime
 import com.nexaflow.core.logging.InMemoryLogStore
@@ -1598,19 +1598,10 @@ class ExecutionEngine(
         return compatibilityActionDispatcher.dispatch(
             action = action,
             canonicalCommand = canonicalCommand,
-            executionContext = ActionExecutionContext(
-                appContext = context,
-                controller = controller,
-                notificationSettings = notif,
-                channel = channel,
-                automationId = automationId,
-                executionId = executionId,
-                nodeId = canonicalCommand.commandId,
-                revertOnExit = revertOnExit,
-                runContext = runContext,
-                dataRuntime = dataRuntime,
-                capabilityService = capabilityExecutionService,
-                triggerEventData = triggerEventData,
+            executionContext = ActionExecutionContextFactory.create(
+                context, controller, notif, channel, automationId, executionId,
+                canonicalCommand.commandId, revertOnExit, runContext, dataRuntime,
+                capabilityExecutionService, triggerEventData,
             ),
         )
     }

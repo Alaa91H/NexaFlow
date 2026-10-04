@@ -2,9 +2,6 @@ package com.nexaflow.feature.settings
 
 import android.content.Context
 import android.content.Intent
-import android.app.role.RoleManager
-import android.os.Build
-import android.provider.Telephony
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -118,10 +115,6 @@ fun SettingsScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showAbout by remember { mutableStateOf(false) }
-    var showSmsRoleDisclosure by remember { mutableStateOf(false) }
-    var isDefaultSmsApp by remember {
-        mutableStateOf(Telephony.Sms.getDefaultSmsPackage(context) == context.packageName)
-    }
     var showLanguagePicker by rememberSaveable { mutableStateOf(false) }
     // Keep the settings screen compact: every group starts collapsed and a
     // tap replaces the currently expanded group instead of stacking content.
@@ -156,15 +149,8 @@ fun SettingsScreen(navController: NavController) {
             }
         }
     }
-    val smsRoleLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
-    }
 
-    // One professional flow: write the backup to cache, then open the system
-    // share sheet with that file. The sheet includes this app as a target
-    // («Save locally») at the top, so a single tap exports *and* shares.
+    // Share a cached backup through Android's system share sheet.
     val stringBackupSaveFailed = stringResource(R.string.backup_save_failed)
     val onExportShare: () -> Unit = {
         scope.launch {
@@ -273,21 +259,7 @@ fun SettingsScreen(navController: NavController) {
                     subtitle = stringResource(R.string.permission_manager_sub),
                     onClick = { navController.navigate("permission_manager") }
                 )
-                SettingRow(
-                    icon = Icons.Filled.Notifications,
-                    title = stringResource(R.string.sms_default_role_title),
-                    subtitle = stringResource(R.string.sms_default_role_subtitle),
-                    trailing = {
-                        Text(
-                            text = stringResource(
-                                if (isDefaultSmsApp) R.string.sms_default_role_active else R.string.sms_default_role_set
-                            ),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    },
-                    onClick = { if (!isDefaultSmsApp) showSmsRoleDisclosure = true }
-                )
+                SmsDefaultRoleSettingRow()
                 SettingRow(
                     icon = Icons.Filled.Notifications,
                     title = stringResource(R.string.notification_manager),
@@ -613,36 +585,6 @@ fun SettingsScreen(navController: NavController) {
                 AppLanguageManager.setLanguage(context, tag)
             },
             onDismiss = { showLanguagePicker = false }
-        )
-    }
-
-    if (showSmsRoleDisclosure) {
-        AlertDialog(
-            onDismissRequest = { showSmsRoleDisclosure = false },
-            title = { Text(stringResource(R.string.sms_default_role_disclosure_title)) },
-            text = { Text(stringResource(R.string.sms_default_role_disclosure_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showSmsRoleDisclosure = false
-                    val request = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        val roles = context.getSystemService(RoleManager::class.java)
-                        if (roles.isRoleAvailable(RoleManager.ROLE_SMS)) {
-                            roles.createRequestRoleIntent(RoleManager.ROLE_SMS)
-                        } else Intent(android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
-                    } else {
-                        Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT).putExtra(
-                            Telephony.Sms.Intents.EXTRA_PACKAGE_NAME,
-                            context.packageName
-                        )
-                    }
-                    smsRoleLauncher.launch(request)
-                }) { Text(stringResource(R.string.sms_default_role_continue)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSmsRoleDisclosure = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
         )
     }
 

@@ -1,26 +1,14 @@
 package com.nexaflow.domain.canonical
 
 /**
- * T15 — generated legacy mapping table: 57 triggers + 180
- * actions = 237 rules.
- *
- * Source of truth: scripts/canonical_inventory_review.py (T01 semantic
- * review, 237/237 REVIEWED). Regenerate with:
- *
- *     python3 scripts/generate_legacy_mapping_table.py
- *
- * Do not edit by hand. Mapping semantics change through the reviewed T01
- * inventory only, then regenerate; CI fails on drift between the two.
- *
- * Every rule consumes no config keys: legacy payloads are carried through
- * verbatim in [LegacyAdapterOutcome.Canonicalized.preservedConfig] until a
- * family phase upgrades values with schema type information. This is what
- * keeps the migration lossless and idempotent.
+ * Generated from the reviewed inventory: 57 triggers and 180
+ * actions. Regenerate with scripts/generate_legacy_mapping_table.py.
+ * Legacy config is preserved verbatim for lossless migration.
  */
-@Suppress("LargeClass") // one reviewed 237-entry table; splitting it would hide the parity contract
+@Suppress("LargeClass") // coverage is checked across generated files
 object LegacyMappingTable {
 
-    private data class Entry(
+    internal data class Entry(
         val observe: Boolean,
         val target: TargetId,
         val operation: OperationId?,
@@ -418,18 +406,6 @@ object LegacyMappingTable {
             operation = OperationId("core.operation.reject"),
             predicate = null,
         ),
-        Pair(LegacyNodeKind.ACTION, "CALL_BLOCK_SILENT") to Entry(
-            observe = false,
-            target = TargetId("core.communication.call"),
-            operation = OperationId("core.operation.reject"),
-            predicate = null,
-        ),
-        Pair(LegacyNodeKind.ACTION, "CALL_REPLY_WITH_SMS") to Entry(
-            observe = false,
-            target = TargetId("core.communication.sms"),
-            operation = OperationId("core.operation.send"),
-            predicate = null,
-        ),
         Pair(LegacyNodeKind.ACTION, "CALL_SILENCE") to Entry(
             observe = false,
             target = TargetId("core.communication.call"),
@@ -542,18 +518,6 @@ object LegacyMappingTable {
             observe = false,
             target = TargetId("core.rom.customization"),
             operation = OperationId("core.operation.set_configuration"),
-            predicate = null,
-        ),
-        Pair(LegacyNodeKind.ACTION, "SMS_BLOCK_INCOMING") to Entry(
-            observe = false,
-            target = TargetId("core.communication.sms"),
-            operation = OperationId("core.operation.set_blocked"),
-            predicate = null,
-        ),
-        Pair(LegacyNodeKind.ACTION, "SMS_REPLY") to Entry(
-            observe = false,
-            target = TargetId("core.communication.sms"),
-            operation = OperationId("core.operation.send"),
             predicate = null,
         ),
         Pair(LegacyNodeKind.ACTION, "SYSTEM_ADAPTIVE_BATTERY") to Entry(
@@ -1450,7 +1414,7 @@ object LegacyMappingTable {
             operation = OperationId("core.operation.set_value"),
             predicate = null,
         ),
-    )
+    ) + LegacyCommunicationMappingEntries.entries
 
     /** All 237 rules in deterministic (kind, legacyType) order. */
     fun all(): List<LegacyMappingRule> = entries.map { (key, entry) ->
@@ -1467,10 +1431,7 @@ object LegacyMappingTable {
 
     fun actionCount(): Int = entries.keys.count { it.first == LegacyNodeKind.ACTION }
 
-    /**
-     * The generated rule: builds the node skeleton (observe or invoke) with
-     * the reviewed stable identities and no fabricated configuration.
-     */
+    /** Builds a node using reviewed identities without fabricating config. */
     private class GeneratedLegacyMappingRule(
         override val legacyType: String,
         override val kind: LegacyNodeKind,
