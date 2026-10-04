@@ -1,5 +1,13 @@
 # Changelog
 
+## [v3.91.7] - 2026-10-04
+
+### Security — Managed agent approvals and recovery
+
+- Keyed persisted tool-approval fingerprints with the secure-storage HMAC key before writing them to the run database.
+- Bound redacted AI runtime traces to managed run IDs, recording provider, model, tool activity, and outcome without storing the raw prompt or API key.
+- Hardened process-restart recovery so interrupted agent runs invalidate pending approvals and cannot replay them.
+
 ## [v3.91.6] - 2026-10-04
 
 ### Security — Agent access and automation approvals
