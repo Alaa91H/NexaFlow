@@ -1,5 +1,28 @@
 # Changelog
 
+## [v3.91.8] - 2026-10-04
+
+### Fixed — AI provider chat
+
+- Normalize automation tool schemas for Gemini by expanding local JSON Schema references and removing unsupported Draft 2020-12 keywords before sending function declarations.
+- Verify Gemini text generation as well as API-key access to the model list, so a provider is not marked ready when it cannot generate responses.
+- Discard partial assistant text when a provider fails, preventing an incomplete draft from appearing as a completed reply.
+- Preserve coroutine cancellation during Gemini provider verification.
+
+### Improved — Automation builder
+
+- Place wait steps anywhere among actions before saving; existing canonical delay steps migrate into the ordered action sequence without changing their previous execution position.
+- Replace the delay slider with editable hour, minute, and second counters, including increment/decrement controls and a 24-hour limit.
+- Add paired-device selection and optional advanced Bluetooth name or MAC matching. Leaving both fields empty targets any device for the selected connection state.
+- Localize the new execution-order, wait-duration, and Bluetooth controls across all supported languages.
+
+### Validation and release
+
+- Add regression coverage for Gemini schemas and provider checks, wait-duration boundaries, Bluetooth matching, AI chat failures, secure storage, capability reporting, and theme preferences.
+- Publish only the versioned phone and Wear APK files from the validated tag workflow.
+
+## [Unreleased]
+
 ## [v3.91.7] - 2026-10-04
 
 ### Security — Managed agent approvals and recovery
@@ -28,8 +51,6 @@
 - Corrected README catalog facts, archived dated audit reports, and added CI guardrails for stale counts and suppression budgets.
 - Extended historical Room migration-chain coverage through schema version 27.
 - Preserved the existing source-citation exception for the archived competitive research report.
-
-## [Unreleased]
 
 ## [v3.91.5] - 2026-10-04
 
