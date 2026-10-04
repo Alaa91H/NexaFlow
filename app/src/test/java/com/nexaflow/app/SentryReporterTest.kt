@@ -6,6 +6,7 @@ import com.nexaflow.core.datastore.PrivacyPreferences
 import io.sentry.Sentry
 import io.sentry.android.core.SentryAndroidOptions
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -39,6 +40,7 @@ class SentryReporterTest {
     private lateinit var privacyPreferences: PrivacyPreferences
     private lateinit var reporter: SentryReporter
     private lateinit var reporterScope: CoroutineScope
+    private lateinit var initializationComplete: CompletableDeferred<Unit>
 
     private var initCalls = 0
     private var configuredDsn: String? = null
@@ -63,11 +65,13 @@ class SentryReporterTest {
         )
         initCalls = 0
         configuredDsn = null
+        initializationComplete = CompletableDeferred()
         reporter.initImpl = { _, configure ->
             initCalls++
             val options = SentryAndroidOptions()
             configure(options)
             configuredDsn = options.dsn
+            initializationComplete.complete(Unit)
         }
     }
 
@@ -132,6 +136,7 @@ class SentryReporterTest {
     private suspend fun awaitInitCalls(expected: Int) {
         withTimeout(10_000) {
             while (initCalls != expected) delay(25)
+            if (expected > 0) initializationComplete.await()
             // Give any stray duplicate emission a moment to surface.
             delay(150)
             while (initCalls != expected) delay(25)

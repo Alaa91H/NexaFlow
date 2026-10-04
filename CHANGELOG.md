@@ -8,6 +8,10 @@
 - Bound redacted AI runtime traces to managed run IDs, recording provider, model, tool activity, and outcome without storing the raw prompt or API key.
 - Hardened process-restart recovery so interrupted agent runs invalidate pending approvals and cannot replay them.
 
+### Reliability and release validation
+
+- Stabilized the Sentry opt-in regression test by waiting for DSN configuration to finish before asserting the initialized options.
+
 ## [v3.91.6] - 2026-10-04
 
 ### Security — Agent access and automation approvals
