@@ -10,6 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 TABLE_FILE = ROOT / "domain/src/main/java/com/nexaflow/domain/canonical/LegacyMappingTable.kt"
+COMMUNICATION_TABLE_FILE = ROOT / (
+    "domain/src/main/java/com/nexaflow/domain/canonical/"
+    "LegacyCommunicationMappingEntries.kt"
+)
 TEST_FILE = ROOT / (
     "domain/src/test/java/com/nexaflow/domain/canonical/"
     "LegacyMappingTableTest.kt"
@@ -41,21 +45,26 @@ def main() -> int:
     if len(triggers) + len(actions) != 237:
         problems.append(f"total coverage {len(triggers) + len(actions)}/237")
 
-    if not TABLE_FILE.is_file():
+    if not TABLE_FILE.is_file() or not COMMUNICATION_TABLE_FILE.is_file():
         problems.append("missing generated LegacyMappingTable.kt")
     else:
         table = TABLE_FILE.read_text(encoding="utf-8")
+        communication_table = COMMUNICATION_TABLE_FILE.read_text(encoding="utf-8")
+        all_mapping_source = table + communication_table
         for name in triggers:
-            if f'LegacyNodeKind.TRIGGER, "{name}"' not in table:
+            if f'LegacyNodeKind.TRIGGER, "{name}"' not in all_mapping_source:
                 problems.append(f"trigger {name} missing from generated table")
         for name in actions:
-            if f'LegacyNodeKind.ACTION, "{name}"' not in table:
+            if f'LegacyNodeKind.ACTION, "{name}"' not in all_mapping_source:
                 problems.append(f"action {name} missing from generated table")
 
         # Gate E — the generated table must not drift from the review.
-        from generate_legacy_mapping_table import generate
+        from generate_legacy_mapping_table import generate, generate_communication_entries
 
-        if generate() != table:
+        if (
+            generate() != table
+            or generate_communication_entries() != communication_table
+        ):
             problems.append("generated table drifted from the T01 review inventory")
 
     if not TEST_FILE.is_file():

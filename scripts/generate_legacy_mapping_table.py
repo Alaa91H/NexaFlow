@@ -22,30 +22,28 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from canonical_inventory_review import action_reviews, trigger_reviews  # noqa: E402
 
 TARGET_FILE = ROOT / "domain/src/main/java/com/nexaflow/domain/canonical/LegacyMappingTable.kt"
+COMMUNICATION_TARGET_FILE = ROOT / (
+    "domain/src/main/java/com/nexaflow/domain/canonical/"
+    "LegacyCommunicationMappingEntries.kt"
+)
+COMMUNICATION_ACTIONS = {
+    "CALL_BLOCK_SILENT",
+    "CALL_REPLY_WITH_SMS",
+    "SMS_BLOCK_INCOMING",
+    "SMS_REPLY",
+}
 
 HEADER = """package com.nexaflow.domain.canonical
 
 /**
- * T15 — generated legacy mapping table: {TRIGGERS} triggers + {ACTIONS}
- * actions = {TOTAL} rules.
- *
- * Source of truth: scripts/canonical_inventory_review.py (T01 semantic
- * review, 237/237 REVIEWED). Regenerate with:
- *
- *     python3 scripts/generate_legacy_mapping_table.py
- *
- * Do not edit by hand. Mapping semantics change through the reviewed T01
- * inventory only, then regenerate; CI fails on drift between the two.
- *
- * Every rule consumes no config keys: legacy payloads are carried through
- * verbatim in [LegacyAdapterOutcome.Canonicalized.preservedConfig] until a
- * family phase upgrades values with schema type information. This is what
- * keeps the migration lossless and idempotent.
+ * Generated from the reviewed inventory: {TRIGGERS} triggers and {ACTIONS}
+ * actions. Regenerate with scripts/generate_legacy_mapping_table.py.
+ * Legacy config is preserved verbatim for lossless migration.
  */
-@Suppress("LargeClass") // one reviewed 237-entry table; splitting it would hide the parity contract
+@Suppress("LargeClass") // coverage is checked across generated files
 object LegacyMappingTable {
 
-    private data class Entry(
+    internal data class Entry(
         val observe: Boolean,
         val target: TargetId,
         val operation: OperationId?,
@@ -55,7 +53,7 @@ object LegacyMappingTable {
     private val entries: Map<Pair<LegacyNodeKind, String>, Entry> = mapOf(
 """
 
-FOOTER = """    )
+FOOTER = """    ) + LegacyCommunicationMappingEntries.entries
 
     /** All {TOTAL} rules in deterministic (kind, legacyType) order. */
     fun all(): List<LegacyMappingRule> = entries.map { (key, entry) ->
@@ -72,10 +70,7 @@ FOOTER = """    )
 
     fun actionCount(): Int = entries.keys.count { it.first == LegacyNodeKind.ACTION }
 
-    /**
-     * The generated rule: builds the node skeleton (observe or invoke) with
-     * the reviewed stable identities and no fabricated configuration.
-     */
+    /** Builds a node using reviewed identities without fabricating config. */
     private class GeneratedLegacyMappingRule(
         override val legacyType: String,
         override val kind: LegacyNodeKind,
@@ -133,6 +128,8 @@ def generate() -> str:
             f"        ),"
         )
     for name in sorted(actions):
+        if name in COMMUNICATION_ACTIONS:
+            continue
         review = actions[name]
         operation = review.canonicalOperation
         if operation.startswith("MATCH_"):
@@ -156,11 +153,49 @@ def generate() -> str:
     return header + body + "\n" + footer
 
 
+def generate_communication_entries() -> str:
+    actions = action_reviews()
+    missing = COMMUNICATION_ACTIONS - actions.keys()
+    if missing:
+        raise SystemExit(
+            "communication mappings missing from review: "
+            + ", ".join(sorted(missing))
+        )
+    lines = [
+        "package com.nexaflow.domain.canonical",
+        "",
+        "/** Generated communication mappings, split to keep the legacy table bounded. */",
+        "internal object LegacyCommunicationMappingEntries {",
+        "    val entries: Map<Pair<LegacyNodeKind, String>, LegacyMappingTable.Entry> = mapOf(",
+    ]
+    for name in sorted(COMMUNICATION_ACTIONS):
+        review = actions[name]
+        operation = review.canonicalOperation
+        if operation.startswith("MATCH_"):
+            raise SystemExit(f"action {name} has predicate operation {operation}")
+        lines.append(
+            f'        Pair(LegacyNodeKind.ACTION, "{name}") to LegacyMappingTable.Entry(\n'
+            f"            observe = false,\n"
+            f'            target = TargetId("{review.canonicalTarget}"),\n'
+            f'            operation = OperationId("core.operation.{snake(operation)}"),\n'
+            f"            predicate = null,\n"
+            f"        ),"
+        )
+    lines.extend(["    )", "}", ""])
+    return "\n".join(lines)
+
+
 def main() -> int:
     generated = generate()
+    generated_communication = generate_communication_entries()
     if "--check" in sys.argv:
         current = TARGET_FILE.read_text(encoding="utf-8") if TARGET_FILE.is_file() else ""
-        if current != generated:
+        current_communication = (
+            COMMUNICATION_TARGET_FILE.read_text(encoding="utf-8")
+            if COMMUNICATION_TARGET_FILE.is_file()
+            else ""
+        )
+        if current != generated or current_communication != generated_communication:
             print(
                 "LEGACY_MAPPING_TABLE: DRIFT — regenerate with "
                 "python3 scripts/generate_legacy_mapping_table.py"
@@ -170,6 +205,9 @@ def main() -> int:
         return 0
 
     TARGET_FILE.write_text(generated, encoding="utf-8", newline="\n")
+    COMMUNICATION_TARGET_FILE.write_text(
+        generated_communication, encoding="utf-8", newline="\n"
+    )
     print(f"LEGACY_MAPPING_TABLE: wrote {TARGET_FILE.relative_to(ROOT)}")
     return 0
 
