@@ -43,6 +43,7 @@ PROTOCOL_ALLOWLIST = {
     "core/rom-integration/src/test/java/com/nexaflow/core/rom/CustomSettingsBridgeTest.kt",
     "core/rom-integration/src/test/java/com/nexaflow/core/rom/RomSettingSchemaTest.kt",
     "docs/ROM_DETECTION_MATRIX.md",
+    "docs/archive/RESEARCH_2026.md",  # archived cited research; product names are historical source context
     "docs/RESEARCH_2026.md",  # cited external research sources
     "docs/research/android-automation-expansion-evidence.md",  # external source citations
     "docs/ux/options-simplification-plan-ar.md",  # cites external design references

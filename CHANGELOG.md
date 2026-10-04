@@ -15,6 +15,7 @@
 - Added hostile HTTP parser, grant-scope, database migration, Wear registry, and execution-control regression coverage.
 - Corrected README catalog facts, archived dated audit reports, and added CI guardrails for stale counts and suppression budgets.
 - Extended historical Room migration-chain coverage through schema version 27.
+- Preserved the existing source-citation exception for the archived competitive research report.
 
 ## [Unreleased]
 
