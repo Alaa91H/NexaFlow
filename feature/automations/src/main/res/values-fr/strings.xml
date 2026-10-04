@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">Résultat inconnu</string>
     <string name="trigger_wear_event">Montre Wear OS</string>
     <string name="trigger_wear_event_sub">Exécuter la tâche lorsqu’une montre NexaFlow est connectée ou déconnectée</string>
+    <string name="action_call_block_silent_sub">Bloquer silencieusement l’appel correspondant si cette fonction est prise en charge</string>
+    <string name="action_call_reply_sms">Répondre à l’appelant par SMS</string>
+    <string name="action_call_reply_sms_sub">Envoyer un message à l’appelant à l’origine de ce flux</string>
+    <string name="action_sms_block">Bloquer les SMS entrants</string>
+    <string name="action_sms_block_sub">Bloquer la remise des SMS correspondants (rôle SMS par défaut requis)</string>
+    <string name="action_sms_reply">Répondre au SMS reçu</string>
+    <string name="action_sms_reply_sub">Envoyer un message à l’expéditeur du SMS à l’origine de ce flux</string>
 </resources>

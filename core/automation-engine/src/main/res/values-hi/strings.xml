@@ -7,4 +7,6 @@
     <string name="oem_autostart_channel">NexaFlow ऑटोस्टार्ट</string>
     <string name="oem_autostart_title">NexaFlow के लिए ऑटोस्टार्ट सक्षम करें</string>
     <string name="oem_autostart_text">इस डिवाइस पर रीबूट के बाद NexaFlow बैकग्राउंड में चलना बंद हो सकता है। ऑटोस्टार्ट सेटिंग्स खोलने के लिए टैप करें।</string>
+    <string name="sms_notification_channel">आने वाले संदेश</string>
+    <string name="sms_notification_title">नया संदेश</string>
 </resources>

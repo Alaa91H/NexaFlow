@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">Resultado desconocido</string>
     <string name="trigger_wear_event">Reloj Wear OS</string>
     <string name="trigger_wear_event_sub">Ejecutar la tarea cuando un reloj NexaFlow esté conectado o desconectado</string>
+    <string name="action_call_block_silent_sub">Bloquea en silencio una llamada coincidente cuando sea compatible</string>
+    <string name="action_call_reply_sms">Responder al autor de la llamada por SMS</string>
+    <string name="action_call_reply_sms_sub">Enviar un mensaje a quien inició este flujo</string>
+    <string name="action_sms_block">Bloquear SMS entrantes</string>
+    <string name="action_sms_block_sub">Suprime los SMS coincidentes (requiere el rol de SMS predeterminado)</string>
+    <string name="action_sms_reply">Responder a SMS entrante</string>
+    <string name="action_sms_reply_sub">Enviar un mensaje a quien inició el flujo por SMS</string>
 </resources>

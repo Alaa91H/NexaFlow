@@ -411,4 +411,11 @@
     <string name="managed_agent_memory_expiry_hint">Введите от 1 до 365 дней или 0, чтобы срок не истекал.</string>
     <string name="managed_agent_memory_expires">Истекает: %1$s</string>
     <string name="managed_agent_memory_error">Не удалось прочитать или сохранить личную память. Проверьте заметку и защищённое хранилище устройства.</string>
+    <string name="sms_default_role_active">Активно</string>
+    <string name="sms_default_role_continue">Проверить выбор системы</string>
+    <string name="sms_default_role_disclosure_message">Android будет передавать входящие SMS в NexaFlow, чтобы блокировать подходящие сообщения. Неблокированные SMS сохраняются, но полноценного списка переписки нет. MMS не обрабатываются и могут не приходить, пока NexaFlow назначен SMS-приложением по умолчанию. Выбором управляет Android; его можно изменить в системных настройках.</string>
+    <string name="sms_default_role_disclosure_title">Назначить NexaFlow SMS-приложением по умолчанию?</string>
+    <string name="sms_default_role_set">Назначить</string>
+    <string name="sms_default_role_subtitle">Требуется для блокировки SMS до доставки</string>
+    <string name="sms_default_role_title">SMS-приложение по умолчанию</string>
 </resources>

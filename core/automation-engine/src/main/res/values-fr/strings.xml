@@ -7,4 +7,6 @@
     <string name="oem_autostart_channel">Démarrage automatique de NexaFlow</string>
     <string name="oem_autostart_title">Activer le démarrage automatique de NexaFlow</string>
     <string name="oem_autostart_text">NexaFlow pourrait cesser de fonctionner en arrière-plan après un redémarrage sur cet appareil. Touchez pour ouvrir les réglages de démarrage automatique.</string>
+    <string name="sms_notification_channel">Messages entrants</string>
+    <string name="sms_notification_title">Nouveau message</string>
 </resources>

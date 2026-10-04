@@ -7,4 +7,6 @@
     <string name="oem_autostart_channel">Inicio automático de NexaFlow</string>
     <string name="oem_autostart_title">Habilita el inicio automático de NexaFlow</string>
     <string name="oem_autostart_text">NexaFlow podría dejar de ejecutarse en segundo plano tras un reinicio en este dispositivo. Toca para abrir los ajustes de inicio automático.</string>
+    <string name="sms_notification_channel">Mensajes entrantes</string>
+    <string name="sms_notification_title">Mensaje nuevo</string>
 </resources>

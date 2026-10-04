@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">Результат неизвестен</string>
     <string name="trigger_wear_event">Часы Wear OS</string>
     <string name="trigger_wear_event_sub">Запускать задачу, когда часы NexaFlow подключены или отключены</string>
+    <string name="action_call_block_silent_sub">Беззвучно блокировать подходящий вызов, если это поддерживается</string>
+    <string name="action_call_reply_sms">Ответить звонящему по SMS</string>
+    <string name="action_call_reply_sms_sub">Отправить сообщение абоненту, запустившему сценарий</string>
+    <string name="action_sms_block">Блокировать входящие SMS</string>
+    <string name="action_sms_block_sub">Не доставлять подходящие SMS (требуется роль SMS-приложения по умолчанию)</string>
+    <string name="action_sms_reply">Ответить на входящее SMS</string>
+    <string name="action_sms_reply_sub">Отправить сообщение отправителю SMS, запустившему сценарий</string>
 </resources>

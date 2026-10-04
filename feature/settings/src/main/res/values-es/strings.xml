@@ -409,4 +409,11 @@
     <string name="managed_agent_memory_expiry_hint">Introduce de 1 a 365 días, o 0 para que no caduque.</string>
     <string name="managed_agent_memory_expires">Caduca el %1$s</string>
     <string name="managed_agent_memory_error">No se pudo leer ni guardar la memoria privada. Revisa la nota y el almacenamiento seguro del dispositivo.</string>
+    <string name="sms_default_role_active">Activa</string>
+    <string name="sms_default_role_continue">Revisar elección del sistema</string>
+    <string name="sms_default_role_disclosure_message">Android enviará los SMS entrantes a NexaFlow para poder bloquear los mensajes coincidentes. NexaFlow guarda los SMS no bloqueados, pero no ofrece una bandeja completa de mensajes. No procesa MMS y es posible que no los recibas mientras sea la aplicación de SMS predeterminada. Android administra esta elección y puedes cambiarla en los ajustes del sistema.</string>
+    <string name="sms_default_role_disclosure_title">¿Configurar NexaFlow como aplicación de SMS predeterminada?</string>
+    <string name="sms_default_role_set">Configurar</string>
+    <string name="sms_default_role_subtitle">Necesaria para bloquear SMS antes de su entrega</string>
+    <string name="sms_default_role_title">Aplicación de SMS predeterminada</string>
 </resources>

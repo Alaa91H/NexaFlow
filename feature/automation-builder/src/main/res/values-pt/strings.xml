@@ -1301,4 +1301,15 @@
     <string name="canonical_battery_charger">Carregador: %1$s</string>
     <string name="canonical_battery_charging_state">Estado de carregamento: %1$s</string>
     <string name="canonical_mixed_trigger_error">Use condições nativas de bateria ou acionadores clássicos em uma automação, mas não ambos.</string>
+    <string name="action_call_block_silent">Bloquear chamada silenciosamente</string>
+    <string name="action_call_block_silent_sub">Impedir a chamada sem solicitar a tela de rejeição</string>
+    <string name="action_call_reply_sms">Responder ao chamador por SMS</string>
+    <string name="action_call_reply_sms_sub">Enviar uma mensagem para quem iniciou este fluxo</string>
+    <string name="action_sms_block">Bloquear SMS recebidos</string>
+    <string name="action_sms_block_hint">Esta mensagem só é impedida quando o NexaFlow é o app de SMS padrão. Caso contrário, a ação informa que esse papel é necessário.</string>
+    <string name="action_sms_block_sub">Impedir a entrega dos SMS correspondentes (requer o papel de SMS padrão)</string>
+    <string name="action_sms_reply">Responder ao SMS recebido</string>
+    <string name="action_sms_reply_sub">Enviar uma mensagem para quem iniciou este fluxo</string>
+    <string name="call_block_silent_hint">Impede uma chamada correspondente e oculta sua notificação quando o Android oferece suporte.</string>
+    <string name="reply_message">Mensagem de resposta</string>
 </resources>

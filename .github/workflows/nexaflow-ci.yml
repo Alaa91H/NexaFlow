@@ -141,7 +141,7 @@ jobs:
       run: python3 scripts/check_canonical_legacy_adapter.py
     - name: Test legacy canonical adapter gate
       run: python3 -m unittest scripts.tests.test_check_canonical_legacy_adapter
-    - name: Legacy mappings coverage 233/233 (T15 / Gates B+E)
+    - name: Legacy mappings coverage 237/237 (T15 / Gates B+E)
       run: python3 scripts/check_canonical_legacy_mappings.py
     - name: Test legacy mappings gate
       run: python3 -m unittest scripts.tests.test_check_canonical_legacy_mappings

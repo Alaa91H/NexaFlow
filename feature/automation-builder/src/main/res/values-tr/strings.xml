@@ -1301,4 +1301,15 @@
     <string name="canonical_battery_charger">Şarj cihazı: %1$s</string>
     <string name="canonical_battery_charging_state">Şarj durumu: %1$s</string>
     <string name="canonical_mixed_trigger_error">Bir otomasyonda yerel pil koşullarını veya eski tetikleyicileri kullanın; ikisini birlikte kullanmayın.</string>
+    <string name="action_call_block_silent">Aramayı sessizce engelle</string>
+    <string name="action_call_block_silent_sub">Reddetme ekranı istemeden aramayı engelle</string>
+    <string name="action_call_reply_sms">Arayana SMS ile yanıt ver</string>
+    <string name="action_call_reply_sms_sub">Bu iş akışını başlatan arayana mesaj gönder</string>
+    <string name="action_sms_block">Gelen SMS’leri engelle</string>
+    <string name="action_sms_block_hint">Bu mesaj yalnızca NexaFlow varsayılan SMS uygulamasıysa durdurulur. Aksi durumda eylem gerekli rolü bildirir.</string>
+    <string name="action_sms_block_sub">Eşleşen SMS’lerin teslimini durdur (varsayılan SMS rolü gerekir)</string>
+    <string name="action_sms_reply">Gelen SMS’i yanıtla</string>
+    <string name="action_sms_reply_sub">Bu iş akışını başlatan gönderene mesaj gönder</string>
+    <string name="call_block_silent_hint">Android destekliyorsa eşleşen aramayı engeller ve bildirimini gizler.</string>
+    <string name="reply_message">Yanıt mesajı</string>
 </resources>

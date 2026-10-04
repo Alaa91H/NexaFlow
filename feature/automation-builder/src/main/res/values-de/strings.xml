@@ -1301,4 +1301,15 @@
     <string name="option_tier_all">Alle Optionen</string>
     <string name="option_tier_expanded">Erweitert angezeigt</string>
     <string name="option_tier_collapsed">Eingeklappt</string>
+    <string name="action_call_block_silent">Anruf lautlos blockieren</string>
+    <string name="action_call_block_silent_sub">Anruf sperren, ohne eine Ablehnungsanzeige anzufordern</string>
+    <string name="action_call_reply_sms">Dem Anrufer per SMS antworten</string>
+    <string name="action_call_reply_sms_sub">Nachricht an den Anrufer senden, der diesen Ablauf ausgelöst hat</string>
+    <string name="action_sms_block">Eingehende SMS blockieren</string>
+    <string name="action_sms_block_hint">Diese Nachricht wird nur unterdrückt, wenn NexaFlow die Standard-SMS-App ist. Andernfalls meldet die Aktion, dass diese Rolle erforderlich ist.</string>
+    <string name="action_sms_block_sub">Passende SMS unterdrücken (Standard-SMS-App erforderlich)</string>
+    <string name="action_sms_reply">Auf eingehende SMS antworten</string>
+    <string name="action_sms_reply_sub">Nachricht an den Absender senden, der diesen Ablauf ausgelöst hat</string>
+    <string name="call_block_silent_hint">Blockiert einen passenden Anruf und unterdrückt dessen Benachrichtigung, sofern Android dies unterstützt.</string>
+    <string name="reply_message">Antwortnachricht</string>
 </resources>

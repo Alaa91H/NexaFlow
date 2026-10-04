@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">परिणाम अज्ञात</string>
     <string name="trigger_wear_event">Wear OS घड़ी</string>
     <string name="trigger_wear_event_sub">NexaFlow घड़ी के कनेक्ट या डिस्कनेक्ट होने पर कार्य चलाएँ</string>
+    <string name="action_call_block_silent_sub">समर्थित होने पर मिलती-जुलती कॉल को चुपचाप ब्लॉक करें</string>
+    <string name="action_call_reply_sms">कॉलर को SMS से जवाब दें</string>
+    <string name="action_call_reply_sms_sub">इस वर्कफ़्लो को शुरू करने वाले कॉलर को संदेश भेजें</string>
+    <string name="action_sms_block">आने वाले SMS ब्लॉक करें</string>
+    <string name="action_sms_block_sub">मिलते-जुलते SMS रोकें (डिफ़ॉल्ट SMS भूमिका आवश्यक)</string>
+    <string name="action_sms_reply">आने वाले SMS का जवाब दें</string>
+    <string name="action_sms_reply_sub">वर्कफ़्लो शुरू करने वाले SMS प्रेषक को संदेश भेजें</string>
 </resources>

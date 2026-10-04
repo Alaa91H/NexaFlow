@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">Ergebnis unbekannt</string>
     <string name="trigger_wear_event">Wear-OS-Uhr</string>
     <string name="trigger_wear_event_sub">Aufgabe ausführen, wenn eine NexaFlow-Uhr verbunden oder getrennt ist</string>
+    <string name="action_call_block_silent_sub">Passenden Anruf lautlos blockieren, sofern unterstützt</string>
+    <string name="action_call_reply_sms">Dem Anrufer per SMS antworten</string>
+    <string name="action_call_reply_sms_sub">Nachricht an den Anrufer senden, der diesen Ablauf ausgelöst hat</string>
+    <string name="action_sms_block">Eingehende SMS blockieren</string>
+    <string name="action_sms_block_sub">Passende SMS unterdrücken (Standard-SMS-App erforderlich)</string>
+    <string name="action_sms_reply">Auf eingehende SMS antworten</string>
+    <string name="action_sms_reply_sub">Nachricht an den SMS-Absender senden, der den Ablauf ausgelöst hat</string>
 </resources>
