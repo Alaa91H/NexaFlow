@@ -57,4 +57,5 @@ dependencies {
     ksp(libs.com.google.dagger.hilt.compiler)
     implementation(libs.androidx.hilt.hilt.navigation.compose)
     testImplementation(libs.junit.junit)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }

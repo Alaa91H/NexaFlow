@@ -102,6 +102,7 @@ class AiChatViewModel @Inject constructor(
                     is AiConversationEvent.Failed -> {
                         publish(
                             running = false,
+                            assistantDraft = "",
                             activeToolName = null,
                             errorCode = event.code
                         )

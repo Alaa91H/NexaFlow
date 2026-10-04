@@ -6,10 +6,14 @@ import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -119,19 +123,58 @@ class GeminiNativeProvider(
         }
         val discovery = listModels()
         val modelFound = discovery.success && discovery.models.any { it.id == snapshot.modelId }
-        val reason = when {
-            !discovery.success -> discovery.failure
-            !modelFound -> AiConnectionFailure.MODEL_NOT_FOUND
-            else -> null
+        if (!discovery.success || !modelFound) {
+            val reason = if (!discovery.success) {
+                discovery.failure
+            } else {
+                AiConnectionFailure.MODEL_NOT_FOUND
+            }
+            return AiConnectionTestResult(
+                success = false,
+                providerId = snapshot.id,
+                dialect = AiApiDialect.GEMINI_GENERATE_CONTENT,
+                httpStatus = discovery.httpStatus,
+                failure = reason,
+                latencyMs = elapsedMillis(startedAt)
+            )
+        }
+
+        val apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            ?: return connectionFailure(snapshot, startedAt, AiConnectionFailure.AUTHENTICATION)
+        val generation = try {
+            transport.generateContent(snapshot, verificationRequest(), apiKey)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            return connectionFailure(
+                snapshot,
+                startedAt,
+                AiProviderFailureClassifier.fromThrowable(failure)
+            )
+        }
+        val reason = if (generation.statusCode in 200..299) {
+            null
+        } else {
+            AiProviderFailureClassifier.fromHttpStatus(generation.statusCode)
         }
         return AiConnectionTestResult(
             success = reason == null,
             providerId = snapshot.id,
             dialect = AiApiDialect.GEMINI_GENERATE_CONTENT,
-            httpStatus = discovery.httpStatus,
+            httpStatus = generation.statusCode,
             failure = reason,
             latencyMs = elapsedMillis(startedAt)
         )
+    }
+
+    private fun verificationRequest() = buildJsonObject {
+        putJsonArray("contents") {
+            add(buildJsonObject {
+                put("role", "user")
+                putJsonArray("parts") { add(buildJsonObject { put("text", "Reply with OK") }) }
+            })
+        }
+        putJsonObject("generationConfig") { put("maxOutputTokens", 1) }
     }
 
     override suspend fun listModels(): AiModelDiscoveryResult {
@@ -318,7 +361,10 @@ class GeminiNativeProvider(
                                         // subset and rejects several valid NexaFlow JSON Schema
                                         // keywords. Use the JSON Schema-specific field so the
                                         // complete agent tool catalog can be sent with chat.
-                                        put("parametersJsonSchema", tool.inputSchema)
+                                        put(
+                                            "parametersJsonSchema",
+                                            GeminiFunctionSchema.normalize(tool.inputSchema)
+                                        )
                                     }
                                 )
                             }
@@ -370,3 +416,66 @@ class GeminiNativeProvider(
 }
 
 private const val GEMINI_CONTENT_PARTS_CONTEXT = "gemini.content.parts"
+
+/** Converts NexaFlow's Draft 2020-12 schemas to Gemini's supported function schema subset. */
+internal object GeminiFunctionSchema {
+    private val droppedKeywords = setOf(
+        "${'$'}schema", "${'$'}id", "${'$'}anchor", "${'$'}comment", "${'$'}defs", "definitions",
+        "title", "default", "examples", "deprecated", "readOnly", "writeOnly", "propertyNames"
+    )
+
+    fun normalize(schema: JsonObject): JsonObject {
+        val definitions = (schema["${'$'}defs"] as? JsonObject) ?: JsonObject(emptyMap())
+        return expand(schema, definitions, linkedSetOf()) as? JsonObject ?: JsonObject(emptyMap())
+    }
+
+    private fun expand(
+        element: JsonElement,
+        definitions: JsonObject,
+        resolving: MutableSet<String>
+    ): JsonElement = when (element) {
+        is JsonObject -> {
+            val reference = element["${'$'}ref"]?.jsonPrimitive?.contentOrNull
+            if (reference != null && reference.startsWith("#/${'$'}defs/")) {
+                val name = reference.removePrefix("#/${'$'}defs/")
+                if (name !in resolving) {
+                    definitions[name]?.let {
+                        resolving += name
+                        val resolved = expand(it, definitions, resolving)
+                        resolving -= name
+                        return resolved
+                    }
+                }
+            }
+            val result = linkedMapOf<String, JsonElement>()
+            element.forEach { (key, value) ->
+                if (key !in droppedKeywords && key != "${'$'}ref") {
+                    when (key) {
+                        "const" -> result["enum"] = JsonArray(listOf(expand(value, definitions, resolving)))
+                        "type" -> normalizeType(value)?.let { result["type"] = it }
+                        "oneOf", "anyOf", "allOf" -> result[key] = expand(value, definitions, resolving)
+                        "additionalProperties" -> if (value is JsonPrimitive && value.isString.not()) {
+                            result[key] = value
+                        }
+                        else -> result[key] = expand(value, definitions, resolving)
+                    }
+                }
+            }
+            if (element["type"] is JsonArray &&
+                element["type"]!!.jsonArray.any { it.jsonPrimitive.contentOrNull == "null" }
+            ) {
+                result["nullable"] = JsonPrimitive(true)
+            }
+            JsonObject(result)
+        }
+        is JsonArray -> JsonArray(element.map { expand(it, definitions, resolving) })
+        else -> element
+    }
+
+    private fun normalizeType(value: JsonElement): JsonElement? {
+        if (value !is JsonArray) return value
+        val nonNullTypes = value.mapNotNull { it.jsonPrimitive.contentOrNull }
+            .filterNot { it == "null" }
+        return nonNullTypes.firstOrNull()?.let(::JsonPrimitive)
+    }
+}

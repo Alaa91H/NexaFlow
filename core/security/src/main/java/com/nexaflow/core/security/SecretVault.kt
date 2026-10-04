@@ -19,6 +19,11 @@ class SecretVault(private val secureStorage: SecureStorage) {
         return secureStorage.get(storageKey(referenceKey))
     }
 
+    suspend fun resolveResult(referenceKey: String): SecureStorageReadResult {
+        validateReference(referenceKey)
+        return secureStorage.read(storageKey(referenceKey))
+    }
+
     suspend fun delete(referenceKey: String) {
         validateReference(referenceKey)
         secureStorage.remove(storageKey(referenceKey))

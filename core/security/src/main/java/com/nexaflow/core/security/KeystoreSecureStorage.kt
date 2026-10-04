@@ -3,9 +3,11 @@ package com.nexaflow.core.security
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Log
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,7 +22,8 @@ import kotlinx.coroutines.withContext
 class KeystoreSecureStorage(
     context: Context,
     private val keyAlias: String = DEFAULT_KEY_ALIAS,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val secretKeyProvider: (() -> SecretKey)? = null
 ) : SecureStorage {
 
     private val appContext = context.applicationContext
@@ -33,11 +36,16 @@ class KeystoreSecureStorage(
     @Volatile
     private var cachedKey: SecretKey? = null
 
-    override suspend fun get(key: String): String? = withContext(ioDispatcher) {
-        val encoded = prefs.getString(key, null) ?: return@withContext null
-        runCatching {
+    override suspend fun get(key: String): String? = when (val result = read(key)) {
+        is SecureStorageReadResult.Stored -> result.value
+        SecureStorageReadResult.Missing, SecureStorageReadResult.Unreadable -> null
+    }
+
+    override suspend fun read(key: String): SecureStorageReadResult = withContext(ioDispatcher) {
+        val encoded = prefs.getString(key, null) ?: return@withContext SecureStorageReadResult.Missing
+        try {
             val secretKey = getOrCreateKey()
-            if (AesGcmEnvelopeCodec.isV2(encoded)) {
+            val value = if (AesGcmEnvelopeCodec.isV2(encoded)) {
                 AesGcmEnvelopeCodec.decrypt(secretKey, key, encoded)
             } else {
                 val plaintext = AesGcmEnvelopeCodec.decryptLegacy(secretKey, encoded)
@@ -46,7 +54,13 @@ class KeystoreSecureStorage(
                     .apply()
                 plaintext
             }
-        }.getOrNull()
+            SecureStorageReadResult.Stored(value)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            Log.w(TAG, "Encrypted secure-storage entry is unreadable; re-enter the affected secret")
+            SecureStorageReadResult.Unreadable
+        }
     }
 
     override suspend fun put(key: String, value: String): Unit = withContext(ioDispatcher) {
@@ -67,10 +81,19 @@ class KeystoreSecureStorage(
         synchronized(keyLock) {
             cachedKey?.let { return it }
 
+            secretKeyProvider?.invoke()?.let {
+                cachedKey = it
+                return it
+            }
+
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
             (keyStore.getKey(keyAlias, null) as? SecretKey)?.let {
                 cachedKey = it
                 return it
+            }
+
+            if (prefs.all.isNotEmpty()) {
+                Log.w(TAG, "Keystore key is missing while encrypted entries exist; secrets may need re-entry")
             }
 
             val generator = KeyGenerator.getInstance(
@@ -93,6 +116,7 @@ class KeystoreSecureStorage(
 
     companion object {
         const val DEFAULT_KEY_ALIAS = "nexaflow_secure_store"
+        private const val TAG = "KeystoreSecureStorage"
         private const val PREFS_NAME = "nexaflow_secure"
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
     }

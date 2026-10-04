@@ -3,6 +3,9 @@ package com.nexaflow.core.airuntime
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -13,6 +16,7 @@ class NativeAiProviderAdaptersTest {
     @Test
     fun geminiUsesJsonSchemaFieldForToolDeclarationsAfterModelListVerification() = runTest {
         var generationRequest: JsonObject? = null
+        var verificationGenerationCount = 0
         val provider = GeminiNativeProvider(
             transport = object : GeminiNativeTransport {
                 override suspend fun generateContent(
@@ -21,6 +25,7 @@ class NativeAiProviderAdaptersTest {
                     apiKey: String
                 ): GeminiNativeTransportResponse {
                     generationRequest = body
+                    verificationGenerationCount++
                     return GeminiNativeTransportResponse(
                         200,
                         """{"candidates":[{"content":{"parts":[{"text":"ready"}]}}]}"""
@@ -43,6 +48,81 @@ class NativeAiProviderAdaptersTest {
         val declaration = generationRequest!!["tools"].toString()
         assertTrue(declaration.contains("parametersJsonSchema"))
         assertFalse(declaration.contains("\"parameters\":"))
+        assertEquals(2, verificationGenerationCount)
+    }
+
+    @Test
+    fun geminiVerificationFailsWhenModelListingWorksButGenerationIsRejected() = runTest {
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(403, "permission denied")
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+
+        val verification = provider.verifyConnection()
+
+        assertFalse(verification.success)
+        assertEquals(403, verification.httpStatus)
+        assertEquals(AiConnectionFailure.PERMISSION, verification.failure)
+    }
+
+    @Test
+    fun geminiExpandsDraftSchemaReferencesForToolParameters() = runTest {
+        var generationRequest: JsonObject? = null
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ): GeminiNativeTransportResponse {
+                    generationRequest = body
+                    return GeminiNativeTransportResponse(200, """{"candidates":[]}""")
+                }
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+        val schema = kotlinx.serialization.json.Json.parseToJsonElement(
+            """{"${'$'}schema":"https://json-schema.org/draft/2020-12/schema","${'$'}defs":{"item":{"type":"object","properties":{"id":{"type":"integer","const":1},"label":{"type":"string"}}}},"type":"object","properties":{"items":{"type":"array","items":{"${'$'}ref":"#/${'$'}defs/item"}},"config":{"type":"object","propertyNames":{"minLength":1},"additionalProperties":{"type":"string"}},"note":{"type":["string","null"]}}}"""
+        ).jsonObject
+        val chatRequest = request().copy(
+            tools = listOf(AiToolDefinition("create_task", "Create task", schema))
+        )
+
+        provider.stream(chatRequest).toList()
+
+        val body = generationRequest!!
+        val serialized = body.toString()
+        assertFalse(serialized.contains("\"${'$'}schema\""))
+        assertFalse(serialized.contains("\"${'$'}defs\""))
+        assertFalse(serialized.contains("\"${'$'}ref\""))
+        assertFalse(serialized.contains("\"propertyNames\""))
+        assertTrue(serialized.contains("\"enum\":[1]"))
+        val nullableNote = body["tools"]!!.jsonArray[0].jsonObject
+            .getValue("functionDeclarations").jsonArray[0].jsonObject
+            .getValue("parametersJsonSchema").jsonObject
+            .getValue("properties").jsonObject.getValue("note").jsonObject
+        assertEquals("string", nullableNote.getValue("type").jsonPrimitive.content)
+        assertEquals(true, nullableNote.getValue("nullable").jsonPrimitive.content.toBoolean())
     }
 
     @Test
