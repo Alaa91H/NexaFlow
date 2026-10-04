@@ -21,6 +21,23 @@ class ExportAuditTest(unittest.TestCase):
         self.assertTrue(self.check('<receiver android:name="com.nexaflow.core.engine.SmsReceiver" android:exported="true" android:permission="android.permission.INTERNET"/>'))
         self.assertFalse(self.check('<receiver android:name="com.nexaflow.core.engine.SmsReceiver" android:exported="true" android:permission="android.permission.BROADCAST_SMS"/>'))
 
+    def test_default_sms_app_components_require_exact_platform_gates(self):
+        contracts = (
+            ("receiver", "com.nexaflow.core.engine.SmsWapPushReceiver", "android.permission.BROADCAST_WAP_PUSH"),
+            ("service", "com.nexaflow.core.engine.SmsRespondViaMessageService", "android.permission.SEND_RESPOND_VIA_MESSAGE"),
+        )
+        for component_type, name, permission in contracts:
+            with self.subTest(name=name):
+                self.assertFalse(self.check(
+                    f'<{component_type} android:name="{name}" android:exported="true" android:permission="{permission}"/>'
+                ))
+                self.assertTrue(self.check(
+                    f'<{component_type} android:name="{name}" android:exported="true" android:permission="android.permission.INTERNET"/>'
+                ))
+                self.assertTrue(self.check(
+                    f'<{component_type} android:name="{name}" android:exported="true"/>'
+                ))
+
     def test_provider_cannot_weaken_read_gate(self):
         self.assertTrue(self.check('<provider android:name="rikka.shizuku.ShizukuProvider" android:exported="true" android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" android:readPermission="android.permission.INTERNET"/>'))
 

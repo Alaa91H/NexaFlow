@@ -26,6 +26,10 @@ GATES = {
     "com.nexaflow.app.agent.NexaFlowAgentService": "com.nexaflow.app.permission.BIND_AGENT_SERVICE",
     "com.nexaflow.core.engine.AppTriggerAccessibilityService": "android.permission.BIND_ACCESSIBILITY_SERVICE",
     "com.nexaflow.core.engine.NotificationListener": "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE",
+    # Required Android default-SMS-app integration points. The platform
+    # permissions ensure only the system can invoke these exported handlers.
+    "com.nexaflow.core.engine.SmsWapPushReceiver": "android.permission.BROADCAST_WAP_PUSH",
+    "com.nexaflow.core.engine.SmsRespondViaMessageService": "android.permission.SEND_RESPOND_VIA_MESSAGE",
     "rikka.shizuku.ShizukuProvider": "android.permission.INTERACT_ACROSS_USERS_FULL",
     "androidx.work.impl.background.systemjob.SystemJobService": "android.permission.BIND_JOB_SERVICE",
     "androidx.work.impl.diagnostics.DiagnosticsReceiver": "android.permission.DUMP",
