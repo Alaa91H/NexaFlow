@@ -430,8 +430,6 @@
     <string name="agent_automation_approval_title">Aprovar uma tarefa de agente de alto risco</string>
     <string name="agent_automation_approval_help">Revise a definição exata da tarefa antes de aprová-la. As aprovações expiram após cinco minutos e só podem ser usadas uma vez.</string>
     <string name="agent_automation_approval_agent_id">ID do agente emparelhado</string>
-    <string name="agent_automation_approval_id">ID de aprovação</string>
-    <string name="agent_automation_approval_hash">Hash exato do conteúdo da tarefa</string>
     <string name="agent_automation_approval_confirm">Aprovar esta definição</string>
     <string name="agent_automation_approval_token">ID de aprovação (válido por cinco minutos): %1$s</string>
     <string name="agent_automation_approval_none">Não há tarefas de agente de alto risco aguardando aprovação.</string>

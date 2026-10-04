@@ -425,8 +425,6 @@
     <string name="agent_automation_approval_title">Approve a high-risk agent task</string>
     <string name="agent_automation_approval_help">Review the exact task definition before approving it. Approvals expire after five minutes and can be used once.</string>
     <string name="agent_automation_approval_agent_id">Paired agent ID</string>
-    <string name="agent_automation_approval_id">Approval ID</string>
-    <string name="agent_automation_approval_hash">Exact task content hash</string>
     <string name="agent_automation_approval_confirm">Approve this definition</string>
     <string name="agent_automation_approval_token">Approval ID (valid for five minutes): %1$s</string>
     <string name="agent_automation_approval_none">No pending high-risk agent tasks.</string>

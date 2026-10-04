@@ -92,7 +92,7 @@ class ExecutionEngine(
     private val notificationPreferences: NotificationPreferences,
     private val actionRegistry: ActionRegistry = ActionRegistry.default(),
     private val logStore: LogStore = InMemoryLogStore(),
-    private val epochMillis: EpochMillis = EpochMillis.System,
+    internal val epochMillis: EpochMillis = EpochMillis.System,
     private val channelSelector: ExecutionChannelSelector = ExecutionChannelSelector(),
     // Optional user-defined %variables. Null (default) keeps the engine fully
     // functional with only the built-in device-context variables.
@@ -157,9 +157,9 @@ class ExecutionEngine(
     private val runListener: AutomationRunListener = AutomationRunListener.NO_OP,
     private val canonicalNodeDispatcher: com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher? = null,
     private val canonicalTriggerDispatcher: com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher? = null,
-    private val agentApprovalValidator: AgentApprovalValidator? = null
+    internal val agentApprovalValidator: AgentApprovalValidator? = null
 ) {
-    private val diagnostics = ExecutionDiagnostics(
+    internal val diagnostics = ExecutionDiagnostics(
         context = context,
         historyRepository = historyRepository,
         logStore = logStore,
@@ -170,13 +170,13 @@ class ExecutionEngine(
     private val compatibilityActionDispatcher =
         CanonicalCompatibilityActionDispatcher(actionRegistry)
 
-    private val manualAdmissionEvaluator = ManualAdmissionEvaluator(
+    internal val manualAdmissionEvaluator = ManualAdmissionEvaluator(
         context = context,
         capabilityExecutionService = capabilityExecutionService,
         constraintStateProvider = constraintStateProvider
     )
 
-    private val historyWriter = ExecutionHistoryWriter(historyRepository, runListener)
+    internal val historyWriter = ExecutionHistoryWriter(historyRepository, runListener)
     private val valueResolver = ExecutionValueResolver(context, variableRepository, epochMillis)
     private val recoveryLedger = ExecutionRecoveryLedger(activeExecutionStore)
     private val automationChangeNotifier = AutomationChangeNotifier(context)
@@ -293,7 +293,7 @@ class ExecutionEngine(
         // without timestamp guessing.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
 
-        if (agentOrigin && !hasCurrentAgentApproval(automation)) {
+        if (agentOrigin && !AgentExecutionApprovalGate.isApproved(this, automation)) {
             val record = ExecutionRecord(
                 id = UUID.randomUUID().toString(),
                 automationId = automation.id,
@@ -1106,69 +1106,12 @@ class ExecutionEngine(
      * Callers that explicitly want to preview/run the configured end behavior
      * must use [runManualEndBehavior] after a dedicated user action.
      */
-    suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
-        val startedAt = epochMillis.now()
-        if (automation.requiresTimeRangeForEndBehavior) {
-            return diagnostics.rejectIncompleteTimeRange(
-                automation = automation,
-                startedAt = startedAt,
-                runId = WorkflowRunContext.create(automation.id, startedAt).runId
-            )
-        }
-        if (manualAdmissionEvaluator.describe(automation).kind == ManualBlockKind.NONE) {
-            return runAutomation(automation, bypassTriggerMatch = true)
-        }
-        val record = ExecutionRecord(
-            id = UUID.randomUUID().toString(),
-            automationId = automation.id,
-            automationName = automation.name,
-            success = true,
-            message = "Skipped: manual conditions not satisfied",
-            executedAt = startedAt
-        )
-        historyWriter.record(record)
-        diagnostics.recordTimeline(
-            automation = automation,
-            kind = "MANUAL_CONDITION_BLOCKED",
-            record = record,
-            startedAt = startedAt
-        )
-        return record
-    }
+    suspend fun runWithConditionGate(automation: Automation): ExecutionRecord =
+        ManualExecutionGate.run(this, automation)
 
-    /** Agent API run path; fails closed unless the stored approval still matches. */
-    suspend fun runAgentWithConditionGate(automation: Automation): ExecutionRecord {
-        if (!hasCurrentAgentApproval(automation)) {
-            val startedAt = epochMillis.now()
-            val record = ExecutionRecord(
-                id = UUID.randomUUID().toString(),
-                automationId = automation.id,
-                automationName = automation.name,
-                success = false,
-                message = "Blocked: agent approval is missing or no longer matches this task",
-                executedAt = startedAt
-            )
-            historyWriter.record(record)
-            diagnostics.recordTimeline(automation, "AGENT_APPROVAL_REJECTED", record, startedAt)
-            return record
-        }
-        if (automation.requiresTimeRangeForEndBehavior) {
-            val startedAt = epochMillis.now()
-            return diagnostics.rejectIncompleteTimeRange(
-                automation,
-                startedAt,
-                WorkflowRunContext.create(automation.id, startedAt).runId
-            )
-        }
-        if (manualAdmissionEvaluator.describe(automation).kind != ManualBlockKind.NONE) {
-            return runWithConditionGate(automation)
-        }
-        return runAutomation(automation, bypassTriggerMatch = true, agentOrigin = true)
-    }
-
-    private suspend fun hasCurrentAgentApproval(automation: Automation): Boolean {
-        return agentApprovalValidator?.isApproved(automation) == true
-    }
+    /** Agent API run path; approval enforcement is delegated to a focused gate. */
+    suspend fun runAgentWithConditionGate(automation: Automation): ExecutionRecord =
+        AgentExecutionApprovalGate.run(this, automation)
 
     /**
      * Explicit manual end-behavior command. This is intentionally separate
@@ -1198,12 +1141,7 @@ class ExecutionEngine(
     /** Live main-chain progress for the selected automation, if a run exists. */
     fun observeExecutionProgress(automationId: String): Flow<AutomationExecutionProgress?> = executionProgressTracker.observe(automationId)
 
-    /**
-     * Explicit user override of the manual admission gate: skips trigger and
-     * constraint checks entirely and runs the main chain. Only reachable from
-     * an explicit confirmation dialog. The decision is durably logged so the
-     * history shows the run was user-forced, not trigger-driven.
-     */
+    /** User override. */
     suspend fun forceRun(automation: Automation): ExecutionRecord =
         runAutomation(
             automation = automation,

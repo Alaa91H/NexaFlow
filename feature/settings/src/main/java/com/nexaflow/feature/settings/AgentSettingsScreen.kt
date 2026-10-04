@@ -88,7 +88,6 @@ fun AgentSettingsScreen(
     var selectedProviderId by rememberSaveable { mutableStateOf<String?>(null) }
     var allowCloudFallback by rememberSaveable { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableStateOf(AiSettingsTab.AGENTS) }
-    var approvalUnderReview by remember { mutableStateOf<AgentAutomationApprovalEntity?>(null) }
     var reasoningLevel by rememberSaveable { mutableStateOf(AiReasoningLevel.BALANCED) }
     var showModelPicker by rememberSaveable { mutableStateOf(false) }
     var showClearActivityDialog by rememberSaveable { mutableStateOf(false) }
@@ -982,223 +981,19 @@ fun AgentSettingsScreen(
                 }
             }
 
-            if (selectedTab == AiSettingsTab.AGENTS) item(key = "agent_automation_approval") {
-                NexaFlowCard {
-                    Text(
-                        stringResource(R.string.agent_automation_approval_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        stringResource(R.string.agent_automation_approval_help),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (state.pendingAutomationApprovals.isEmpty()) {
-                        Text(
-                            stringResource(R.string.agent_automation_approval_none),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    state.pendingAutomationApprovals.forEach { approval ->
-                        HorizontalDivider()
-                        Text(
-                            stringResource(
-                                R.string.agent_automation_approval_pending,
-                                approval.riskLevel,
-                                approval.agentId,
-                                DateFormat.getDateTimeInstance().format(Date(approval.expiresAt))
-                            ),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        TextButton(onClick = { approvalUnderReview = approval }) {
-                            Text(stringResource(R.string.agent_automation_approval_review))
-                        }
-                    }
-                    state.latestAutomationApprovalId?.let { token ->
-                        Text(
-                            stringResource(R.string.agent_automation_approval_token, token),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
+            if (selectedTab == AiSettingsTab.AGENTS) item(key = "agent_automation_approval") { AgentApprovalSettings(state, viewModel) }
 
-            if (selectedTab == AiSettingsTab.LOGS) item(key = "agent_activity_header") {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = stringResource(R.string.agent_activity_title),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
+            if (selectedTab == AiSettingsTab.LOGS) {
+                item(key = "agent_activity_section") {
+                    AgentActivitySection(
+                        events = state.activity,
+                        dateFormat = dateFormat,
+                        onClear = { showClearActivityDialog = true },
                     )
-                    TextButton(onClick = { showClearActivityDialog = true }) {
-                        Text(stringResource(R.string.agent_activity_clear))
-                    }
-                }
-            }
-
-            if (selectedTab == AiSettingsTab.LOGS && state.activity.isEmpty()) {
-                item(key = "no_agent_activity") {
-                    NexaFlowCard {
-                        Text(
-                            text = stringResource(R.string.agent_activity_empty),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            } else if (selectedTab == AiSettingsTab.LOGS) {
-                item(key = "agent_activity") {
-                    NexaFlowCard {
-                        state.activity.forEachIndexed { index, event ->
-                            AgentActivityRow(event, dateFormat)
-                            if (index != state.activity.lastIndex) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                        }
-                    }
                 }
             }
         }
     }
 
-    approvalUnderReview?.let { approval ->
-        AlertDialog(
-            onDismissRequest = { approvalUnderReview = null },
-            title = {
-                Text(stringResource(R.string.agent_automation_approval_review_title, approval.riskLevel))
-            },
-            text = {
-                SelectionContainer {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(stringResource(R.string.agent_automation_approval_agent_id, approval.agentId))
-                        Text(approval.definitionSummary.ifBlank {
-                            stringResource(R.string.agent_automation_approval_summary_unavailable)
-                        })
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.approveAutomation(
-                        approval.id,
-                        approval.agentId,
-                        approval.contentHash,
-                        approval.riskLevel
-                    )
-                    approvalUnderReview = null
-                }) {
-                    Text(stringResource(R.string.agent_automation_approval_confirm))
-                }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = {
-                        viewModel.rejectAutomation(approval)
-                        approvalUnderReview = null
-                    }) {
-                        Text(stringResource(R.string.agent_automation_approval_reject))
-                    }
-                    TextButton(onClick = { approvalUnderReview = null }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                }
-            }
-        )
-    }
-}
 
-@Composable
-private fun TrustedAgentCard(
-    agent: AgentGrantRecord,
-    dateFormat: DateFormat,
-    onReducePermissions: () -> Unit,
-    onRevoke: () -> Unit
-) {
-    NexaFlowCard {
-        Text(
-            text = agent.displayName,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = agent.agentId,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = stringResource(
-                when (agent.mode) {
-                    AgentGrantMode.READ_ONLY -> R.string.agent_grant_mode_read_only
-                    AgentGrantMode.STANDARD -> R.string.agent_grant_mode_standard
-                    AgentGrantMode.TIMED_FULL_ACCESS -> R.string.agent_grant_mode_timed_full_access
-                    AgentGrantMode.PERMANENT_FULL_ACCESS,
-                    AgentGrantMode.UNKNOWN -> R.string.agent_full_access
-                }
-            ),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        agent.lastUsedAt?.let {
-            Text(
-                text = dateFormat.format(Date(it)),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        if (agent.mode == AgentGrantMode.PERMANENT_FULL_ACCESS ||
-            agent.mode == AgentGrantMode.UNKNOWN
-        ) {
-            Text(
-                stringResource(R.string.agent_permanent_access_warning),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
-            )
-            TextButton(onClick = onReducePermissions) {
-                Text(stringResource(R.string.agent_reduce_permissions))
-            }
-        }
-        TextButton(onClick = onRevoke) {
-            Text(stringResource(R.string.agent_revoke))
-        }
-    }
-}
-
-@Composable
-private fun AgentActivityRow(
-    event: AgentApiAuditEventV1,
-    dateFormat: DateFormat
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = event.eventType,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = event.outcome,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        val subject = listOfNotNull(event.agentId, event.automationId)
-            .joinToString(" · ")
-        if (subject.isNotBlank()) {
-            Text(
-                text = subject,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Text(
-            text = dateFormat.format(Date(event.createdAt)),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
 }

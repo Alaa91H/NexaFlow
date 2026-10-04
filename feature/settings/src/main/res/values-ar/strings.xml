@@ -427,8 +427,6 @@
     <string name="agent_automation_approval_title">الموافقة على مهمة وكيل عالية الخطورة</string>
     <string name="agent_automation_approval_help">راجع تعريف المهمة كاملًا قبل اعتماده. تنتهي الموافقة بعد خمس دقائق وتُستخدم مرة واحدة.</string>
     <string name="agent_automation_approval_agent_id">معرّف الوكيل المقترن</string>
-    <string name="agent_automation_approval_hash">بصمة محتوى المهمة الدقيقة</string>
-    <string name="agent_automation_approval_id">معرّف الموافقة</string>
     <string name="agent_automation_approval_confirm">اعتماد هذا التعريف</string>
     <string name="agent_automation_approval_token">معرّف الموافقة (صالح لخمس دقائق): %1$s</string>
     <string name="agent_automation_approval_none">لا توجد مهام وكيل عالية الخطورة بانتظار الموافقة.</string>

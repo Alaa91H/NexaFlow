@@ -430,8 +430,6 @@
     <string name="agent_automation_approval_title">高リスクのエージェントタスクを承認</string>
     <string name="agent_automation_approval_help">承認する前に、タスクの定義を正確に確認してください。承認は5分で期限切れになり、1回のみ使用できます。</string>
     <string name="agent_automation_approval_agent_id">ペア設定済みエージェントID</string>
-    <string name="agent_automation_approval_id">承認ID</string>
-    <string name="agent_automation_approval_hash">タスク内容の正確なハッシュ</string>
     <string name="agent_automation_approval_confirm">この定義を承認</string>
     <string name="agent_automation_approval_token">承認ID（有効期限5分）：%1$s</string>
     <string name="agent_automation_approval_none">承認待ちの高リスクエージェントタスクはありません。</string>

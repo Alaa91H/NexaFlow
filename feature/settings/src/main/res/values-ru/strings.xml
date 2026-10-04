@@ -430,8 +430,6 @@
     <string name="agent_automation_approval_title">Одобрить задачу агента с высоким уровнем риска</string>
     <string name="agent_automation_approval_help">Перед одобрением проверьте точное описание задачи. Срок действия одобрения — пять минут, использовать его можно один раз.</string>
     <string name="agent_automation_approval_agent_id">ID связанного агента</string>
-    <string name="agent_automation_approval_id">ID одобрения</string>
-    <string name="agent_automation_approval_hash">Точный хеш содержимого задачи</string>
     <string name="agent_automation_approval_confirm">Одобрить это описание</string>
     <string name="agent_automation_approval_token">ID одобрения (действует пять минут): %1$s</string>
     <string name="agent_automation_approval_none">Нет ожидающих одобрения задач агентов с высоким уровнем риска.</string>

@@ -430,8 +430,6 @@
     <string name="agent_automation_approval_title">批准高风险代理任务</string>
     <string name="agent_automation_approval_help">批准前请检查完整且准确的任务定义。批准将在五分钟后失效，并且只能使用一次。</string>
     <string name="agent_automation_approval_agent_id">已配对代理 ID</string>
-    <string name="agent_automation_approval_id">批准 ID</string>
-    <string name="agent_automation_approval_hash">任务内容的准确哈希值</string>
     <string name="agent_automation_approval_confirm">批准此定义</string>
     <string name="agent_automation_approval_token">批准 ID（五分钟内有效）：%1$s</string>
     <string name="agent_automation_approval_none">没有待批准的高风险代理任务。</string>

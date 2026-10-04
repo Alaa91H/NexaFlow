@@ -428,8 +428,6 @@
     <string name="agent_automation_approval_title">Hochriskante Agentenaufgabe genehmigen</string>
     <string name="agent_automation_approval_help">Prüfen Sie vor der Genehmigung die genaue Aufgabendefinition. Genehmigungen laufen nach fünf Minuten ab und sind einmalig verwendbar.</string>
     <string name="agent_automation_approval_agent_id">ID des gekoppelten Agenten</string>
-    <string name="agent_automation_approval_id">Genehmigungs-ID</string>
-    <string name="agent_automation_approval_hash">Exakter Hash des Aufgabeninhalts</string>
     <string name="agent_automation_approval_confirm">Diese Definition genehmigen</string>
     <string name="agent_automation_approval_token">Genehmigungs-ID (fünf Minuten gültig): %1$s</string>
     <string name="agent_automation_approval_none">Keine ausstehende hochriskante Agentenaufgabe.</string>

@@ -430,8 +430,6 @@
     <string name="agent_automation_approval_title">उच्च जोखिम वाले एजेंट कार्य को मंज़ूरी दें</string>
     <string name="agent_automation_approval_help">मंज़ूरी देने से पहले कार्य की सटीक परिभाषा की समीक्षा करें। मंज़ूरियाँ पाँच मिनट बाद समाप्त हो जाती हैं और केवल एक बार उपयोग की जा सकती हैं।</string>
     <string name="agent_automation_approval_agent_id">जोड़े गए एजेंट की ID</string>
-    <string name="agent_automation_approval_id">मंज़ूरी ID</string>
-    <string name="agent_automation_approval_hash">कार्य सामग्री का सटीक हैश</string>
     <string name="agent_automation_approval_confirm">इस परिभाषा को मंज़ूरी दें</string>
     <string name="agent_automation_approval_token">मंज़ूरी ID (पाँच मिनट तक मान्य): %1$s</string>
     <string name="agent_automation_approval_none">कोई उच्च जोखिम वाला एजेंट कार्य मंज़ूरी के लिए लंबित नहीं है।</string>
