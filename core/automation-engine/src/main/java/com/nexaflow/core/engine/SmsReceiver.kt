@@ -161,6 +161,7 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
+    @SuppressLint("MissingPermission") // guarded by areNotificationsEnabled() before posting
     private fun postIncomingMessageNotification(
         context: Context,
         sender: String,
@@ -195,7 +196,9 @@ class SmsReceiver : BroadcastReceiver() {
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent)
                 .build()
-            NotificationManagerCompat.from(context).notify(receivedAt.toInt(), notification)
+            val notificationManager = NotificationManagerCompat.from(context)
+            if (!notificationManager.areNotificationsEnabled()) return
+            notificationManager.notify(receivedAt.toInt(), notification)
         }
     }
 
