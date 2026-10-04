@@ -411,4 +411,11 @@
     <string name="managed_agent_memory_expiry_hint">1–365 gün veya süresiz için 0 girin.</string>
     <string name="managed_agent_memory_expires">Son kullanma: %1$s</string>
     <string name="managed_agent_memory_error">Özel bellek okunamadı veya kaydedilemedi. Notu ve cihazın güvenli depolamasını kontrol edin.</string>
+    <string name="sms_default_role_active">Etkin</string>
+    <string name="sms_default_role_continue">Sistem seçimini gözden geçir</string>
+    <string name="sms_default_role_disclosure_message">Eşleşen mesajların engellenebilmesi için Android gelen SMS’leri NexaFlow’a iletir. Engellenmeyen SMS’ler saklanır ancak tam bir mesaj kutusu sunulmaz. MMS işlenmez ve NexaFlow varsayılan SMS uygulaması olduğu sürece alınamayabilir. Bu seçimi Android yönetir; sistem ayarlarından değiştirebilirsiniz.</string>
+    <string name="sms_default_role_disclosure_title">NexaFlow varsayılan SMS uygulaması olarak ayarlansın mı?</string>
+    <string name="sms_default_role_set">Ayarla</string>
+    <string name="sms_default_role_subtitle">SMS’leri teslimden önce engellemek için gerekli</string>
+    <string name="sms_default_role_title">Varsayılan SMS uygulaması</string>
 </resources>

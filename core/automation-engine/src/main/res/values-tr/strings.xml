@@ -7,4 +7,6 @@
     <string name="oem_autostart_channel">NexaFlow otomatik başlatma</string>
     <string name="oem_autostart_title">NexaFlow için otomatik başlatmayı etkinleştir</string>
     <string name="oem_autostart_text">NexaFlow, bu cihazda yeniden başlatmanın ardından arka planda çalışmayı durdurabilir. Otomatik başlatma ayarlarını açmak için dokunun.</string>
+    <string name="sms_notification_channel">Gelen mesajlar</string>
+    <string name="sms_notification_title">Yeni mesaj</string>
 </resources>

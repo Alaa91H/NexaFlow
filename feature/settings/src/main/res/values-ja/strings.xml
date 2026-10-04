@@ -411,4 +411,11 @@
     <string name="managed_agent_memory_expiry_hint">1～365日、または無期限の場合は0を入力してください。</string>
     <string name="managed_agent_memory_expires">有効期限：%1$s</string>
     <string name="managed_agent_memory_error">プライベートメモを読み取れないか保存できません。メモと端末の安全なストレージを確認してください。</string>
+    <string name="sms_default_role_active">設定済み</string>
+    <string name="sms_default_role_continue">システムの選択を確認</string>
+    <string name="sms_default_role_disclosure_message">一致するメッセージをブロックできるよう、Androidは受信SMSをNexaFlowに配信します。ブロックされないSMSは保存されますが、完全なメッセージ受信箱はありません。MMSは処理されず、NexaFlowを既定のSMSアプリにしている間は受信できない場合があります。この設定はAndroidが管理し、システム設定から変更できます。</string>
+    <string name="sms_default_role_disclosure_title">NexaFlowを既定のSMSアプリに設定しますか？</string>
+    <string name="sms_default_role_set">設定</string>
+    <string name="sms_default_role_subtitle">配信前にSMSをブロックするために必要</string>
+    <string name="sms_default_role_title">既定のSMSアプリ</string>
 </resources>

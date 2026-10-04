@@ -411,4 +411,11 @@
     <string name="managed_agent_memory_expiry_hint">请输入 1 到 365 天，或输入 0 表示永不过期。</string>
     <string name="managed_agent_memory_expires">过期时间：%1$s</string>
     <string name="managed_agent_memory_error">无法读取或保存私人记忆。请检查笔记和设备安全存储。</string>
+    <string name="sms_default_role_active">已启用</string>
+    <string name="sms_default_role_continue">查看系统选择</string>
+    <string name="sms_default_role_disclosure_message">Android 会将收到的短信交给 NexaFlow，以便拦截匹配的消息。未拦截的短信会被保存，但 NexaFlow 不提供完整的消息收件箱。目前不处理彩信；将 NexaFlow 设为默认短信应用期间，彩信可能无法收到。此选项由 Android 管理，可在系统设置中更改。</string>
+    <string name="sms_default_role_disclosure_title">要将 NexaFlow 设为默认短信应用吗？</string>
+    <string name="sms_default_role_set">设为默认</string>
+    <string name="sms_default_role_subtitle">在短信送达前进行拦截所需</string>
+    <string name="sms_default_role_title">默认短信应用</string>
 </resources>

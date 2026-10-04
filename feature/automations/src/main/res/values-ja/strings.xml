@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">結果不明</string>
     <string name="trigger_wear_event">Wear OS ウォッチ</string>
     <string name="trigger_wear_event_sub">NexaFlow ウォッチの接続または切断時にタスクを実行</string>
+    <string name="action_call_block_silent_sub">対応する端末では一致した着信を通知せずにブロック</string>
+    <string name="action_call_reply_sms">発信者にSMSで返信</string>
+    <string name="action_call_reply_sms_sub">このワークフローを開始した発信者にメッセージを送信</string>
+    <string name="action_sms_block">受信SMSをブロック</string>
+    <string name="action_sms_block_sub">一致するSMSの配信を抑止（既定のSMSアプリへの設定が必要）</string>
+    <string name="action_sms_reply">受信SMSに返信</string>
+    <string name="action_sms_reply_sub">ワークフローを開始したSMS送信者にメッセージを送信</string>
 </resources>

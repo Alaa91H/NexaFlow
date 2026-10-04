@@ -1301,4 +1301,15 @@
     <string name="canonical_battery_charger">充电器：%1$s</string>
     <string name="canonical_battery_charging_state">充电状态：%1$s</string>
     <string name="canonical_mixed_trigger_error">在一个自动化中，请使用原生电池条件或传统触发器，不要同时使用两者。</string>
+    <string name="action_call_block_silent">静默拦截来电</string>
+    <string name="action_call_block_silent_sub">拦截来电但不请求显示拒接界面</string>
+    <string name="action_call_reply_sms">通过短信回复来电者</string>
+    <string name="action_call_reply_sms_sub">向触发此工作流的来电号码发送消息</string>
+    <string name="action_sms_block">拦截收到的短信</string>
+    <string name="action_sms_block_hint">只有 NexaFlow 是默认短信应用时才会拦截此消息；否则该操作会提示需要此角色。</string>
+    <string name="action_sms_block_sub">拦截匹配短信的送达（需要默认短信角色）</string>
+    <string name="action_sms_reply">回复收到的短信</string>
+    <string name="action_sms_reply_sub">向触发此工作流的发件人发送消息</string>
+    <string name="call_block_silent_hint">在 Android 支持时拦截匹配来电并隐藏其通知。</string>
+    <string name="reply_message">回复内容</string>
 </resources>

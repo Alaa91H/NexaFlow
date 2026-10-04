@@ -7,4 +7,6 @@
     <string name="oem_autostart_channel">NexaFlow 自动启动</string>
     <string name="oem_autostart_title">为 NexaFlow 启用自动启动</string>
     <string name="oem_autostart_text">在此设备上重启后，NexaFlow 可能会停止在后台运行。点按以打开自动启动设置。</string>
+    <string name="sms_notification_channel">收到的消息</string>
+    <string name="sms_notification_title">新消息</string>
 </resources>

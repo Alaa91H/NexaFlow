@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">Sonuç bilinmiyor</string>
     <string name="trigger_wear_event">Wear OS saati</string>
     <string name="trigger_wear_event_sub">Bir NexaFlow saati bağlandığında veya bağlantısı kesildiğinde görevi çalıştır</string>
+    <string name="action_call_block_silent_sub">Desteklenen cihazlarda eşleşen aramayı sessizce engelle</string>
+    <string name="action_call_reply_sms">Arayana SMS ile yanıt ver</string>
+    <string name="action_call_reply_sms_sub">Bu iş akışını başlatan arayana mesaj gönder</string>
+    <string name="action_sms_block">Gelen SMS’leri engelle</string>
+    <string name="action_sms_block_sub">Eşleşen SMS’lerin teslimini durdur (varsayılan SMS rolü gerekir)</string>
+    <string name="action_sms_reply">Gelen SMS’i yanıtla</string>
+    <string name="action_sms_reply_sub">İş akışını başlatan SMS göndericisine mesaj gönder</string>
 </resources>

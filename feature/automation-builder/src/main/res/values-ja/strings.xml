@@ -1301,4 +1301,15 @@
     <string name="canonical_battery_charger">充電器: %1$s</string>
     <string name="canonical_battery_charging_state">充電状態: %1$s</string>
     <string name="canonical_mixed_trigger_error">1つの自動化では、標準のバッテリー条件か従来のトリガーのどちらかを使用してください。</string>
+    <string name="action_call_block_silent">着信を通知せずブロック</string>
+    <string name="action_call_block_silent_sub">拒否画面を表示せずに着信を拒否</string>
+    <string name="action_call_reply_sms">発信者にSMSで返信</string>
+    <string name="action_call_reply_sms_sub">このワークフローを開始した発信者にメッセージを送信</string>
+    <string name="action_sms_block">受信SMSをブロック</string>
+    <string name="action_sms_block_hint">NexaFlowが既定のSMSアプリの場合にのみ、このメッセージの配信を抑止します。それ以外では必要な役割を通知します。</string>
+    <string name="action_sms_block_sub">一致するSMSの配信を抑止（既定のSMSアプリへの設定が必要）</string>
+    <string name="action_sms_reply">受信SMSに返信</string>
+    <string name="action_sms_reply_sub">このワークフローを開始した送信者にメッセージを送信</string>
+    <string name="call_block_silent_hint">Androidが対応する場合、一致した着信を拒否して通知を抑止します。</string>
+    <string name="reply_message">返信メッセージ</string>
 </resources>

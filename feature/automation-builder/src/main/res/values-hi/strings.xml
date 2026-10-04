@@ -1301,4 +1301,15 @@
     <string name="canonical_battery_charger">चार्जर: %1$s</string>
     <string name="canonical_battery_charging_state">चार्जिंग स्थिति: %1$s</string>
     <string name="canonical_mixed_trigger_error">एक ऑटोमेशन में या तो मूल बैटरी शर्तें इस्तेमाल करें या पुराने ट्रिगर, दोनों नहीं।</string>
+    <string name="action_call_block_silent">कॉल को चुपचाप ब्लॉक करें</string>
+    <string name="action_call_block_silent_sub">अस्वीकार स्क्रीन दिखाने का अनुरोध किए बिना कॉल रोकें</string>
+    <string name="action_call_reply_sms">कॉलर को SMS से जवाब दें</string>
+    <string name="action_call_reply_sms_sub">इस वर्कफ़्लो को शुरू करने वाले कॉलर को संदेश भेजें</string>
+    <string name="action_sms_block">आने वाले SMS ब्लॉक करें</string>
+    <string name="action_sms_block_hint">यह संदेश तभी रोका जाएगा जब NexaFlow डिफ़ॉल्ट SMS ऐप हो। अन्यथा कार्रवाई बताएगी कि यह भूमिका आवश्यक है।</string>
+    <string name="action_sms_block_sub">मिलते-जुलते SMS रोकें (डिफ़ॉल्ट SMS भूमिका आवश्यक)</string>
+    <string name="action_sms_reply">आने वाले SMS का जवाब दें</string>
+    <string name="action_sms_reply_sub">इस वर्कफ़्लो को शुरू करने वाले प्रेषक को संदेश भेजें</string>
+    <string name="call_block_silent_hint">Android के समर्थन पर मिलती-जुलती कॉल रोकें और उसकी सूचना छिपाएँ।</string>
+    <string name="reply_message">जवाबी संदेश</string>
 </resources>

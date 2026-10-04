@@ -587,4 +587,11 @@
     <string name="execution_diagnostic_outcome_unknown">结果未知</string>
     <string name="trigger_wear_event">Wear OS 手表</string>
     <string name="trigger_wear_event_sub">当 NexaFlow 手表连接或断开连接时运行任务</string>
+    <string name="action_call_block_silent_sub">在支持的设备上静默拦截匹配的来电</string>
+    <string name="action_call_reply_sms">通过短信回复来电者</string>
+    <string name="action_call_reply_sms_sub">向触发此工作流的来电号码发送消息</string>
+    <string name="action_sms_block">拦截收到的短信</string>
+    <string name="action_sms_block_sub">拦截匹配短信的送达（需要默认短信角色）</string>
+    <string name="action_sms_reply">回复收到的短信</string>
+    <string name="action_sms_reply_sub">向触发此工作流的短信发件人发送消息</string>
 </resources>

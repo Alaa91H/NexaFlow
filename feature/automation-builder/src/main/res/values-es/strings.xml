@@ -1301,4 +1301,15 @@
     <string name="option_tier_all">Todas las opciones</string>
     <string name="option_tier_expanded">Desplegado</string>
     <string name="option_tier_collapsed">Contraído</string>
+    <string name="action_call_block_silent">Bloquear llamada en silencio</string>
+    <string name="action_call_block_silent_sub">Bloquea la llamada sin solicitar una interfaz de rechazo</string>
+    <string name="action_call_reply_sms">Responder al autor de la llamada por SMS</string>
+    <string name="action_call_reply_sms_sub">Enviar un mensaje a quien inició este flujo</string>
+    <string name="action_sms_block">Bloquear SMS entrantes</string>
+    <string name="action_sms_block_hint">Este mensaje solo se suprime si NexaFlow es la aplicación de SMS predeterminada. De lo contrario, la acción indica que se necesita ese rol.</string>
+    <string name="action_sms_block_sub">Suprime los SMS coincidentes (requiere el rol de SMS predeterminado)</string>
+    <string name="action_sms_reply">Responder a SMS entrante</string>
+    <string name="action_sms_reply_sub">Enviar un mensaje a quien inició este flujo</string>
+    <string name="call_block_silent_hint">Impide una llamada coincidente y su notificación cuando Android lo admite.</string>
+    <string name="reply_message">Mensaje de respuesta</string>
 </resources>

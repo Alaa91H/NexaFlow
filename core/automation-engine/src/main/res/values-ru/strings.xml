@@ -7,4 +7,6 @@
     <string name="oem_autostart_channel">Автозапуск NexaFlow</string>
     <string name="oem_autostart_title">Включите автозапуск NexaFlow</string>
     <string name="oem_autostart_text">NexaFlow может перестать работать в фоновом режиме после перезагрузки на этом устройстве. Нажмите, чтобы открыть настройки автозапуска.</string>
+    <string name="sms_notification_channel">Входящие сообщения</string>
+    <string name="sms_notification_title">Новое сообщение</string>
 </resources>

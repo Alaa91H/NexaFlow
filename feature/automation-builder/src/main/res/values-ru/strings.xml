@@ -1301,4 +1301,15 @@
     <string name="canonical_battery_charger">Зарядное устройство: %1$s</string>
     <string name="canonical_battery_charging_state">Состояние зарядки: %1$s</string>
     <string name="canonical_mixed_trigger_error">В одной автоматизации используйте либо встроенные условия батареи, либо обычные триггеры, но не оба варианта.</string>
+    <string name="action_call_block_silent">Беззвучно блокировать вызов</string>
+    <string name="action_call_block_silent_sub">Отклонить вызов без показа интерфейса отказа</string>
+    <string name="action_call_reply_sms">Ответить звонящему по SMS</string>
+    <string name="action_call_reply_sms_sub">Отправить сообщение абоненту, запустившему сценарий</string>
+    <string name="action_sms_block">Блокировать входящие SMS</string>
+    <string name="action_sms_block_hint">Сообщение не доставляется, только если NexaFlow назначен SMS-приложением по умолчанию. Иначе действие сообщит, что требуется эта роль.</string>
+    <string name="action_sms_block_sub">Не доставлять подходящие SMS (требуется роль SMS-приложения по умолчанию)</string>
+    <string name="action_sms_reply">Ответить на входящее SMS</string>
+    <string name="action_sms_reply_sub">Отправить сообщение отправителю, запустившему сценарий</string>
+    <string name="call_block_silent_hint">Блокирует подходящий вызов и скрывает уведомление, если это поддерживается Android.</string>
+    <string name="reply_message">Текст ответа</string>
 </resources>
