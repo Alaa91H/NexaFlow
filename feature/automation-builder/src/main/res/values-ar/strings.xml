@@ -1042,7 +1042,7 @@
     <string name="action_rom_setting_theme">السمة والألوان</string>
     <string name="action_rom_setting_theme_sub">التمييز والألوان والأيقونات والخطوط</string>
     <string name="any_bluetooth_device">أي جهاز بلوتوث</string>
-    <string name="any_bluetooth_device_hint">يعمل عند انقطاع أي جهاز مقترن - لا حاجة لجهاز محدد</string>
+    <string name="any_bluetooth_device_hint">يعمل عند اتصال أي جهاز بلوتوث أو انقطاعه.</string>
     <string name="any_device">أي جهاز</string>
     <string name="sms_match_contains">يحتوي على</string>
     <string name="sms_match_exact">مطابقة تامة</string>
@@ -1312,4 +1312,8 @@
     <string name="option_tier_expanded">موسّع</string>
     <string name="option_tier_collapsed">مطوي</string>
     <string name="option_tier_all">كل الخيارات</string>
+    <string name="bluetooth_advanced">خيارات متقدمة</string>
+    <string name="bluetooth_advanced_hide">إخفاء الخيارات المتقدمة</string>
+    <string name="bluetooth_device_name">اسم الجهاز</string>
+    <string name="bluetooth_device_address">عنوان MAC</string>
 </resources>

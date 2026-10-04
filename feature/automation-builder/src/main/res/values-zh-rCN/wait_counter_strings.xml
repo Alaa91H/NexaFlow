@@ -1,0 +1,9 @@
+<resources>
+    <string name="action_sequence_title">执行顺序</string>
+    <string name="action_sequence_subtitle">操作和等待将按此顺序执行</string>
+    <string name="wait_hours">小时</string>
+    <string name="wait_minutes">分钟</string>
+    <string name="wait_seconds">秒</string>
+    <string name="wait_increase">增加%1$s</string>
+    <string name="wait_decrease">减少%1$s</string>
+</resources>

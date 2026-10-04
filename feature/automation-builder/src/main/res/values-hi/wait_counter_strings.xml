@@ -1,0 +1,9 @@
+<resources>
+    <string name="action_sequence_title">निष्पादन क्रम</string>
+    <string name="action_sequence_subtitle">कार्रवाइयाँ और प्रतीक्षा इसी क्रम में चलेंगी</string>
+    <string name="wait_hours">घंटे</string>
+    <string name="wait_minutes">मिनट</string>
+    <string name="wait_seconds">सेकंड</string>
+    <string name="wait_increase">%1$s बढ़ाएँ</string>
+    <string name="wait_decrease">%1$s घटाएँ</string>
+</resources>

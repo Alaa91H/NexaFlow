@@ -1,0 +1,9 @@
+<resources>
+    <string name="action_sequence_title">Yürütme sırası</string>
+    <string name="action_sequence_subtitle">İşlemler ve beklemeler bu sırayla çalışır</string>
+    <string name="wait_hours">Saat</string>
+    <string name="wait_minutes">Dakika</string>
+    <string name="wait_seconds">Saniye</string>
+    <string name="wait_increase">%1$s artır</string>
+    <string name="wait_decrease">%1$s azalt</string>
+</resources>

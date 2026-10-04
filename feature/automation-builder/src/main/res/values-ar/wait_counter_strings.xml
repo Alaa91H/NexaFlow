@@ -1,0 +1,9 @@
+<resources>
+    <string name="action_sequence_title">ترتيب التنفيذ</string>
+    <string name="action_sequence_subtitle">تُنفّذ الإجراءات وفترات الانتظار بهذا الترتيب</string>
+    <string name="wait_hours">ساعات</string>
+    <string name="wait_minutes">دقائق</string>
+    <string name="wait_seconds">ثوانٍ</string>
+    <string name="wait_increase">زيادة %1$s</string>
+    <string name="wait_decrease">إنقاص %1$s</string>
+</resources>

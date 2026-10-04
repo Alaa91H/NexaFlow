@@ -1,0 +1,9 @@
+<resources>
+    <string name="action_sequence_title">Execution order</string>
+    <string name="action_sequence_subtitle">Actions and waits run in this order</string>
+    <string name="wait_hours">Hours</string>
+    <string name="wait_minutes">Minutes</string>
+    <string name="wait_seconds">Seconds</string>
+    <string name="wait_increase">Increase %1$s</string>
+    <string name="wait_decrease">Decrease %1$s</string>
+</resources>

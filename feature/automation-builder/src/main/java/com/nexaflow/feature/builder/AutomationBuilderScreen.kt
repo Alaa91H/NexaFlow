@@ -215,9 +215,6 @@ import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.canonical.CanonicalWorkflowNode
-import com.nexaflow.core.execution.canonical.CanonicalDelayDefinition
-import com.nexaflow.domain.canonical.DurationValue
-import com.nexaflow.domain.canonical.WaitNode
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -541,9 +538,23 @@ fun AutomationBuilderScreen(
             }
         }
         canonicalActionNodes.clear()
-        loaded.canonicalNodes
+        val loadedCanonicalActions = loaded.canonicalNodes
             .filter { it.kind == com.nexaflow.domain.canonical.NodeSchemaKind.ACTION }
-            .forEach(canonicalActionNodes::add)
+        val waitOption = actionOptions.firstOrNull { it.actionType == ActionType.SYSTEM_WAIT }
+        val migratedSequence = waitOption?.let {
+            BuilderActionSequence.migrateCanonicalWaits(
+                actions = actionDrafts.toList(),
+                canonicalActions = loadedCanonicalActions,
+                waitOption = it
+            )
+        }
+        if (migratedSequence != null) {
+            actionDrafts.clear()
+            actionDrafts.addAll(migratedSequence.actions)
+            canonicalActionNodes.addAll(migratedSequence.remainingCanonicalActions)
+        } else {
+            canonicalActionNodes.addAll(loadedCanonicalActions)
+        }
         canonicalTriggerNodes.clear()
         loaded.canonicalNodes
             .filter { it.kind == com.nexaflow.domain.canonical.NodeSchemaKind.TRIGGER }
@@ -1498,6 +1509,35 @@ fun AutomationBuilderScreen(
                                     }
                                 }
                             }
+                        val waitActionOption = actionOptions.firstOrNull {
+                            it.actionType == ActionType.SYSTEM_WAIT
+                        }
+                        if (waitActionOption != null) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.action_sequence_title),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.action_sequence_subtitle),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                Button(onClick = {
+                                    actionDrafts.add(
+                                        ActionDraft(
+                                            option = waitActionOption,
+                                            config = mapOf("seconds" to "5")
+                                        )
+                                    )
+                                }) { Text(stringResource(R.string.canonical_add_delay)) }
+                            }
+                        }
                         actionDrafts.forEachIndexed { index, draft ->
                             key(draft.id) {
                                 val actionDragging = actionDrag.draggedIndex == index
@@ -1549,67 +1589,6 @@ fun AutomationBuilderScreen(
                                 )
                             }
                         }
-                        val delayDefinition = viewModel.executableCanonicalActions.firstOrNull {
-                            it.definitionId == CanonicalDelayDefinition.ID
-                        }
-                        if (delayDefinition != null) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = stringResource(R.string.canonical_actions_title), style = MaterialTheme.typography.titleSmall)
-                                    Text(text = stringResource(R.string.canonical_actions_subtitle), style = MaterialTheme.typography.bodySmall)
-                                }
-                                Button(onClick = {
-                                    canonicalActionNodes.add(
-                                        CanonicalDelayDefinition.node(
-                                            durationMs = 5_000L,
-                                            nodeId = "native.action.${java.util.UUID.randomUUID().toString().replace("-", "")}",
-                                            sequenceIndex = canonicalActionNodes.size,
-                                        ),
-                                    )
-                                }) { Text(stringResource(R.string.canonical_add_delay)) }
-                            }
-                            canonicalActionNodes.forEachIndexed { index, nativeNode ->
-                                val wait = nativeNode.node as? WaitNode
-                                if (wait != null) {
-                                    NexaFlowCard {
-                                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                            Text(text = nativeNode.schema.title, style = MaterialTheme.typography.titleSmall)
-                                            Text(text = "${(wait.duration.milliseconds / 1_000.0)} s", style = MaterialTheme.typography.bodySmall)
-                                            androidx.compose.material3.Slider(
-                                                value = wait.duration.milliseconds.toFloat(),
-                                                onValueChange = { raw ->
-                                                    val updatedValue = DurationValue(raw.toLong())
-                                                    canonicalActionNodes[index] = nativeNode.copy(
-                                                        node = wait.copy(duration = updatedValue),
-                                                        arguments = listOf(com.nexaflow.domain.canonical.NodeFieldValue(
-                                                            CanonicalDelayDefinition.durationField, updatedValue,
-                                                        )),
-                                                    )
-                                                },
-                                                valueRange = 0f..CanonicalDelayDefinition.MAX_DURATION_MS.toFloat(),
-                                                steps = 59,
-                                            )
-                                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                                TextButton(enabled = index > 0, onClick = {
-                                                    BuilderDraftOperations.move(canonicalActionNodes, index, index - 1)
-                                                }) { Text("↑") }
-                                                TextButton(enabled = index < canonicalActionNodes.lastIndex, onClick = {
-                                                    BuilderDraftOperations.move(canonicalActionNodes, index, index + 1)
-                                                }) { Text("↓") }
-                                                TextButton(onClick = { canonicalActionNodes.removeAt(index) }) {
-                                                    Text(stringResource(R.string.remove_action))
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
                     }
                 }
             } else {

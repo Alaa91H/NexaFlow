@@ -1039,7 +1039,7 @@
     <string name="action_rom_setting_theme">主题和 Monet</string>
     <string name="action_rom_setting_theme_sub">强调色、Monet、图标、字体</string>
     <string name="any_bluetooth_device">任意蓝牙设备</string>
-    <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
+    <string name="any_bluetooth_device_hint">任意蓝牙设备连接或断开时运行。</string>
     <string name="any_device">任意设备</string>
     <string name="sms_match_contains">包含</string>
     <string name="sms_match_exact">完全匹配</string>
@@ -1314,4 +1314,8 @@
     <string name="reply_message">回复内容</string>
 
     <string name="task_restore_failed">无法恢复任务的先前设置</string>
+    <string name="bluetooth_advanced">高级选项</string>
+    <string name="bluetooth_advanced_hide">隐藏高级选项</string>
+    <string name="bluetooth_device_name">设备名称</string>
+    <string name="bluetooth_device_address">MAC 地址</string>
 </resources>

@@ -610,9 +610,7 @@ fun ActionConfigEditor(
             }
         }
         ActionType.SYSTEM_WAIT -> {
-            val maxWaitSeconds = 24L * 60L * 60L
-            val rawSeconds = config["seconds"].orEmpty()
-            val seconds = rawSeconds.toLongOrNull()?.coerceIn(1L, maxWaitSeconds) ?: 5L
+            val seconds = WaitDuration.configSeconds(config)
             Text(
                 text = stringResource(R.string.wait_quick_timer),
                 style = MaterialTheme.typography.titleSmall
@@ -630,13 +628,11 @@ fun ActionConfigEditor(
                     )
                 }
             }
-            BoundedNumberField(
-                value = rawSeconds,
-                onValueChange = { stored -> onConfigChange(mapOf("seconds" to stored)) },
-                min = 1,
-                max = maxWaitSeconds,
-                label = stringResource(R.string.wait_custom_duration),
-                unitHint = stringResource(R.string.wait_unit_seconds)
+            WaitDurationEditor(
+                durationSeconds = seconds,
+                onDurationChange = { totalSeconds ->
+                    onConfigChange(config + ("seconds" to totalSeconds.toString()))
+                }
             )
             Text(
                 text = stringResource(R.string.wait_counter_label, seconds),

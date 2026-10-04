@@ -1039,7 +1039,7 @@
     <string name="action_rom_setting_theme">Tema ve Monet</string>
     <string name="action_rom_setting_theme_sub">Vurgu, Monet, simgeler, yazı tipleri</string>
     <string name="any_bluetooth_device">Herhangi bir Bluetooth cihazı</string>
-    <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
+    <string name="any_bluetooth_device_hint">Herhangi bir Bluetooth cihazı bağlandığında veya bağlantısı kesildiğinde çalışır.</string>
     <string name="any_device">Herhangi bir cihaz</string>
     <string name="sms_match_contains">İçerir</string>
     <string name="sms_match_exact">Tam eşleşme</string>
@@ -1314,4 +1314,8 @@
     <string name="reply_message">Yanıt mesajı</string>
 
     <string name="task_restore_failed">Görevin önceki ayarları geri yüklenemedi</string>
+    <string name="bluetooth_advanced">Gelişmiş seçenekler</string>
+    <string name="bluetooth_advanced_hide">Gelişmiş seçenekleri gizle</string>
+    <string name="bluetooth_device_name">Cihaz adı</string>
+    <string name="bluetooth_device_address">MAC adresi</string>
 </resources>

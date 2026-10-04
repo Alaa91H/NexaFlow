@@ -1,0 +1,9 @@
+<resources>
+    <string name="action_sequence_title">Порядок выполнения</string>
+    <string name="action_sequence_subtitle">Действия и ожидания выполняются в этом порядке</string>
+    <string name="wait_hours">Часы</string>
+    <string name="wait_minutes">Минуты</string>
+    <string name="wait_seconds">Секунды</string>
+    <string name="wait_increase">Увеличить: %1$s</string>
+    <string name="wait_decrease">Уменьшить: %1$s</string>
+</resources>

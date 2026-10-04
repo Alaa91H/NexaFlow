@@ -1039,7 +1039,7 @@
     <string name="action_rom_setting_theme">थीम और Monet</string>
     <string name="action_rom_setting_theme_sub">एक्सेंट, Monet, आइकन, फ़ॉन्ट</string>
     <string name="any_bluetooth_device">कोई भी ब्लूटूथ डिवाइस</string>
-    <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
+    <string name="any_bluetooth_device_hint">किसी भी Bluetooth डिवाइस के कनेक्ट या डिस्कनेक्ट होने पर चलता है।</string>
     <string name="any_device">कोई भी डिवाइस</string>
     <string name="sms_match_contains">शामिल है</string>
     <string name="sms_match_exact">सटीक मेल</string>
@@ -1314,4 +1314,8 @@
     <string name="reply_message">जवाबी संदेश</string>
 
     <string name="task_restore_failed">कार्य की पिछली सेटिंग बहाल नहीं की जा सकीं</string>
+    <string name="bluetooth_advanced">उन्नत विकल्प</string>
+    <string name="bluetooth_advanced_hide">उन्नत विकल्प छिपाएँ</string>
+    <string name="bluetooth_device_name">डिवाइस का नाम</string>
+    <string name="bluetooth_device_address">MAC पता</string>
 </resources>

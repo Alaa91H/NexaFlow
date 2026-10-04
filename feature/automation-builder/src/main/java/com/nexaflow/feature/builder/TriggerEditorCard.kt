@@ -1139,8 +1139,12 @@ fun TriggerEditorCard(
                 }
                 TriggerType.BLUETOOTH_DEVICE -> {
                     val deviceName = draft.config["deviceName"] ?: ""
-                    val isAny = deviceName.isBlank() || deviceName == "__ANY__" || deviceName == "*" || deviceName.equals("ANY", ignoreCase = true)
+                    val deviceAddress = draft.config["deviceAddress"] ?: ""
+                    val isAny = BluetoothTriggerConfig.isAnyDevice(deviceName, deviceAddress)
                     val event = draft.config["event"] ?: "CONNECTED"
+                    var advancedBluetoothExpanded by rememberSaveable {
+                        mutableStateOf(deviceName.isNotBlank() && !isAny || deviceAddress.isNotBlank())
+                    }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -1161,7 +1165,7 @@ fun TriggerEditorCard(
                                     text = if (isAny) {
                                         stringResource(R.string.any_bluetooth_device)
                                     } else {
-                                        deviceName
+                                        deviceName.ifBlank { deviceAddress }
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.secondary
@@ -1180,7 +1184,7 @@ fun TriggerEditorCard(
                                 )
                             }
                             OutlinedButton(
-                                onClick = { onConfigChange(draft.copy(config = draft.config + mapOf("deviceName" to "__ANY__", "deviceAddress" to ""))) },
+                                onClick = { onConfigChange(draft.copy(config = draft.config + mapOf("deviceName" to "", "deviceAddress" to ""))) },
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(text = stringResource(R.string.any_device))
@@ -1199,6 +1203,40 @@ fun TriggerEditorCard(
                             selected = event,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
                         )
+                        TextButton(onClick = { advancedBluetoothExpanded = !advancedBluetoothExpanded }) {
+                            Text(
+                                text = stringResource(
+                                    if (advancedBluetoothExpanded) R.string.bluetooth_advanced_hide
+                                    else R.string.bluetooth_advanced
+                                )
+                            )
+                        }
+                        if (advancedBluetoothExpanded) {
+                            OutlinedTextField(
+                                value = deviceName.takeUnless { BluetoothTriggerConfig.isAnySentinel(it) }.orEmpty(),
+                                onValueChange = { value ->
+                                    onConfigChange(draft.copy(config = draft.config + mapOf(
+                                        "deviceName" to value,
+                                        "deviceAddress" to if (value.isBlank()) deviceAddress else ""
+                                    )))
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(stringResource(R.string.bluetooth_device_name)) },
+                                singleLine = true
+                            )
+                            OutlinedTextField(
+                                value = deviceAddress,
+                                onValueChange = { value ->
+                                    onConfigChange(draft.copy(config = draft.config + mapOf(
+                                        "deviceAddress" to value.trim(),
+                                        "deviceName" to if (value.isBlank()) deviceName else ""
+                                    )))
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(stringResource(R.string.bluetooth_device_address)) },
+                                singleLine = true
+                            )
+                        }
                         // Two independent, self-hiding rows — never a permanent prompt:
                         // 1) BLUETOOTH_CONNECT runtime permission (system dialog).
                         //    The Bluetooth settings screen cannot grant it, so it
@@ -2186,6 +2224,15 @@ fun TriggerEditorCard(
             DatePicker(state = datePickerState)
         }
     }
+}
+
+internal object BluetoothTriggerConfig {
+    fun isAnySentinel(deviceName: String): Boolean =
+        deviceName.isBlank() || deviceName == "__ANY__" || deviceName == "*" ||
+            deviceName.equals("ANY", ignoreCase = true)
+
+    fun isAnyDevice(deviceName: String, deviceAddress: String): Boolean =
+        deviceAddress.isBlank() && isAnySentinel(deviceName)
 }
 
 private fun parseTimeMinutes(value: String): Int {

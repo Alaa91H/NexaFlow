@@ -1,0 +1,9 @@
+<resources>
+    <string name="action_sequence_title">実行順序</string>
+    <string name="action_sequence_subtitle">アクションと待機をこの順序で実行します</string>
+    <string name="wait_hours">時間</string>
+    <string name="wait_minutes">分</string>
+    <string name="wait_seconds">秒</string>
+    <string name="wait_increase">%1$sを増やす</string>
+    <string name="wait_decrease">%1$sを減らす</string>
+</resources>

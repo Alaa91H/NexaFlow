@@ -1042,7 +1042,7 @@
     <string name="action_rom_setting_theme">Design &amp; Monet</string>
     <string name="action_rom_setting_theme_sub">Akzentfarbe, Monet, Symbole, Schriftarten</string>
     <string name="any_bluetooth_device">Beliebiges Bluetooth-Gerät</string>
-    <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
+    <string name="any_bluetooth_device_hint">Wird ausgeführt, wenn ein beliebiges Bluetooth-Gerät eine Verbindung herstellt oder trennt.</string>
     <string name="any_device">Beliebiges Gerät</string>
     <string name="sms_match_contains">Enthält</string>
     <string name="sms_match_exact">Exakte Übereinstimmung</string>
@@ -1314,4 +1314,8 @@
     <string name="reply_message">Antwortnachricht</string>
 
     <string name="task_restore_failed">Die vorherigen Aufgabeneinstellungen konnten nicht wiederhergestellt werden</string>
+    <string name="bluetooth_advanced">Erweiterte Optionen</string>
+    <string name="bluetooth_advanced_hide">Erweiterte Optionen ausblenden</string>
+    <string name="bluetooth_device_name">Gerätename</string>
+    <string name="bluetooth_device_address">MAC-Adresse</string>
 </resources>

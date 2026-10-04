@@ -347,7 +347,7 @@
     <string name="no_bluetooth_device">No device selected</string>
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_device">Any device</string>
-    <string name="any_bluetooth_device_hint">Fires when any paired device disconnects — no specific device needed</string>
+    <string name="any_bluetooth_device_hint">Runs when any Bluetooth device connects or disconnects.</string>
     <string name="no_paired_devices">No paired Bluetooth devices found</string>
     <string name="bluetooth_turned_off_title">Bluetooth is turned off</string>
     <string name="bluetooth_turned_off_body">Turn on Bluetooth to see your paired devices and pick one for this task.</string>
@@ -1322,4 +1322,8 @@
     <string name="option_tier_expanded">Expanded</string>
     <string name="option_tier_collapsed">Collapsed</string>
     <string name="option_tier_all">All options</string>
+    <string name="bluetooth_advanced">Advanced options</string>
+    <string name="bluetooth_advanced_hide">Hide advanced options</string>
+    <string name="bluetooth_device_name">Device name</string>
+    <string name="bluetooth_device_address">MAC address</string>
 </resources>
