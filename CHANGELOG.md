@@ -23,14 +23,17 @@
 
 ## [Unreleased]
 
+## [v3.91.9] - 2026-10-05
+
 ### Security and CI
 
-- Require explicit production signing for release artifacts; allow debug signing only through an explicit disposable-build opt-in.
-- Make untagged CI builds opt into debug signing while version-tag builds require production signing credentials.
+- Require production signing for release artifacts, with debug signing available only through an explicit opt-in for disposable builds.
+- Select the signing mode by build context: untagged CI builds opt into debug signing, while version-tag builds require production credentials.
 
 ### Validation
 
-- Add regression tests for the local release-signing guard and tag-aware CI build selection.
+- Add regression tests for the release-signing guard and tag-aware CI build selection.
+- Verify lint, coverage, unit tests, APK assembly, signing, manifest, dependency metadata, and native-library checks in GitHub Actions run 37245345750.
 
 ## [v3.91.7] - 2026-10-04
 
