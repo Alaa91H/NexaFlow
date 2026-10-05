@@ -16,7 +16,7 @@ On 2026-10-05, the Gitleaks v8.30.1 release binary was checksum-verified and sca
 | P0-04 performance/device | No connected Android device was available; no current macrobenchmark, Perfetto, battery, or soak measurements. | `NOT TESTED` |
 | P0-05 security baseline | Full history scanned locally and by the new CI Gitleaks job; exact reviewed fingerprints only are ignored, and both scans are clean. Native GitHub secret scanning is disabled. | `PARTIAL` — server-side setting remains open |
 | P0-06 calibrated roadmap | The supplied plan's numerical goals have not been calibrated against physical-device measurements; no signed `ROADMAP_BASELINED.md` exists. | `NOT COMPLETE` |
-| P1–P10 | Existing code, tests, docs, and CI provide partial coverage; the new plan's acceptance gates (72h soak, multi-OEM validation, API 36/37 managed devices, live AI proof/evals, MASVS, SBOM/provenance, accessibility snapshots and Play policy/package flavors) have not been shown complete as a group. | `IN PROGRESS`; see `OPEN_QUESTIONS.md` |
+| P1–P10 | P1-01 subscription-change gate coverage merged as `a1982a0`; test rerun from source passed. P1 backup-policy manifest guard added locally and passed 2/2. A locked-boot/direct-boot design dependency is recorded as OQ-06. The plan's 72h soak, multi-OEM validation, API 36/37 managed devices, live AI proof/evals, MASVS, SBOM/provenance, accessibility snapshots and Play policy/package flavors have not been shown complete as a group. | `IN PROGRESS`; see `OPEN_QUESTIONS.md` |
 
 ### Targeted checks on intake baseline
 
@@ -41,6 +41,10 @@ At intake, GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/
 ### Current-main revalidation — v3.91.10
 
 The checkout was later fast-forwarded to `66f0dbd1327365b770901b2fa7d8d528a531ae9b` (`v3.91.10`). Fresh inventory and repository gates passed. `detekt` and all debug lint tasks completed, but the combined Windows `testDebugUnitTest` invocation exited nonzero with five DataStore `FileStorageConnection.writeScope` rename failures; see the detailed report and retained Gradle logs. The exact commit's tagged Ubuntu workflow [37258291959](https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959) passed, including unit tests and production release checks. Local `assembleDebug assembleRelease -PallowDebugSigning=true` succeeded, and all four generated APKs passed signature/metadata inspection using the Android Debug certificate. They are disposable local builds, not production-signed artifacts. No Android device was connected. These results update the P0 rows above but do not close P0 or P1–P10.
+
+### Follow-up — P1-01 and backup-policy guard
+
+P1-01 PR #120 passed its secret-scan, lint, coverage, and build checks and was squash-merged to `main` as `a1982a058bca0af78f03fc65f89109b6849dcec1`. The subscription gate test passed again with `--rerun-tasks` on the merged source (234/234 tasks; 3 tests, 0 failures). Main push run [37268650702](https://github.com/Alaa91H/NexaFlow/actions/runs/37268650702) was still `In progress` on 2026-10-05 05:54 UTC and remains unverified here. A local change adds a Robolectric contract test for `allowBackup=false` and complete backup/device-transfer exclusions; `BackupPolicyManifestTest` passed 2 tests, 0 failures. The source audit also found `LOCKED_BOOT_COMPLETED` registered without `directBootAware`, while the recovery path reads the normal Hilt/Room/DataStore graph. OQ-06 records the required behavior/design decision; no manifest change was made. P1-01 remains partial until executor lifecycle tests and the physical 72-hour soak are complete.
 
 ## R15 task report — P0 plan intake and evidence refresh
 

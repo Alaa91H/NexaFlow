@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Tests and reliability
+
+- Add a merged-manifest regression test that keeps private app data excluded from cloud backup and device transfer.
+- Cover SIM subscription change detection, duplicate callback suppression, and gate reset behavior; physical-device soak remains pending.
+- Record the unresolved locked-boot/direct-boot behavior and required storage design decision.
+
 ## [v3.91.10] - 2026-10-05
 
 ### Security and CI
