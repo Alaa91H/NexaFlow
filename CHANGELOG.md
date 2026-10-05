@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+## [v3.91.10] - 2026-10-05
+
+### Security and CI
+
+- Add a checksum-verified Gitleaks scan of all Git history and refs before the lint, coverage, and build jobs.
+- Allowlist only five individually reviewed historical fingerprints: two synthetic test fixtures and three non-secret false positives. New findings remain blocking.
+
+### Validation
+
+- Scan 2,221 commits with Gitleaks 8.30.1; after the exact fingerprint allowlist, the scan completed with no remaining findings.
+- Keep release publication tag-only; ordinary `main` builds remain non-release builds.
+
 ## [v3.91.8] - 2026-10-04
 
 ### Fixed — AI provider chat
@@ -20,8 +34,6 @@
 
 - Add regression coverage for Gemini schemas and provider checks, wait-duration boundaries, Bluetooth matching, AI chat failures, secure storage, capability reporting, and theme preferences.
 - Publish only the versioned phone and Wear APK files from the validated tag workflow.
-
-## [Unreleased]
 
 ## [v3.91.9] - 2026-10-05
 

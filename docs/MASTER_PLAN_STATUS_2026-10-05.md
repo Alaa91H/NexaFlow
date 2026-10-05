@@ -1,22 +1,26 @@
 # Master execution plan status — 2026-10-05
 
-This status consolidates the v3.91.9 release evidence and the new Master Execution Plan supplied on 2026-10-05. Current checkout: `main` at `f592fb2a68503dab22bf1599414e010c3fc9c6bf`, matching `origin/main`. Source inspection and repository checks are not a substitute for a completed Android build, CI run, release, or physical-device validation. The attached plan's acceptance gates remain authoritative; this document does not mark a phase complete merely because code or a catalog entry exists.
+This status consolidates the v3.91.9 release evidence and the Master Execution Plan supplied on 2026-10-05. The original baseline snapshot was `f592fb2a68503dab22bf1599414e010c3fc9c6bf`; the subsequent security follow-up started from `7b600dff98e510255f93aa028409fd262f31d1ee`. Source inspection and repository checks are not a substitute for a completed Android build, CI run, release, or physical-device validation. The attached plan's acceptance gates remain authoritative; this document does not mark a phase complete merely because code or a catalog entry exists.
+
+### Security follow-up — full-history scan
+
+On 2026-10-05, the Gitleaks v8.30.1 release binary was checksum-verified and scanned all reachable refs at `7b600dff98e510255f93aa028409fd262f31d1ee` (2,221 commits). Five findings were reviewed: two synthetic test fixtures and three non-secret false positives in a code comment/release prose. Exact fingerprints only are listed in `.gitleaksignore`; a repeat scan completed with zero remaining findings. The evidence, scope, and limitations are in `docs/evidence/baseline/gitleaks-2026-10-05.md`. A checksum-pinned scan job has been added to the single CI workflow and is pending hosted verification. GitHub native secret scanning is disabled for this repository, so that server-side control remains open.
 
 ## New plan intake and gate state
 
 | Plan stage | Current evidence | State |
 |---|---|---|
-| P0-01 baseline | Latest main CI run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/runs/37249814011) passed on `f592fb2a`; targeted repository gates below passed. Local `auto_fix.py --check` and canonical final audit did not complete on this Windows host; WSL is unavailable. | `PARTIAL` |
+| P0-01 baseline | Main CI run [37252576226](https://github.com/Alaa91H/NexaFlow/actions/runs/37252576226) passed on `7b600dff`; targeted repository gates passed. Local `auto_fix.py --check` and canonical final audit did not complete on this Windows host; WSL is unavailable. | `PARTIAL` |
 | P0-02 inventory | `docs/evidence/baseline/module-inventory.md`, generated canonical inventory, and the trigger/action matrix in `AUDIT.md`; current catalog reports 57 triggers (55 exposed) and 180 actions. Runtime behavior/device coverage is not established per item. | `PARTIAL` |
 | P0-03 AI/agents | `AUDIT.md` identifies both in-app LLM/tool execution and the external agent gateway, with source/test evidence and explicit device limitations. | `PARTIAL` — live provider/device proof absent |
 | P0-04 performance/device | No connected Android device was available; no current macrobenchmark, Perfetto, battery, or soak measurements. | `NOT TESTED` |
-| P0-05 security baseline | Manifest checks and CI signing/security gates have passed. Full-history gitleaks/trufflehog scan is unavailable locally and not evidenced by the latest run. | `PARTIAL` |
+| P0-05 security baseline | Full history has now been scanned locally with Gitleaks v8.30.1; exact reviewed fingerprints are suppressed, and the repeat scan is clean. The new CI enforcement job is pending verification; native GitHub secret scanning is disabled. | `PARTIAL` |
 | P0-06 calibrated roadmap | The supplied plan's numerical goals have not been calibrated against physical-device measurements; no signed `ROADMAP_BASELINED.md` exists. | `NOT COMPLETE` |
 | P1–P10 | Existing code, tests, docs, and CI provide partial coverage; the new plan's acceptance gates (72h soak, multi-OEM validation, API 36/37 managed devices, live AI proof/evals, MASVS, SBOM/provenance, accessibility snapshots and Play policy/package flavors) have not been shown complete as a group. | `IN PROGRESS`; see `OPEN_QUESTIONS.md` |
 
 ### Targeted checks on current main
 
-Commands run on 2026-10-05 at `f592fb2a`:
+Commands run on 2026-10-05 at the baseline revision `f592fb2a`, except the explicitly identified Gitleaks follow-up at `7b600dff`:
 
 | Command | Result |
 |---|---|
@@ -26,9 +30,10 @@ Commands run on 2026-10-05 at `f592fb2a`:
 | `python scripts/check_readme_stale_counts.py` | Exit 0; no hard-coded catalog/schema counts |
 | `python -m unittest scripts.tests.test_release_signing_guard -v` | Exit 0; 2 tests passed |
 | `python scripts/check_canonical_release_readiness.py` | Exit 0; 30 canonical gates pass and are wired into CI; clean tree at invocation |
-| `python scripts/auto_fix.py --check` | Did not finish or emit output within 30 seconds on this Windows/Python 3.14 host; terminated. Not counted as passed. |
+| `python scripts/auto_fix.py --check` | Earlier Windows/Python 3.14 attempt stalled; hosted Ubuntu CI run 37252576226 passed this gate. |
 | `python scripts/check_canonical_final_audit.py` | Did not finish or emit output within 30 seconds; not counted as passed. |
 | `wsl --list --quiet` | Failed: WSL is not installed, so Linux-local reproduction is unavailable. |
+| `gitleaks git --redact=100 --log-opts=--all .` | Exit 0 after exact historical fingerprint ignores; 2,221 commits scanned, no remaining findings. See `docs/evidence/baseline/gitleaks-2026-10-05.md`. |
 | Git status | `main...origin/main`, clean working tree |
 
 GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/runs/37249814011) completed successfully on the exact current `main` commit. Tagged release run [37247996319](https://github.com/Alaa91H/NexaFlow/actions/runs/37247996319) and release [v3.91.9](https://github.com/Alaa91H/NexaFlow/releases/tag/v3.91.9) are verified; publication includes only phone and Wear APK assets. This proves those CI/release gates only, not the additional plan gates listed above.
@@ -40,7 +45,7 @@ GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/run
 - Executed: inspected attachment sections P0–P10, current `AUDIT.md`, `VALIDATION.md`, CI workflow and Actions status; ran the targeted checks listed above.
 - Tests changed: none. Schema/permissions changed: no. Runtime source changed: no.
 - Device evidence: `NOT TESTED` (no connected device; WSL unavailable).
-- Remaining risks: no full-history secret scan; no physical performance/72h/OEM evidence; no complete Play-policy, MASVS, SBOM/provenance or live-AI acceptance proof; two local scripts stalled on Windows.
+- Remaining risks at the original baseline: full-history scan was not yet run; no physical performance/72h/OEM evidence; no complete Play-policy, MASVS, SBOM/provenance or live-AI acceptance proof; two local scripts stalled on Windows. The scan was completed in the follow-up above; its CI gate is still pending.
 - Open questions: tracked in `docs/OPEN_QUESTIONS.md`.
 - Acceptance: partially met; P0 cannot close until required performance/security evidence and calibrated roadmap are supplied and reviewed.
 
@@ -64,7 +69,7 @@ GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/run
 - The debug-opt-in release build reached `:app:minifyReleaseWithR8` but was stopped after no progress while the host was under heavy resource pressure. No release APK was produced.
 - A separate release packaging task without debug opt-in failed as intended with `Release builds require production signing`; this verifies the fail-closed task guard. The release signing guard’s two static regression tests also passed.
 - No production signing credentials are available in this checkout. The tag build remains designed to require those credentials; the local debug-signing option is only for disposable builds.
-- `gitleaks` and `trufflehog` are unavailable, so the full-history secret scan is `NOT RUN`.
+- At the original baseline snapshot, `gitleaks` and `trufflehog` were unavailable. See the dated follow-up above for the completed full-history Gitleaks scan and the pending CI enforcement gate.
 - `adb devices -l` returned no devices. Device/OEM behavior, AI provider round-trip, call/SMS permissions, benchmarks, Perfetto, and soak testing are `NOT TESTED`.
 - Commits `d0e39a38` and `f0d0788e` were pushed directly to `main`, and the local main checkout is fast-forwarded to `f0d0788e`. The only remote branch is `main`; merged local `codex/security-remediation-v3-91-8*` branches were deleted. Tag workflow [37247996319](https://github.com/Alaa91H/NexaFlow/actions/runs/37247996319) passed, and [v3.91.9](https://github.com/Alaa91H/NexaFlow/releases/tag/v3.91.9) is published with exactly two APK assets: phone and Wear OS.
 

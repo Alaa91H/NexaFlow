@@ -18,7 +18,7 @@ This is a checkout-specific audit for the Master Execution Plan. It separates so
 | Agent safety | `AgentGrantMode` includes `READ_ONLY`, `STANDARD`, timed/permanent full access and fail-closed `UNKNOWN`; `AgentAccessManagerTest` covers defaults, migration, token rotation/replay. Approval records and content hashes are wired through the app and execution boundary. | `REAL` source/tests; manual UX/device proof `UNTESTED` |
 | Risk calculation/CI guardrails | `config/detekt/detekt.yml` configures `EmptyCatchBlock`, `SuspendFunSwallowedCancellation`, `TooGenericExceptionCaught`, and `SwallowedException`. `scripts/check_suppression_budget.py` passed at 83 `Suppress` and 42 `SuppressLint`. | `REAL` for configured static gates |
 | Database safety | `docs/SECURITY.md`, `core/database` explicit migrations and migration tests document data-preserving migration policy. Current plan run still needs the full Gradle test result and current schema check. | `PARTIAL` pending this run's full evidence |
-| Signing and secret files | `keystore/` contains only `keystore.properties.example`; `.gitignore` excludes `.jks`, `.keystore`, and `keystore.properties`. No actual local signing secret was found in the directory. Full Git-history secret scan has not yet run. | `PARTIAL`; history scan pending |
+| Signing and secret files | `keystore/` contains only `keystore.properties.example`; `.gitignore` excludes `.jks`, `.keystore`, and `keystore.properties`. Full-history Gitleaks v8.30.1 scanned 2,221 commits; five reviewed test/prose false positives are ignored by exact fingerprint, and the repeat scan reports no remaining findings. GitHub native secret scanning is disabled; the pinned/checksum-verified CLI gate is being added to CI. | `PARTIAL`; CI run and server-side setting remain unverified |
 | Current validation document | `docs/VALIDATION.md` starts with the v3.91.8 checkout's current local verification and preserves the historical v3.74 record. | `REAL` for documented baseline; this worktree still needs its own CI run |
 | Performance/OEM behavior | No connected device evidence was available during this audit; the master plan's soak, macrobenchmark, Perfetto, `ApplicationExitInfo`, Shizuku/Root and OEM matrix cannot be inferred from JVM/Gradle output. | `UNTESTED` |
 
@@ -47,7 +47,7 @@ Conclusion for P0-03: both an in-app LLM/tool workflow and an external agent gat
 
 1. Baseline command logs and module inventory are recorded under `docs/evidence/baseline/`; the local release experiment was interrupted before an APK was produced, so it is not a successful release build.
 2. The source inventory covers Gradle modules and every trigger/action enum. Runtime outcomes remain partial until behavior-level and device evidence is gathered.
-3. Run a full-history `gitleaks` or `trufflehog` scan when available; the current release manifest was inspected, but no new production-signed APK was built in this worktree.
+3. The local full-history Gitleaks scan is documented in `docs/evidence/baseline/gitleaks-2026-10-05.md`; verify its new CI job and enable native GitHub secret scanning/push protection if repository policy allows.
 4. Record P0-04 as `NOT TESTED` until a named physical device and measured performance/soak evidence are available.
 5. After changes are committed and pushed, append their own CI run and release evidence; do not substitute the successful baseline run for validation of this worktree.
 

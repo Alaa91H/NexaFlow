@@ -1,0 +1,7 @@
+# Exact historical fingerprints reviewed on 2026-10-05. These are inert test-only
+# credential-shaped fixtures or regex false positives; new findings still fail CI.
+473dc582d1f4d409064565154f2dbabbf5db2b6d:domain/src/test/java/com/nexaflow/domain/canonical/CanonicalWorkflowDocumentV3Test.kt:generic-api-key:30
+c1c64d844ce1062012134b272d72a4b3717427cd:core/ai-runtime/src/test/java/com/nexaflow/core/airuntime/AiAgentTraceTest.kt:generic-api-key:26
+c97d645170d90bcfe2032f627033e65ae2f48508:scripts/generate_options_audit.py:generic-api-key:166
+de9de2b2fab8be7e3c84be95bb9fcbd27e7074c2:scripts/generate_options_audit.py:generic-api-key:166
+bd9c6794436830ca039b3a31713267a70e794b95:release_notes.md:generic-api-key:39
