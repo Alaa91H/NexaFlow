@@ -1,6 +1,6 @@
-# NexaFlow source audit — 2026-10-04
+# NexaFlow source audit — 2026-10-05
 
-This is a checkout-specific audit for the Master Execution Plan. It separates source/test evidence from device and service-side evidence. The checkout is based on `811f1430098cd496ed424bceebe6ff81409ffe27` (`v3.91.8`, `origin/main`) with an in-progress security-plan change to release signing; this is not a clean-main baseline.
+This is a checkout-specific audit for the Master Execution Plan. It separates source/test evidence from device and service-side evidence. The current clean checkout is `66f0dbd1327365b770901b2fa7d8d528a531ae9b` (`v3.91.10`, `main`, `origin/main`). The earlier v3.91.8 snapshot remains historical evidence below; see the 2026-10-05 revalidation for current host and CI results.
 
 ## Baseline and repository facts
 
@@ -17,10 +17,18 @@ This is a checkout-specific audit for the Master Execution Plan. It separates so
 | External agent gateway | `core/agent-api` exposes authenticated REST/MCP paths; pairing and operation scopes are described in `docs/AGENT_PAIRING.md` and `docs/AGENT_SECURITY.md`. LAN is fail-closed until a TLS transport exists. | `REAL` source/documentation; remote-client/device TLS `UNTESTED` |
 | Agent safety | `AgentGrantMode` includes `READ_ONLY`, `STANDARD`, timed/permanent full access and fail-closed `UNKNOWN`; `AgentAccessManagerTest` covers defaults, migration, token rotation/replay. Approval records and content hashes are wired through the app and execution boundary. | `REAL` source/tests; manual UX/device proof `UNTESTED` |
 | Risk calculation/CI guardrails | `config/detekt/detekt.yml` configures `EmptyCatchBlock`, `SuspendFunSwallowedCancellation`, `TooGenericExceptionCaught`, and `SwallowedException`. `scripts/check_suppression_budget.py` passed at 83 `Suppress` and 42 `SuppressLint`. | `REAL` for configured static gates |
-| Database safety | `docs/SECURITY.md`, `core/database` explicit migrations and migration tests document data-preserving migration policy. Current plan run still needs the full Gradle test result and current schema check. | `PARTIAL` pending this run's full evidence |
-| Signing and secret files | `keystore/` contains only `keystore.properties.example`; `.gitignore` excludes `.jks`, `.keystore`, and `keystore.properties`. Full-history Gitleaks v8.30.1 scanned 2,221 commits; five reviewed test/prose false positives are ignored by exact fingerprint, and the repeat scan reports no remaining findings. GitHub native secret scanning is disabled; the pinned/checksum-verified CLI gate is being added to CI. | `PARTIAL`; CI run and server-side setting remain unverified |
-| Current validation document | `docs/VALIDATION.md` starts with the v3.91.8 checkout's current local verification and preserves the historical v3.74 record. | `REAL` for documented baseline; this worktree still needs its own CI run |
+| Database safety | `docs/SECURITY.md`, `core/database` explicit migrations and migration tests document data-preserving migration policy. The current Windows full-suite attempt hit five DataStore file-replacement failures; the exact current commit's tagged Ubuntu CI run passed. | `PARTIAL` pending cross-platform and schema-specific evidence |
+| Signing and secret files | `keystore/` contains only `keystore.properties.example`; `.gitignore` excludes `.jks`, `.keystore`, and `keystore.properties`. Full-history Gitleaks v8.30.1 scanned 2,221 commits; five reviewed test/prose false positives are ignored by exact fingerprint. The checksum-pinned CI gate passed in runs 37254899900, 37256522529 and 37258291959. GitHub native secret scanning is disabled. | `PARTIAL`; server-side setting remains unverified |
+| Current validation document | `docs/VALIDATION.md` contains the security scan follow-up; current local Gradle, APK and repository-gate evidence is recorded in `docs/evidence/baseline/p0-01-current-main-2026-10-05.md`. | `REAL` for recorded evidence; device gates remain untested |
 | Performance/OEM behavior | No connected device evidence was available during this audit; the master plan's soak, macrobenchmark, Perfetto, `ApplicationExitInfo`, Shizuku/Root and OEM matrix cannot be inferred from JVM/Gradle output. | `UNTESTED` |
+
+## 2026-10-05 revalidation
+
+- Checkout: `66f0dbd1327365b770901b2fa7d8d528a531ae9b`; one branch (`main`), clean before evidence files were added.
+- `python scripts/auto_fix.py --check`, locale parity, catalog parity, suppression budget, and README stale-count checks passed. Current inventory is 36 Gradle projects, 57 triggers (55 exposed), and 180 actions; current per-module LOC matches `evidence/baseline/module-inventory.md`.
+- `./gradlew detekt lintDebug testDebugUnitTest --console=plain` completed Detekt and all debug Lint tasks. The local command failed in `:core:datastore:testDebugUnitTest` with 5/46 failures; details and the full log are in `evidence/baseline/p0-01-current-main-2026-10-05.md` and `p0-01-gradle-windows-2026-10-05.log`. The exact current tag CI run [37258291959](https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959) passed on Ubuntu.
+- `./gradlew assembleDebug assembleRelease -PallowDebugSigning=true --console=plain` succeeded in 31m48s. Phone and Wear debug/release APKs verify with APK Signature Scheme v2 and report `versionName=v3.91.10`; local release artifacts use the disposable Android Debug certificate, not production signing.
+- `adb devices -l` returned no devices. Macrobenchmark, Perfetto, soak, OEM, live AI, and privileged-path acceptance remain `NOT TESTED`.
 
 ## Trigger/action audit boundary
 

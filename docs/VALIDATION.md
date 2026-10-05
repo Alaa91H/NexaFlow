@@ -1,5 +1,9 @@
 # Validation record
 
+## Current checkout — v3.91.10 baseline revalidation, 2026-10-05
+
+The P0 evidence refresh for `66f0dbd1327365b770901b2fa7d8d528a531ae9b` is recorded in [`evidence/baseline/p0-01-current-main-2026-10-05.md`](evidence/baseline/p0-01-current-main-2026-10-05.md). The local Android SDK was available and `detekt`, all debug lint tasks, and `assembleDebug assembleRelease -PallowDebugSigning=true` completed. The combined Windows Gradle invocation still exited nonzero: five DataStore tests failed when `FileStorageConnection.writeScope` could not replace a target file with its temporary file. The exact commit's Ubuntu tagged CI run [37258291959](https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959) passed, including unit tests and production release checks. All four local app/Wear debug/release APKs passed v2 signature and version metadata inspection, but were signed with the Android Debug certificate and are disposable validation outputs. No Android device was connected. These results do not certify device behavior or make the local full Gradle command green.
+
 ## Security scan follow-up — 2026-10-05
 
 At `7b600dff98e510255f93aa028409fd262f31d1ee`, official Gitleaks v8.30.1 was downloaded with its published SHA-256 verified and run against all local Git refs. It scanned 2,221 commits and initially reported five generic-key matches; review found two synthetic test fixtures and three non-secret comment/release-text matches. Their exact fingerprints are recorded in `.gitleaksignore`; the repeat scan exited 0 with no remaining findings. Details and scan limitations are in [`evidence/baseline/gitleaks-2026-10-05.md`](evidence/baseline/gitleaks-2026-10-05.md).

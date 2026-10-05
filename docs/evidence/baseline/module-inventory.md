@@ -1,4 +1,4 @@
-# Gradle module inventory — 2026-10-04
+# Gradle module inventory — 2026-10-05
 
 Generated from the current `settings.gradle.kts`; LOC counts Kotlin/Java files under each module `src/main` tree. Project dependencies are those declared as `project(...)` in the module build file.
 
@@ -40,3 +40,5 @@ Generated from the current `settings.gradle.kts`; LOC counts Kotlin/Java files u
 | `sample-plugins/nfc-toggle` | 347 | external/root config only |
 | `test-fixtures/locale-plugin-fixture` | 153 | external/root config only |
 | `wear` | 1162 | :core:wear-protocol |
+
+Revalidated on clean `main` at `66f0dbd1327365b770901b2fa7d8d528a531ae9b`: `./gradlew projects --console=plain` completed successfully in 49 seconds and listed 36 included Gradle projects. A fresh Kotlin/Java `src/main` LOC scan returned 36 module rows and matched every LOC value above. Runtime behavior and device coverage are not implied by this inventory.

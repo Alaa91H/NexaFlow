@@ -1,6 +1,6 @@
 # Master execution plan status — 2026-10-05
 
-This status consolidates the v3.91.9 release evidence and the Master Execution Plan supplied on 2026-10-05. The original baseline snapshot was `f592fb2a68503dab22bf1599414e010c3fc9c6bf`; the subsequent security follow-up started from `7b600dff98e510255f93aa028409fd262f31d1ee`. Source inspection and repository checks are not a substitute for a completed Android build, CI run, release, or physical-device validation. The attached plan's acceptance gates remain authoritative; this document does not mark a phase complete merely because code or a catalog entry exists.
+This status consolidates the v3.91.10 release evidence and the Master Execution Plan supplied on 2026-10-05. The original baseline snapshot was `f592fb2a68503dab22bf1599414e010c3fc9c6bf`; the subsequent security follow-up started from `7b600dff98e510255f93aa028409fd262f31d1ee`. Current-main evidence was refreshed on `66f0dbd1327365b770901b2fa7d8d528a531ae9b` and is recorded in [`p0-01-current-main-2026-10-05.md`](evidence/baseline/p0-01-current-main-2026-10-05.md). Source inspection and repository checks are not a substitute for a completed Android build, CI run, release, or physical-device validation. The attached plan's acceptance gates remain authoritative; this document does not mark a phase complete merely because code or a catalog entry exists.
 
 ### Security follow-up — full-history scan
 
@@ -10,15 +10,15 @@ On 2026-10-05, the Gitleaks v8.30.1 release binary was checksum-verified and sca
 
 | Plan stage | Current evidence | State |
 |---|---|---|
-| P0-01 baseline | Main CI run [37254899900](https://github.com/Alaa91H/NexaFlow/actions/runs/37254899900) passed on `34b75d3f`; targeted repository gates passed. Local `auto_fix.py --check` and canonical final audit did not complete on this Windows host; WSL is unavailable. | `PARTIAL` |
-| P0-02 inventory | `docs/evidence/baseline/module-inventory.md`, generated canonical inventory, and the trigger/action matrix in `AUDIT.md`; current catalog reports 57 triggers (55 exposed) and 180 actions. Runtime behavior/device coverage is not established per item. | `PARTIAL` |
+| P0-01 baseline | Revalidated at `66f0dbd`. Targeted gates, detekt, debug Lint, and local debug/release APK builds passed; five DataStore tests failed on Windows while exact-commit Ubuntu tag CI [37258291959](https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959) passed. Full evidence: [`p0-01-current-main-2026-10-05.md`](evidence/baseline/p0-01-current-main-2026-10-05.md). | `PARTIAL` — local Windows test task remains nonzero |
+| P0-02 inventory | Current Gradle inventory lists 36 projects and source LOC matches `docs/evidence/baseline/module-inventory.md`; catalog reports 57 triggers (55 exposed) and 180 actions. Runtime behavior/device coverage is not established per item. | `PARTIAL` |
 | P0-03 AI/agents | `AUDIT.md` identifies both in-app LLM/tool execution and the external agent gateway, with source/test evidence and explicit device limitations. | `PARTIAL` — live provider/device proof absent |
 | P0-04 performance/device | No connected Android device was available; no current macrobenchmark, Perfetto, battery, or soak measurements. | `NOT TESTED` |
 | P0-05 security baseline | Full history scanned locally and by the new CI Gitleaks job; exact reviewed fingerprints only are ignored, and both scans are clean. Native GitHub secret scanning is disabled. | `PARTIAL` — server-side setting remains open |
 | P0-06 calibrated roadmap | The supplied plan's numerical goals have not been calibrated against physical-device measurements; no signed `ROADMAP_BASELINED.md` exists. | `NOT COMPLETE` |
 | P1–P10 | Existing code, tests, docs, and CI provide partial coverage; the new plan's acceptance gates (72h soak, multi-OEM validation, API 36/37 managed devices, live AI proof/evals, MASVS, SBOM/provenance, accessibility snapshots and Play policy/package flavors) have not been shown complete as a group. | `IN PROGRESS`; see `OPEN_QUESTIONS.md` |
 
-### Targeted checks on current main
+### Targeted checks on intake baseline
 
 Commands run on 2026-10-05 at the baseline revision `f592fb2a`, except the explicitly identified Gitleaks follow-up at `7b600dff`:
 
@@ -36,7 +36,11 @@ Commands run on 2026-10-05 at the baseline revision `f592fb2a`, except the expli
 | `gitleaks git --redact=100 --log-opts=--all .` | Exit 0 after exact historical fingerprint ignores; 2,221 commits scanned, no remaining findings. Hosted CI enforcement passed in run 37254899900. See `docs/evidence/baseline/gitleaks-2026-10-05.md`. |
 | Git status | `main...origin/main`, clean working tree |
 
-GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/runs/37249814011) completed successfully on the exact current `main` commit. Tagged release run [37247996319](https://github.com/Alaa91H/NexaFlow/actions/runs/37247996319) and release [v3.91.9](https://github.com/Alaa91H/NexaFlow/releases/tag/v3.91.9) are verified; publication includes only phone and Wear APK assets. This proves those CI/release gates only, not the additional plan gates listed above.
+At intake, GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/runs/37249814011) completed successfully on its exact `main` commit. Tagged release run [37247996319](https://github.com/Alaa91H/NexaFlow/actions/runs/37247996319) and release [v3.91.9](https://github.com/Alaa91H/NexaFlow/releases/tag/v3.91.9) were verified; publication included only phone and Wear APK assets. This proves those CI/release gates only, not the additional plan gates listed above.
+
+### Current-main revalidation — v3.91.10
+
+The checkout was later fast-forwarded to `66f0dbd1327365b770901b2fa7d8d528a531ae9b` (`v3.91.10`). Fresh inventory and repository gates passed. `detekt` and all debug lint tasks completed, but the combined Windows `testDebugUnitTest` invocation exited nonzero with five DataStore `FileStorageConnection.writeScope` rename failures; see the detailed report and retained Gradle logs. The exact commit's tagged Ubuntu workflow [37258291959](https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959) passed, including unit tests and production release checks. Local `assembleDebug assembleRelease -PallowDebugSigning=true` succeeded, and all four generated APKs passed signature/metadata inspection using the Android Debug certificate. They are disposable local builds, not production-signed artifacts. No Android device was connected. These results update the P0 rows above but do not close P0 or P1–P10.
 
 ## R15 task report — P0 plan intake and evidence refresh
 
@@ -75,7 +79,6 @@ GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/run
 
 ## Next safe steps
 
-1. Re-run the datastore and full JVM suites on Linux CI to confirm whether the five Windows rename failures are host-specific; investigate if any persist there. Then run Gradle on a host with sufficient memory: `./gradlew detekt lintDebug testDebugUnitTest`.
-2. Build `assembleDebug assembleRelease -PallowDebugSigning=true`, verify the disposable local APKs and inspect the merged release manifest. Do not publish them.
-3. Run a full-history secret scanner, then validate the tag workflow with configured production signing secrets and inspect the resulting release assets.
-4. Complete device, OEM, performance, and soak gates on the actual target hardware before describing those capabilities as validated.
+1. Investigate or reproduce the five Windows DataStore rename failures on a supported Windows filesystem/runtime; keep the exact-commit Ubuntu success as separate evidence and do not count the local Gradle command as passing.
+2. Complete device, OEM, performance, and soak gates on target hardware before describing those capabilities as validated.
+3. Resolve the outstanding security, AI-provider, distribution, and roadmap calibration items tracked in `OPEN_QUESTIONS.md` and the supplied P0–P10 plan.
