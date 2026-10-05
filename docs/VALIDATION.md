@@ -4,7 +4,7 @@
 
 At `7b600dff98e510255f93aa028409fd262f31d1ee`, official Gitleaks v8.30.1 was downloaded with its published SHA-256 verified and run against all local Git refs. It scanned 2,221 commits and initially reported five generic-key matches; review found two synthetic test fixtures and three non-secret comment/release-text matches. Their exact fingerprints are recorded in `.gitleaksignore`; the repeat scan exited 0 with no remaining findings. Details and scan limitations are in [`evidence/baseline/gitleaks-2026-10-05.md`](evidence/baseline/gitleaks-2026-10-05.md).
 
-A checksum-pinned Gitleaks job is being added to the single GitHub Actions workflow and has not yet been validated by a hosted run. GitHub's repository security settings report native secret scanning disabled. No physical device was connected, so OEM/device validation remains `NOT TESTED`.
+A checksum-pinned Gitleaks job in the single GitHub Actions workflow passed with lint, coverage, unit tests, and APK assembly in [run 37254899900](https://github.com/Alaa91H/NexaFlow/actions/runs/37254899900). Release publication was skipped on the ordinary `main` push. GitHub's repository security settings report native secret scanning disabled. No physical device was connected, so OEM/device validation remains `NOT TESTED`.
 
 ## Current checkout — v3.91.8 baseline audit, 2026-10-05
 

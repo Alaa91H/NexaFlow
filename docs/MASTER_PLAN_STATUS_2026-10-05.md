@@ -4,17 +4,17 @@ This status consolidates the v3.91.9 release evidence and the Master Execution P
 
 ### Security follow-up — full-history scan
 
-On 2026-10-05, the Gitleaks v8.30.1 release binary was checksum-verified and scanned all reachable refs at `7b600dff98e510255f93aa028409fd262f31d1ee` (2,221 commits). Five findings were reviewed: two synthetic test fixtures and three non-secret false positives in a code comment/release prose. Exact fingerprints only are listed in `.gitleaksignore`; a repeat scan completed with zero remaining findings. The evidence, scope, and limitations are in `docs/evidence/baseline/gitleaks-2026-10-05.md`. A checksum-pinned scan job has been added to the single CI workflow and is pending hosted verification. GitHub native secret scanning is disabled for this repository, so that server-side control remains open.
+On 2026-10-05, the Gitleaks v8.30.1 release binary was checksum-verified and scanned all reachable refs at `7b600dff98e510255f93aa028409fd262f31d1ee` (2,221 commits). Five findings were reviewed: two synthetic test fixtures and three non-secret false positives in a code comment/release prose. Exact fingerprints only are listed in `.gitleaksignore`; a repeat scan completed with zero remaining findings. The evidence, scope, and limitations are in `docs/evidence/baseline/gitleaks-2026-10-05.md`. The checksum-pinned scan job passed in [GitHub Actions run 37254899900](https://github.com/Alaa91H/NexaFlow/actions/runs/37254899900) on `34b75d3f`. GitHub native secret scanning is disabled for this repository, so that separate server-side control remains open.
 
 ## New plan intake and gate state
 
 | Plan stage | Current evidence | State |
 |---|---|---|
-| P0-01 baseline | Main CI run [37252576226](https://github.com/Alaa91H/NexaFlow/actions/runs/37252576226) passed on `7b600dff`; targeted repository gates passed. Local `auto_fix.py --check` and canonical final audit did not complete on this Windows host; WSL is unavailable. | `PARTIAL` |
+| P0-01 baseline | Main CI run [37254899900](https://github.com/Alaa91H/NexaFlow/actions/runs/37254899900) passed on `34b75d3f`; targeted repository gates passed. Local `auto_fix.py --check` and canonical final audit did not complete on this Windows host; WSL is unavailable. | `PARTIAL` |
 | P0-02 inventory | `docs/evidence/baseline/module-inventory.md`, generated canonical inventory, and the trigger/action matrix in `AUDIT.md`; current catalog reports 57 triggers (55 exposed) and 180 actions. Runtime behavior/device coverage is not established per item. | `PARTIAL` |
 | P0-03 AI/agents | `AUDIT.md` identifies both in-app LLM/tool execution and the external agent gateway, with source/test evidence and explicit device limitations. | `PARTIAL` — live provider/device proof absent |
 | P0-04 performance/device | No connected Android device was available; no current macrobenchmark, Perfetto, battery, or soak measurements. | `NOT TESTED` |
-| P0-05 security baseline | Full history has now been scanned locally with Gitleaks v8.30.1; exact reviewed fingerprints are suppressed, and the repeat scan is clean. The new CI enforcement job is pending verification; native GitHub secret scanning is disabled. | `PARTIAL` |
+| P0-05 security baseline | Full history scanned locally and by the new CI Gitleaks job; exact reviewed fingerprints only are ignored, and both scans are clean. Native GitHub secret scanning is disabled. | `PARTIAL` — server-side setting remains open |
 | P0-06 calibrated roadmap | The supplied plan's numerical goals have not been calibrated against physical-device measurements; no signed `ROADMAP_BASELINED.md` exists. | `NOT COMPLETE` |
 | P1–P10 | Existing code, tests, docs, and CI provide partial coverage; the new plan's acceptance gates (72h soak, multi-OEM validation, API 36/37 managed devices, live AI proof/evals, MASVS, SBOM/provenance, accessibility snapshots and Play policy/package flavors) have not been shown complete as a group. | `IN PROGRESS`; see `OPEN_QUESTIONS.md` |
 
@@ -33,7 +33,7 @@ Commands run on 2026-10-05 at the baseline revision `f592fb2a`, except the expli
 | `python scripts/auto_fix.py --check` | Earlier Windows/Python 3.14 attempt stalled; hosted Ubuntu CI run 37252576226 passed this gate. |
 | `python scripts/check_canonical_final_audit.py` | Did not finish or emit output within 30 seconds; not counted as passed. |
 | `wsl --list --quiet` | Failed: WSL is not installed, so Linux-local reproduction is unavailable. |
-| `gitleaks git --redact=100 --log-opts=--all .` | Exit 0 after exact historical fingerprint ignores; 2,221 commits scanned, no remaining findings. See `docs/evidence/baseline/gitleaks-2026-10-05.md`. |
+| `gitleaks git --redact=100 --log-opts=--all .` | Exit 0 after exact historical fingerprint ignores; 2,221 commits scanned, no remaining findings. Hosted CI enforcement passed in run 37254899900. See `docs/evidence/baseline/gitleaks-2026-10-05.md`. |
 | Git status | `main...origin/main`, clean working tree |
 
 GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/runs/37249814011) completed successfully on the exact current `main` commit. Tagged release run [37247996319](https://github.com/Alaa91H/NexaFlow/actions/runs/37247996319) and release [v3.91.9](https://github.com/Alaa91H/NexaFlow/releases/tag/v3.91.9) are verified; publication includes only phone and Wear APK assets. This proves those CI/release gates only, not the additional plan gates listed above.
@@ -45,7 +45,7 @@ GitHub Actions run [37249814011](https://github.com/Alaa91H/NexaFlow/actions/run
 - Executed: inspected attachment sections P0–P10, current `AUDIT.md`, `VALIDATION.md`, CI workflow and Actions status; ran the targeted checks listed above.
 - Tests changed: none. Schema/permissions changed: no. Runtime source changed: no.
 - Device evidence: `NOT TESTED` (no connected device; WSL unavailable).
-- Remaining risks at the original baseline: full-history scan was not yet run; no physical performance/72h/OEM evidence; no complete Play-policy, MASVS, SBOM/provenance or live-AI acceptance proof; two local scripts stalled on Windows. The scan was completed in the follow-up above; its CI gate is still pending.
+- Remaining risks at the original baseline: full-history scan was not yet run; no physical performance/72h/OEM evidence; no complete Play-policy, MASVS, SBOM/provenance or live-AI acceptance proof; two local scripts stalled on Windows. The scan and CI gate were completed in the follow-up above.
 - Open questions: tracked in `docs/OPEN_QUESTIONS.md`.
 - Acceptance: partially met; P0 cannot close until required performance/security evidence and calibrated roadmap are supplied and reviewed.
 

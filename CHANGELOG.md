@@ -12,6 +12,7 @@
 ### Validation
 
 - Scan 2,221 commits with Gitleaks 8.30.1; after the exact fingerprint allowlist, the scan completed with no remaining findings.
+- Verify the new secret-scan gate, lint, coverage, unit tests, and untagged APK build in GitHub Actions run 37254899900; release publication was correctly skipped on the ordinary `main` push.
 - Keep release publication tag-only; ordinary `main` builds remain non-release builds.
 
 ## [v3.91.8] - 2026-10-04
