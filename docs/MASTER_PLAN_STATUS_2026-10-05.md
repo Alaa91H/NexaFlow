@@ -24,7 +24,7 @@ This status records what was verified in the isolated `v3.91.8` remediation work
 - No production signing credentials are available in this checkout. The tag build remains designed to require those credentials; the local debug-signing option is only for disposable builds.
 - `gitleaks` and `trufflehog` are unavailable, so the full-history secret scan is `NOT RUN`.
 - `adb devices -l` returned no devices. Device/OEM behavior, AI provider round-trip, call/SMS permissions, benchmarks, Perfetto, and soak testing are `NOT TESTED`.
-- Commit `d0e39a38` was pushed directly to `main`. Its CI run passed as recorded above. The only remote branch found during the inventory was `main`; no extra branch merge or deletion was needed. A new version tag and public release asset verification are still pending.
+- Commits `d0e39a38` and `f0d0788e` were pushed directly to `main`, and the local main checkout is fast-forwarded to `f0d0788e`. The only remote branch is `main`; merged local `codex/security-remediation-v3-91-8*` branches were deleted. Tag workflow [37247996319](https://github.com/Alaa91H/NexaFlow/actions/runs/37247996319) passed, and [v3.91.9](https://github.com/Alaa91H/NexaFlow/releases/tag/v3.91.9) is published with exactly two APK assets: phone and Wear OS.
 
 ## Next safe steps
 
