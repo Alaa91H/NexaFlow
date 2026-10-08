@@ -655,11 +655,8 @@ class ExecutionEngine(
         // admission performs no work and is an intentional skip, never a
         // failed automation. The unresolved checkpoint remains preserved for
         // recovery rather than being silently discarded to make room.
-        val occurrenceKeyHash = TriggerOccurrenceDeduplicator.durableOccurrenceKey(
-            automationId = automation.id,
-            occurrence = triggerOccurrence,
-        )
-        val checkpointAdmission = activeExecutionStore.admitCheckpoint(
+        val checkpointAdmission = occurrenceDeduplicator.admitDurably(
+            store = activeExecutionStore,
             DurableExecutionCheckpoint(
                 runId = payloadContext.runId,
                 automationId = automation.id,
@@ -671,7 +668,7 @@ class ExecutionEngine(
                 startedAt = startedAt,
                 updatedAt = startedAt
             ),
-            occurrenceKeyHash = occurrenceKeyHash,
+            occurrence = triggerOccurrence,
         )
         if (checkpointAdmission != ActiveExecutionStore.CheckpointAdmission.ACCEPTED) {
             val admissionMessage = when (checkpointAdmission) {
