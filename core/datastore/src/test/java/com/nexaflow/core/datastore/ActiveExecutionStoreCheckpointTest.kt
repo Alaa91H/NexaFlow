@@ -2,6 +2,9 @@ package com.nexaflow.core.datastore
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -186,6 +189,44 @@ class ActiveExecutionStoreCheckpointTest {
         assertEquals(100L, store.checkpoint("run-admission")?.updatedAt)
     }
 
+    @Test
+    fun stableOccurrenceAdmission_isDurableAcrossStoreInstancesAndAllowsDistinctEvents() = runBlocking {
+        val firstKey = "a".repeat(64)
+        val nextKey = "b".repeat(64)
+
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            store.admitCheckpoint(checkpoint("run-event-1"), firstKey)
+        )
+
+        val recreatedStore = ActiveExecutionStore(fixture.store)
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.DUPLICATE_OCCURRENCE,
+            recreatedStore.admitCheckpoint(checkpoint("run-event-replay"), firstKey)
+        )
+        assertEquals(null, recreatedStore.checkpoint("run-event-replay"))
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            recreatedStore.admitCheckpoint(checkpoint("run-distinct-event"), nextKey)
+        )
+    }
+
+    @Test
+    fun simultaneousSameOccurrenceAdmissionHasOneWinner() = runBlocking {
+        val key = "c".repeat(64)
+        val results = coroutineScope {
+            (0 until 12).map { index ->
+                async {
+                    store.admitCheckpoint(checkpoint("run-race-$index"), key)
+                }
+            }.awaitAll()
+        }
+
+        assertEquals(1, results.count { it == ActiveExecutionStore.CheckpointAdmission.ACCEPTED })
+        assertEquals(11, results.count { it == ActiveExecutionStore.CheckpointAdmission.DUPLICATE_OCCURRENCE })
+        assertEquals(1, store.checkpointsForTest().size)
+    }
+
     @Test(expected = IllegalStateException::class)
     fun duplicateIdempotencyKeyIsRejectedBeforeSecondSideEffect() {
         runBlocking {
@@ -197,8 +238,16 @@ class ActiveExecutionStoreCheckpointTest {
 
     @Test
     fun clearAutomationState_removesOnlyThatAutomationsDurableEvidence() = runBlocking {
-        assertTrue(store.beginCheckpoint(checkpoint("delete-a", "automation-a")))
-        assertTrue(store.beginCheckpoint(checkpoint("keep-b", "automation-b")))
+        val occurrenceA = "d".repeat(64)
+        val occurrenceB = "e".repeat(64)
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            store.admitCheckpoint(checkpoint("delete-a", "automation-a"), occurrenceA)
+        )
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            store.admitCheckpoint(checkpoint("keep-b", "automation-b"), occurrenceB)
+        )
         store.recordCompletedMaintenanceOccurrence("maintenance:receipt-a", "automation-a", 1_000L)
         store.recordCompletedMaintenanceOccurrence("maintenance:receipt-b", "automation-b", 1_000L)
 
@@ -208,6 +257,14 @@ class ActiveExecutionStoreCheckpointTest {
         assertNotNull(store.checkpoint("keep-b"))
         assertFalse(store.hasCompletedMaintenanceOccurrence("maintenance:receipt-a"))
         assertTrue(store.hasCompletedMaintenanceOccurrence("maintenance:receipt-b"))
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            store.admitCheckpoint(checkpoint("reuse-a", "automation-a"), occurrenceA)
+        )
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.DUPLICATE_OCCURRENCE,
+            store.admitCheckpoint(checkpoint("still-seen-b", "automation-b"), occurrenceB)
+        )
     }
 
     @Test

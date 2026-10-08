@@ -655,6 +655,10 @@ class ExecutionEngine(
         // admission performs no work and is an intentional skip, never a
         // failed automation. The unresolved checkpoint remains preserved for
         // recovery rather than being silently discarded to make room.
+        val occurrenceKeyHash = TriggerOccurrenceDeduplicator.durableOccurrenceKey(
+            automationId = automation.id,
+            occurrence = triggerOccurrence,
+        )
         val checkpointAdmission = activeExecutionStore.admitCheckpoint(
             DurableExecutionCheckpoint(
                 runId = payloadContext.runId,
@@ -666,12 +670,17 @@ class ExecutionEngine(
                 status = DurableExecutionStatus.STARTED,
                 startedAt = startedAt,
                 updatedAt = startedAt
-            )
+            ),
+            occurrenceKeyHash = occurrenceKeyHash,
         )
         if (checkpointAdmission != ActiveExecutionStore.CheckpointAdmission.ACCEPTED) {
             val admissionMessage = when (checkpointAdmission) {
                 ActiveExecutionStore.CheckpointAdmission.DUPLICATE_RUN_ID ->
                     "Skipped: this event was already admitted and is still being processed"
+                ActiveExecutionStore.CheckpointAdmission.DUPLICATE_OCCURRENCE ->
+                    "Skipped: this trigger occurrence was already admitted"
+                ActiveExecutionStore.CheckpointAdmission.OCCURRENCE_RECEIPT_CAPACITY ->
+                    "Skipped: durable event admission is full; no action was started"
                 ActiveExecutionStore.CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY ->
                     "Skipped: recovery queue awaits review before this routine can run"
                 ActiveExecutionStore.CheckpointAdmission.ACCEPTED -> error("Unreachable checkpoint admission")

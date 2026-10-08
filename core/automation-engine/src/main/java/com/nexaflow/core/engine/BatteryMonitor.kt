@@ -351,7 +351,6 @@ class BatteryMonitor @Inject constructor(
                                     matchedTriggerIndices = setOf(automation.triggers.size),
                                     occurredAtEpochMs = System.currentTimeMillis(),
                                     sourceId = sourceId,
-                                    eventId = occurrenceId,
                                 ),
                                 lifecycleContext = AutomationLifecycleContext(
                                     occurrenceId = occurrenceId,

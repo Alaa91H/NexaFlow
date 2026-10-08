@@ -365,7 +365,6 @@ class LocationMonitor @Inject constructor(
                                 matchedTriggerIndices = matchedTriggerIndices,
                                 occurredAtEpochMs = now,
                                 sourceId = SOURCE,
-                                eventId = occurrenceId,
                             ),
                         )
                         val accepted = runtimeStore.current(automation.id)?.let { state ->

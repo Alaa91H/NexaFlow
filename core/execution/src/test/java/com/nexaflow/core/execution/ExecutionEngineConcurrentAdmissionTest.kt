@@ -217,12 +217,36 @@ class ExecutionEngineConcurrentAdmissionTest {
                 eventId = "physical-event-2",
             ),
         )
+        val restartedEngine = ExecutionEngine(
+            context = context,
+            historyRepository = RecordingHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            activeExecutionStore = activeStore,
+        )
+        val replayAfterEngineRecreation = restartedEngine.runAutomation(
+            task,
+            triggerOccurrence = occurrence.copy(
+                occurredAtEpochMs = 102L,
+                eventId = "physical-event-2",
+            ),
+        )
+        val distinctAfterEngineRecreation = restartedEngine.runAutomation(
+            task,
+            triggerOccurrence = occurrence.copy(
+                occurredAtEpochMs = 103L,
+                eventId = "physical-event-3",
+            ),
+        )
 
         assertTrue(first.success)
         assertTrue(replay.message.contains("already processed"))
         assertTrue(replay.actionResults.isEmpty())
         assertTrue(next.success)
-        assertEquals(2, handler.calls)
+        assertTrue(replayAfterEngineRecreation.message.contains("already admitted"))
+        assertTrue(replayAfterEngineRecreation.actionResults.isEmpty())
+        assertTrue(distinctAfterEngineRecreation.success)
+        assertEquals(3, handler.calls)
 
         activeStore.clear(task.id)
     }

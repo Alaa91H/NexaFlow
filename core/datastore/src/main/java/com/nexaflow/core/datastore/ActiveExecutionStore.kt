@@ -25,12 +25,14 @@ class ActiveExecutionStore internal constructor(
     private val dataStore: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>
 ) {
     constructor(context: Context) : this(context.activeExecutionDataStore)
-    private val json = Json { ignoreUnknownKeys = false; encodeDefaults = true }
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     /** A stable, user-safe reason when a durable run cannot be admitted. */
     enum class CheckpointAdmission {
         ACCEPTED,
         DUPLICATE_RUN_ID,
+        DUPLICATE_OCCURRENCE,
+        OCCURRENCE_RECEIPT_CAPACITY,
         CAPACITY_RESERVED_FOR_RECOVERY
     }
 
@@ -90,6 +92,10 @@ class ActiveExecutionStore internal constructor(
             val receipts = maintenanceReceipts(preferences)
                 .filterNot { it.automationId == automationId }
             writeMaintenanceReceipts(preferences, receipts)
+
+            val occurrenceReceipts = occurrenceReceipts(preferences)
+                .filterNot { it.automationId == automationId }
+            writeOccurrenceReceipts(preferences, occurrenceReceipts)
         }
     }
 
@@ -109,12 +115,43 @@ class ActiveExecutionStore internal constructor(
      * Terminal entries are compacted opportunistically and uncertain work is
      * never discarded to make room.
      */
-    suspend fun admitCheckpoint(checkpoint: DurableExecutionCheckpoint): CheckpointAdmission {
+    suspend fun admitCheckpoint(
+        checkpoint: DurableExecutionCheckpoint,
+        occurrenceKeyHash: String? = null
+    ): CheckpointAdmission {
+        require(occurrenceKeyHash == null || occurrenceKeyHash.matches(OCCURRENCE_KEY_PATTERN)) {
+            "occurrenceKeyHash must be a SHA-256 digest"
+        }
         var admission = CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY
         dataStore.edit { preferences ->
             val checkpoints = checkpoints(preferences)
             if (checkpoint.runId in checkpoints) {
                 admission = CheckpointAdmission.DUPLICATE_RUN_ID
+                return@edit
+            }
+            val allOccurrenceReceipts = occurrenceReceipts(preferences)
+            val retainedOccurrences = allOccurrenceReceipts
+                .filter { receipt ->
+                    checkpoint.startedAt < receipt.acceptedAt ||
+                        checkpoint.startedAt - receipt.acceptedAt < OCCURRENCE_RECEIPT_RETENTION_MS
+                }
+            if (retainedOccurrences.size != allOccurrenceReceipts.size) {
+                writeOccurrenceReceipts(preferences, retainedOccurrences)
+            }
+            if (
+                occurrenceKeyHash != null && retainedOccurrences.any {
+                    it.automationId == checkpoint.automationId &&
+                        it.occurrenceKeyHash == occurrenceKeyHash
+                }
+            ) {
+                admission = CheckpointAdmission.DUPLICATE_OCCURRENCE
+                return@edit
+            }
+            if (
+                occurrenceKeyHash != null &&
+                retainedOccurrences.size >= MAX_OCCURRENCE_RECEIPTS
+            ) {
+                admission = CheckpointAdmission.OCCURRENCE_RECEIPT_CAPACITY
                 return@edit
             }
             // Bound unresolved work per routine, not globally. This prevents a
@@ -145,6 +182,16 @@ class ActiveExecutionStore internal constructor(
 
             checkpoints[checkpoint.runId] = checkpoint
             writeCheckpoints(preferences, checkpoints)
+            if (occurrenceKeyHash != null) {
+                writeOccurrenceReceipts(
+                    preferences,
+                    retainedOccurrences + DurableOccurrenceReceipt(
+                        occurrenceKeyHash = occurrenceKeyHash,
+                        automationId = checkpoint.automationId,
+                        acceptedAt = checkpoint.startedAt
+                    )
+                )
+            }
             admission = CheckpointAdmission.ACCEPTED
         }
         return admission
@@ -477,6 +524,9 @@ class ActiveExecutionStore internal constructor(
     internal suspend fun maintenanceReceiptsForTest(): List<MaintenanceOccurrenceReceipt> =
         maintenanceReceipts(dataStore.data.first())
 
+    internal suspend fun occurrenceReceiptsForTest(): List<DurableOccurrenceReceipt> =
+        occurrenceReceipts(dataStore.data.first())
+
     private suspend fun updateCheckpoint(
         runId: String,
         transform: (DurableExecutionCheckpoint) -> DurableExecutionCheckpoint
@@ -512,12 +562,27 @@ class ActiveExecutionStore internal constructor(
                 .getOrNull()
         }
 
+    private fun occurrenceReceipts(preferences: Preferences): List<DurableOccurrenceReceipt> =
+        preferences[KEY_OCCURRENCE_RECEIPTS].orEmpty().mapNotNull { serialized ->
+            runCatching { json.decodeFromString(DurableOccurrenceReceipt.serializer(), serialized) }
+                .getOrNull()
+        }
+
     private fun writeMaintenanceReceipts(
         preferences: androidx.datastore.preferences.core.MutablePreferences,
         receipts: List<MaintenanceOccurrenceReceipt>
     ) {
         preferences[KEY_MAINTENANCE_RECEIPTS] = receipts.mapTo(LinkedHashSet()) { receipt ->
             json.encodeToString(MaintenanceOccurrenceReceipt.serializer(), receipt)
+        }
+    }
+
+    private fun writeOccurrenceReceipts(
+        preferences: androidx.datastore.preferences.core.MutablePreferences,
+        receipts: List<DurableOccurrenceReceipt>
+    ) {
+        preferences[KEY_OCCURRENCE_RECEIPTS] = receipts.mapTo(LinkedHashSet()) { receipt ->
+            json.encodeToString(DurableOccurrenceReceipt.serializer(), receipt)
         }
     }
 
@@ -542,11 +607,15 @@ class ActiveExecutionStore internal constructor(
         val KEY_ACTIVE_EXECUTIONS = stringSetPreferencesKey("active_executions")
         val KEY_CHECKPOINTS = stringSetPreferencesKey("execution_checkpoints")
         val KEY_MAINTENANCE_RECEIPTS = stringSetPreferencesKey("maintenance_occurrence_receipts")
+        val KEY_OCCURRENCE_RECEIPTS = stringSetPreferencesKey("execution_occurrence_receipts")
         const val MAX_CHECKPOINTS_PER_AUTOMATION = 32
         const val SOFT_MAX_CHECKPOINTS = 128
         const val MAX_MAINTENANCE_RECEIPTS = 256
+        const val MAX_OCCURRENCE_RECEIPTS = 8_192
+        const val OCCURRENCE_RECEIPT_RETENTION_MS = 45L * 24 * 60 * 60 * 1000
         const val MAINTENANCE_RECEIPT_RETENTION_MS = 45L * 24 * 60 * 60 * 1000
         const val MAX_MESSAGE_LENGTH = 512
         const val MAX_FAILURE_CODE_LENGTH = 128
+        val OCCURRENCE_KEY_PATTERN = Regex("[a-f0-9]{64}")
     }
 }

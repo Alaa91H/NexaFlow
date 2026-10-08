@@ -37,7 +37,9 @@ class PluginEventIngress(
         eventComponent: String,
         eventId: String,
         correlationId: String?,
-        payload: JsonObject
+        payload: JsonObject,
+        eventIdIsStable: Boolean = true,
+        correlationIdIsStable: Boolean = correlationId != null,
     ): EventPublishResult {
         val normalizedCorrelation = correlationId?.takeIf { it.isNotBlank() } ?: eventId
         if (!isValidToken(senderPackage, 255) || !isValidToken(eventComponent, 255) ||
@@ -109,6 +111,7 @@ class PluginEventIngress(
                 "pluginPackage" to JsonPrimitive(senderPackage),
                 "eventComponent" to JsonPrimitive(eventComponent),
                 "pluginEventId" to JsonPrimitive(eventId),
+                "pluginEventIdIsStable" to JsonPrimitive(eventIdIsStable && correlationIdIsStable),
                 "pluginInstances" to kotlinx.serialization.json.JsonArray(instanceIds.map(::JsonPrimitive)),
                 "data" to payload
             )
@@ -153,6 +156,8 @@ class PluginEventIngress(
     )
 
     companion object {
+        /** Requery hint used when a plugin supplies no concrete event id. */
+        const val REQUERY_HINT_EVENT_ID = "request-query"
         const val KEY_INSTANCE = "pluginInstance"
         const val KEY_APPROVAL = "pluginApproval"
         const val KEY_PACKAGE = "package"
