@@ -4,11 +4,14 @@ import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.rom.model.SystemControlResult
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.flow.first
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -159,7 +162,7 @@ class TaskManagerTest {
     fun timeout_reportsTimedOut() = runBlocking {
         val manager = TaskManager()
         val taskId = manager.enqueue(
-            PendingTask(name = "slow", timeoutMs = 50) {
+            PendingTask(name = "slow", timeoutMs = 50, safeToCancel = true) {
                 delay(5_000)
                 SystemControlResult.ok("too late")
             }
@@ -177,6 +180,7 @@ class TaskManagerTest {
             PendingTask(
                 name = "slow-retry",
                 timeoutMs = 50,
+                safeToCancel = true,
                 retryPolicy = RetryPolicy(maxRetries = 1, initialBackoffMs = 1)
             ) {
                 attempts.incrementAndGet()
@@ -216,7 +220,7 @@ class TaskManagerTest {
         val manager = TaskManager()
         val started = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
-        val taskId = manager.enqueue(PendingTask(name = "runnable") {
+        val taskId = manager.enqueue(PendingTask(name = "runnable", safeToCancel = true) {
             started.complete(Unit)
             release.await()
             SystemControlResult.ok("done")
@@ -274,6 +278,190 @@ class TaskManagerTest {
 // Production-hardening coverage is kept in a separate class so the original
 // queue-regression tests remain easy to read and reuse.
 class TaskManagerHardeningTest {
+
+    @Test
+    fun uncertainOutcomeIsNeverRetried() = runBlocking {
+        val manager = TaskManager()
+        val attempts = java.util.concurrent.atomic.AtomicInteger(0)
+        try {
+            manager.enqueue(
+                PendingTask(
+                    name = "uncertain-side-effect",
+                    retryPolicy = RetryPolicy(maxRetries = 3, initialBackoffMs = 1)
+                ) {
+                    attempts.incrementAndGet()
+                    SystemControlResult.fail(
+                        message = "remote dispatch timed out after submission",
+                        outcomeUncertain = true
+                    )
+                }
+            )
+
+            assertTrue(manager.awaitIdle(5_000L))
+            assertEquals("unknown side effects must not be replayed", 1, attempts.get())
+            assertEquals(TaskLifecycleState.UNKNOWN, manager.statuses.value.values.single().state)
+            assertEquals(1, manager.results.value.count { it is TaskResult.Unknown })
+        } finally {
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun timeoutAfterDispatchIsNotRetried() = runBlocking {
+        val manager = TaskManager()
+        val attempts = java.util.concurrent.atomic.AtomicInteger(0)
+        try {
+            manager.enqueue(
+                PendingTask(
+                    name = "timed-out-side-effect",
+                    timeoutMs = 30L,
+                    retryPolicy = RetryPolicy(maxRetries = 2, initialBackoffMs = 1)
+                ) {
+                    attempts.incrementAndGet()
+                    awaitCancellation()
+                }
+            )
+
+            assertTrue(manager.awaitIdle(5_000L))
+            assertEquals("a timeout after dispatch has an unknown outcome", 1, attempts.get())
+            assertEquals(TaskLifecycleState.UNKNOWN, manager.statuses.value.values.single().state)
+            assertEquals(1, manager.results.value.count { it is TaskResult.Unknown })
+        } finally {
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun agedLowPriorityTaskRunsBeforeYoungerHighPriorityWork() = runBlocking {
+        val clock = AtomicLong(1_000L)
+        val manager = TaskManager(epochMillis = EpochMillis { clock.get() })
+        val order = java.util.Collections.synchronizedList(mutableListOf<String>())
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        try {
+            manager.enqueue(PendingTask(name = "gate", priority = TaskPriority.CRITICAL) {
+                started.complete(Unit)
+                release.await()
+                SystemControlResult.ok("gate")
+            })
+            started.await()
+            manager.enqueue(PendingTask(name = "aged-low", priority = TaskPriority.LOW) {
+                order += "low"
+                SystemControlResult.ok("low")
+            })
+            manager.enqueue(PendingTask(name = "younger-high", priority = TaskPriority.HIGH) {
+                order += "high"
+                SystemControlResult.ok("high")
+            })
+            clock.set(31_001L)
+            release.complete(Unit)
+
+            assertTrue(manager.awaitIdle(5_000L))
+            assertEquals(listOf("low", "high"), order.toList())
+        } finally {
+            release.complete(Unit)
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun awaitIdleTimeoutUsesMonotonicTimeWhenInjectedClockIsFrozen() = runBlocking {
+        val manager = TaskManager(epochMillis = EpochMillis { 1_000L })
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        try {
+            manager.enqueue(PendingTask(name = "frozen-clock-holder") {
+                started.complete(Unit)
+                release.await()
+                SystemControlResult.ok("released")
+            })
+            started.await()
+
+            assertFalse("wait timeout must advance independently of the fake wall clock", manager.awaitIdle(40L))
+
+            release.complete(Unit)
+            assertTrue(manager.awaitIdle(5_000L))
+        } finally {
+            release.complete(Unit)
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun shutdownDoesNotReportIdleUntilNonCooperativeDispatchedTaskFinishes() = runBlocking {
+        val manager = TaskManager()
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val taskId = manager.enqueue(PendingTask(name = "non-cooperative-shutdown") {
+            started.complete(Unit)
+            withContext(NonCancellable) { release.await() }
+            throw IllegalStateException("dispatch returned without a confirmed result")
+        })
+
+        started.await()
+        manager.shutdown()
+        assertFalse("shutdown must wait for the external operation to unwind", manager.awaitIdle(25L))
+        assertTrue(manager.results.value.isEmpty())
+
+        release.complete(Unit)
+        assertTrue(manager.awaitIdle(5_000L))
+        assertEquals(TaskLifecycleState.UNKNOWN, manager.statuses.value.getValue(taskId).state)
+        assertEquals(1, manager.results.value.count { it is TaskResult.Unknown && it.taskId == taskId })
+    }
+
+    @Test
+    fun resourcePermitIsReleasedAfterBackendUnbindFailure() = runBlocking {
+        val manager = TaskManager()
+        val secondRan = CompletableDeferred<Unit>()
+        try {
+            val first = manager.enqueue(
+                PendingTask(name = "backend-unbind", resources = setOf(TaskResource.NETWORK)) {
+                    throw IllegalStateException("backend unbound during dispatch")
+                }
+            )
+            val second = manager.enqueue(
+                PendingTask(name = "after-unbind", resources = setOf(TaskResource.NETWORK)) {
+                    secondRan.complete(Unit)
+                    SystemControlResult.ok("lock reacquired")
+                }
+            )
+
+            assertTrue(manager.awaitIdle(5_000L))
+            assertTrue(secondRan.isCompleted)
+            assertEquals(TaskLifecycleState.UNKNOWN, manager.statuses.value.getValue(first).state)
+            assertEquals(TaskLifecycleState.SUCCEEDED, manager.statuses.value.getValue(second).state)
+        } finally {
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun cancellationDuringRetryWaitStopsBeforeAnotherDispatch() = runBlocking {
+        val manager = TaskManager()
+        val attempts = java.util.concurrent.atomic.AtomicInteger(0)
+        try {
+            val taskId = manager.enqueue(
+                PendingTask(
+                    name = "cancel-in-retry-wait",
+                    retryPolicy = RetryPolicy(maxRetries = 5, initialBackoffMs = 30_000L)
+                ) {
+                    attempts.incrementAndGet()
+                    SystemControlResult.fail("known transient failure")
+                }
+            )
+            withTimeout(5_000L) {
+                manager.statuses.first { statuses ->
+                    statuses[taskId]?.state == TaskLifecycleState.RETRY_WAIT
+                }
+            }
+            assertTrue(manager.cancel(taskId))
+            assertTrue(manager.awaitIdle(5_000L))
+            assertEquals(1, attempts.get())
+            assertEquals(TaskLifecycleState.CANCELLED, manager.statuses.value.getValue(taskId).state)
+        } finally {
+            manager.shutdown()
+        }
+    }
 
     @Test
     fun submit_rejectsInvalidDeadlineTimeoutAndDisabledResource() {
@@ -393,7 +581,7 @@ class TaskManagerHardeningTest {
         val manager = TaskManager()
         val started = CompletableDeferred<Unit>()
         try {
-            val taskId = manager.enqueue(PendingTask(name = "cancel-state") {
+            val taskId = manager.enqueue(PendingTask(name = "cancel-state", safeToCancel = true) {
                 started.complete(Unit)
                 awaitCancellation()
                 SystemControlResult.ok("late")
@@ -420,7 +608,7 @@ class TaskManagerHardeningTest {
     fun shutdownAfterCancellingRunningTaskDoesNotCrash() = runBlocking {
         val manager = TaskManager()
         val started = CompletableDeferred<Unit>()
-        val taskId = manager.enqueue(PendingTask(name = "cancel-race") {
+        val taskId = manager.enqueue(PendingTask(name = "cancel-race", safeToCancel = true) {
             started.complete(Unit)
             awaitCancellation()
             SystemControlResult.ok("late")
@@ -449,7 +637,7 @@ class TaskManagerHardeningTest {
     fun shutdownCancelsRunningAndAbandonsQueuedTask() = runBlocking {
         val manager = TaskManager()
         val started = CompletableDeferred<Unit>()
-        val holderId = manager.enqueue(PendingTask(name = "holder") {
+        val holderId = manager.enqueue(PendingTask(name = "holder", safeToCancel = true) {
             started.complete(Unit)
             awaitCancellation()
             SystemControlResult.ok("holder-late")
@@ -485,7 +673,7 @@ class TaskManagerHardeningTest {
         suspend fun outcome(cancelFirst: Boolean, settleMs: Long): Pair<Boolean, Int> {
             val manager = TaskManager()
             val started = CompletableDeferred<Unit>()
-            val id = manager.enqueue(PendingTask(name = "race-$cancelFirst-$settleMs") {
+            val id = manager.enqueue(PendingTask(name = "race-$cancelFirst-$settleMs", safeToCancel = true) {
                 started.complete(Unit)
                 awaitCancellation()
                 SystemControlResult.ok("late")

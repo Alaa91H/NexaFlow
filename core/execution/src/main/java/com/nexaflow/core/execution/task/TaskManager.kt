@@ -44,14 +44,18 @@ data class RetryPolicy(
     init {
         require(maxRetries >= 0) { "maxRetries must be non-negative" }
         require(initialBackoffMs >= 0) { "initialBackoffMs must be non-negative" }
-        require(backoffMultiplier > 0) { "backoffMultiplier must be positive" }
+        require(backoffMultiplier > 0 && backoffMultiplier.isFinite()) {
+            "backoffMultiplier must be finite and positive"
+        }
     }
 
-    /** Backoff before retry [attempt] (1-based; the first attempt has no backoff). */
+    /** Backoff before attempt [attempt] (1-based; attempt one has no backoff). */
     fun backoffFor(attempt: Int): Long {
         if (attempt <= 1) return 0L
-        val factor = Math.pow(backoffMultiplier, (attempt - 1).toDouble())
-        return (initialBackoffMs * factor).toLong()
+        if (initialBackoffMs == 0L) return 0L
+        val backoff = initialBackoffMs.toDouble() * Math.pow(backoffMultiplier, (attempt - 2).toDouble())
+        return if (!backoff.isFinite() || backoff >= Long.MAX_VALUE.toDouble()) Long.MAX_VALUE
+        else backoff.toLong()
     }
 }
 
@@ -63,6 +67,8 @@ data class PendingTask(
     val retryPolicy: RetryPolicy = RetryPolicy(),
     /** Maximum duration for one attempt; null keeps the policy default. */
     val timeoutMs: Long? = null,
+    /** Set only when interruption guarantees that no external effect can remain in flight. */
+    val safeToCancel: Boolean = false,
     /** Absolute wall-clock deadline for the whole task lifecycle, including retries. */
     val deadlineAtMs: Long? = null,
     /** Logical execution locks required while this task attempts its work. */
@@ -84,6 +90,7 @@ sealed interface TaskResult {
     data class DeadlineExceeded(val taskId: String, val attempts: Int) : TaskResult
     data class Cancelled(val taskId: String) : TaskResult
     data class Rejected(val taskId: String, val reason: TaskRejectionReason) : TaskResult
+    data class Unknown(val taskId: String, val message: String, val attempts: Int) : TaskResult
 }
 
 /**
@@ -102,7 +109,41 @@ class TaskManager(
     private val limits: TaskManagerLimits = TaskManagerLimits()
 ) {
 
-    private data class Envelope(val task: PendingTask, val seq: Long)
+    private data class Envelope(val task: PendingTask, val seq: Long, val enqueuedAtMs: Long)
+
+    private data class ExecutionSnapshot(
+        val attempts: Int,
+        val dispatched: Boolean,
+        val completedAttempt: Attempt?
+    )
+
+    /** Shared by the child and its single-result-publishing worker during cancellation races. */
+    private class TaskExecutionTracker {
+        private var attempts = 0
+        private var dispatched = false
+        private var completedAttempt: Attempt? = null
+
+        @Synchronized
+        fun beginAttempt(number: Int) {
+            attempts = number
+            dispatched = false
+            completedAttempt = null
+        }
+
+        @Synchronized
+        fun markDispatched() {
+            dispatched = true
+        }
+
+        @Synchronized
+        fun completeAttempt(outcome: Attempt) {
+            dispatched = false
+            completedAttempt = outcome
+        }
+
+        @Synchronized
+        fun snapshot(): ExecutionSnapshot = ExecutionSnapshot(attempts, dispatched, completedAttempt)
+    }
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
     private val queue = PriorityQueue<Envelope>(
@@ -115,6 +156,7 @@ class TaskManager(
     // signal is sufficient because the consumer drains the priority queue fully.
     private val queueWakeups = Channel<Unit>(Channel.CONFLATED)
     private val runningJobs = ConcurrentHashMap<String, Job>()
+    private val executionTrackers = ConcurrentHashMap<String, TaskExecutionTracker>()
     private val knownTaskIds = ConcurrentHashMap.newKeySet<String>()
     private val resourcePermits = limits.resourceCapacities
         .filterValues { it > 0 }
@@ -183,7 +225,7 @@ class TaskManager(
             // RUNNING before this thread publishes QUEUED, and updateStatus
             // rejects the illegal RUNNING -> QUEUED regression.
             publishStatus(task, TaskLifecycleState.QUEUED)
-            queue.add(Envelope(task, seqCounter.incrementAndGet()))
+            queue.add(Envelope(task, seqCounter.incrementAndGet(), now))
         }
         // Non-blocking and conflated: a closed worker is shutting down, while
         // one signal wakes the idle consumer for any number of queued tasks.
@@ -203,23 +245,39 @@ class TaskManager(
      * either way. Returns true when the id was known (queued or running).
      */
     fun cancel(taskId: String): Boolean {
-        if (taskId !in knownTaskIds) return false
-        val current = statusFor(taskId)
-        if (current != null && !current.state.canTransitionTo(TaskLifecycleState.CANCEL_REQUESTED)) {
-            return false
+        val queuedCancellation = synchronized(lock) {
+            if (taskId !in knownTaskIds) return false
+            val current = statusFor(taskId)
+            if (current == null || !current.state.canTransitionTo(TaskLifecycleState.CANCEL_REQUESTED)) {
+                return false
+            }
+            cancelledIds.add(taskId)
+            updateStatus(
+                current.copy(
+                    state = TaskLifecycleState.CANCEL_REQUESTED,
+                    updatedAt = epochMillis.now()
+                )
+            )
+            val queued = queue.firstOrNull { it.task.id == taskId }
+            if (queued != null) {
+                queue.remove(queued)
+                // A queued task has not dispatched an effect and is certainly cancelled.
+                publish(TaskResult.Cancelled(taskId))
+                publishStatus(queued.task, TaskLifecycleState.CANCELLED)
+                cancelledIds.remove(taskId)
+                knownTaskIds.remove(taskId)
+                return true
+            }
+            false
         }
-        cancelledIds.add(taskId)
-        current?.let { status ->
-            updateStatus(status.copy(state = TaskLifecycleState.CANCEL_REQUESTED, updatedAt = epochMillis.now()))
-        }
-        runningJobs[taskId]?.cancel()
+        if (!queuedCancellation) runningJobs[taskId]?.cancel()
         return true
     }
 
     /** Blocks until the queue drains or [timeoutMs] elapses. Returns true when idle. */
     suspend fun awaitIdle(timeoutMs: Long = 5_000L): Boolean {
-        val deadline = epochMillis.now() + timeoutMs
-        while (epochMillis.now() < deadline) {
+        val startedAtNanos = System.nanoTime()
+        while (timeoutMs > 0L && (System.nanoTime() - startedAtNanos) / 1_000_000L < timeoutMs) {
             if (synchronized(lock) { queue.isEmpty() && activeTaskId.get() == null }) return true
             delay(10)
         }
@@ -229,27 +287,28 @@ class TaskManager(
     /**
      * Stops the worker and records queued/running tasks as cancelled: no new
      * submissions are admitted, tasks still waiting in the queue are abandoned
-     * (published Cancelled), running tasks are cancelled, and the worker scope
-     * is torn down.
+     * (published Cancelled), and running tasks receive cancellation requests.
      *
-     * Ordering matters: the wake-up channel is closed before the scope is
-     * cancelled so an idle worker suspended in [pollOrWait] consumes the close
-     * through [receiveCatching] (a benign null poll) instead of racing a
-     * ClosedReceiveChannelException out of the SupervisorJob scope. Scope
-     * cancellation then guarantees the worker coroutine terminates even if a
-     * running task ignores cooperative cancellation. [processEnvelope]'s
-     * finally-ledger cleanup runs regardless of where that cancellation lands.
+     * Closing the wake-up channel lets an idle worker leave its wait. The
+     * worker itself is not cancelled here: it must join the running child so a
+     * non-cooperative external effect cannot be reported idle before it ends.
      */
     fun shutdown() {
-        if (shutDown) return
-        shutDown = true
-        // Abandon queued work synchronously so shutdown() is terminal from the
-        // caller's perspective: nothing queued here executes after shutdown.
         val abandoned = synchronized(lock) {
+            if (shutDown) return
+            shutDown = true
+            activeTaskId.get()?.let(cancelledIds::add)
             queue.toList().also { queue.clear() }
         }
+        // Abandon queued work synchronously so shutdown() is terminal from the
+        // caller's perspective: nothing queued here executes after shutdown.
         abandoned.forEach { envelope ->
+            val current = statusFor(envelope.task.id)
+            if (current != null && current.state.canTransitionTo(TaskLifecycleState.CANCEL_REQUESTED)) {
+                updateStatus(current.copy(state = TaskLifecycleState.CANCEL_REQUESTED, updatedAt = epochMillis.now()))
+            }
             knownTaskIds.remove(envelope.task.id)
+            cancelledIds.remove(envelope.task.id)
             publish(TaskResult.Cancelled(envelope.task.id))
             publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
         }
@@ -257,21 +316,31 @@ class TaskManager(
         // processEnvelope's finally runs for each.
         runningJobs.keys.forEach { taskId ->
             cancelledIds.add(taskId)
+            val current = statusFor(taskId)
+            if (current != null && current.state.canTransitionTo(TaskLifecycleState.CANCEL_REQUESTED)) {
+                updateStatus(current.copy(state = TaskLifecycleState.CANCEL_REQUESTED, updatedAt = epochMillis.now()))
+            }
             runningJobs[taskId]?.cancel()
         }
-        // Close the wake-up channel first, then stop the scope: closing while
-        // the worker is suspended is safe because pollOrWait() consumes the
-        // close through receiveCatching (a benign null poll), and cancelling
-        // the scope first could interrupt processEnvelope mid-join and skip
-        // its post-join ledger cleanup.
+        // Closing wakes an idle worker. Do not cancel the parent scope here:
+        // cancellation would interrupt join() and let shutdown return while
+        // an operation is still executing.
         queueWakeups.close()
-        scope.cancel()
     }
 
     private suspend fun processQueue() {
-        while (currentCoroutineContext().isActive) {
-            val envelope = pollOrWait()
-            if (envelope != null) processEnvelope(envelope)
+        try {
+            while (currentCoroutineContext().isActive) {
+                val envelope = pollOrWait()
+                if (envelope == null) {
+                    if (synchronized(lock) { shutDown }) break
+                } else {
+                    processEnvelope(envelope)
+                }
+            }
+        } finally {
+            // This runs only after processEnvelope joined any dispatched child.
+            scope.cancel()
         }
     }
 
@@ -283,12 +352,22 @@ class TaskManager(
      * The wake-up channel is closed by [shutdown] while an idle worker may be
      * suspended here. [receiveCatching] converts that close into a benign
      * null poll instead of a ClosedReceiveChannelException escaping the
-     * SupervisorJob scope (unhandled -> process crash); the worker then exits
-     * through its own isActive check once the scope is cancelled.
+     * SupervisorJob scope (unhandled -> process crash); shutdown observes the
+     * null poll and exits the worker loop.
      */
     private suspend fun pollOrWait(): Envelope? {
         val polled = synchronized(lock) {
-            val head = queue.poll()
+            val now = epochMillis.now()
+            // Do not change the PriorityQueue comparator while entries are in
+            // the heap. Promote the oldest task that crossed the aging bound
+            // at selection time, preserving FIFO among aged tasks.
+            val aged = queue.asSequence()
+                .filter { envelope ->
+                    now >= envelope.enqueuedAtMs &&
+                        now - envelope.enqueuedAtMs >= limits.priorityAgingIntervalMs
+                }
+                .minByOrNull(Envelope::seq)
+            val head = aged?.also(queue::remove) ?: queue.poll()
             if (head != null) activeTaskId.set(head.task.id)
             head
         }
@@ -308,11 +387,13 @@ class TaskManager(
             activeTaskId.set(null)
             return
         }
+        val tracker = TaskExecutionTracker()
+        executionTrackers[envelope.task.id] = tracker
         // Register the child before it can execute. A DEFAULT launch can run
         // `task.run()` before this map write, leaving a narrow window where
         // cancel(taskId) records the request but cannot interrupt the running
         // job until its own next suspension. LAZY creation closes that gap.
-        val job = scope.launch(start = CoroutineStart.LAZY) { runWithRetry(envelope) }
+        val job = scope.launch(start = CoroutineStart.LAZY) { runWithRetry(envelope, tracker) }
         runningJobs[envelope.task.id] = job
         job.start()
         try {
@@ -324,8 +405,7 @@ class TaskManager(
                 // throw from join(), it completes normally. Record the child's
                 // cancelled outcome before deciding whether to propagate.
                 if (job.isCancelled) {
-                    publish(TaskResult.Cancelled(envelope.task.id))
-                    publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
+                    publishCancellationOutcome(envelope, tracker)
                 }
                 // shutdown() cancelled this worker coroutine while it was
                 // suspended in join(); propagate so the worker exits.
@@ -334,11 +414,11 @@ class TaskManager(
             // join() returned: the child completed, either normally (its own
             // terminal publish already happened in runWithRetry) or cancelled by
             // manager.cancel(taskId), which publishes nothing. This worker is the
-            // single publisher of the cancelled outcome so it can never be lost
-            // to a race between the child's unwind and the cancelledIds cleanup.
+            // single publisher when cancellation interrupted the child. Resolve
+            // from the last observed attempt so a dispatched side effect is not
+            // mislabeled as definitely cancelled.
             if (job.isCancelled) {
-                publish(TaskResult.Cancelled(envelope.task.id))
-                publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
+                publishCancellationOutcome(envelope, tracker)
             }
         } finally {
             // A task that completed (or failed) normally is no longer cancellable;
@@ -347,13 +427,39 @@ class TaskManager(
             // until this lifecycle cleanup commits: awaitIdle() must never report
             // idle while cancel() can still observe the completed task as known.
             runningJobs.remove(envelope.task.id)
+            executionTrackers.remove(envelope.task.id)
             cancelledIds.remove(envelope.task.id)
             knownTaskIds.remove(envelope.task.id)
             activeTaskId.compareAndSet(envelope.task.id, null)
         }
     }
 
-    private suspend fun runWithRetry(envelope: Envelope) {
+    private fun publishCancellationOutcome(envelope: Envelope, tracker: TaskExecutionTracker) {
+        val task = envelope.task
+        val current = statusFor(task.id)
+        if (current?.state?.isTerminal() == true) return
+
+        val snapshot = tracker.snapshot()
+        val resultAndState = when (val completed = snapshot.completedAttempt) {
+            is Attempt.Result -> TaskResult.Success(task.id, completed.message, snapshot.attempts) to
+                TaskLifecycleState.SUCCEEDED
+            is Attempt.Unknown -> TaskResult.Unknown(task.id, completed.message, snapshot.attempts) to
+                TaskLifecycleState.UNKNOWN
+            else -> if (snapshot.dispatched && !task.safeToCancel) {
+                TaskResult.Unknown(
+                    task.id,
+                    "Cancellation interrupted a dispatched effect; its outcome is unconfirmed",
+                    snapshot.attempts
+                ) to TaskLifecycleState.UNKNOWN
+            } else {
+                TaskResult.Cancelled(task.id) to TaskLifecycleState.CANCELLED
+            }
+        }
+        publish(resultAndState.first)
+        publishStatus(task, resultAndState.second, snapshot.attempts)
+    }
+
+    private suspend fun runWithRetry(envelope: Envelope, tracker: TaskExecutionTracker) {
         val task = envelope.task
         activeTaskId.set(task.id)
         var attempts = 0
@@ -361,10 +467,6 @@ class TaskManager(
             while (true) {
                 currentCoroutineContext().ensureActive()
                 if (task.id in cancelledIds) {
-                    // The child never publishes a terminal outcome: throwing
-                    // marks this job cancelled, so the worker's post-join
-                    // publish in processEnvelope records Cancelled exactly once
-                    // (whether or not job.cancel() ever reached this child).
                     throw CancellationException("Task ${task.id} cancelled by manager")
                 }
                 if (deadlineElapsed(task)) {
@@ -373,14 +475,9 @@ class TaskManager(
                     return
                 }
                 attempts++
+                tracker.beginAttempt(attempts)
                 publishStatus(task, TaskLifecycleState.RUNNING, attempts)
-                val outcome = runAttempt(task)
-                // A cancellation that lands while the attempt is in flight must
-                // still surface as Cancelled, not Success. Same single-publisher
-                // rule: throw, and processEnvelope records the outcome.
-                if (task.id in cancelledIds) {
-                    throw CancellationException("Task ${task.id} cancelled by manager")
-                }
+                val outcome = runAttempt(task, tracker)
                 when (outcome) {
                     is Attempt.Result -> {
                         publish(TaskResult.Success(task.id, outcome.message, attempts))
@@ -390,7 +487,17 @@ class TaskManager(
                         )
                         return
                     }
+                    is Attempt.Unknown -> {
+                        publish(TaskResult.Unknown(task.id, outcome.message, attempts))
+                        publishStatus(task, TaskLifecycleState.UNKNOWN, attempts, outcome.message)
+                        return
+                    }
                     is Attempt.Timeout -> {
+                        if (task.id in cancelledIds) {
+                            publish(TaskResult.Cancelled(task.id))
+                            publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
+                            return
+                        }
                         if (attempts > task.retryPolicy.maxRetries) {
                             publish(TaskResult.TimedOut(task.id, attempts))
                             publishStatus(task, TaskLifecycleState.TIMED_OUT, attempts)
@@ -398,6 +505,11 @@ class TaskManager(
                         }
                     }
                     is Attempt.Error -> {
+                        if (task.id in cancelledIds) {
+                            publish(TaskResult.Cancelled(task.id))
+                            publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
+                            return
+                        }
                         if (attempts > task.retryPolicy.maxRetries) {
                             publish(TaskResult.Failure(task.id, outcome.message, attempts))
                             publishStatus(task, TaskLifecycleState.FAILED, attempts, outcome.message)
@@ -414,8 +526,22 @@ class TaskManager(
                         }
                     }
                 }
+                if (deadlineElapsed(task)) {
+                    publish(TaskResult.DeadlineExceeded(task.id, attempts))
+                    publishStatus(task, TaskLifecycleState.DEADLINE_EXCEEDED, attempts)
+                    return
+                }
+                if (task.id in cancelledIds) {
+                    publish(TaskResult.Cancelled(task.id))
+                    publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
+                    return
+                }
                 publishStatus(task, TaskLifecycleState.RETRY_WAIT, attempts)
-                delay(task.retryPolicy.backoffFor(attempts))
+                val backoffMs = task.retryPolicy.backoffFor(attempts + 1)
+                val remainingMs = task.deadlineAtMs?.let { deadline ->
+                    if (deadline <= epochMillis.now()) 0L else deadline - epochMillis.now()
+                }
+                delay(remainingMs?.let { minOf(backoffMs, it) } ?: backoffMs)
             }
         } finally {
             // processEnvelope clears activeTaskId only after it has removed this
@@ -428,28 +554,73 @@ class TaskManager(
         data class Result(val message: String, val durationMs: Long) : Attempt
         data class Timeout(val durationMs: Long) : Attempt
         data class Error(val message: String, val durationMs: Long) : Attempt
+        data class Unknown(val message: String, val durationMs: Long) : Attempt
     }
 
-    private suspend fun runAttempt(task: PendingTask): Attempt {
+    private suspend fun runAttempt(task: PendingTask, tracker: TaskExecutionTracker): Attempt {
         val startedAt = epochMillis.now()
+        var dispatched = false
         return try {
             val executeWithResources: suspend () -> SystemControlResult = {
-                withResources(task.resources) { task.run() }
+                withResources(task.resources) {
+                    dispatched = true
+                    tracker.markDispatched()
+                    task.run()
+                }
             }
             val result = task.timeoutMs?.let { timeout ->
                 withTimeoutOrNull(timeout) { executeWithResources() }
-                    ?: return Attempt.Timeout(epochMillis.now() - startedAt)
+                    ?: return (if (dispatched && !task.safeToCancel) {
+                        Attempt.Unknown(
+                            "Task timed out after dispatch; its effect may have completed",
+                            epochMillis.now() - startedAt
+                        )
+                    } else {
+                        Attempt.Timeout(epochMillis.now() - startedAt)
+                    }).also(tracker::completeAttempt)
             } ?: executeWithResources()
-            if (result.success) {
-                Attempt.Result(result.message, epochMillis.now() - startedAt)
-            } else {
-                Attempt.Error(result.message, epochMillis.now() - startedAt)
+            val outcome = when {
+                result.outcomeUncertain -> Attempt.Unknown(
+                    result.message,
+                    epochMillis.now() - startedAt
+                )
+                result.success -> Attempt.Result(result.message, epochMillis.now() - startedAt)
+                else -> Attempt.Error(result.message, epochMillis.now() - startedAt)
             }
+            tracker.completeAttempt(outcome)
+            outcome
         } catch (e: CancellationException) {
+            // Leave the tracker marked as dispatched so the worker can resolve
+            // cancellation as UNKNOWN when an external effect may still land.
+            if (!dispatched) tracker.completeAttempt(Attempt.Timeout(epochMillis.now() - startedAt))
             throw e
         } catch (t: Throwable) {
-            Attempt.Error(t.message ?: t.javaClass.simpleName, epochMillis.now() - startedAt)
+            val outcome = if (dispatched) {
+                Attempt.Unknown(
+                    "Task failed after dispatch; its effect may have completed: " +
+                        (t.message ?: t.javaClass.simpleName),
+                    epochMillis.now() - startedAt
+                )
+            } else {
+                Attempt.Error(t.message ?: t.javaClass.simpleName, epochMillis.now() - startedAt)
+            }
+            tracker.completeAttempt(outcome)
+            outcome
         }
+    }
+
+    private fun TaskLifecycleState.isTerminal(): Boolean = when (this) {
+        TaskLifecycleState.SUCCEEDED,
+        TaskLifecycleState.FAILED,
+        TaskLifecycleState.TIMED_OUT,
+        TaskLifecycleState.DEADLINE_EXCEEDED,
+        TaskLifecycleState.CANCELLED,
+        TaskLifecycleState.UNKNOWN,
+        TaskLifecycleState.REJECTED -> true
+        TaskLifecycleState.QUEUED,
+        TaskLifecycleState.RUNNING,
+        TaskLifecycleState.RETRY_WAIT,
+        TaskLifecycleState.CANCEL_REQUESTED -> false
     }
 
     private fun deadlineElapsed(task: PendingTask): Boolean =

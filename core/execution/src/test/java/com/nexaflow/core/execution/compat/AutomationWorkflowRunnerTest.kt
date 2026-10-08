@@ -18,7 +18,10 @@ import com.nexaflow.domain.repositories.HistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -42,13 +45,35 @@ class AutomationWorkflowRunnerTest {
         val captured = mutableListOf<String>()
         val rolledBack = mutableListOf<String>()
         val cleared = mutableListOf<String>()
+        val outcomes = mutableListOf<Triple<String, Action, SystemControlResult>>()
+        var captureSuccessful = true
+        private val activeRuns = mutableMapOf<String, Int>()
         override fun capture(automationId: String): Boolean {
             captured += automationId
-            return true
+            return captureSuccessful
         }
         override fun rollback(automationId: String): SystemControlResult {
             rolledBack += automationId
+            if ((activeRuns[automationId] ?: 0) > 0) {
+                return SystemControlResult.fail(
+                    "Restore deferred while an automation action is still running",
+                    errorCode = "EXECUTION_IN_PROGRESS"
+                )
+            }
             return SystemControlResult.ok("Restored original state")
+        }
+        override fun beginRun(automationId: String) {
+            activeRuns[automationId] = (activeRuns[automationId] ?: 0) + 1
+        }
+        override fun endRun(automationId: String) {
+            activeRuns[automationId] = ((activeRuns[automationId] ?: 1) - 1).coerceAtLeast(0)
+        }
+        override fun recordActionOutcome(
+            automationId: String,
+            action: Action,
+            result: SystemControlResult
+        ) {
+            this.outcomes += Triple(automationId, action, result)
         }
         override fun clear(automationId: String) {
             cleared += automationId
@@ -236,6 +261,86 @@ class AutomationWorkflowRunnerTest {
         )
         runner.runAutomation(automation(revertOnExit = true, actions = listOf(Action(ActionType.SYSTEM_GO_HOME, emptyMap()))))
         assertEquals(listOf("auto-1"), stateStore.captured)
+    }
+
+    @Test
+    fun runAutomationDoesNotDispatchWhenRevertStateCannotBeCaptured() = runBlocking {
+        val stateStore = FakeStateStore().apply { captureSuccessful = false }
+        var dispatched = false
+        val history = FakeHistoryRepository()
+        val runner = AutomationWorkflowRunner(
+            executorProvider = { _ -> ActionExecutor {
+                dispatched = true
+                SystemControlResult.ok("must not run")
+            } },
+            historyRepository = history,
+            stateStore = stateStore
+        )
+
+        val record = runner.runAutomation(
+            automation(revertOnExit = true, actions = listOf(Action(ActionType.SYSTEM_BRIGHTNESS, emptyMap())))
+        )
+
+        assertFalse(record.success)
+        assertFalse(dispatched)
+        assertEquals(1, history.records.size)
+        assertTrue(record.message.contains("could not be captured"))
+    }
+
+    @Test
+    fun runAutomation_recordsCertainAndUncertainMutationOutcomesForRestoreOwnership() = runBlocking {
+        val stateStore = FakeStateStore()
+        val actions = listOf(
+            Action(ActionType.SYSTEM_BRIGHTNESS, emptyMap()),
+            Action(ActionType.SYSTEM_VOLUME, emptyMap())
+        )
+        val runner = AutomationWorkflowRunner(
+            executorProvider = { _ -> ActionExecutor { action ->
+                if (action.type == ActionType.SYSTEM_BRIGHTNESS) {
+                    SystemControlResult.ok("brightness changed")
+                } else {
+                    SystemControlResult.fail("volume result uncertain", outcomeUncertain = true)
+                }
+            } },
+            historyRepository = FakeHistoryRepository(),
+            stateStore = stateStore
+        )
+
+        runner.runAutomation(automation(revertOnExit = true, actions = actions))
+
+        assertEquals(listOf("auto-1", "auto-1"), stateStore.outcomes.map { it.first })
+        assertEquals(actions, stateStore.outcomes.map { it.second })
+        assertTrue(stateStore.outcomes.first().third.success)
+        assertTrue(stateStore.outcomes.last().third.outcomeUncertain)
+    }
+
+    @Test
+    fun exitDuringLongActionIsDeferredUntilTheRunCanRecordItsFinalState() = runBlocking {
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val stateStore = FakeStateStore()
+        val runner = AutomationWorkflowRunner(
+            executorProvider = { _ -> ActionExecutor {
+                started.complete(Unit)
+                release.await()
+                SystemControlResult.ok("long action completed")
+            } },
+            historyRepository = FakeHistoryRepository(),
+            stateStore = stateStore
+        )
+        val task = automation(revertOnExit = true, actions = listOf(Action(ActionType.SYSTEM_BRIGHTNESS, emptyMap())))
+
+        val activeRun = async { runner.runAutomation(task) }
+        withTimeout(5_000L) { started.await() }
+        val earlyExit = runner.runExit(task)
+        assertFalse(earlyExit.success)
+        assertTrue(earlyExit.message.contains("deferred"))
+
+        release.complete(Unit)
+        assertTrue(activeRun.await().success)
+        val retriedExit = runner.runExit(task)
+        assertTrue(retriedExit.success)
+        assertTrue(retriedExit.message.contains("Restored"))
     }
 
     @Test
