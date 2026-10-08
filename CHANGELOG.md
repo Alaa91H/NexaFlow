@@ -6,6 +6,7 @@
 
 - Generate deterministic trigger/action, operation, field-parity, lifecycle, plugin-flow, and ranked-hotspot inventories; CI fails when committed audit output drifts from source.
 - Label static candidates and unverified device behavior explicitly; inventory generation does not claim runtime correctness or OEM support.
+- Trace literal configuration reads inside each node's own dispatch arm, flag handler-unread declared fields, and classify shared data-operation fields by action type.
 
 ### Tests and reliability
 

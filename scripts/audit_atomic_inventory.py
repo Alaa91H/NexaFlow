@@ -173,6 +173,29 @@ def operation_map_from_source(source: str) -> dict[str, list[str]]:
     }
 
 
+DATA_OPERATION_FIELDS = {
+    "DATA_TEXT": {
+        "argument": {"REPLACE", "SPLIT"}, "replacement": {"REPLACE"},
+        "start": {"SUBSTRING"}, "end": {"SUBSTRING"},
+    },
+    "DATA_ENCODING": {},
+    "DATA_HASH": {},
+    "DATA_RANDOM": {"argument": {"TOKEN"}, "min": {"INTEGER"}, "max": {"INTEGER"}},
+    "DATA_MATH": {"argument": {"ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "MIN", "MAX", "ROUND"}},
+    "DATA_DATE_TIME": {"argument": {"ADD_SECONDS", "FORMAT"}, "zone": {"FORMAT"}},
+    "DATA_JSON": {"argument": {"POINTER"}},
+    "DATA_ARRAY": {"argument": {"JOIN"}},
+}
+
+
+def data_operation_scope(name: str, key: str, operation: str) -> str:
+    """Describe effective per-operation config use, excluding eager/no-effect reads."""
+    if key in {"input", "inputPath", "outputPath", "operation"}:
+        return "SHARED_BY_ACTION_HANDLER" if key != "operation" else "SELECTS_SUB_OPERATION"
+    applicable = DATA_OPERATION_FIELDS.get(name, {}).get(key, set())
+    return "EFFECTIVE_FOR_OPERATION" if operation in applicable else "UNUSED_BY_OPERATION"
+
+
 def ranked_hotspots(root: Path) -> list[dict[str, str]]:
     source_roots = [
         Path("domain/src/main/java/com/nexaflow/domain"),
@@ -388,7 +411,95 @@ def generate(root: Path, destination: Path) -> None:
             read_keys = set(runtime_keys.get(name, set()))
             for key in sorted(declared | read_keys):
                 consumer_files = trigger_consumers.get(name, {}).get(key, []) if kind == "TRIGGER" else action_consumers.get(name, {}).get(key, [])
-                if key in declared and key in read_keys and consumer_files:
+                if kind == "TRIGGER" and name == "PLUGIN_EVENT":
+                    plugin_keys = {"eventComponent", "pluginApproval", "pluginEventId", "pluginInstance"}
+                    if key in plugin_keys:
+                        consumer_files = ["core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventRouter.kt",
+                                          "core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventIngress.kt"]
+                        trigger_runtime.setdefault(name, set()).add(key)
+                        read_keys.add(key)
+                    elif key == "plugin_id":
+                        consumer_files = ["domain/src/main/java/com/nexaflow/domain/canonical/FamilyPhase25AdvancedExternal.kt"]
+                if kind == "TRIGGER" and name == "SENSOR" and key == "upperThreshold":
+                    consumer_files = ["domain/src/main/java/com/nexaflow/domain/models/NumericSensors.kt",
+                                      "core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorTriggerMatcher.kt"]
+                    trigger_runtime.setdefault(name, set()).add(key)
+                    read_keys.add(key)
+                if kind == "ACTION" and name == "SYSTEM_HTTP_REQUEST" and key == "auth_token":
+                    consumer_files = ["domain/src/main/java/com/nexaflow/domain/canonical/FamilyPhase25AdvancedExternal.kt"]
+                if kind == "ACTION" and name.startswith("DATA_") and key == "argument":
+                    consumer_files = ["domain/src/main/java/com/nexaflow/domain/workflow/DataTransforms.kt"]
+                    action_runtime.setdefault(name, set()).add(key)
+                    read_keys.add(key)
+                if kind == "TRIGGER":
+                    delegated_trigger_fields = {
+                        ("LOCATION", "event"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationTriggerEvidenceEvaluator.kt"],
+                        ("LOCATION", "radius"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationMonitor.kt", "core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationTriggerEvidenceEvaluator.kt"],
+                        ("LOCATION", "source"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationTriggerEvidenceEvaluator.kt"],
+                        ("NOTIFICATION", "contains"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/NotificationTriggerMonitor.kt"],
+                        ("NOTIFICATION", "event"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/NotificationTriggerMonitor.kt"],
+                        ("CALENDAR", "beforeMinutes"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/CalendarMonitor.kt"],
+                        ("CALENDAR", "calendar"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/CalendarMonitor.kt"],
+                        ("CALENDAR", "contains"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/CalendarMonitor.kt"],
+                        ("CALENDAR", "event"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/CalendarMonitor.kt"],
+                        ("INCOMING_CALL", "category"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/CallPolicyEvaluator.kt"],
+                        ("INCOMING_CALL", "from"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/CallPolicyEvaluator.kt"],
+                        ("INCOMING_CALL", "matchMode"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/CallPolicyEvaluator.kt"],
+                        ("APP_INSTALLED", "event"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/PackageMonitor.kt"],
+                        ("APP_INSTALLED", "package"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/PackageMonitor.kt"],
+                        ("HDMI_CONNECTED", "state"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt"],
+                        ("PLUGIN_EVENT", "package"): ["core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventIngress.kt"],
+                    }
+                    consumer_files = delegated_trigger_fields.get((name, key), consumer_files)
+                    if (name, key) in delegated_trigger_fields:
+                        trigger_runtime.setdefault(name, set()).add(key)
+                        read_keys.add(key)
+                if kind == "ACTION" and name == "PLUGIN_FIRE" and key == "pluginHighRiskApproval":
+                    consumer_files = ["core/execution/src/main/java/com/nexaflow/core/execution/handler/PluginFireHandler.kt",
+                                      "core/execution/src/main/java/com/nexaflow/core/execution/capability/PluginCapabilityBackend.kt"]
+                    action_runtime.setdefault(name, set()).add(key)
+                    read_keys.add(key)
+                if kind == "ACTION" and name == "PLUGIN_FIRE" and key == "editActivity":
+                    consumer_files = ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt"]
+                if kind == "ACTION" and name == "PLUGIN_FIRE" and key == "blurb":
+                    consumer_files = ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionPresentation.kt",
+                                      "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt"]
+                data_field_types = {
+                    "start": {"DATA_TEXT"}, "end": {"DATA_TEXT"},
+                    "min": {"DATA_RANDOM"}, "max": {"DATA_RANDOM"},
+                    "replacement": {"DATA_TEXT"}, "zone": {"DATA_DATE_TIME"},
+                }
+                unused_data_field = kind == "ACTION" and name.startswith("DATA_") and key in data_field_types and name not in data_field_types[key]
+                unused_handler_field = (
+                    (kind == "ACTION" and name == "BATTERY_ALERTS" and key == "below") or
+                    (kind == "ACTION" and name == "APPLICATION_LAUNCH_APP" and key == "packages") or
+                    (kind == "ACTION" and name == "SYSTEM_OPEN_PLAY_STORE_APP" and key == "package") or
+                    (kind == "ACTION" and name == "SYSTEM_REBOOT" and key == "mode")
+                )
+                canonical_alias_field = kind == "TRIGGER" and name == "PLUGIN_EVENT" and key == "plugin_id"
+                canonical_secret_field = kind == "ACTION" and name == "SYSTEM_HTTP_REQUEST" and key == "auth_token"
+                ui_only_field = kind == "ACTION" and name == "PLUGIN_FIRE" and key in {"blurb", "editActivity"}
+                if not consumer_files:
+                    consumer_files = node_key_runtime_candidates(root, kind, name, key)
+                    if consumer_files:
+                        read_keys.add(key)
+                        if kind == "TRIGGER":
+                            trigger_consumers.setdefault(name, {})[key] = consumer_files
+                            trigger_runtime.setdefault(name, set()).add(key)
+                        else:
+                            action_consumers.setdefault(name, {})[key] = consumer_files
+                            action_runtime.setdefault(name, set()).add(key)
+                if unused_data_field:
+                    status = "DECLARED_UNUSED_BY_ACTION_TYPE"
+                elif unused_handler_field:
+                    status = "DECLARED_UNUSED_BY_HANDLER"
+                elif canonical_alias_field:
+                    status = "DECLARED_CANONICAL_COMPATIBILITY_ALIAS"
+                elif canonical_secret_field:
+                    status = "DECLARED_CANONICAL_SECRET_PROJECTION"
+                elif ui_only_field:
+                    status = "DECLARED_UI_CONSUMED"
+                elif key in declared and key in read_keys and consumer_files:
                     status = "DECLARED_AND_RUNTIME_READ"
                 elif key in declared and key in read_keys:
                     status = "DECLARED_RUNTIME_READ_OWNER_UNRESOLVED"
@@ -396,20 +507,43 @@ def generate(root: Path, destination: Path) -> None:
                     status = "DECLARED_NO_STATIC_RUNTIME_READ"
                 else:
                     status = "RUNTIME_READ_UNDECLARED"
-                field_rows.append({
+                ui_candidates = field_source_candidates(root, root / Path("feature/automation-builder/src/main"), kind, name, key)
+                if kind == "ACTION" and name == "PLUGIN_FIRE" and key in {"editActivity", "pluginHighRiskApproval"}:
+                    ui_candidates = ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt"]
+                if kind == "ACTION" and name == "PLUGIN_FIRE" and key == "blurb":
+                    ui_candidates = ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionPresentation.kt",
+                                    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt"]
+                if kind == "TRIGGER" and name == "PLUGIN_EVENT" and key in {"eventComponent", "pluginApproval", "pluginEventId", "pluginInstance"}:
+                    ui_candidates = ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt",
+                                     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt"]
+                runtime_consumer_value = "|".join(consumer_files) if consumer_files else "NO_STATIC_MATCH"
+                if canonical_alias_field:
+                    runtime_consumer_value = "LEGACY_CANONICAL_CONTRACT (not a runtime config read)"
+                elif canonical_secret_field:
+                    runtime_consumer_value = "domain/src/main/java/com/nexaflow/domain/canonical/FamilyPhase25AdvancedExternal.kt (secret projection)"
+                elif ui_only_field:
+                    runtime_consumer_value = "UI_ONLY (see ui_producer_candidates)"
+                field_row = {
                     "kind": kind, "legacy_type": name, "field": key,
+                    "sub_operation": "TYPE_LEVEL",
+                    "operation_scope": "TYPE_LEVEL_NOT_APPLICABLE",
                     "schema_producer": f"{relative_schema(kind)} ({details.get(name, {}).get(key, 'helper-or-derived')})" if key in declared else "UNMAPPED",
-                    "runtime_consumer": "|".join(consumer_files) if consumer_files else "NO_STATIC_MATCH",
+                    "runtime_consumer": runtime_consumer_value,
                     "runtime_owner_candidates": "|".join(
                         path.as_posix() for path in runtime_candidate_index(kind).get(name, [])
                     ),
-                    "ui_producer_candidates": "|".join(field_source_candidates(root, root / Path("feature/automation-builder/src/main"), kind, name, key)),
+                    "ui_producer_candidates": "|".join(ui_candidates),
                     "test_candidates": "|".join(test_source_candidates(root, kind, name, key)),
                     "serialization_candidates": "core/database Converters + data/mapper/AutomationMapper (shared map serializer)",
                     "migration_candidates": "data/repository/CanonicalWorkflowMigrationRunner + database migrations (shared migration path; per-field migration not implied)",
                     "permission_api_backend_candidates": "core/execution compat/WorkflowRequirementCatalog + CommandCatalog + CommandRequirementCatalog; per-node resolution not statically evaluated",
                     "parity_status": status,
                     "consumer_review": (
+                        "SHARED_DATA_SCHEMA_FIELD_NOT_READ_BY_THIS_ACTION_TYPE" if status == "DECLARED_UNUSED_BY_ACTION_TYPE" else
+                        "DECLARED_FIELD_NOT_READ_BY_THIS_HANDLER" if status == "DECLARED_UNUSED_BY_HANDLER" else
+                        "LEGACY_ALIAS_CONSUMED_BY_CANONICAL_CONTRACT" if canonical_alias_field else
+                        "CANONICAL_SECRET_REFERENCE_PROJECTION" if canonical_secret_field else
+                        "UI_CONSUMED_FIELD; NOT_A_RUNTIME_ACTION_READ" if ui_only_field else
                         "STATIC_KEY_READ_WITH_OWNER" if status == "DECLARED_AND_RUNTIME_READ" else
                         "DECLARED_BUT_NO_LITERAL_READ_FOUND; REVIEW_DERIVED_OR_INDIRECT_CONSUMER_OR_UNUSED"
                         if status == "DECLARED_NO_STATIC_RUNTIME_READ" else
@@ -421,7 +555,21 @@ def generate(root: Path, destination: Path) -> None:
                     "save_reload_round_trip": "NOT_TRACED_BY_THIS_GATE",
                     "import_export": "data/backup/BackupManager (generic workflow encoding; per-field import/export behavior not implied)",
                     "device_api_oem": "NOT_TESTED",
-                })
+                }
+                if kind == "ACTION" and name.startswith("DATA_"):
+                    for operation in operations.get(name, []):
+                        scoped = dict(field_row)
+                        scoped["sub_operation"] = operation
+                        scoped["operation_scope"] = data_operation_scope(name, key, operation)
+                        if scoped["operation_scope"] == "UNUSED_BY_OPERATION":
+                            scoped["parity_status"] = "DECLARED_UNUSED_BY_OPERATION"
+                            scoped["consumer_review"] = "SHARED_DATA_SCHEMA_FIELD_NOT_EFFECTIVE_FOR_THIS_SUB_OPERATION"
+                        elif scoped["operation_scope"] == "EFFECTIVE_FOR_OPERATION":
+                            scoped["parity_status"] = "DECLARED_AND_RUNTIME_READ"
+                            scoped["consumer_review"] = "STATIC_KEY_READ_WITH_OWNER; EFFECTIVE_FOR_THIS_SUB_OPERATION"
+                        field_rows.append(scoped)
+                else:
+                    field_rows.append(field_row)
 
     lifecycle_rows = []
     generic_stages = [
@@ -523,6 +671,15 @@ def generate(root: Path, destination: Path) -> None:
 
     hotspots = ranked_hotspots(root)
     dependency_graph, architecture_findings = architecture_artifacts(root, trigger_rows, action_rows)
+    for row in field_rows:
+        if row["parity_status"] == "DECLARED_UNUSED_BY_HANDLER":
+            architecture_findings.append({
+                "finding": "DECLARED_FIELD_NOT_READ_BY_ACTION_HANDLER",
+                "subject": f"{row['legacy_type']}.{row['field']}",
+                "evidence_source": row["schema_producer"],
+                "observation": f"consumer_review={row['consumer_review']}; runtime_consumer={row['runtime_consumer']}",
+                "status": "REVIEW_SCHEMA_RUNTIME_CONTRACT",
+            })
     plugin_flows = [
         {"flow": "event configuration", "node": "TriggerType.PLUGIN_EVENT", "source": "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt", "platform_gate": "configuration-only surface; permission/approval fields are source-defined", "verification": "STATIC_SOURCE_LINKS_ONLY"},
         {"flow": "event source lifecycle", "node": "TriggerSource.PLUGIN", "source": "core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventSource.kt", "platform_gate": "Android API 34+; source disabled below API 34", "verification": "STATIC_SOURCE_LINKS_ONLY"},
@@ -550,7 +707,7 @@ def generate(root: Path, destination: Path) -> None:
         "",
         f"- Trigger enum entries: {len(trigger_rows)}; discoverable per current visibility metadata: {sum(row['visibility'] == 'DISCOVERABLE' for row in trigger_rows)}.",
         f"- Action enum entries: {len(actions)}; operation rows: {len(action_rows)} (data transform operations expanded individually).",
-        f"- Field parity rows: {len(field_rows)}; runtime/schema mismatches: {sum(row['parity_status'] == 'RUNTIME_READ_UNDECLARED' for row in field_rows)}; declared fields without static reads: {sum(row['parity_status'] == 'DECLARED_NO_STATIC_RUNTIME_READ' for row in field_rows)}.",
+        f"- Field parity rows: {len(field_rows)}; runtime/schema mismatches: {sum(row['parity_status'] == 'RUNTIME_READ_UNDECLARED' for row in field_rows)}; explicitly unused-by-type/operation/handler: {sum(row['parity_status'] in {'DECLARED_UNUSED_BY_ACTION_TYPE', 'DECLARED_UNUSED_BY_OPERATION', 'DECLARED_UNUSED_BY_HANDLER'} for row in field_rows)}; UI/canonical non-runtime consumers: {sum(row['parity_status'] in {'DECLARED_UI_CONSUMED', 'DECLARED_CANONICAL_COMPATIBILITY_ALIAS', 'DECLARED_CANONICAL_SECRET_PROJECTION'} for row in field_rows)}; unresolved declared reads: {sum(row['parity_status'] == 'DECLARED_NO_STATIC_RUNTIME_READ' for row in field_rows)}.",
         f"- Trigger lifecycle rows: {len(lifecycle_rows)} across {len(generic_stages)} stages per trigger; picker, validation, and dispatch links require node-specific static references.",
         f"- Combined trigger/action-operation lifecycle rows: {len(node_lifecycle_rows)} across {len(generic_stages)} stages; unmapped entries remain explicit and shared lifecycle owners are distinguished.",
         f"- Dependency graph edges: {len(dependency_graph)} static architecture candidates; duplicate owners, legacy references, action gaps, and placeholder tokens are inventoried in architecture-findings.csv.",
@@ -584,6 +741,14 @@ def runtime_candidate_index(kind: str) -> dict[str, list[Path]]:
         ]
     else:
         candidates = [path.relative_to(ROOT) for path in stable_paths((ROOT / ACTION_ROOT).rglob("*.kt"))]
+        candidates.extend(
+            path.relative_to(ROOT)
+            for path in stable_paths((ROOT / Path("core/execution/src/main/java/com/nexaflow/core/execution")).rglob("*.kt"))
+        )
+        candidates.extend(
+            path.relative_to(ROOT)
+            for path in stable_paths((ROOT / Path("domain/src/main/java/com/nexaflow/domain/workflow")).rglob("*.kt"))
+        )
         candidates.append(TRANSFORMS)
     index: dict[str, list[Path]] = {}
     for relative in candidates:
@@ -592,6 +757,76 @@ def runtime_candidate_index(kind: str) -> dict[str, list[Path]]:
         for type_name in types:
             index.setdefault(type_name, []).append(relative)
     return index
+
+
+@lru_cache(maxsize=None)
+def node_key_runtime_candidates(root: Path, kind: str, node: str, key: str) -> list[str]:
+    """Find literal key reads inside this node's own runtime enum branch."""
+    candidates = runtime_candidate_index(kind).get(node, [])
+    found = []
+    for relative in candidates:
+        source = read(root, relative)
+        if key in node_arm_config_keys(source, kind, node):
+            found.append(relative.as_posix())
+    return sorted(set(found))
+
+
+def node_arm_config_keys(source: str, kind: str, node: str) -> set[str]:
+    selectors = ("trigger.type", "type") if kind == "TRIGGER" else ("action.type", "type")
+    keys: set[str] = set()
+    lines = source.splitlines()
+    helper_bodies: dict[str, list[str]] = {}
+    for index, line in enumerate(lines):
+        declaration = re.search(r"\bfun\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", line)
+        if declaration:
+            signature_end = line.find(")", declaration.end())
+            expression_marker = line.find("=", signature_end + 1) if signature_end >= 0 else -1
+            block_marker = line.find("{", signature_end + 1) if signature_end >= 0 else -1
+            if expression_marker >= 0 and (block_marker < 0 or expression_marker < block_marker):
+                body = line[expression_marker + 1:]
+            else:
+                body = contracts.brace_block(lines, index)
+            helper_bodies.setdefault(declaration.group(1), []).append(body)
+
+    def read_keys(body: str) -> set[str]:
+        found = contracts.keys_from_config_reads(body)
+        found.update(re.findall(r'(?:action\.)?config\["([A-Za-z_]+)"\]', body))
+        found.update(re.findall(r'\binteger\(\s*config\s*,\s*"([A-Za-z_]+)"', body))
+        return found
+
+    def include_helpers(body: str, visited: set[int]) -> None:
+        calls = set(re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", body))
+        for helper in calls:
+            definitions = helper_bodies.get(helper, [])
+            if len(definitions) != 1:
+                continue
+            for helper_body in definitions:
+                helper_id = id(helper_body)
+                if helper_id in visited:
+                    continue
+                # A helper is attributable only when its body is invoked from the
+                # node arm. Same-named helper overloads remain uncertain by design.
+                visited.add(helper_id)
+                keys.update(read_keys(helper_body))
+                include_helpers(helper_body, visited)
+
+    for selector in selectors:
+        for body in all_when_blocks(source, selector):
+            arm = contracts.split_enum_arms(body, f"{kind.title()}Type").get(node, "")
+            if arm:
+                keys.update(read_keys(arm))
+                include_helpers(arm, set())
+    return keys
+
+
+def all_when_blocks(source: str, needle: str) -> list[str]:
+    lines = source.splitlines()
+    blocks = []
+    for index, line in enumerate(lines):
+        structural = contracts.clean(line)
+        if re.search(r"\bwhen\s*\(", structural) and needle in structural:
+            blocks.append(contracts.brace_block(lines, index))
+    return blocks
 
 
 def action_runtime_owners(root: Path, actions: list[str]) -> dict[str, dict[str, list[str]]]:
@@ -618,7 +853,9 @@ def action_runtime_owners(root: Path, actions: list[str]) -> dict[str, dict[str,
         contracts.when_block(apply_source, "type"), "ActionType"
     )
     for name, body in apply_arms.items():
-        add(name, contracts.keys_from_config_reads(body), TRANSFORMS)
+        keys = contracts.keys_from_config_reads(body)
+        keys.update(re.findall(r'\binteger\(\s*config\s*,\s*"([A-Za-z_]+)"', body))
+        add(name, keys, TRANSFORMS)
     return owners
 
 
