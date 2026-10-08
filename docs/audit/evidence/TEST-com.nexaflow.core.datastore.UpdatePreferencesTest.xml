@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.nexaflow.core.datastore.UpdatePreferencesTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-08T07:07:04.252Z" hostname="ALAA-PC" time="0.375">
+  <properties/>
+  <testcase name="disabledChecksNeverReserveAnUpdateNotification" classname="com.nexaflow.core.datastore.UpdatePreferencesTest" time="0.056"/>
+  <testcase name="notificationClaimIsAtomicPerVersionAndNewVersionsMayNotify" classname="com.nexaflow.core.datastore.UpdatePreferencesTest" time="0.023"/>
+  <testcase name="frequencyPersistsOnlySupportedCadences" classname="com.nexaflow.core.datastore.UpdatePreferencesTest" time="0.082"/>
+  <testcase name="missingFrequencyDefaultsToWeekly" classname="com.nexaflow.core.datastore.UpdatePreferencesTest" time="0.058"/>
+  <testcase name="installedMatchingReleaseClearsOnlyItsOwnNotificationReservation" classname="com.nexaflow.core.datastore.UpdatePreferencesTest" time="0.126"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

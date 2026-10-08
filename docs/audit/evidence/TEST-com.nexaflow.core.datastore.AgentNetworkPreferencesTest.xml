@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.nexaflow.core.datastore.AgentNetworkPreferencesTest" tests="2" skipped="0" failures="1" errors="0" timestamp="2026-10-08T07:06:40.278Z" hostname="ALAA-PC" time="2.583">
+  <properties/>
+  <testcase name="defaultsToLoopbackOnly" classname="com.nexaflow.core.datastore.AgentNetworkPreferencesTest" time="1.983"/>
+  <testcase name="explicitLanChoicePersists" classname="com.nexaflow.core.datastore.AgentNetworkPreferencesTest" time="0.563">
+    <failure message="java.io.IOException: Unable to rename C:\Users\Alaa\AppData\Local\Temp\junit438311796550090234\agent-network.preferences_pb.tmp to C:\Users\Alaa\AppData\Local\Temp\junit438311796550090234\agent-network.preferences_pb. This likely means that there are multiple instances of DataStore for this file. Ensure that you are only creating a single instance of datastore for this file." type="java.io.IOException">java.io.IOException: Unable to rename C:\Users\Alaa\AppData\Local\Temp\junit438311796550090234\agent-network.preferences_pb.tmp to C:\Users\Alaa\AppData\Local\Temp\junit438311796550090234\agent-network.preferences_pb. This likely means that there are multiple instances of DataStore for this file. Ensure that you are only creating a single instance of datastore for this file.
+	at androidx.datastore.core.FileStorageConnection.writeScope(FileStorage.kt:114)
+	at androidx.datastore.core.DataStoreImpl.writeData$datastore_core(DataStoreImpl.kt:368)
+	at androidx.datastore.core.DataStoreImpl$transformAndWrite$2.invokeSuspend(DataStoreImpl.kt:357)
+	at _COROUTINE._BOUNDARY._(CoroutineDebugging.kt:42)
+	at androidx.datastore.core.DataStoreImpl.handleUpdate(DataStoreImpl.kt:251)
+	at androidx.datastore.core.DataStoreImpl$writeActor$3.invokeSuspend(DataStoreImpl.kt:221)
+	at androidx.datastore.core.SimpleActor$offer$2.invokeSuspend(SimpleActor.kt:114)
+	at androidx.datastore.core.DataStoreImpl$updateData$2.invokeSuspend(DataStoreImpl.kt:185)
+	at com.nexaflow.core.datastore.AgentNetworkPreferences.setLanAccessEnabled(AgentNetworkPreferences.kt:33)
+	at com.nexaflow.core.datastore.AgentNetworkPreferencesTest$explicitLanChoicePersists$1.invokeSuspend(AgentNetworkPreferencesTest.kt:33)
+	at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt$runTest$2$1$1.invokeSuspend(TestBuilders.kt:317)
+Caused by: java.io.IOException: Unable to rename C:\Users\Alaa\AppData\Local\Temp\junit438311796550090234\agent-network.preferences_pb.tmp to C:\Users\Alaa\AppData\Local\Temp\junit438311796550090234\agent-network.preferences_pb. This likely means that there are multiple instances of DataStore for this file. Ensure that you are only creating a single instance of datastore for this file.
+	at androidx.datastore.core.FileStorageConnection.writeScope(FileStorage.kt:114)
+	at androidx.datastore.core.DataStoreImpl.writeData$datastore_core(DataStoreImpl.kt:368)
+	at androidx.datastore.core.DataStoreImpl$transformAndWrite$2.invokeSuspend(DataStoreImpl.kt:357)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:798)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

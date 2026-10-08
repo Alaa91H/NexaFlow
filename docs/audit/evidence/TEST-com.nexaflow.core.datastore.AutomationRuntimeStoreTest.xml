@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-08T07:07:03.329Z" hostname="ALAA-PC" time="0.865">
+  <properties/>
+  <testcase name="active source key can evolve without changing lifecycle ownership" classname="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" time="0.154"/>
+  <testcase name="only one caller claims an active occurrence for exit" classname="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" time="0.066"/>
+  <testcase name="multiple schedule occurrences retain identity and stale generation is rejected" classname="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" time="0.125"/>
+  <testcase name="stale occurrence cannot claim or clear a newer lifecycle" classname="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" time="0.043"/>
+  <testcase name="concurrent callers still receive exactly one claimed exit" classname="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" time="0.06"/>
+  <testcase name="activation never overwrites a previously active occurrence" classname="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" time="0.136"/>
+  <testcase name="failed exit remains observable and requires explicit recovery claim" classname="com.nexaflow.core.datastore.AutomationRuntimeStoreTest" time="0.161"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

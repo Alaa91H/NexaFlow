@@ -120,6 +120,10 @@ jobs:
       run: python3 scripts/audit_atomic_inventory.py --check
     - name: Test atomic source inventory generator
       run: python3 -m unittest scripts.tests.test_atomic_inventory
+    - name: Evidence-backed T02 finding register
+      run: python3 scripts/audit_findings.py --check
+    - name: Test T02 finding register auditor
+      run: python3 -m unittest scripts.tests.test_audit_findings
     - name: Canonical automation legacy-surface baseline
       run: python3 scripts/check_canonical_baseline.py
     - name: Canonical automation source inventory
