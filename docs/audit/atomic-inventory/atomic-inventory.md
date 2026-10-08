@@ -6,12 +6,12 @@ This is static source evidence. Catalog membership and static references do not 
 - Trigger enum entries: 57; discoverable per current visibility metadata: 55.
 - Action enum entries: 180; operation rows: 213 (data transform operations expanded individually).
 - Field parity rows: 394; runtime/schema mismatches: 0; declared fields without static reads: 138.
-- Trigger lifecycle rows: 855 across 15 shared stages per trigger; these are owner candidates, not proof of every per-trigger path.
-- Combined trigger/action-operation lifecycle rows: 4050 across 15 distinct stages. Shared-owner candidates require per-node call-path review.
+- Trigger lifecycle rows: 855 across 15 stages per trigger; picker and dispatch links use node-specific static references where found.
+- Combined trigger/action-operation lifecycle rows: 4050 across 15 stages; unmapped entries remain explicit and shared lifecycle owners are distinguished.
 - Dependency graph edges: 10 static architecture candidates; duplicate owners, legacy references, action gaps, and placeholder tokens are inventoried in architecture-findings.csv.
 - Top 50 review hotspots rank normalized branch-token count, cross-module import/enum-reference coupling, and touches in the 50 commits ending at the frozen T00 baseline. This is a triage heuristic, not a defect score.
 - Android/OEM support, live providers, and hardware behavior: NOT TESTED by this generator.
-- Schema field defaults are source-linked; helper/derived defaults and producer/consumer lifecycles still require manual source review.
+- Schema field defaults are source-linked; fields without literal reads require derived, indirect, or unused-consumer review and are never assumed unused.
 
 ## Runtime owner graph (static architectural entry points)
 

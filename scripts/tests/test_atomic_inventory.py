@@ -80,6 +80,10 @@ class AtomicInventoryTest(unittest.TestCase):
             self.assertEqual(41, sum(row["sub_operation"] != "DEFAULT_ACTION" for row in action_rows))
             self.assertTrue(any(row["legacy_type"] == "PLUGIN_FIRE" for row in action_rows))
             self.assertTrue(
+                all("DataActionsHandler.kt" in row["runtime_handler_candidates"]
+                    for row in action_rows if row["legacy_type"].startswith("DATA_"))
+            )
+            self.assertTrue(
                 all(row["schema_status"] in {
                     "SCHEMA_ARM_PRESENT", "SHARED_TOGGLE_SCHEMA", "EMPTY_SCHEMA_FALLBACK", "NO_MATCHED_SCHEMA_ARM"
                 }
@@ -99,8 +103,11 @@ class AtomicInventoryTest(unittest.TestCase):
             self.assertTrue(all("test_candidates" in row for row in field_rows))
             self.assertTrue(all("permission_api_backend_candidates" in row for row in field_rows))
             self.assertTrue(all("save_reload_round_trip" in row for row in field_rows))
+            self.assertTrue(all("consumer_review" in row for row in field_rows))
             self.assertEqual(57 * 15, len(lifecycle_rows))
             self.assertEqual((57 + 213) * 15, len(node_lifecycle_rows))
+            self.assertFalse(any(row["evidence_status"] == "SHARED_OWNER_CANDIDATE_REQUIRES_NODE_REVIEW" for row in node_lifecycle_rows))
+            self.assertTrue(any(row["stage"] == "dispatch" and row["kind"] == "ACTION" and row["evidence_status"] == "STATIC_NODE_REFERENCE" for row in node_lifecycle_rows))
             self.assertEqual(10, len(graph_rows))
             self.assertTrue(any(row["finding"] == "SHARED_RUNTIME_OWNER_DECLARATION" for row in architecture_rows))
             self.assertEqual(50, len(hotspot_rows))

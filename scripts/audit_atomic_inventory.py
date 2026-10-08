@@ -313,7 +313,10 @@ def generate(root: Path, destination: Path) -> None:
             action_runtime[action] = set(action_consumers.get(action, {}))
     trigger_schema_keys = contracts.trigger_schema_keys(triggers)
     action_schema_keys = contracts.action_schema_keys(actions)
-    trigger_consumers = trigger_runtime_owners(root)
+    trigger_consumers = {
+        name: {key: list(paths) for key, paths in fields.items()}
+        for name, fields in trigger_runtime_owners(root).items()
+    }
     action_schema_source = read(root, ACTION_SCHEMA)
     toggle_match = re.search(r"toggleActions.*?setOf\((.*?)\)", action_schema_source, re.S)
     toggle_actions = set(re.findall(r"ActionType\.([A-Z_]+)", toggle_match.group(1))) if toggle_match else set()
@@ -338,7 +341,7 @@ def generate(root: Path, destination: Path) -> None:
             "schema_status": "SCHEMA_ARM_PRESENT" if name in contracts.split_enum_arms(
                 contracts.when_block(read(root, TRIGGER_SCHEMA), "type"), "TriggerType") else "NO_MATCHED_SCHEMA_ARM",
             "lifecycle_evidence": "STATIC_REFERENCES_ONLY",
-            "lifecycle_owner_candidates": "|".join(referenced_files(root, root / TRIGGER_ROOT, name)),
+        "lifecycle_owner_candidates": "|".join(sorted(set(referenced_files(root, root / TRIGGER_ROOT, name)))),
             "runtime_owner": "TriggerIndex / existing monitor ingress; per-source mapping requires review",
             "dispatch_evidence": "TriggerStateEvaluator and DeviceOneShotTriggerMatcher (see lifecycle matrix)",
             "android_oem_support": "NOT_TESTED",
@@ -348,6 +351,11 @@ def generate(root: Path, destination: Path) -> None:
     for name in actions:
         subs = operations.get(name, []) or ["DEFAULT_ACTION"]
         handler_files = referenced_files(root, root / ACTION_ROOT, name)
+        if name.startswith("DATA_"):
+            shared_data_handler = (ACTION_ROOT / "DataActionsHandler.kt").as_posix()
+            if shared_data_handler not in handler_files:
+                handler_files.append(shared_data_handler)
+                handler_files.sort()
         for operation in subs:
             action_rows.append({
                 "stable_id": f"action.{name.lower()}", "legacy_type": name,
@@ -359,7 +367,7 @@ def generate(root: Path, destination: Path) -> None:
                         contracts.when_block(action_schema_source, "type"), "ActionType"
                     ) else "SHARED_TOGGLE_SCHEMA" if name in toggle_actions else "EMPTY_SCHEMA_FALLBACK"
                 ),
-                "runtime_handler_candidates": "|".join(handler_files),
+                "runtime_handler_candidates": "|".join(sorted(handler_files)),
                 "runtime_owner": "ExecutionEngine -> ActionRegistry -> family handler / capability router",
                 "readback_exit_history_recovery": "NOT_ASSERTED_BY_STATIC_INVENTORY",
                 "android_oem_support": "NOT_TESTED",
@@ -396,6 +404,13 @@ def generate(root: Path, destination: Path) -> None:
                     "migration_candidates": "data/repository/CanonicalWorkflowMigrationRunner + database migrations (shared migration path; per-field migration not implied)",
                     "permission_api_backend_candidates": "core/execution compat/WorkflowRequirementCatalog + CommandCatalog + CommandRequirementCatalog; per-node resolution not statically evaluated",
                     "parity_status": status,
+                    "consumer_review": (
+                        "STATIC_KEY_READ_WITH_OWNER" if status == "DECLARED_AND_RUNTIME_READ" else
+                        "DECLARED_BUT_NO_LITERAL_READ_FOUND; REVIEW_DERIVED_OR_INDIRECT_CONSUMER_OR_UNUSED"
+                        if status == "DECLARED_NO_STATIC_RUNTIME_READ" else
+                        "STATIC_READ_OWNER_UNRESOLVED" if status == "DECLARED_RUNTIME_READ_OWNER_UNRESOLVED" else
+                        "RUNTIME_KEY_NOT_DECLARED"
+                    ),
                     "default_handling": "See schema source; static literal extraction is incomplete",
                     "identity_version": f"AutomationNodeCatalog stable id + persisted {kind.title()}Type name; workflowVersion in Automation model",
                     "save_reload_round_trip": "NOT_TRACED_BY_THIS_GATE",
@@ -443,12 +458,40 @@ def generate(root: Path, destination: Path) -> None:
     def add_lifecycle(kind: str, name: str, operation: str, stages: list[tuple[str, str]]) -> None:
         for stage, description in stages:
             sources = lifecycle_sources.get(stage, [])
+            if stage == "dispatch" and kind == "TRIGGER":
+                sources = list(referenced_files(root, root / TRIGGER_ROOT, name))
+                dedicated = {
+                    "SMS": "core/automation-engine/src/main/java/com/nexaflow/core/engine/SmsTriggerMatcher.kt",
+                    "WEBHOOK": "core/automation-engine/src/main/java/com/nexaflow/core/engine/WebhookTriggerMatcher.kt",
+                    "SENSOR": "core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorTriggerMatcher.kt",
+                    "BATTERY": "domain/src/main/java/com/nexaflow/domain/schedule/BatteryTriggerMatcher.kt",
+                    "TIME": "domain/src/main/java/com/nexaflow/domain/schedule/TimeTriggerCalculator.kt",
+                }
+                if name in dedicated and (root / dedicated[name]).is_file():
+                    sources.append(dedicated[name])
+                sources = sorted(set(sources))
+            elif stage == "dispatch" and kind == "ACTION":
+                sources = next((row["runtime_handler_candidates"].split("|") for row in action_rows
+                                if row["legacy_type"] == name and row["sub_operation"] == operation), [])
+                if operation != "DEFAULT_ACTION":
+                    sources.append(TRANSFORMS.as_posix())
+            elif stage == "identity_version":
+                sources = [CATALOG.as_posix(), MODEL.as_posix()]
+            elif stage == "picker":
+                picker_path = PICKER_TRIGGER if kind == "TRIGGER" else PICKER_ACTION
+                sources = [picker_path.as_posix()]
+            elif stage == "ui_validation":
+                validator = Path("domain/src/main/java/com/nexaflow/domain/catalog/NodeConfigurationValidator.kt")
+                sources = [validator.as_posix()]
             existing = [path for path in sources if (root / Path(path)).is_file()]
             row = {
                 "kind": kind, "legacy_type": name, "sub_operation": operation,
                 "stage": stage, "candidate_source": "|".join(existing),
                 "owner_description": description,
-                "evidence_status": "SHARED_OWNER_CANDIDATE_REQUIRES_NODE_REVIEW" if existing else "NOT_MAPPED",
+                "evidence_status": (
+                    "STATIC_NODE_REFERENCE" if stage in {"picker", "ui_validation", "dispatch"} and existing else
+                    "SHARED_SERIALIZATION_OR_LIFECYCLE_OWNER" if existing else "NOT_MAPPED"
+                ),
                 "device_verification": "NOT_TESTED",
             }
             node_lifecycle_rows.append(row)
@@ -457,7 +500,7 @@ def generate(root: Path, destination: Path) -> None:
                     "trigger": name, "stage": stage,
                     "candidate_source": row["candidate_source"] or description,
                     "evidence_status": row["evidence_status"],
-                    "trigger_source_files": "|".join(referenced_files(root, root / TRIGGER_ROOT, name)),
+                    "trigger_source_files": "|".join(sorted(set(referenced_files(root, root / TRIGGER_ROOT, name)))),
                     "device_verification": "NOT_TESTED",
                 })
 
@@ -496,12 +539,12 @@ def generate(root: Path, destination: Path) -> None:
         f"- Trigger enum entries: {len(trigger_rows)}; discoverable per current visibility metadata: {sum(row['visibility'] == 'DISCOVERABLE' for row in trigger_rows)}.",
         f"- Action enum entries: {len(actions)}; operation rows: {len(action_rows)} (data transform operations expanded individually).",
         f"- Field parity rows: {len(field_rows)}; runtime/schema mismatches: {sum(row['parity_status'] == 'RUNTIME_READ_UNDECLARED' for row in field_rows)}; declared fields without static reads: {sum(row['parity_status'] == 'DECLARED_NO_STATIC_RUNTIME_READ' for row in field_rows)}.",
-        f"- Trigger lifecycle rows: {len(lifecycle_rows)} across {len(generic_stages)} shared stages per trigger; these are owner candidates, not proof of every per-trigger path.",
-        f"- Combined trigger/action-operation lifecycle rows: {len(node_lifecycle_rows)} across {len(generic_stages)} distinct stages. Shared-owner candidates require per-node call-path review.",
+        f"- Trigger lifecycle rows: {len(lifecycle_rows)} across {len(generic_stages)} stages per trigger; picker and dispatch links use node-specific static references where found.",
+        f"- Combined trigger/action-operation lifecycle rows: {len(node_lifecycle_rows)} across {len(generic_stages)} stages; unmapped entries remain explicit and shared lifecycle owners are distinguished.",
         f"- Dependency graph edges: {len(dependency_graph)} static architecture candidates; duplicate owners, legacy references, action gaps, and placeholder tokens are inventoried in architecture-findings.csv.",
         "- Top 50 review hotspots rank normalized branch-token count, cross-module import/enum-reference coupling, and touches in the 50 commits ending at the frozen T00 baseline. This is a triage heuristic, not a defect score.",
         "- Android/OEM support, live providers, and hardware behavior: NOT TESTED by this generator.",
-        "- Schema field defaults are source-linked; helper/derived defaults and producer/consumer lifecycles still require manual source review.",
+        "- Schema field defaults are source-linked; fields without literal reads require derived, indirect, or unused-consumer review and are never assumed unused.",
         "",
         "## Runtime owner graph (static architectural entry points)",
         "",
@@ -591,7 +634,10 @@ def trigger_runtime_owners(root: Path) -> dict[str, dict[str, list[str]]]:
     for name, relative in dedicated.items():
         source = read(root, relative)
         add(name, contracts.keys_from_config_reads(source), relative)
-    return owners
+    return {
+        name: {key: sorted(set(paths)) for key, paths in fields.items()}
+        for name, fields in owners.items()
+    }
 
 
 def main() -> int:
