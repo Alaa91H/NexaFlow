@@ -11,8 +11,6 @@ import com.nexaflow.core.datastore.AutomationLifecycleContext
 import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
 import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
-import com.nexaflow.core.datastore.DurableExecutionCheckpoint
-import com.nexaflow.core.datastore.DurableExecutionStatus
 import com.nexaflow.core.datastore.DurableVerificationState
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
@@ -656,19 +654,11 @@ class ExecutionEngine(
         // failed automation. The unresolved checkpoint remains preserved for
         // recovery rather than being silently discarded to make room.
         val checkpointAdmission = occurrenceDeduplicator.admitDurably(
-            store = activeExecutionStore,
-            DurableExecutionCheckpoint(
-                runId = payloadContext.runId,
-                automationId = automation.id,
-                workflowVersion = automation.workflowVersion,
-                workflowRevision = automation.updatedAt,
-                totalActions = automation.actions.size + automation.canonicalNodes.count { it.kind == NodeSchemaKind.ACTION },
-                nextActionIndex = 0,
-                status = DurableExecutionStatus.STARTED,
-                startedAt = startedAt,
-                updatedAt = startedAt
-            ),
-            occurrence = triggerOccurrence,
+            activeExecutionStore,
+            automation,
+            payloadContext.runId,
+            startedAt,
+            triggerOccurrence,
         )
         if (checkpointAdmission != ActiveExecutionStore.CheckpointAdmission.ACCEPTED) {
             val admissionMessage = when (checkpointAdmission) {

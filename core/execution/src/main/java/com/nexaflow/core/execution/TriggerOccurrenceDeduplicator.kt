@@ -4,6 +4,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.security.MessageDigest
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.DurableExecutionCheckpoint
+import com.nexaflow.core.datastore.DurableExecutionStatus
+import com.nexaflow.domain.models.Automation
 
 /**
  * Short-lived, process-local replay guard for trigger sources that can provide
@@ -102,11 +104,23 @@ internal class TriggerOccurrenceDeduplicator(
 
     suspend fun admitDurably(
         store: ActiveExecutionStore,
-        checkpoint: DurableExecutionCheckpoint,
+        automation: Automation,
+        runId: String,
+        startedAt: Long,
         occurrence: TriggerOccurrence?,
     ): ActiveExecutionStore.CheckpointAdmission = store.admitCheckpoint(
-        checkpoint = checkpoint,
-        occurrenceKeyHash = durableOccurrenceKey(checkpoint.automationId, occurrence),
+        checkpoint = DurableExecutionCheckpoint(
+            runId = runId,
+            automationId = automation.id,
+            workflowVersion = automation.workflowVersion,
+            workflowRevision = automation.updatedAt,
+            totalActions = automation.actions.size + automation.canonicalNodes.count { it.kind == com.nexaflow.domain.canonical.NodeSchemaKind.ACTION },
+            nextActionIndex = 0,
+            status = DurableExecutionStatus.STARTED,
+            startedAt = startedAt,
+            updatedAt = startedAt,
+        ),
+        occurrenceKeyHash = durableOccurrenceKey(automation.id, occurrence),
     )
 
 }
