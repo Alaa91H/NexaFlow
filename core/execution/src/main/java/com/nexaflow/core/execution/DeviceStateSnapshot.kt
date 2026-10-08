@@ -109,6 +109,93 @@ class DeviceStateSnapshot private constructor(
     }
 
     /**
+     * Restores only values that still match the state observed after this
+     * automation's successful writes. Android settings do not expose an
+     * atomic compare-and-set, so this read-before-write guard is best-effort;
+     * it avoids overwriting a clearly newer user or automation change.
+     */
+    fun restoreIfUnchanged(
+        context: Context,
+        ownerships: List<Pair<Action, DeviceStateSnapshot>>
+    ): SystemControlResult {
+        val current = runCatching { capture(context) }.getOrNull()
+            ?: return SystemControlResult.fail(
+                "State restore skipped because current values could not be read",
+                outcomeUncertain = true
+            )
+        val uniqueOwnerships = ownerships.distinctBy { (action, _) -> targetKey(action) }
+        val (owned, preserved) = uniqueOwnerships.partition { (action, expectedCurrent) ->
+            val expected = expectedCurrent.valueFor(action)
+            StateRestoreOwnershipPolicy.mayRestore(expected, current.valueFor(action))
+        }
+        val restored = restore(context, owned.map { it.first })
+        if (!restored.success || preserved.isEmpty()) return restored
+        val message = "${restored.message}; preserved ${preserved.size} value(s) changed after automation"
+        return SystemControlResult(
+            success = true,
+            message = message,
+            outcomeUncertain = restored.outcomeUncertain
+        )
+    }
+
+    /** Readable value captured for the setting target represented by [action]. */
+    private fun valueFor(action: Action): String? = when (action.type) {
+        ActionType.SYSTEM_WIFI -> wifiEnabled?.toString()
+        ActionType.SYSTEM_BLUETOOTH -> bluetoothEnabled?.toString()
+        ActionType.SYSTEM_NFC -> nfcEnabled?.toString()
+        ActionType.SYSTEM_MOBILE_DATA -> mobileDataEnabled?.toString()
+        ActionType.SYSTEM_NETWORK_MODE -> networkMode
+        ActionType.SYSTEM_HOTSPOT -> hotspotEnabled?.toString()
+        ActionType.SYSTEM_AIRPLANE_MODE -> airplaneModeEnabled?.toString()
+        ActionType.SYSTEM_DND -> dndEnabled?.toString()
+        ActionType.SYSTEM_FLASHLIGHT -> flashlightEnabled?.toString()
+        ActionType.SYSTEM_POWER_SAVER -> powerSaverEnabled?.toString()
+        ActionType.SYSTEM_ANIMATIONS -> animationsEnabled?.toString()
+        ActionType.SYSTEM_LOCATION -> locationEnabled?.toString()
+        ActionType.SYSTEM_STAY_AWAKE -> stayAwake.toString()
+        ActionType.SYSTEM_AUTO_BRIGHTNESS -> autoBrightness.toString()
+        ActionType.SYSTEM_DARK_MODE -> darkMode.toString()
+        ActionType.SYSTEM_COLOR_INVERSION -> colorInversion?.toString()
+        ActionType.SYSTEM_GRAYSCALE -> grayscale?.toString()
+        ActionType.SYSTEM_EXTRA_DIM -> extraDim?.toString()
+        ActionType.SYSTEM_NIGHT_LIGHT -> nightLight?.toString()
+        ActionType.SYSTEM_HAPTIC_FEEDBACK -> hapticFeedback?.toString()
+        ActionType.SYSTEM_SOUND_EFFECTS -> soundEffects?.toString()
+        ActionType.SYSTEM_DATA_SAVER -> dataSaver?.toString()
+        ActionType.SYSTEM_SCREENSAVER -> screensaver?.toString()
+        ActionType.SYSTEM_ALWAYS_ON_DISPLAY -> alwaysOnDisplay?.toString()
+        ActionType.SYSTEM_SHOW_TAPS -> showTaps?.toString()
+        ActionType.SYSTEM_POINTER_LOCATION -> pointerLocation?.toString()
+        ActionType.SYSTEM_ADAPTIVE_BATTERY -> adaptiveBattery?.toString()
+        ActionType.SYSTEM_AUTO_TIME -> autoTime?.toString()
+        ActionType.SYSTEM_AUTO_TIMEZONE -> autoTimezone?.toString()
+        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND -> cameraShutterSound?.toString()
+        ActionType.SYSTEM_WIFI_SCANNING -> wifiScanning?.toString()
+        ActionType.SYSTEM_DATA_ROAMING -> dataRoaming?.toString()
+        ActionType.SYSTEM_CALL_VIBRATION -> callVibration?.toString()
+        ActionType.SYSTEM_POINTER_SPEED -> pointerSpeed
+        ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> screensaverTimeout
+        ActionType.SYSTEM_FONT_SCALE -> fontScale
+        ActionType.SYSTEM_DISPLAY_DENSITY -> displayDensity
+        ActionType.SYSTEM_SCREEN_ROTATION -> autoRotate.toString()
+        ActionType.SYSTEM_BRIGHTNESS -> brightness.toString()
+        ActionType.SYSTEM_VOLUME -> musicVolume.toString()
+        ActionType.SYSTEM_RING_VOLUME -> ringVolume.toString()
+        ActionType.SYSTEM_STREAM_VOLUME -> capturedStreamVolume(
+            AudioStreams.streamId(action.config["stream"] ?: "MUSIC")
+        ).toString()
+        ActionType.SYSTEM_RINGER_MODE -> ringerMode.toString()
+        ActionType.SYSTEM_SET_RINGTONE -> ringtoneUri
+        ActionType.SYSTEM_SCREEN_TIMEOUT -> screenTimeout.toString()
+        else -> null
+    }
+
+    private fun targetKey(action: Action): String = when (action.type) {
+        ActionType.SYSTEM_STREAM_VOLUME -> "${action.type.name}:${action.config["stream"] ?: "MUSIC"}"
+        else -> action.type.name
+    }
+
+    /**
      * Compatibility fallback for the workflow transaction path, whose historic
      * contract captured a broad snapshot without retaining the action list.
      * ExecutionEngine uses the narrower overload above. Unsupported action
@@ -427,4 +514,10 @@ class DeviceStateSnapshot private constructor(
             else -> "NORMAL"
         }
     }
+}
+
+/** Fail-closed compare rule shared by the device adapter and deterministic tests. */
+internal object StateRestoreOwnershipPolicy {
+    fun mayRestore(expectedAfterAutomation: String?, currentValue: String?): Boolean =
+        expectedAfterAutomation != null && currentValue == expectedAfterAutomation
 }

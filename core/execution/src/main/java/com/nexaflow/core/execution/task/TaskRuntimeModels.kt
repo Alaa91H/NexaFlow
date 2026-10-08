@@ -11,13 +11,15 @@ enum class TaskLifecycleState {
     TIMED_OUT,
     DEADLINE_EXCEEDED,
     CANCELLED,
+    /** The task may have applied an external effect, but the result is unconfirmed. */
+    UNKNOWN,
     REJECTED
 }
 
 /**
  * Canonical transition contract for the existing task runtime.
- * Terminal states are immutable; a cancellation request is allowed from any
- * non-terminal admitted state and must end in CANCELLED.
+ * Terminal states are immutable. CANCEL_REQUESTED is intentionally not
+ * terminal: a result already observed by the worker may still win the race.
  */
 fun TaskLifecycleState.canTransitionTo(next: TaskLifecycleState): Boolean = when (this) {
     TaskLifecycleState.QUEUED -> next in setOf(
@@ -25,6 +27,7 @@ fun TaskLifecycleState.canTransitionTo(next: TaskLifecycleState): Boolean = when
         TaskLifecycleState.CANCEL_REQUESTED,
         TaskLifecycleState.CANCELLED,
         TaskLifecycleState.DEADLINE_EXCEEDED,
+        TaskLifecycleState.UNKNOWN,
         TaskLifecycleState.REJECTED
     )
     TaskLifecycleState.RUNNING -> next in setOf(
@@ -34,16 +37,24 @@ fun TaskLifecycleState.canTransitionTo(next: TaskLifecycleState): Boolean = when
         TaskLifecycleState.FAILED,
         TaskLifecycleState.TIMED_OUT,
         TaskLifecycleState.DEADLINE_EXCEEDED,
-        TaskLifecycleState.CANCELLED
+        TaskLifecycleState.CANCELLED,
+        TaskLifecycleState.UNKNOWN
     )
     TaskLifecycleState.RETRY_WAIT -> next in setOf(
         TaskLifecycleState.RUNNING,
         TaskLifecycleState.CANCEL_REQUESTED,
         TaskLifecycleState.CANCELLED,
+        TaskLifecycleState.UNKNOWN,
         TaskLifecycleState.DEADLINE_EXCEEDED
     )
     TaskLifecycleState.CANCEL_REQUESTED -> next in setOf(
         TaskLifecycleState.CANCELLED,
+        // Cancellation is a request; an already completed result or an
+        // unconfirmed dispatched effect remains the authoritative outcome.
+        TaskLifecycleState.SUCCEEDED,
+        TaskLifecycleState.FAILED,
+        TaskLifecycleState.TIMED_OUT,
+        TaskLifecycleState.UNKNOWN,
         // A deadline can win a cancellation race before the worker reaches its
         // cancellation checkpoint; preserve that terminal evidence explicitly.
         TaskLifecycleState.DEADLINE_EXCEEDED
@@ -53,6 +64,7 @@ fun TaskLifecycleState.canTransitionTo(next: TaskLifecycleState): Boolean = when
     TaskLifecycleState.TIMED_OUT,
     TaskLifecycleState.DEADLINE_EXCEEDED,
     TaskLifecycleState.CANCELLED,
+    TaskLifecycleState.UNKNOWN,
     TaskLifecycleState.REJECTED -> next == this
 }
 
@@ -82,11 +94,14 @@ enum class TaskResource {
 data class TaskManagerLimits(
     val maxPendingTasks: Int = 1_000,
     val maxTaskTimeoutMs: Long = 15 * 60 * 1_000L,
-    val resourceCapacities: Map<TaskResource, Int> = TaskResource.entries.associateWith { 1 }
+    val resourceCapacities: Map<TaskResource, Int> = TaskResource.entries.associateWith { 1 },
+    /** Minimum time a queued task must wait before it outranks younger work. */
+    val priorityAgingIntervalMs: Long = 30_000L
 ) {
     init {
         require(maxPendingTasks > 0) { "maxPendingTasks must be positive" }
         require(maxTaskTimeoutMs > 0) { "maxTaskTimeoutMs must be positive" }
+        require(priorityAgingIntervalMs > 0) { "priorityAgingIntervalMs must be positive" }
         require(resourceCapacities.values.all { it >= 0 }) { "Resource capacities cannot be negative" }
     }
 

@@ -54,11 +54,34 @@ class AutomationWorkflowRunner(
         val selected = channelProvider()
         val channel = selected?.type?.name
         val mapped = AutomationWorkflowMapper.map(automation)
-        if (mapped.revertOnExit) {
-            stateStore.capture(automation.id)
+        val stateRunActive = mapped.revertOnExit && stateStore.captureAndBeginRun(automation.id)
+        if (mapped.revertOnExit && !stateRunActive) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = false,
+                message = "Revert-on-exit state could not be captured; automation was not started",
+                executedAt = startedAt,
+                channel = channel
+            )
+            historyRepository.recordExecution(record)
+            recordTimeline(automation, "RUN", record, startedAt)
+            onChanged()
+            return record
         }
-        val interpreter = WorkflowInterpreter(executorProvider(selected), epochMillis = epochMillis)
-        val outcome = interpreter.execute(mapped.runWorkflow.root)
+        val delegate = executorProvider(selected)
+        val trackingExecutor = ActionExecutor { action ->
+            delegate.execute(action).also { result ->
+                if (mapped.revertOnExit) stateStore.recordActionOutcome(automation.id, action, result)
+            }
+        }
+        val interpreter = WorkflowInterpreter(trackingExecutor, epochMillis = epochMillis)
+        val outcome = try {
+            interpreter.execute(mapped.runWorkflow.root)
+        } finally {
+            if (stateRunActive) stateStore.endRun(automation.id)
+        }
         val actionResults = outcome.nodeResults.map { it.toActionExecutionResult(channel) }
         val record = ExecutionRecord(
             id = UUID.randomUUID().toString(),

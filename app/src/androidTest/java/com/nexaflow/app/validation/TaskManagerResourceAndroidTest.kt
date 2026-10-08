@@ -41,6 +41,7 @@ class TaskManagerResourceAndroidTest {
         val holder = PendingTask(
             id = "android-resource-holder",
             name = "resource holder",
+            safeToCancel = true,
             resources = setOf(TaskResource.FILE_IO),
             run = {
                 holderStarted.trySend(Unit)
@@ -94,5 +95,6 @@ class TaskManagerResourceAndroidTest {
         is TaskResult.DeadlineExceeded -> taskId
         is TaskResult.Cancelled -> taskId
         is TaskResult.Rejected -> taskId
+        is TaskResult.Unknown -> taskId
     }
 }
