@@ -1,0 +1,1458 @@
+[
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 225,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A75] Beta مُراجع مع رجوع آمن",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/225"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 224,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A74] 72h endurance مع حد موارد",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/224"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 223,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A73] اختبار أجهزة وميزات Android",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/223"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 222,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A72] اختبار مزوّد حي بإذن المستخدم",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/222"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 221,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A71] بوابات CI وWindows/Linux",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/221"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 220,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A70] Fault injection شاملة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/220"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 219,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A69] تقييم Evals قبل التفعيل",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/219"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 218,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A68] أدوات تتبع سرية ومترابطة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/218"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 217,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P2][A67] ترجمات وتجربة Android 17",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/217"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 216,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P2][A66] واجهة أذونات وموافقات واضحة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/216"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 215,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P2][A65] مركز التحكم في الوكلاء",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/215"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 214,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P2][A64] معالج إعداد Provider–Model–Tools",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/214"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 213,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A63] شاشة تشغيل الوكيل الموحدة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/213"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 212,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A62] مكتبة أدوات مقيّدة للوظائف الجديدة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/212"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 211,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A61] بناء وتعديل الأتمتة بأمان",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/211"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 210,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A60] أدوات القراءة أولًا",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/210"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 209,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A59] تنسيق الحالات والنتائج بين الوكلاء",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/209"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 208,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A58] صلاحيات كل خطوة في الخطة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/208"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 207,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A57] سياسة فشل وإعادة تخطيط",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/207"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 206,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A56] المدقق المستقل Verifier",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/206"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 205,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A55] توازي مهام القراءة المحدود",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/205"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 204,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A54] التفويض الآمن Handoff",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/204"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 203,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A53] تخطيط TaskPlan بنسخ ثابتة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/203"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 202,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A52] Agent role registry",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/202"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 201,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A51] parity موحد بين REST/MCP/A2A/Binder",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/201"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 200,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A50] إتمام remote relay end-to-end",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/200"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 199,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A49] A2A cancel وstream",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/199"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 198,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A48] A2A task lifecycle المتين",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/198"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 197,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A47] A2A 1.0 Agent Card والمهارات",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/197"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 196,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A46] MCP long tasks والتمددات",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/196"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 195,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A45] عميل MCP موثوق للوكلاء",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/195"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 194,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A44] مطابقة MCP 2026-07-28",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/194"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 193,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A43] خصوصية LAN والـrelay",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/193"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 192,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A42] قيود الموارد والميزانية العالمية",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/192"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 191,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A41] Prompt injection وحظر tool output الخطر",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/191"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 190,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A40] حراسة البيانات السرية والـprovider keys",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/190"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 189,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A39] التحكم في منح صلاحيات API/MCP/A2A",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/189"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 188,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A38] ربط الموافقة بالأداة والمحتوى والجهاز",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/188"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 187,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A37] موافقة لكل تأثير حساس",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/187"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 186,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A36] تجميد قائمة أدوات كل تشغيل",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/186"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 185,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A35] سياسة استعادة طلبات الموافقة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/185"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 184,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A34] التشغيل المجدول الآمن",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/184"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 183,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A33] تشغيل الوكيل من محفّز NexaFlow",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/183"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 182,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A32] إعدادات الـsystem prompt والشخصية",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/182"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 181,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A31] مزامنة الوكيل مع سجل الأدوات",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/181"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 180,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A30] إدارة ذاكرة الوكيل",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/180"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 179,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A29] استمرار المحادثة والـcontext",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/179"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 178,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A28] حفظ المحادثات بشكل اختياري",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/178"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 177,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A27] أول تشغيل حي read-only",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/177"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 176,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A26] اختيار الوكيل وتفعيله من الواجهة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/176"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 175,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A25] موفّرات OpenAI-compatible الأخرى",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/175"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 174,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A24] OpenCode Zen/Go وOpenRouter",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/174"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 173,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A23] Ollama وLM Studio المحليان",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/173"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 172,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A22] Gemini Interactions API (اختياري)",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/172"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 171,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A21] Gemini Native GenerateContent",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/171"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 170,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A20] اكتشاف قدرات نماذج Anthropic",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/170"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 169,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A19] Anthropic Messages الأصلي",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/169"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 168,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P1][A18] نماذج OpenAI الحديثة وfallback الآمن",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/168"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 167,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A17] OpenAI Responses API الأصلي",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/167"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 166,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A16] اختبار اتصال قابل للفهم",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/166"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 165,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A15] اكتشاف النماذج الحقيقي",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/165"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 164,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A14] فصل profile عن API dialect",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/164"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQbw",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 163,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A13] عدم فقدان تعريف الوكيل والتاريخ",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/163"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQbw",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 162,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A12] صحة بث الـLLM والـtool deltas",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/162"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 161,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A11] منع تكرار طلب الأداة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/161"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 160,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A10] استرداد التشغيل بعد موت العملية",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/160"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 159,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A09] الإلغاء والمهلة الحقيقية",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/159"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 158,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A08] توحيد حالات دورة AgentRun",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/158"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 157,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A07] صحة حدود turns/tools/output",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/157"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQbw",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 156,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A06] حد تكلفة فعلي بدلاً من cost_unknown دائم",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/156"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 155,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A05] حدود التنفيذ والتكامل مع Issues السابقة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/155"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 154,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A04] حالة اختبارات الأجهزة والحسابات",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/154"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 153,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A03] جرد الأعطال القابلة للإعادة",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/153"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 152,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A02] مصفوفة مزوّد/نموذج/بروتوكول",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/152"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 151,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A01] جرد كل مسارات AI والتحكم",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/151"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 150,
+    "state": "OPEN",
+    "title": "[AI-AGENTS][P0][A00] تثبيت HEAD وخط الأساس",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/150"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 149,
+    "state": "OPEN",
+    "title": "[MASTER][AI-AGENTS][P0] Atomic AI agent stabilization, activation & interoperability — A00–A75",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/149"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 148,
+    "state": "OPEN",
+    "title": "[P0][T25] Guarded PR merge, signed beta candidate, APK provenance and rollback",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/148"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 147,
+    "state": "OPEN",
+    "title": "[P1][T24] Generate living capability documentation, migrations and release notes",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/147"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 146,
+    "state": "OPEN",
+    "title": "[P0][T23] Complete Android device acceptance matrix and 72-hour multi-OEM soak",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/146"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 145,
+    "state": "OPEN",
+    "title": "[P0][T22] Add comprehensive deterministic CI, model, property and Android fault-injection gates",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/145"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 144,
+    "state": "OPEN",
+    "title": "[P2][T21] Benchmark and optimize trigger dispatch, editor and Android battery usage",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/144"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 143,
+    "state": "OPEN",
+    "title": "[P0][T20] Audit and harden all external, plugin, privileged and storage trust boundaries",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/143"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 142,
+    "state": "OPEN",
+    "title": "[P1][T19] End-to-end privacy-preserving trigger/execution tracing and diagnosis",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/142"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 141,
+    "state": "OPEN",
+    "title": "[P2][T18] Build progressive Basic/Advanced configuration and safe automation preview",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/141"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 140,
+    "state": "OPEN",
+    "title": "[P1][T17] Refactor oversized builder editors into modular, testable family components",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/140"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 139,
+    "state": "OPEN",
+    "title": "[P1][T16] Deliver bounded, tested action capability expansion packages",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/139"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 138,
+    "state": "OPEN",
+    "title": "[P1][T15] Safe exit, rollback, compensation and conflicting device-state restore",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/138"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 137,
+    "state": "OPEN",
+    "title": "[P1][T14] Expose safe per-action execution policies and error routes",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/137"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 136,
+    "state": "OPEN",
+    "title": "[P1][T13] Consolidate action dispatch, capability routing and read-back results",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/136"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 135,
+    "state": "OPEN",
+    "title": "[P1][T12] Unify typed schemas and field-to-runtime parity for all 180 actions",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/135"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 134,
+    "state": "OPEN",
+    "title": "[P1][T11] Eight independently verifiable trigger customization packages",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/134"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 133,
+    "state": "OPEN",
+    "title": "[P1][T10] Advanced Trigger Expression v2 (AND/OR/NOT, A→B, count, within)",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/133"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 132,
+    "state": "OPEN",
+    "title": "[P1][T09] Typed debounce, hysteresis, stable duration and cooldown filters",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/132"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 131,
+    "state": "OPEN",
+    "title": "[P1][T08] Standardize all 57 trigger sources, ingress and subscription lifecycles",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/131"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 130,
+    "state": "OPEN",
+    "title": "[P0][T07] TaskManager fairness, cancellation, resource locks and safe restore",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/130"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 129,
+    "state": "OPEN",
+    "title": "[P0][T06] Crash recovery, UNKNOWN outcomes and user review",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/129"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 128,
+    "state": "OPEN",
+    "title": "[P0][T05] Correct locked-boot contract and schedule/reboot/DST delivery behavior",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/128"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 127,
+    "state": "OPEN",
+    "title": "[P0][T04] Prevent duplicate event admissions and unsafe repeated side effects",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/127"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQbw",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 126,
+    "state": "OPEN",
+    "title": "[P0][T03] Diagnose and harden CI / Windows DataStore test reproducibility",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/126"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 125,
+    "state": "OPEN",
+    "title": "[P0][T02] Create evidence-backed atomic defect register and reproductions",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/125"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 124,
+    "state": "OPEN",
+    "title": "[P0][T01] Produce 57-trigger / 180-action atomic source-to-runtime inventory",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/124"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQdQ",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      }
+    ],
+    "number": 123,
+    "state": "OPEN",
+    "title": "[P0][T00] Freeze reproducible baseline, environment and safety inventory",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/123"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOTsAi7M8AAAACuhbQfA",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 122,
+    "state": "OPEN",
+    "title": "[MASTER][P0] NexaFlow atomic trigger/action audit, reliability & customization — T00–T25",
+    "url": "https://github.com/Alaa91H/NexaFlow/issues/122"
+  }
+]

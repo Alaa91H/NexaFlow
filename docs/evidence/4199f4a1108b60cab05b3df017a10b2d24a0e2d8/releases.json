@@ -1,0 +1,802 @@
+[
+  {
+    "isDraft": false,
+    "isLatest": true,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.10",
+    "publishedAt": "2026-10-05T03:34:50Z",
+    "tagName": "v3.91.10"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.9",
+    "publishedAt": "2026-10-05T00:59:03Z",
+    "tagName": "v3.91.9"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.8",
+    "publishedAt": "2026-10-04T19:46:49Z",
+    "tagName": "v3.91.8"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.7",
+    "publishedAt": "2026-10-04T15:00:51Z",
+    "tagName": "v3.91.7"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.6",
+    "publishedAt": "2026-10-04T11:17:38Z",
+    "tagName": "v3.91.6"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.5",
+    "publishedAt": "2026-10-04T03:04:07Z",
+    "tagName": "v3.91.5"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.4",
+    "publishedAt": "2026-10-03T22:12:15Z",
+    "tagName": "v3.91.4"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.3",
+    "publishedAt": "2026-10-01T15:46:36Z",
+    "tagName": "v3.91.3"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.2",
+    "publishedAt": "2026-10-01T09:08:55Z",
+    "tagName": "v3.91.2"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.91.1",
+    "publishedAt": "2026-09-30T22:53:09Z",
+    "tagName": "v3.91.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.90.0",
+    "publishedAt": "2026-09-26T09:57:22Z",
+    "tagName": "v3.90.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.89.0",
+    "publishedAt": "2026-09-25T13:46:47Z",
+    "tagName": "v3.89.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.88.0",
+    "publishedAt": "2026-09-24T06:57:49Z",
+    "tagName": "v3.88.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.87.0",
+    "publishedAt": "2026-09-23T17:19:34Z",
+    "tagName": "v3.87.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.86.1",
+    "publishedAt": "2026-09-23T09:24:53Z",
+    "tagName": "v3.86.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.86.0",
+    "publishedAt": "2026-09-23T08:30:28Z",
+    "tagName": "v3.86.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.85.1",
+    "publishedAt": "2026-09-21T23:50:48Z",
+    "tagName": "v3.85.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.84.0",
+    "publishedAt": "2026-09-21T17:51:39Z",
+    "tagName": "v3.84.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.83.0",
+    "publishedAt": "2026-09-21T16:41:46Z",
+    "tagName": "v3.83.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.82.0",
+    "publishedAt": "2026-09-21T13:20:16Z",
+    "tagName": "v3.82.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.81.0",
+    "publishedAt": "2026-09-21T09:15:22Z",
+    "tagName": "v3.81.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.80.0",
+    "publishedAt": "2026-09-21T07:37:36Z",
+    "tagName": "v3.80.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.79.0",
+    "publishedAt": "2026-09-21T05:55:17Z",
+    "tagName": "v3.79.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.78.0",
+    "publishedAt": "2026-09-21T00:04:37Z",
+    "tagName": "v3.78.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.77.0",
+    "publishedAt": "2026-09-20T20:58:23Z",
+    "tagName": "v3.77.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.76.0",
+    "publishedAt": "2026-09-20T16:47:04Z",
+    "tagName": "v3.76.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.75.1",
+    "publishedAt": "2026-09-20T05:47:52Z",
+    "tagName": "v3.75.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.75.0",
+    "publishedAt": "2026-09-20T00:12:50Z",
+    "tagName": "v3.75.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.7",
+    "publishedAt": "2026-09-19T19:35:16Z",
+    "tagName": "v3.74.7"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.6",
+    "publishedAt": "2026-09-18T11:22:54Z",
+    "tagName": "v3.74.6"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.5",
+    "publishedAt": "2026-09-18T10:51:30Z",
+    "tagName": "v3.74.5"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.4",
+    "publishedAt": "2026-09-18T06:41:25Z",
+    "tagName": "v3.74.4"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.3",
+    "publishedAt": "2026-09-18T06:01:48Z",
+    "tagName": "v3.74.3"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.2",
+    "publishedAt": "2026-09-17T20:26:01Z",
+    "tagName": "v3.74.2"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.1",
+    "publishedAt": "2026-09-17T20:12:18Z",
+    "tagName": "v3.74.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.74.0",
+    "publishedAt": "2026-09-17T16:26:31Z",
+    "tagName": "v3.74.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.72.0",
+    "publishedAt": "2026-09-15T17:47:25Z",
+    "tagName": "v3.72.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.71.0",
+    "publishedAt": "2026-09-15T14:20:07Z",
+    "tagName": "v3.71.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.67.0",
+    "publishedAt": "2026-09-09T15:37:53Z",
+    "tagName": "v3.67.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.66.0",
+    "publishedAt": "2026-09-09T13:38:41Z",
+    "tagName": "v3.66.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.65.0",
+    "publishedAt": "2026-09-09T12:38:17Z",
+    "tagName": "v3.65.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.64.0",
+    "publishedAt": "2026-09-09T11:38:56Z",
+    "tagName": "v3.64.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.63.0",
+    "publishedAt": "2026-09-09T10:44:13Z",
+    "tagName": "v3.63.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.62.1",
+    "publishedAt": "2026-09-09T03:14:54Z",
+    "tagName": "v3.62.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.62.0",
+    "publishedAt": "2026-09-09T02:34:18Z",
+    "tagName": "v3.62.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.61.0",
+    "publishedAt": "2026-09-08T23:41:10Z",
+    "tagName": "v3.61.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.60.0",
+    "publishedAt": "2026-09-08T22:48:15Z",
+    "tagName": "v3.60.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.59.6",
+    "publishedAt": "2026-09-08T21:53:48Z",
+    "tagName": "v3.59.6"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.59.5",
+    "publishedAt": "2026-09-08T21:33:12Z",
+    "tagName": "v3.59.5"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.59.4",
+    "publishedAt": "2026-09-08T20:33:37Z",
+    "tagName": "v3.59.4"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.59.3",
+    "publishedAt": "2026-09-08T19:51:09Z",
+    "tagName": "v3.59.3"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.59.2",
+    "publishedAt": "2026-09-08T18:46:02Z",
+    "tagName": "v3.59.2"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.59.1",
+    "publishedAt": "2026-09-08T18:03:36Z",
+    "tagName": "v3.59.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.59.0",
+    "publishedAt": "2026-09-08T17:38:41Z",
+    "tagName": "v3.59.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.16",
+    "publishedAt": "2026-09-08T12:41:13Z",
+    "tagName": "v3.58.16"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.15",
+    "publishedAt": "2026-09-08T12:22:35Z",
+    "tagName": "v3.58.15"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.14",
+    "publishedAt": "2026-09-08T10:09:41Z",
+    "tagName": "v3.58.14"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.13",
+    "publishedAt": "2026-09-08T09:45:12Z",
+    "tagName": "v3.58.13"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.12",
+    "publishedAt": "2026-09-08T07:53:00Z",
+    "tagName": "v3.58.12"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.11",
+    "publishedAt": "2026-09-06T17:12:14Z",
+    "tagName": "v3.58.11"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.10",
+    "publishedAt": "2026-09-06T16:44:12Z",
+    "tagName": "v3.58.10"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.9",
+    "publishedAt": "2026-09-06T16:15:21Z",
+    "tagName": "v3.58.9"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.8",
+    "publishedAt": "2026-09-06T15:13:55Z",
+    "tagName": "v3.58.8"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.7",
+    "publishedAt": "2026-09-06T13:37:32Z",
+    "tagName": "v3.58.7"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.6",
+    "publishedAt": "2026-09-06T12:24:51Z",
+    "tagName": "v3.58.6"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.5",
+    "publishedAt": "2026-09-05T00:42:38Z",
+    "tagName": "v3.58.5"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.4",
+    "publishedAt": "2026-09-05T00:18:26Z",
+    "tagName": "v3.58.4"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.3",
+    "publishedAt": "2026-09-04T01:03:53Z",
+    "tagName": "v3.58.3"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.2",
+    "publishedAt": "2026-09-04T00:25:14Z",
+    "tagName": "v3.58.2"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.1",
+    "publishedAt": "2026-09-03T17:51:12Z",
+    "tagName": "v3.58.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.58.0",
+    "publishedAt": "2026-09-03T15:54:05Z",
+    "tagName": "v3.58.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.57.0",
+    "publishedAt": "2026-09-02T19:10:16Z",
+    "tagName": "v3.57.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.56.2",
+    "publishedAt": "2026-09-02T08:59:58Z",
+    "tagName": "v3.56.2"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.56.1",
+    "publishedAt": "2026-09-02T02:11:34Z",
+    "tagName": "v3.56.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.55.1",
+    "publishedAt": "2026-09-02T01:12:03Z",
+    "tagName": "v3.55.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.55.0",
+    "publishedAt": "2026-09-02T00:32:07Z",
+    "tagName": "v3.55.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.54.1",
+    "publishedAt": "2026-09-01T06:37:57Z",
+    "tagName": "v3.54.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.53.1",
+    "publishedAt": "2026-09-01T00:37:48Z",
+    "tagName": "v3.53.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.53.0",
+    "publishedAt": "2026-08-30T08:10:35Z",
+    "tagName": "v3.53.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.52.3 — Production Audit and Strict Scheduler Hardening",
+    "publishedAt": "2026-08-30T00:30:35Z",
+    "tagName": "v3.52.3"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.52.2 — Strict Time-Range Execution",
+    "publishedAt": "2026-08-29T05:27:26Z",
+    "tagName": "v3.52.2"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.52.1 — Strict Task Execution and Completion Lifecycle",
+    "publishedAt": "2026-08-29T00:38:36Z",
+    "tagName": "v3.52.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.52.0 — Provider-Independent Fixed Location Trigger",
+    "publishedAt": "2026-08-28T20:34:13Z",
+    "tagName": "v3.52.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "",
+    "publishedAt": "2026-08-27T22:20:56Z",
+    "tagName": "v3.50.5"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.50.4 — Android 17 Automation Reliability and CI Hardening",
+    "publishedAt": "2026-08-27T19:31:21Z",
+    "tagName": "v3.50.4"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.50.3 — Automatic Schedule Reconciliation and Cellular Capability Profiles",
+    "publishedAt": "2026-08-27T15:04:42Z",
+    "tagName": "v3.50.3"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.50.1 — Time-Range End Recovery and Android 17 Network-Mask Correction",
+    "publishedAt": "2026-08-27T12:46:29Z",
+    "tagName": "v3.50.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.50.0",
+    "publishedAt": "2026-08-27T10:58:15Z",
+    "tagName": "v3.50.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.49.0",
+    "publishedAt": "2026-08-27T09:40:23Z",
+    "tagName": "v3.49.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.48.0",
+    "publishedAt": "2026-08-27T07:44:01Z",
+    "tagName": "v3.48.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.47.0",
+    "publishedAt": "2026-08-27T05:28:25Z",
+    "tagName": "v3.47.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.46.0",
+    "publishedAt": "2026-08-27T04:03:34Z",
+    "tagName": "v3.46.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.45.0",
+    "publishedAt": "2026-08-27T01:59:20Z",
+    "tagName": "v3.45.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.44.0",
+    "publishedAt": "2026-08-27T00:46:05Z",
+    "tagName": "v3.44.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.43.0",
+    "publishedAt": "2026-08-26T23:24:24Z",
+    "tagName": "v3.43.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.42.0",
+    "publishedAt": "2026-08-26T22:32:23Z",
+    "tagName": "v3.42.0"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.41.5",
+    "publishedAt": "2026-08-26T21:25:10Z",
+    "tagName": "v3.41.5"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.41.4",
+    "publishedAt": "2026-08-25T11:27:56Z",
+    "tagName": "v3.41.4"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.41.1",
+    "publishedAt": "2026-08-25T10:42:45Z",
+    "tagName": "v3.41.1"
+  },
+  {
+    "isDraft": false,
+    "isLatest": false,
+    "isPrerelease": false,
+    "name": "NexaFlow v3.41.0",
+    "publishedAt": "2026-08-25T09:50:35Z",
+    "tagName": "v3.41.0"
+  }
+]

@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "issue": 123,
+  "task": "T00",
+  "capturedAt": "2026-10-08",
+  "repository": "Alaa91H/NexaFlow",
+  "branch": "main",
+  "workBranch": "audit/2026-10-08-triggers-executions",
+  "planBaseline": "4199f4a1108b60cab05b3df017a10b2d24a0e2d8",
+  "head": "4199f4a1108b60cab05b3df017a10b2d24a0e2d8",
+  "originMain": "4199f4a1108b60cab05b3df017a10b2d24a0e2d8",
+  "worktreeInitiallyClean": false,
+  "preExistingChanges": [
+    "feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt",
+    "feature/settings/src/main/java/com/nexaflow/feature/settings/ExactAlarmAccessChangeDetector.kt",
+    "feature/settings/src/test/java/com/nexaflow/feature/settings/ExactAlarmAccessChangeDetectorTest.kt"
+  ],
+  "host": {
+    "os": "Windows 11 build 26100",
+    "java": "Microsoft OpenJDK 17.0.20.1",
+    "gradleWrapper": "9.6.1",
+    "agp": "9.3.1",
+    "kotlinAndroidCompose": "2.4.10",
+    "compileSdk": 37,
+    "targetSdk": 37,
+    "minSdk": 26,
+    "installedSdkPlatforms": [
+      34,
+      35,
+      37
+    ],
+    "androidHomeConfigured": false
+  },
+  "devices": {
+    "adbDevices": [],
+    "emulator": "NOT_TESTED",
+    "physicalDevice": "NOT_TESTED",
+    "oemMatrix": "NOT_TESTED",
+    "root": "NOT_TESTED",
+    "shizuku": "NOT_TESTED",
+    "soak72Hours": "NOT_TESTED"
+  },
+  "github": {
+    "defaultBranch": "main",
+    "accountPermission": "admin",
+    "mainBranchProtectionAtInitialInspection": "NOT_CONFIGURED (API 404: Branch not protected)",
+    "mainBranchProtectionAfterT00": "CONFIGURED and verified",
+    "requiredChecks": [
+      "secret-scan",
+      "lint",
+      "Android emulator integration",
+      "coverage",
+      "build"
+    ],
+    "requiredChecksStrict": true,
+    "pullRequestRequired": true,
+    "requiredApprovingReviewCount": 0,
+    "dismissStaleReviews": true,
+    "requireConversationResolution": true,
+    "enforceAdmins": true,
+    "allowForcePushes": false,
+    "allowDeletions": false,
+    "secretScanning": "DISABLED",
+    "secretScanningPushProtection": "DISABLED",
+    "dependabotSecurityUpdates": "DISABLED",
+    "defaultWorkflowTokenPermission": "read",
+    "latestReleaseAtCapture": "v3.91.10",
+    "latestReleaseCommit": "66f0dbd1327365b770901b2fa7d8d528a531ae9b",
+    "latestReleaseTagCryptographicSignature": "UNSIGNED (git tag -v reports no signature)",
+    "latestReleaseApkSigning": "CI verified production certificate match and v1/v2/v3 APK signatures",
+    "latestReleaseCiRun": 37258291959,
+    "openIssueCountAtCapture": 104,
+    "openMasterIssuesAtCapture": [
+      122,
+      149
+    ],
+    "latestWorkflowRun": {
+      "id": 37625029211,
+      "sha": "4199f4a1108b60cab05b3df017a10b2d24a0e2d8",
+      "status": "success",
+      "event": "schedule",
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37625029211"
+    }
+  },
+  "localVerification": {
+    "checkStringsParity": {
+      "exitCode": 0,
+      "result": "PASS",
+      "summary": "PARITY_PROBLEMS: 0"
+    },
+    "catalogParity": {
+      "exitCode": 0,
+      "result": "PASS",
+      "summary": "57 triggers (55 exposed), 180 actions"
+    },
+    "autoFixCheck": {
+      "exitCode": 0,
+      "result": "PASS",
+      "summary": "AUTO_FIX: OK - no orphaned, duplicate, or unbalanced strings"
+    },
+    "atomicBaseline": {
+      "exitCode": 0,
+      "result": "PASS",
+      "summary": "v3.91.3 9e5e2fa132f2"
+    },
+    "atomicArchitectureFitness": {
+      "selfTestExitCode": 0,
+      "gateExitCode": 0,
+      "result": "PASS"
+    },
+    "persistenceSafety": {
+      "exitCode": 0,
+      "result": "PASS",
+      "exportedSchemas": 25,
+      "latestSchema": 27
+    },
+    "aiSecretBoundary": {
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    "aiProviderRegistry": {
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    "suppressionBudget": {
+      "exitCode": 0,
+      "result": "PASS",
+      "suppress": 83,
+      "suppressLint": 42
+    },
+    "readmeStaleCounts": {
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    "canonicalBaseline": {
+      "exitCode": 0,
+      "result": "PASS",
+      "triggerCount": 57,
+      "actionCount": 180,
+      "legacySurface": "57/176 preserved"
+    },
+    "gradleVersion": {
+      "exitCode": 0,
+      "result": "PASS",
+      "version": "9.6.1"
+    },
+    "gradleProjects": {
+      "exitCode": 0,
+      "result": "PASS",
+      "duration": "11m 15s",
+      "summary": "BUILD SUCCESSFUL; environment/configuration probe only"
+    }
+  },
+  "productionBehaviorChanged": false,
+  "deviceEvidenceClaimed": false,
+  "report": "docs/audit/triggers-actions-atomic-audit-2026-10-08.md"
+}

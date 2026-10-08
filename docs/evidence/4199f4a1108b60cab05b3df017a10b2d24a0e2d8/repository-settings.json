@@ -1,0 +1,28 @@
+{
+  "default_branch": "main",
+  "permissions": {
+    "admin": true,
+    "maintain": true,
+    "pull": true,
+    "push": true,
+    "triage": true
+  },
+  "security_and_analysis": {
+    "dependabot_security_updates": {
+      "status": "disabled"
+    },
+    "secret_scanning": {
+      "status": "disabled"
+    },
+    "secret_scanning_non_provider_patterns": {
+      "status": "disabled"
+    },
+    "secret_scanning_push_protection": {
+      "status": "disabled"
+    },
+    "secret_scanning_validity_checks": {
+      "status": "disabled"
+    }
+  },
+  "visibility": "public"
+}

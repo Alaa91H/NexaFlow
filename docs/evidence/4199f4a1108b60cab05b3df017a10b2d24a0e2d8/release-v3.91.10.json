@@ -1,0 +1,37 @@
+{
+  "assets": [
+    {
+      "apiUrl": "https://api.github.com/repos/Alaa91H/NexaFlow/releases/assets/611377696",
+      "contentType": "application/vnd.android.package-archive",
+      "createdAt": "2026-10-05T03:34:49Z",
+      "digest": "sha256:cce058a2f28ed58ccc184e2d45cb51561bb457afac7180028d7ea2d1ca90f43f",
+      "downloadCount": 78,
+      "id": "RA_kwDOTsAi7M4kcOIg",
+      "label": "",
+      "name": "NexaFlow-v3.91.10.apk",
+      "size": 7693464,
+      "state": "uploaded",
+      "updatedAt": "2026-10-05T03:34:49Z",
+      "url": "https://github.com/Alaa91H/NexaFlow/releases/download/v3.91.10/NexaFlow-v3.91.10.apk"
+    },
+    {
+      "apiUrl": "https://api.github.com/repos/Alaa91H/NexaFlow/releases/assets/611377694",
+      "contentType": "application/vnd.android.package-archive",
+      "createdAt": "2026-10-05T03:34:49Z",
+      "digest": "sha256:93a783021748c3075ce42991743ddf16b94093390fd43265899b15ac71faa63d",
+      "downloadCount": 46,
+      "id": "RA_kwDOTsAi7M4kcOIe",
+      "label": "",
+      "name": "NexaFlow-Wear-v3.91.10.apk",
+      "size": 2726427,
+      "state": "uploaded",
+      "updatedAt": "2026-10-05T03:34:49Z",
+      "url": "https://github.com/Alaa91H/NexaFlow/releases/download/v3.91.10/NexaFlow-Wear-v3.91.10.apk"
+    }
+  ],
+  "isDraft": false,
+  "isPrerelease": false,
+  "name": "NexaFlow v3.91.10",
+  "publishedAt": "2026-10-05T03:34:50Z",
+  "tagName": "v3.91.10"
+}
