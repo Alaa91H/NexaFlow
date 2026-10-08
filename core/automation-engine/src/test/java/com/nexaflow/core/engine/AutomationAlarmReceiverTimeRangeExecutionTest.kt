@@ -14,8 +14,15 @@ class AutomationAlarmReceiverTimeRangeExecutionTest {
             AutomationAlarmReceiver.shouldExecuteRangeStart(
                 isTimeRange = true,
                 windowEndAt = 2_000L,
+                deliveredAt = 1_999L,
             )
         )
+    }
+
+    @Test
+    fun `range start delivered at or after its end is skipped`() {
+        assertFalse(AutomationAlarmReceiver.shouldExecuteRangeStart(true, 2_000L, 2_000L))
+        assertFalse(AutomationAlarmReceiver.shouldExecuteRangeStart(true, 2_000L, 2_001L))
     }
 
     @Test
@@ -24,6 +31,7 @@ class AutomationAlarmReceiverTimeRangeExecutionTest {
             AutomationAlarmReceiver.shouldExecuteRangeStart(
                 isTimeRange = true,
                 windowEndAt = null,
+                deliveredAt = 1_000L,
             )
         )
     }
@@ -34,8 +42,43 @@ class AutomationAlarmReceiverTimeRangeExecutionTest {
             AutomationAlarmReceiver.shouldExecuteRangeStart(
                 isTimeRange = false,
                 windowEndAt = null,
+                deliveredAt = 1_000L,
             )
         )
+    }
+
+    @Test
+    fun `point occurrence is accepted only within its fifteen minute grace`() {
+        val start = 10_000L
+        assertTrue(AutomationAlarmReceiver.shouldExecutePointStart(start, start))
+        assertTrue(AutomationAlarmReceiver.shouldExecutePointStart(start, start + 15 * 60_000L))
+        assertFalse(AutomationAlarmReceiver.shouldExecutePointStart(start, start + 15 * 60_000L + 1L))
+        assertFalse(AutomationAlarmReceiver.shouldExecutePointStart(start, start - 1L))
+    }
+
+    @Test
+    fun `late occurrence diagnostic is classified as skipped`() {
+        val record = AutomationAlarmReceiver.skippedOccurrenceRecord(
+            automationId = "task",
+            automationName = "Task",
+            occurrenceId = "occurrence-1",
+            occurredAt = 10_000L,
+            deliveredAt = 20_000L,
+            reason = "point occurrence was outside the 15-minute delivery window",
+        )
+        val retryRecord = AutomationAlarmReceiver.skippedOccurrenceRecord(
+            automationId = "task",
+            automationName = "Task",
+            occurrenceId = "occurrence-1",
+            occurredAt = 10_000L,
+            deliveredAt = 20_000L,
+            reason = "point occurrence was outside the 15-minute delivery window",
+        )
+
+        assertTrue(record.success)
+        assertTrue(com.nexaflow.domain.models.ExecutionOutcomeClassifier.isSkipped(record))
+        assertEquals(20_000L, record.executedAt)
+        assertEquals("history upsert remains idempotent after a receiver crash", record.id, retryRecord.id)
     }
 
     @Test

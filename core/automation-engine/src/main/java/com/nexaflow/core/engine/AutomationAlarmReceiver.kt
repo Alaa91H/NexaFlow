@@ -12,12 +12,16 @@ import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.rom.RootPermissionGranter
+import com.nexaflow.domain.models.ExecutionOutcomeClassifier
+import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.repositories.HistoryRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 /**
@@ -45,14 +49,14 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     @Inject
     lateinit var scheduler: AutomationScheduler
 
+    @Inject
+    lateinit var historyRepository: HistoryRepository
+
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
-            intent.action == Intent.ACTION_LOCKED_BOOT_COMPLETED ||
-            intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
-        ) {
+        if (isBootRecoveryAction(intent.action)) {
             restoreAfterBoot(
                 context = context,
-                fireBootTriggers = intent.action == Intent.ACTION_BOOT_COMPLETED,
+                fireBootTriggers = firesBootTriggers(intent.action),
             )
             return
         }
@@ -153,17 +157,47 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                     val isTimeRange = primaryTimeTriggerIndex >= 0 &&
                         automation.triggers[primaryTimeTriggerIndex].config["timeMode"] == "RANGE"
                     val now = System.currentTimeMillis()
-                    val expiredRange = isTimeRange && windowEndAt != null && windowEndAt <= now
-                    if (!shouldExecuteRangeStart(isTimeRange, windowEndAt)) {
+                    if (isTimeRange && windowEndAt == null) {
                         Log.e(TAG, "Refusing malformed time range without an end for $automationId")
                         scheduler.completeOccurrence(automationId, occurrenceId)
                         scheduler.scheduleNext(automationId)
                         return@launch
                     }
-                    // A delayed delivery is still a real occurrence. Never
-                    // discard its main actions merely because Android delivered
-                    // START after the nominal END; execute START, then close the
-                    // same durable occurrence immediately below.
+                    if (!shouldExecuteRangeStart(isTimeRange, windowEndAt, now)) {
+                        val reason = "time range ended before delivery"
+                        historyRepository.recordExecution(
+                            skippedOccurrenceRecord(
+                                automationId = automation.id,
+                                automationName = automation.name,
+                                occurrenceId = occurrenceId,
+                                occurredAt = windowStartAt,
+                                deliveredAt = now,
+                                reason = reason,
+                            )
+                        )
+                        scheduler.completeOccurrence(automationId, occurrenceId)
+                        scheduler.scheduleNext(automationId)
+                        return@launch
+                    }
+                    val pointStartIsCurrent = isTimeRange ||
+                        shouldExecutePointStart(windowStartAt, now)
+                    if (!pointStartIsCurrent) {
+                        historyRepository.recordExecution(
+                            skippedOccurrenceRecord(
+                                automationId = automation.id,
+                                automationName = automation.name,
+                                occurrenceId = occurrenceId,
+                                occurredAt = windowStartAt,
+                                deliveredAt = now,
+                                reason = "point occurrence was outside the 15-minute delivery window",
+                            )
+                        )
+                        scheduler.completeOccurrence(automationId, occurrenceId)
+                        scheduler.scheduleNext(automationId)
+                        return@launch
+                    }
+                    // Preserve the nominal time occurrence in history even if
+                    // Android delivers it later within the bounded grace.
                     val record = executionEngine.runAutomation(
                         automation = automation,
                         completeExitOnFinish = !isTimeRange,
@@ -183,7 +217,7 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                         ) {
                             TriggerOccurrence(
                                 matchedTriggerIndices = matchedTimeTriggerIndices,
-                                occurredAtEpochMs = now,
+                                occurredAtEpochMs = windowStartAt,
                                 sourceId = "time",
                                 eventId = occurrenceId,
                             )
@@ -200,7 +234,7 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                         if (!record.success) {
                             Log.w(TAG, "Time occurrence failed for $automationId: ${record.message}")
                         }
-                    } else if (expiredRange) {
+                    } else if (windowEndAt != null && windowEndAt <= System.currentTimeMillis()) {
                         // START was delivered late but must still have a real
                         // terminal lifecycle. The coordinator will execute the
                         // configured end behavior only after START has returned.
@@ -337,14 +371,42 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        /**
-         * A valid range occurrence remains executable even when delivery is
-         * late. The caller closes it through ExitCoordinator after START.
-         */
+        internal fun isBootRecoveryAction(action: String?): Boolean =
+            action == Intent.ACTION_BOOT_COMPLETED || action == Intent.ACTION_MY_PACKAGE_REPLACED
+
+        internal fun firesBootTriggers(action: String?): Boolean =
+            action == Intent.ACTION_BOOT_COMPLETED
+
+        /** A range start is valid only while its immutable end remains future. */
         internal fun shouldExecuteRangeStart(
             isTimeRange: Boolean,
-            windowEndAt: Long?
-        ): Boolean = !isTimeRange || windowEndAt != null
+            windowEndAt: Long?,
+            deliveredAt: Long
+        ): Boolean = !isTimeRange || (windowEndAt != null && deliveredAt < windowEndAt)
+
+        internal fun shouldExecutePointStart(
+            windowStartAt: Long,
+            deliveredAt: Long
+        ): Boolean = deliveredAt >= windowStartAt &&
+            deliveredAt - windowStartAt <= POINT_DELIVERY_GRACE_MS
+
+        internal fun skippedOccurrenceRecord(
+            automationId: String,
+            automationName: String,
+            occurrenceId: String,
+            occurredAt: Long,
+            deliveredAt: Long,
+            reason: String,
+        ): ExecutionRecord = ExecutionRecord(
+            // Stable across a receiver/process crash between history insertion
+            // and consuming the schedule identity. History upsert stays idempotent.
+            id = UUID.nameUUIDFromBytes("$automationId:$occurrenceId:skipped".toByteArray()).toString(),
+            automationId = automationId,
+            automationName = automationName,
+            success = true,
+            message = "${ExecutionOutcomeClassifier.SKIPPED_MESSAGE_PREFIX} $reason (scheduled=$occurredAt, delivered=$deliveredAt)",
+            executedAt = deliveredAt,
+        )
 
         internal fun matchingScheduledTimeTriggerIndices(
             automation: com.nexaflow.domain.models.Automation,
@@ -400,5 +462,6 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
         )
 
         private const val WAKE_LOCK_TIMEOUT_MS = 30_000L
+        private const val POINT_DELIVERY_GRACE_MS = 15 * 60_000L
     }
 }
