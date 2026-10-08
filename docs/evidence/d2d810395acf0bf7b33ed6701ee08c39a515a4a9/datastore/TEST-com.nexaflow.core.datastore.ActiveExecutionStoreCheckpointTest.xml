@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-08T08:31:00.624Z" hostname="ALAA-PC" time="14.645">
+  <properties/>
+  <testcase name="durableTransitionContract_rejectsTerminalRegression" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="6.804"/>
+  <testcase name="recoveryCountReadsOnlyDurableRecoveryRequiredRecordsForSelectedAutomation" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="1.2"/>
+  <testcase name="recoveryClassificationPreservesOriginalUncertainEvidence" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.191"/>
+  <testcase name="clearAutomationState_removesOnlyThatAutomationsDurableEvidence" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.103"/>
+  <testcase name="recoveryReviewListIsScopedAndNewestFirst" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.166"/>
+  <testcase name="durableTransitionContract_allowsRecoveryAndTerminalPaths" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.046"/>
+  <testcase name="recoveryClaimStrandedByAnotherProcessIsReclaimedImmediately" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.054"/>
+  <testcase name="completedMaintenanceOccurrenceIsDurableAndDoesNotDuplicate" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.053"/>
+  <testcase name="definitiveFailureIsPersistedAsFailedAndAdvancesCursor" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.057"/>
+  <testcase name="duplicateIdempotencyKeyIsRejectedBeforeSecondSideEffect" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.067"/>
+  <testcase name="interruptedActionIsExplicitlyUnknownRatherThanReplayable" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.075"/>
+  <testcase name="recoveryPressureIsIsolatedPerAutomation" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.684"/>
+  <testcase name="recoveryRequiredCheckpointIsNotClaimedAgainAutomatically" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.067"/>
+  <testcase name="explicitRecoveryResetRemovesOnlyTheSelectedAutomationsRecoveryRecords" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.109"/>
+  <testcase name="checkpoint_commitsSequentialActionsAndClaimsRecoveryOnce" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.106"/>
+  <testcase name="duplicateAdmission_reportsCollisionWithoutReplacingTheOriginalCheckpoint" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.095"/>
+  <testcase name="interruptedNodeIsPersistedAsUnknownAndNeverReportedAsSuccess" classname="com.nexaflow.core.datastore.ActiveExecutionStoreCheckpointTest" time="0.078"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

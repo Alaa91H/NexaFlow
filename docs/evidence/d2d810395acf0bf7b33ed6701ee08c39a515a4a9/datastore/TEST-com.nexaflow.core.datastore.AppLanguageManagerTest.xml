@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.nexaflow.core.datastore.AppLanguageManagerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-08T08:31:37.595Z" hostname="ALAA-PC" time="0.035">
+  <properties/>
+  <testcase name="normalizeSupportedLanguageTag_mapsFrameworkChineseVariant" classname="com.nexaflow.core.datastore.AppLanguageManagerTest" time="0.015"/>
+  <testcase name="normalizeSupportedLanguageTag_rejectsUnsupportedLanguage" classname="com.nexaflow.core.datastore.AppLanguageManagerTest" time="0.015"/>
+  <testcase name="normalizeSupportedLanguageTag_acceptsSupportedRegionalVariant" classname="com.nexaflow.core.datastore.AppLanguageManagerTest" time="0.001"/>
+  <testcase name="normalizeSupportedLanguageTag_keepsSupportedTag" classname="com.nexaflow.core.datastore.AppLanguageManagerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
