@@ -317,6 +317,11 @@ def generate(root: Path, destination: Path) -> None:
         name: {key: list(paths) for key, paths in fields.items()}
         for name, fields in trigger_runtime_owners(root).items()
     }
+    trigger_runtime.setdefault("TIME", set()).update({"zonePolicy", "zoneId"})
+    trigger_consumers.setdefault("TIME", {}).update({
+        "zonePolicy": ["domain/src/main/java/com/nexaflow/domain/schedule/TimeTriggerCalculator.kt"],
+        "zoneId": ["domain/src/main/java/com/nexaflow/domain/schedule/TimeTriggerCalculator.kt"],
+    })
     action_schema_source = read(root, ACTION_SCHEMA)
     toggle_match = re.search(r"toggleActions.*?setOf\((.*?)\)", action_schema_source, re.S)
     toggle_actions = set(re.findall(r"ActionType\.([A-Z_]+)", toggle_match.group(1))) if toggle_match else set()
@@ -479,10 +484,17 @@ def generate(root: Path, destination: Path) -> None:
                 sources = [CATALOG.as_posix(), MODEL.as_posix()]
             elif stage == "picker":
                 picker_path = PICKER_TRIGGER if kind == "TRIGGER" else PICKER_ACTION
-                sources = [picker_path.as_posix()]
+                picker_visible = not (kind == "TRIGGER" and name in {"CONNECTIVITY", "PLUGIN_EVENT"})
+                sources = [picker_path.as_posix()] if picker_visible and f"{kind.title()}Type.{name}" in read(root, picker_path) else []
             elif stage == "ui_validation":
                 validator = Path("domain/src/main/java/com/nexaflow/domain/catalog/NodeConfigurationValidator.kt")
-                sources = [validator.as_posix()]
+                validator_source = read(root, validator)
+                if f"{kind.title()}Type.{name}" in validator_source:
+                    sources = [validator.as_posix()]
+                elif kind == "ACTION" and name in toggle_actions:
+                    sources = [validator.as_posix()]
+                else:
+                    sources = []
             existing = [path for path in sources if (root / Path(path)).is_file()]
             row = {
                 "kind": kind, "legacy_type": name, "sub_operation": operation,
@@ -539,7 +551,7 @@ def generate(root: Path, destination: Path) -> None:
         f"- Trigger enum entries: {len(trigger_rows)}; discoverable per current visibility metadata: {sum(row['visibility'] == 'DISCOVERABLE' for row in trigger_rows)}.",
         f"- Action enum entries: {len(actions)}; operation rows: {len(action_rows)} (data transform operations expanded individually).",
         f"- Field parity rows: {len(field_rows)}; runtime/schema mismatches: {sum(row['parity_status'] == 'RUNTIME_READ_UNDECLARED' for row in field_rows)}; declared fields without static reads: {sum(row['parity_status'] == 'DECLARED_NO_STATIC_RUNTIME_READ' for row in field_rows)}.",
-        f"- Trigger lifecycle rows: {len(lifecycle_rows)} across {len(generic_stages)} stages per trigger; picker and dispatch links use node-specific static references where found.",
+        f"- Trigger lifecycle rows: {len(lifecycle_rows)} across {len(generic_stages)} stages per trigger; picker, validation, and dispatch links require node-specific static references.",
         f"- Combined trigger/action-operation lifecycle rows: {len(node_lifecycle_rows)} across {len(generic_stages)} stages; unmapped entries remain explicit and shared lifecycle owners are distinguished.",
         f"- Dependency graph edges: {len(dependency_graph)} static architecture candidates; duplicate owners, legacy references, action gaps, and placeholder tokens are inventoried in architecture-findings.csv.",
         "- Top 50 review hotspots rank normalized branch-token count, cross-module import/enum-reference coupling, and touches in the 50 commits ending at the frozen T00 baseline. This is a triage heuristic, not a defect score.",
@@ -634,6 +646,11 @@ def trigger_runtime_owners(root: Path) -> dict[str, dict[str, list[str]]]:
     for name, relative in dedicated.items():
         source = read(root, relative)
         add(name, contracts.keys_from_config_reads(source), relative)
+    # Timezone config is passed as an opaque map into the shared schedule
+    # calculator, so literal config["..."] extraction cannot see these reads.
+    time_config = read(root, dedicated["TIME"])
+    if "resolveZone(config)" in time_config and "config[ZONE_POLICY_KEY]" in read(root, dedicated["TIME"]):
+        add("TIME", {"zonePolicy", "zoneId"}, dedicated["TIME"])
     return {
         name: {key: sorted(set(paths)) for key, paths in fields.items()}
         for name, fields in owners.items()
