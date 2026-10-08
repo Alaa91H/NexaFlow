@@ -495,8 +495,7 @@ class DeviceStateMonitor28 @Inject constructor(
             triggerOccurrence = TriggerOccurrence(
                 matchedTriggerIndices = matchedTriggerIndices,
                 occurredAtEpochMs = now,
-                sourceId = SOURCE,
-                eventId = "device-state:${type.name.lowercase()}"
+                sourceId = SOURCE
             )
         )
 

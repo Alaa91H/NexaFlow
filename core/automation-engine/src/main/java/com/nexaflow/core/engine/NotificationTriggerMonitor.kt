@@ -273,7 +273,6 @@ class NotificationTriggerMonitor @Inject constructor(
                 matchedTriggerIndices = matchedTriggerIndices,
                 occurredAtEpochMs = now,
                 sourceId = SOURCE,
-                eventId = "notification:$event:${Uri.encode(notificationKey)}"
             )
         )
     }

@@ -69,6 +69,8 @@ class PluginEventRouter(
         val pluginPackage = (event.payload["pluginPackage"] as? JsonPrimitive)?.contentOrNull ?: return
         val component = (event.payload["eventComponent"] as? JsonPrimitive)?.contentOrNull ?: return
         val eventId = (event.payload["pluginEventId"] as? JsonPrimitive)?.contentOrNull ?: return
+        val eventIdIsStable =
+            (event.payload["pluginEventIdIsStable"] as? JsonPrimitive)?.contentOrNull?.toBoolean() == true
         val instances = (event.payload["pluginInstances"] as? JsonArray)
             ?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
             ?.toSet()
@@ -103,7 +105,7 @@ class PluginEventRouter(
                         matchedTriggerIndices = matchedTriggerIndices,
                         occurredAtEpochMs = event.occurredAt,
                         sourceId = TriggerSource.PLUGIN.sourceId,
-                        eventId = event.eventId,
+                        eventId = event.eventId.takeIf { eventIdIsStable },
                     ),
                 )
             }

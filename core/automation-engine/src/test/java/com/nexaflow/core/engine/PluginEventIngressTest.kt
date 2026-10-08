@@ -41,7 +41,6 @@ class PluginEventIngressTest {
         val subscription = bus.subscribe(
             EventFilter(types = setOf(NexaFlowEventType.CUSTOM), sources = setOf("plugin"))
         ) { received.complete(it) }
-
         val first = ingress.publish(
             senderPackage = "com.example.plugin",
             eventComponent = "com.example.plugin.EditActivity",
@@ -65,6 +64,56 @@ class PluginEventIngressTest {
         assertFalse(second.accepted)
         assertTrue(second.deduplicated)
 
+        bus.unsubscribe(subscription.id)
+        bus.close()
+        indexJob.cancel()
+    }
+
+    @Test
+    fun requeryHintIsNotMarkedAsDurableOccurrenceIdentity() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val workflow = pluginAutomation().copy(
+            triggers = listOf(
+                pluginAutomation().triggers.single().copy(
+                    config = pluginAutomation().triggers.single().config - PluginEventIngress.KEY_EVENT_ID,
+                ),
+            ),
+        )
+        val index = TriggerIndex(kotlinx.coroutines.flow.MutableStateFlow(listOf(workflow)))
+        val indexJob = scope.launch { index.start() }
+        awaitIndexed(index)
+        val bus = InMemoryNexaFlowEventBus(scope)
+        val ingress = PluginEventIngress(index, bus)
+        val received = CompletableDeferred<NexaFlowEvent>()
+        val subscription = bus.subscribe(
+            EventFilter(types = setOf(NexaFlowEventType.CUSTOM), sources = setOf("plugin"))
+        ) { received.complete(it) }
+        val router = PluginEventRouter(
+            scope,
+            bus,
+            index,
+            executionEngine = testEngine(
+                org.robolectric.RuntimeEnvironment.getApplication(),
+                RecordingHistory(),
+            ),
+        )
+        router.start()
+
+        val result = ingress.publish(
+            senderPackage = "com.example.plugin",
+            eventComponent = "com.example.plugin.EditActivity",
+            eventId = PluginEventIngress.REQUERY_HINT_EVENT_ID,
+            eventIdIsStable = false,
+            correlationIdIsStable = false,
+            correlationId = "com.example.plugin.EditActivity",
+            payload = JsonObject(emptyMap()),
+        )
+        assertTrue(result.accepted)
+        val event = withTimeout(2_000L) { received.await() }
+        val isStable = (event.payload["pluginEventIdIsStable"] as JsonPrimitive).content.toBoolean()
+        assertTrue(result.matchedSubscriptions >= 1)
+        assertFalse(isStable)
+        router.stop()
         bus.unsubscribe(subscription.id)
         bus.close()
         indexJob.cancel()

@@ -1,15 +1,20 @@
 package com.nexaflow.core.execution
 
 import java.util.concurrent.ConcurrentHashMap
+import java.security.MessageDigest
+import com.nexaflow.core.datastore.ActiveExecutionStore
+import com.nexaflow.core.datastore.DurableExecutionCheckpoint
+import com.nexaflow.core.datastore.DurableExecutionStatus
+import com.nexaflow.domain.models.Automation
 
 /**
  * Short-lived, process-local replay guard for trigger sources that can provide
  * a stable identity for one concrete occurrence.
  *
- * It deliberately does nothing when [TriggerOccurrence.eventId] is absent:
- * inventing fingerprints from mutable payload/state would risk collapsing two
- * legitimate events. Durable lifecycle/scheduler stores remain authoritative
- * across process death; this class only closes same-process redelivery races.
+ * It deliberately does nothing unless the source and concrete event identity
+ * are both present. Inventing fingerprints from mutable payload/state would
+ * risk collapsing two legitimate events. Stable identities also have a
+ * hash-only durable key so the execution store can close process-death races.
  */
 internal class TriggerOccurrenceDeduplicator(
     private val windowMs: Long = DEFAULT_WINDOW_MS,
@@ -17,7 +22,7 @@ internal class TriggerOccurrenceDeduplicator(
 ) {
     private data class Key(
         val automationId: String,
-        val sourceId: String?,
+        val sourceId: String,
         val eventId: String,
     )
 
@@ -36,8 +41,9 @@ internal class TriggerOccurrenceDeduplicator(
         require(automationId.isNotBlank()) { "automationId must not be blank" }
         require(now >= 0L) { "now must be non-negative" }
 
-        val eventId = occurrence?.eventId?.takeIf { it.isNotBlank() } ?: return true
-        val key = Key(automationId, occurrence.sourceId, eventId)
+        val sourceId = occurrence?.sourceId?.takeIf { it.isNotBlank() } ?: return true
+        val eventId = occurrence.eventId?.takeIf { it.isNotBlank() } ?: return true
+        val key = Key(automationId, sourceId, eventId)
         var admitted = false
 
         ledger.compute(key) { _, previous ->
@@ -73,8 +79,48 @@ internal class TriggerOccurrenceDeduplicator(
 
     internal fun sizeForTest(): Int = ledger.size
 
-    private companion object {
-        const val DEFAULT_WINDOW_MS = 30_000L
-        const val DEFAULT_MAX_ENTRIES = 2_048
+    companion object {
+        private const val DEFAULT_WINDOW_MS = 30_000L
+        private const val DEFAULT_MAX_ENTRIES = 2_048
+
+        /** Hashes only a caller-supplied stable source/event identity; payloads are never used. */
+        internal fun durableOccurrenceKey(
+            automationId: String,
+            occurrence: TriggerOccurrence?
+        ): String? {
+            require(automationId.isNotBlank()) { "automationId must not be blank" }
+            val sourceId = occurrence?.sourceId?.takeIf { it.isNotBlank() } ?: return null
+            val eventId = occurrence.eventId?.takeIf { it.isNotBlank() } ?: return null
+            val material = buildString {
+                append(automationId.length).append(':').append(automationId)
+                append(sourceId.length).append(':').append(sourceId)
+                append(eventId.length).append(':').append(eventId)
+            }
+            return MessageDigest.getInstance("SHA-256")
+                .digest(material.toByteArray(Charsets.UTF_8))
+                .joinToString("") { byte -> "%02x".format(byte) }
+        }
     }
+
+    suspend fun admitDurably(
+        store: ActiveExecutionStore,
+        automation: Automation,
+        runId: String,
+        startedAt: Long,
+        occurrence: TriggerOccurrence?,
+    ): ActiveExecutionStore.CheckpointAdmission = store.admitCheckpoint(
+        checkpoint = DurableExecutionCheckpoint(
+            runId = runId,
+            automationId = automation.id,
+            workflowVersion = automation.workflowVersion,
+            workflowRevision = automation.updatedAt,
+            totalActions = automation.actions.size + automation.canonicalNodes.count { it.kind == com.nexaflow.domain.canonical.NodeSchemaKind.ACTION },
+            nextActionIndex = 0,
+            status = DurableExecutionStatus.STARTED,
+            startedAt = startedAt,
+            updatedAt = startedAt,
+        ),
+        occurrenceKeyHash = durableOccurrenceKey(automation.id, occurrence),
+    )
+
 }

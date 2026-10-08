@@ -63,4 +63,37 @@ class TriggerOccurrenceDeduplicatorTest {
         assertTrue(deduplicator.tryAdmit("a", anonymous, now = 101L))
         assertEquals(0, deduplicator.sizeForTest())
     }
+
+    @Test
+    fun durableKeyUsesOnlyStableAutomationSourceAndEventIdentity() {
+        val event = occurrence(eventId = "physical-event", sourceId = "sms")
+        val key = TriggerOccurrenceDeduplicator.durableOccurrenceKey("automation-a", event)
+
+        assertTrue(key!!.matches(Regex("[a-f0-9]{64}")))
+        assertEquals(
+            key,
+            TriggerOccurrenceDeduplicator.durableOccurrenceKey(
+                "automation-a",
+                event.copy(matchedTriggerIndices = setOf(1))
+            )
+        )
+        assertTrue(
+            key != TriggerOccurrenceDeduplicator.durableOccurrenceKey(
+                "automation-a",
+                event.copy(sourceId = "webhook")
+            )
+        )
+        assertTrue(
+            TriggerOccurrenceDeduplicator.durableOccurrenceKey(
+                "automation-a",
+                occurrence(eventId = null)
+            ) == null
+        )
+        assertTrue(
+            TriggerOccurrenceDeduplicator.durableOccurrenceKey(
+                "automation-a",
+                event.copy(sourceId = null)
+            ) == null
+        )
+    }
 }

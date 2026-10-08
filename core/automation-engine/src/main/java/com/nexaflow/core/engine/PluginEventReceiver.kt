@@ -37,9 +37,9 @@ class PluginEventReceiver(
                     is PluginEventPayloadConversion.Accepted -> conversion.payload
                     is PluginEventPayloadConversion.Rejected -> return@launch
                 }
-                val eventId = intent.getStringExtra(EXTRA_EVENT_ID)
+                val suppliedEventId = intent.getStringExtra(EXTRA_EVENT_ID)
                     ?.takeIf { it.isNotBlank() }
-                    ?: DEFAULT_EVENT_ID
+                val eventId = suppliedEventId ?: PluginEventIngress.REQUERY_HINT_EVENT_ID
                 val correlationId = intent.getStringExtra(EXTRA_CORRELATION_ID)
                     ?.takeIf { it.isNotBlank() }
                     ?: eventComponent
@@ -47,6 +47,8 @@ class PluginEventReceiver(
                     senderPackage = senderPackage,
                     eventComponent = eventComponent,
                     eventId = eventId,
+                    eventIdIsStable = suppliedEventId != null,
+                    correlationIdIsStable = intent.getStringExtra(EXTRA_CORRELATION_ID) != null,
                     correlationId = correlationId,
                     payload = payload
                 )
@@ -61,6 +63,5 @@ class PluginEventReceiver(
         const val EXTRA_EVENT_ID = "com.nexaflow.plugin.event.ID"
         /** Optional stable correlation id; never treated as a credential. */
         const val EXTRA_CORRELATION_ID = "com.nexaflow.plugin.event.CORRELATION_ID"
-        private const val DEFAULT_EVENT_ID = "request-query"
     }
 }

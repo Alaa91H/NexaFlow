@@ -358,8 +358,7 @@ class DeviceEventMonitor @Inject constructor(
             triggerOccurrence = TriggerOccurrence(
                 matchedTriggerIndices = triggerIndices,
                 occurredAtEpochMs = now,
-                sourceId = SOURCE,
-                eventId = "device:$event"
+                sourceId = SOURCE
             )
         )
 

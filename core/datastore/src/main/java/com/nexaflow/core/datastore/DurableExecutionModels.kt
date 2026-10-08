@@ -180,6 +180,22 @@ data class DurableExecutionCheckpoint(
     }
 }
 
+/** Hash-only receipt that prevents a stable trigger occurrence from being admitted twice. */
+@Serializable
+internal data class DurableOccurrenceReceipt(
+    val occurrenceKeyHash: String,
+    val automationId: String,
+    val acceptedAt: Long
+) {
+    init {
+        require(occurrenceKeyHash.matches(Regex("[a-f0-9]{64}"))) {
+            "occurrenceKeyHash must be a SHA-256 digest"
+        }
+        require(automationId.isNotBlank()) { "automationId must not be blank" }
+        require(acceptedAt >= 0L) { "acceptedAt must not be negative" }
+    }
+}
+
 /**
  * Bounded proof that one recurring-maintenance occurrence completed. It stores
  * no task payload or action output and is retained only to suppress duplicate
