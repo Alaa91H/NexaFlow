@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import argparse
 import csv
-import subprocess
-from functools import lru_cache
 import re
+import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
+from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -43,6 +44,11 @@ def read(root: Path, relative: Path) -> str:
     return (root / relative).read_text(encoding="utf-8")
 
 
+def stable_paths(paths: Iterable[Path]) -> list[Path]:
+    """Sort paths with identical POSIX semantics on Windows and Linux."""
+    return sorted(paths, key=lambda path: (path.as_posix().casefold(), path.as_posix()))
+
+
 def enum_values(source: str, name: str) -> list[str]:
     match = re.search(rf"enum class {re.escape(name)}\s*\{{(.*?)\n\}}", source, re.S)
     if not match:
@@ -58,7 +64,10 @@ def enum_values(source: str, name: str) -> list[str]:
 
 
 def schema_fields(root: Path, relative: Path, enum_name: str, values: list[str]) -> dict[str, list[str]]:
-    source = read(root, relative)
+    return schema_fields_from_source(read(root, relative), enum_name, values)
+
+
+def schema_fields_from_source(source: str, enum_name: str, values: list[str]) -> dict[str, list[str]]:
     arms = contracts.split_enum_arms(contracts.when_block(source, "type"), enum_name)
     result = {}
     for value in values:
@@ -101,7 +110,7 @@ def referenced_files(root: Path, base: Path, token: str) -> list[str]:
     found = []
     if not base.is_dir():
         return found
-    for path in sorted(base.rglob("*.kt")):
+    for path in stable_paths(base.rglob("*.kt")):
         source = path.read_text(encoding="utf-8")
         if re.search(rf"\b{re.escape(token)}\b", source):
             found.append(path.relative_to(root).as_posix())
@@ -113,7 +122,7 @@ def field_node_index(root: Path, base: Path, kind: str) -> dict[str, list[Path]]
     index: dict[str, list[Path]] = {}
     if not base.is_dir():
         return index
-    for path in sorted(base.rglob("*.kt")):
+    for path in stable_paths(base.rglob("*.kt")):
         source = read(root, path.relative_to(root))
         for node in set(re.findall(rf"\b{kind.title()}Type\.([A-Z_]+)", source)):
             index.setdefault(node, []).append(path)
@@ -132,10 +141,10 @@ def field_source_candidates(root: Path, base: Path, kind: str, node: str, key: s
 @lru_cache(maxsize=None)
 def test_node_index(root: Path, kind: str) -> dict[str, list[Path]]:
     index: dict[str, list[Path]] = {}
-    for base in sorted(root.rglob("src/test")):
+    for base in stable_paths(root.rglob("src/test")):
         if not base.is_dir():
             continue
-        for path in sorted(base.rglob("*.kt")):
+        for path in stable_paths(base.rglob("*.kt")):
             source = read(root, path.relative_to(root))
             for node in set(re.findall(rf"\b{kind.title()}Type\.([A-Z_]+)", source)):
                 index.setdefault(node, []).append(path)
@@ -152,7 +161,10 @@ def test_source_candidates(root: Path, kind: str, node: str, key: str) -> list[s
 
 
 def operation_map(root: Path) -> dict[str, list[str]]:
-    source = read(root, TRANSFORMS)
+    return operation_map_from_source(read(root, TRANSFORMS))
+
+
+def operation_map_from_source(source: str) -> dict[str, list[str]]:
     return {
         name: re.findall(r'"([^"\n]+)"', operations)
         for name, operations in re.findall(
@@ -170,7 +182,7 @@ def ranked_hotspots(root: Path) -> list[dict[str, str]]:
         Path("data/src/main/java/com/nexaflow/data"),
         Path("core/database/src/main/java/com/nexaflow/core/database"),
     ]
-    files = sorted({path for base in source_roots for path in (root / base).rglob("*.kt")})
+    files = stable_paths({path for base in source_roots for path in (root / base).rglob("*.kt")})
     churn_output = subprocess.run(
         ["git", "log", CHURN_ANCHOR, "-n", "50", "--name-only", "--format="],
         cwd=root, check=True, capture_output=True, text=True, encoding="utf-8",
@@ -207,6 +219,81 @@ def ranked_hotspots(root: Path) -> list[dict[str, str]]:
     return ranked
 
 
+def architecture_artifacts(root: Path, trigger_rows: list[dict[str, str]], action_rows: list[dict[str, str]]) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    owners = {
+        "TriggerIndex": "core/automation-engine/src/main/java/com/nexaflow/core/engine/TriggerIndex.kt",
+        "ExecutionEngine": "core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt",
+        "TaskManager": "core/execution/src/main/java/com/nexaflow/core/execution/task/TaskManager.kt",
+        "WorkflowInterpreter": "core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowInterpreter.kt",
+        "ActionRegistry": "core/execution/src/main/java/com/nexaflow/core/execution/handler/ActionRegistry.kt",
+        "CapabilityRouter": "core/execution/src/main/java/com/nexaflow/core/execution/capability/semantic/CapabilityRouter.kt",
+    }
+    edges = [
+        ("Trigger ingress and monitors", "TriggerIndex", "core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventIngress.kt"),
+        ("TriggerIndex", "ExecutionEngine", owners["TriggerIndex"]),
+        ("ExecutionEngine", "TaskManager", owners["ExecutionEngine"]),
+        ("TaskManager", "WorkflowInterpreter", owners["TaskManager"]),
+        ("WorkflowInterpreter", "ActionRegistry", "core/execution/src/main/java/com/nexaflow/core/execution/workflow/ActionRegistryExecutor.kt"),
+        ("ActionRegistry", "family ActionHandlers", owners["ActionRegistry"]),
+        ("family ActionHandlers", "CapabilityRouter", "core/execution/src/main/java/com/nexaflow/core/execution/capability/semantic/SemanticActionRouter.kt"),
+        ("CapabilityRouter", "typed capability strategies", owners["CapabilityRouter"]),
+        ("typed capability strategies", "Android/root/Shizuku backends", "core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt"),
+        ("ExecutionEngine", "history and recovery", owners["ExecutionEngine"]),
+    ]
+    graph = [
+        {"from": source, "to": target, "source": path,
+         "evidence": "STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE"}
+        for source, target, path in edges
+    ]
+    findings: list[dict[str, str]] = []
+    kotlin_roots = [root / Path("core/automation-engine/src/main"), root / Path("core/execution/src/main")]
+    for name, relative in owners.items():
+        count = sum(
+            len(re.findall(rf"\b(?:class|object)\s+{re.escape(name)}\b", read(root, path.relative_to(root))))
+            for base in kotlin_roots for path in stable_paths(base.rglob("*.kt"))
+        )
+        findings.append({
+            "finding": "SHARED_RUNTIME_OWNER_DECLARATION", "subject": name,
+            "evidence_source": relative, "observation": f"production_declaration_count={count}",
+            "status": "SINGLE_OWNER_CANDIDATE" if count == 1 else "REVIEW_DUPLICATE_OR_MISSING_OWNER",
+        })
+    for row in trigger_rows:
+        if row["legacy_type"] == "CONNECTIVITY":
+            findings.append({
+                "finding": "LEGACY_TRIGGER_PATH", "subject": "TriggerType.CONNECTIVITY",
+                "evidence_source": row["lifecycle_owner_candidates"],
+                "observation": "legacy hidden enum remains in source/runtime references",
+                "status": "REVIEW_LEGACY_COMPATIBILITY_PATH",
+            })
+    for row in action_rows:
+        if row["picker"] != "PRESENT" or not row["runtime_handler_candidates"]:
+            findings.append({
+                "finding": "ACTION_SURFACE_GAP_CANDIDATE", "subject": row["legacy_type"],
+                "evidence_source": row["runtime_handler_candidates"],
+                "observation": f"picker={row['picker']};runtime_handler_candidates={bool(row['runtime_handler_candidates'])}",
+                "status": "REVIEW_UNREACHABLE_OR_SHARED_DISPATCH",
+            })
+    placeholder_count = 0
+    for base in kotlin_roots:
+        for path in stable_paths(base.rglob("*.kt")):
+            for number, line in enumerate(read(root, path.relative_to(root)).splitlines(), 1):
+                if re.search(r"\b(TODO|FIXME|NotImplementedError)\b", line):
+                    placeholder_count += 1
+                    findings.append({
+                        "finding": "PLACEHOLDER_TOKEN_CANDIDATE", "subject": f"{path.relative_to(root).as_posix()}:{number}",
+                        "evidence_source": path.relative_to(root).as_posix(),
+                        "observation": line.strip()[:240], "status": "MANUAL_REVIEW_REQUIRED",
+                    })
+    if placeholder_count == 0:
+        findings.append({
+            "finding": "PLACEHOLDER_TOKEN_SCAN", "subject": "automation/execution production Kotlin",
+            "evidence_source": "core/automation-engine/src/main; core/execution/src/main",
+            "observation": "no TODO/FIXME/NotImplementedError tokens found by static scan",
+            "status": "STATIC_SCAN_ONLY",
+        })
+    return graph, findings
+
+
 def generate(root: Path, destination: Path) -> None:
     model = read(root, MODEL)
     triggers = contracts.enum_names(model, "TriggerType")
@@ -220,12 +307,13 @@ def generate(root: Path, destination: Path) -> None:
     action_details = schema_field_details(root, ACTION_SCHEMA, "ActionType", actions)
     trigger_runtime = contracts.trigger_runtime_keys(triggers)
     action_runtime = contracts.action_runtime_keys(actions)
-    transform_reads = contracts.keys_from_config_reads(read(root, TRANSFORMS))
+    action_consumers = action_runtime_owners(root, actions)
     for action in actions:
         if action.startswith("DATA_"):
-            action_runtime.setdefault(action, set()).update(transform_reads)
+            action_runtime[action] = set(action_consumers.get(action, {}))
     trigger_schema_keys = contracts.trigger_schema_keys(triggers)
     action_schema_keys = contracts.action_schema_keys(actions)
+    trigger_consumers = trigger_runtime_owners(root)
     action_schema_source = read(root, ACTION_SCHEMA)
     toggle_match = re.search(r"toggleActions.*?setOf\((.*?)\)", action_schema_source, re.S)
     toggle_actions = set(re.findall(r"ActionType\.([A-Z_]+)", toggle_match.group(1))) if toggle_match else set()
@@ -286,8 +374,11 @@ def generate(root: Path, destination: Path) -> None:
             declared = set(schema_keys.get(name, set()))
             read_keys = set(runtime_keys.get(name, set()))
             for key in sorted(declared | read_keys):
-                if key in declared and key in read_keys:
+                consumer_files = trigger_consumers.get(name, {}).get(key, []) if kind == "TRIGGER" else action_consumers.get(name, {}).get(key, [])
+                if key in declared and key in read_keys and consumer_files:
                     status = "DECLARED_AND_RUNTIME_READ"
+                elif key in declared and key in read_keys:
+                    status = "DECLARED_RUNTIME_READ_OWNER_UNRESOLVED"
                 elif key in declared:
                     status = "DECLARED_NO_STATIC_RUNTIME_READ"
                 else:
@@ -295,7 +386,7 @@ def generate(root: Path, destination: Path) -> None:
                 field_rows.append({
                     "kind": kind, "legacy_type": name, "field": key,
                     "schema_producer": f"{relative_schema(kind)} ({details.get(name, {}).get(key, 'helper-or-derived')})" if key in declared else "UNMAPPED",
-                    "runtime_consumer": "|".join(runtime_files(kind, name, key)) if key in read_keys else "NO_STATIC_MATCH",
+                    "runtime_consumer": "|".join(consumer_files) if consumer_files else "NO_STATIC_MATCH",
                     "runtime_owner_candidates": "|".join(
                         path.as_posix() for path in runtime_candidate_index(kind).get(name, [])
                     ),
@@ -314,23 +405,69 @@ def generate(root: Path, destination: Path) -> None:
 
     lifecycle_rows = []
     generic_stages = [
-        ("picker", PICKER_TRIGGER.as_posix()), ("draft", "feature/automation-builder"),
-        ("save_serialization", "feature/automation-builder; data"), ("migration_reload", "data"),
-        ("admission", "core/automation-engine TriggerIndex"),
-        ("dispatch", TRIGGER_RUNTIME.as_posix()), ("one_shot", ONE_SHOT.as_posix()),
-        ("history_recovery", "core/execution; data"),
+        ("picker", "feature/automation-builder/TriggerCatalogPresentation.kt or BuilderActionCatalog.kt"),
+        ("draft", "feature/automation-builder/AutomationBuilderScreen.kt; TriggerEditorCard.kt; ActionConfigEditor.kt"),
+        ("ui_validation", "domain/catalog/NodeConfigurationValidator.kt; editor-specific validation"),
+        ("save", "feature/automation-builder/AutomationBuilderViewModel.kt; data/repository/AutomationRepositoryImpl.kt"),
+        ("room_serialization", "core/database/Converters.kt; data/mapper/AutomationMapper.kt"),
+        ("migration", "data/repository/CanonicalWorkflowMigrationRunner.kt; canonical workflow migrations"),
+        ("reload", "data/mapper/AutomationMapper.kt; data/repository/AutomationRepositoryImpl.kt"),
+        ("admission", "core/automation-engine/TriggerIndex.kt; core/execution/ExecutionEngine.kt"),
+        ("dispatch", "per-trigger monitor or core/execution/handler/ActionRegistry.kt"),
+        ("read_back", "core/execution/DeviceStateSnapshot.kt; ActionExecutionResult (not equivalent to observing success)"),
+        ("exit", "core/execution/ExecutionEngine.kt; exit-action/reconcile path"),
+        ("history", "data/repository/HistoryRepositoryImpl.kt; core/execution/ExecutionEngine.kt"),
+        ("recovery", "core/datastore/ActiveExecutionStore.kt; core/execution/recovery"),
+        ("import_export", "data/backup/BackupManager.kt"),
+        ("identity_version", "domain/catalog/AutomationNodeCatalog.kt; domain/models/Automation.kt"),
     ]
-    for name in triggers:
-        for stage, candidate in generic_stages:
-            lifecycle_rows.append({
-                "trigger": name, "stage": stage,
-                "candidate_source": candidate,
-                "evidence_status": "SHARED_OWNER_CANDIDATE_REQUIRES_PER_TRIGGER_REVIEW",
-                "trigger_source_files": "|".join(referenced_files(root, root / TRIGGER_ROOT, name)),
+    node_lifecycle_rows = []
+    lifecycle_sources = {
+        "picker": ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt", "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt"],
+        "draft": ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt", "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt", "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt"],
+        "ui_validation": ["domain/src/main/java/com/nexaflow/domain/catalog/NodeConfigurationValidator.kt", "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderViewModel.kt"],
+        "save": ["feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderViewModel.kt", "data/src/main/java/com/nexaflow/data/repository/AutomationRepositoryImpl.kt"],
+        "room_serialization": ["core/database/src/main/java/com/nexaflow/core/database/Converters.kt", "data/src/main/java/com/nexaflow/data/mapper/AutomationMapper.kt"],
+        "migration": ["data/src/main/java/com/nexaflow/data/repository/CanonicalWorkflowMigrationRunner.kt", "domain/src/main/java/com/nexaflow/domain/canonical/CanonicalWorkflowV3Codec.kt"],
+        "reload": ["data/src/main/java/com/nexaflow/data/mapper/AutomationMapper.kt", "data/src/main/java/com/nexaflow/data/repository/AutomationRepositoryImpl.kt"],
+        "admission": ["core/automation-engine/src/main/java/com/nexaflow/core/engine/TriggerIndex.kt", "core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt"],
+        "dispatch": ["core/automation-engine/src/main/java/com/nexaflow/core/engine/TriggerIndex.kt", "core/execution/src/main/java/com/nexaflow/core/execution/handler/ActionRegistry.kt", "core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowInterpreter.kt"],
+        "read_back": ["core/execution/src/main/java/com/nexaflow/core/execution/DeviceStateSnapshot.kt", "domain/src/main/java/com/nexaflow/domain/models/ExecutionRecord.kt"],
+        "exit": ["core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt"],
+        "history": ["data/src/main/java/com/nexaflow/data/repository/HistoryRepositoryImpl.kt", "core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt"],
+        "recovery": ["core/datastore/src/main/java/com/nexaflow/core/datastore/ActiveExecutionStore.kt", "core/execution/src/main/java/com/nexaflow/core/execution/recovery/ExecutionRecoveryCoordinator.kt"],
+        "import_export": ["data/src/main/java/com/nexaflow/data/backup/BackupManager.kt"],
+        "identity_version": [CATALOG.as_posix(), MODEL.as_posix()],
+    }
+
+    def add_lifecycle(kind: str, name: str, operation: str, stages: list[tuple[str, str]]) -> None:
+        for stage, description in stages:
+            sources = lifecycle_sources.get(stage, [])
+            existing = [path for path in sources if (root / Path(path)).is_file()]
+            row = {
+                "kind": kind, "legacy_type": name, "sub_operation": operation,
+                "stage": stage, "candidate_source": "|".join(existing),
+                "owner_description": description,
+                "evidence_status": "SHARED_OWNER_CANDIDATE_REQUIRES_NODE_REVIEW" if existing else "NOT_MAPPED",
                 "device_verification": "NOT_TESTED",
-            })
+            }
+            node_lifecycle_rows.append(row)
+            if kind == "TRIGGER":
+                lifecycle_rows.append({
+                    "trigger": name, "stage": stage,
+                    "candidate_source": row["candidate_source"] or description,
+                    "evidence_status": row["evidence_status"],
+                    "trigger_source_files": "|".join(referenced_files(root, root / TRIGGER_ROOT, name)),
+                    "device_verification": "NOT_TESTED",
+                })
+
+    for name in triggers:
+        add_lifecycle("TRIGGER", name, "", generic_stages)
+    for row in action_rows:
+        add_lifecycle("ACTION", row["legacy_type"], row["sub_operation"], generic_stages)
 
     hotspots = ranked_hotspots(root)
+    dependency_graph, architecture_findings = architecture_artifacts(root, trigger_rows, action_rows)
     plugin_flows = [
         {"flow": "event configuration", "node": "TriggerType.PLUGIN_EVENT", "source": "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt", "platform_gate": "configuration-only surface; permission/approval fields are source-defined", "verification": "STATIC_SOURCE_LINKS_ONLY"},
         {"flow": "event source lifecycle", "node": "TriggerSource.PLUGIN", "source": "core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventSource.kt", "platform_gate": "Android API 34+; source disabled below API 34", "verification": "STATIC_SOURCE_LINKS_ONLY"},
@@ -345,8 +482,11 @@ def generate(root: Path, destination: Path) -> None:
     csv_write(destination / "actions-operations-matrix.csv", list(action_rows[0]), action_rows)
     csv_write(destination / "field-runtime-parity.csv", list(field_rows[0]), field_rows)
     csv_write(destination / "trigger-source-lifecycle.csv", list(lifecycle_rows[0]), lifecycle_rows)
+    csv_write(destination / "node-lifecycle.csv", list(node_lifecycle_rows[0]), node_lifecycle_rows)
     csv_write(destination / "hotspots.csv", ["rank", "score", "path", "complexity", "coupling", "churn", "evidence"], hotspots)
     csv_write(destination / "special-plugin-flows.csv", list(plugin_flows[0]), plugin_flows)
+    csv_write(destination / "dependency-graph.csv", list(dependency_graph[0]), dependency_graph)
+    csv_write(destination / "architecture-findings.csv", list(architecture_findings[0]), architecture_findings)
     summary = [
         "# Atomic trigger/action source inventory",
         "",
@@ -357,16 +497,15 @@ def generate(root: Path, destination: Path) -> None:
         f"- Action enum entries: {len(actions)}; operation rows: {len(action_rows)} (data transform operations expanded individually).",
         f"- Field parity rows: {len(field_rows)}; runtime/schema mismatches: {sum(row['parity_status'] == 'RUNTIME_READ_UNDECLARED' for row in field_rows)}; declared fields without static reads: {sum(row['parity_status'] == 'DECLARED_NO_STATIC_RUNTIME_READ' for row in field_rows)}.",
         f"- Trigger lifecycle rows: {len(lifecycle_rows)} across {len(generic_stages)} shared stages per trigger; these are owner candidates, not proof of every per-trigger path.",
+        f"- Combined trigger/action-operation lifecycle rows: {len(node_lifecycle_rows)} across {len(generic_stages)} distinct stages. Shared-owner candidates require per-node call-path review.",
+        f"- Dependency graph edges: {len(dependency_graph)} static architecture candidates; duplicate owners, legacy references, action gaps, and placeholder tokens are inventoried in architecture-findings.csv.",
         "- Top 50 review hotspots rank normalized branch-token count, cross-module import/enum-reference coupling, and touches in the 50 commits ending at the frozen T00 baseline. This is a triage heuristic, not a defect score.",
         "- Android/OEM support, live providers, and hardware behavior: NOT TESTED by this generator.",
         "- Schema field defaults are source-linked; helper/derived defaults and producer/consumer lifecycles still require manual source review.",
         "",
         "## Runtime owner graph (static architectural entry points)",
         "",
-        "```text",
-        "Trigger ingress/monitors -> TriggerIndex -> admission -> ExecutionEngine -> TaskManager -> WorkflowInterpreter",
-        "ActionRegistry -> family handlers -> CapabilityRouter / semantic strategies -> backend -> result/history",
-        "```",
+        "See dependency-graph.csv. Edges are architecture/source candidates, not a dynamic call trace.",
         "",
         "## Explicit unresolved scope",
         "",
@@ -381,16 +520,15 @@ def relative_schema(kind: str) -> str:
 
 
 @lru_cache(maxsize=None)
-@lru_cache(maxsize=None)
-def runtime_candidate_index(kind: str) -> dict[tuple[str, str], list[str]]:
+def runtime_candidate_index(kind: str) -> dict[str, list[Path]]:
     if kind == "TRIGGER":
         candidates = [
             path.relative_to(ROOT)
             for base in (TRIGGER_ROOT, Path("core/execution/src/main/java/com/nexaflow/core/execution"))
-            for path in sorted((ROOT / base).rglob("*.kt"))
+            for path in stable_paths((ROOT / base).rglob("*.kt"))
         ]
     else:
-        candidates = [path.relative_to(ROOT) for path in sorted((ROOT / ACTION_ROOT).rglob("*.kt"))]
+        candidates = [path.relative_to(ROOT) for path in stable_paths((ROOT / ACTION_ROOT).rglob("*.kt"))]
         candidates.append(TRANSFORMS)
     index: dict[str, list[Path]] = {}
     for relative in candidates:
@@ -401,12 +539,59 @@ def runtime_candidate_index(kind: str) -> dict[tuple[str, str], list[str]]:
     return index
 
 
-def runtime_files(kind: str, name: str, key: str) -> list[str]:
-    return [
-        path.as_posix()
-        for path in runtime_candidate_index(kind).get(name, [])
-        if re.search(rf"[\"']{re.escape(key)}[\"']", read(ROOT, path))
-    ]
+def action_runtime_owners(root: Path, actions: list[str]) -> dict[str, dict[str, list[str]]]:
+    owners: dict[str, dict[str, list[str]]] = {name: {} for name in actions}
+
+    def add(name: str, keys: set[str], source: Path) -> None:
+        for key in keys:
+            owners.setdefault(name, {}).setdefault(key, []).append(source.as_posix())
+
+    for path in stable_paths((root / ACTION_ROOT).rglob("*.kt")):
+        relative = path.relative_to(root)
+        source = read(root, relative)
+        for name, keys in contracts.diff_action_keys.engine_arm_keys(source).items():
+            add(name, keys, relative)
+        if "supportedTypes = DataTransforms.operations.keys" in source:
+            common_keys = contracts.keys_from_config_reads(source)
+            for name in actions:
+                if name.startswith("DATA_"):
+                    add(name, common_keys, relative)
+
+    transform_source = read(root, TRANSFORMS)
+    apply_source = transform_source[transform_source.index("fun apply("):]
+    apply_arms = contracts.split_enum_arms(
+        contracts.when_block(apply_source, "type"), "ActionType"
+    )
+    for name, body in apply_arms.items():
+        add(name, contracts.keys_from_config_reads(body), TRANSFORMS)
+    return owners
+
+
+def trigger_runtime_owners(root: Path) -> dict[str, dict[str, list[str]]]:
+    owners: dict[str, dict[str, list[str]]] = {}
+
+    def add(name: str, keys: set[str], source: Path) -> None:
+        for key in keys:
+            owners.setdefault(name, {}).setdefault(key, []).append(source.as_posix())
+
+    for relative, selector in ((TRIGGER_RUNTIME, "trigger.type"), (ONE_SHOT, "type")):
+        source = read(root, relative)
+        for name, body in contracts.split_enum_arms(
+            contracts.when_block(source, selector), "TriggerType"
+        ).items():
+            add(name, contracts.keys_from_config_reads(body), relative)
+
+    dedicated = {
+        "SMS": Path("core/automation-engine/src/main/java/com/nexaflow/core/engine/SmsTriggerMatcher.kt"),
+        "WEBHOOK": Path("core/automation-engine/src/main/java/com/nexaflow/core/engine/WebhookTriggerMatcher.kt"),
+        "SENSOR": Path("core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorTriggerMatcher.kt"),
+        "BATTERY": Path("domain/src/main/java/com/nexaflow/domain/schedule/BatteryTriggerMatcher.kt"),
+        "TIME": Path("domain/src/main/java/com/nexaflow/domain/schedule/TimeTriggerCalculator.kt"),
+    }
+    for name, relative in dedicated.items():
+        source = read(root, relative)
+        add(name, contracts.keys_from_config_reads(source), relative)
+    return owners
 
 
 def main() -> int:
