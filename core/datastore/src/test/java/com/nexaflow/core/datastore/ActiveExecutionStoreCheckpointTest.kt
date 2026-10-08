@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -448,5 +449,25 @@ class ActiveExecutionStoreCheckpointTest {
         val claim = store.claimRecoveryCandidates(130L).single()
         assertEquals(DurableExecutionStatus.ACTION_UNKNOWN, claim.recoverySourceStatus)
         assertNotNull(claim.message)
+    }
+
+    @Test
+    fun malformedCheckpointIsPreservedAndBlocksNewCheckpointAdmission() = runBlocking {
+        val preferencesKey = androidx.datastore.preferences.core.stringSetPreferencesKey("execution_checkpoints")
+        fixture.store.updateData { current ->
+            current.toMutablePreferences().apply { this[preferencesKey] = setOf("{malformed") }
+        }
+
+        assertTrue(store.checkpointsForTest().isEmpty())
+        assertEquals(1, store.corruptCheckpointCount())
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.CORRUPT_CHECKPOINT_REQUIRES_REVIEW,
+            store.admitCheckpoint(checkpoint("must-not-overwrite-corrupt-evidence"))
+        )
+        val raw = fixture.store.data.first()[preferencesKey].orEmpty()
+        assertEquals(setOf("{malformed"), raw)
+        assertEquals(1, store.corruptCheckpointCount())
+        assertEquals(1, store.clearCorruptCheckpointsAfterReview())
+        assertEquals(0, store.corruptCheckpointCount())
     }
 }

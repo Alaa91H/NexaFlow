@@ -670,6 +670,8 @@ class ExecutionEngine(
                     "Skipped: durable event admission is full; no action was started"
                 ActiveExecutionStore.CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY ->
                     "Skipped: recovery queue awaits review before this routine can run"
+                ActiveExecutionStore.CheckpointAdmission.CORRUPT_CHECKPOINT_REQUIRES_REVIEW ->
+                    "Skipped: recovery evidence is corrupt and must be reviewed before execution"
                 ActiveExecutionStore.CheckpointAdmission.ACCEPTED -> error("Unreachable checkpoint admission")
             }
             val record = ExecutionRecord(

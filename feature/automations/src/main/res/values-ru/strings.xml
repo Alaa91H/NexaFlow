@@ -463,8 +463,8 @@
     <string name="clear_recovery_backlog_message">Удаляются только неразрешённые записи восстановления этой задачи. Действия не повторяются и неопределённое действие не считается успешным.</string>
     <string name="clear_recovery_backlog_confirm">Очистить очередь</string>
     <string name="recovery_backlog_cleared">Удалено записей восстановления: %1$d. Будущие запланированные выполнения могут быть приняты.</string>
-
-    <!-- Routine health navigation to skipped executions. -->
+    <string name="recovery_corrupt_checkpoint">Сохраненные данные восстановления не читаются и сохранены. Восстановите резервную копию, прежде чем подтверждать удаление.</string>
+<!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Показать пропущенные запуски</string>
     <string name="task_delete_failed">Не удалось удалить задачу: %1$s</string>
     <string name="task_update_failed">Не удалось обновить задачу: %1$s</string>
