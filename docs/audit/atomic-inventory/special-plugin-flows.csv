@@ -1,0 +1,8 @@
+flow,node,source,platform_gate,verification
+event configuration,TriggerType.PLUGIN_EVENT,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt,configuration-only surface; permission/approval fields are source-defined,STATIC_SOURCE_LINKS_ONLY
+event source lifecycle,TriggerSource.PLUGIN,core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventSource.kt,Android API 34+; source disabled below API 34,STATIC_SOURCE_LINKS_ONLY
+external event receive,LocaleContract.ACTION_REQUEST_QUERY,core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventReceiver.kt,exported receiver registered only while source is active,STATIC_SOURCE_LINKS_ONLY
+payload validation,plugin event payload,core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventPayloadAdapter.kt,bounded typed Bundle-to-JSON conversion,STATIC_SOURCE_LINKS_ONLY
+event matching and admission,TriggerType.PLUGIN_EVENT,core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventIngress.kt,PluginCanonicalContract event match then TriggerIndex admission,STATIC_SOURCE_LINKS_ONLY
+event route and execution,TriggerType.PLUGIN_EVENT,core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventRouter.kt,shared ExecutionEngine path,STATIC_SOURCE_LINKS_ONLY
+plugin action dispatch,ActionType.PLUGIN_FIRE,core/execution/src/main/java/com/nexaflow/core/execution/capability/PluginCapabilityBackend.kt,capability backend; no device support claim,STATIC_SOURCE_LINKS_ONLY

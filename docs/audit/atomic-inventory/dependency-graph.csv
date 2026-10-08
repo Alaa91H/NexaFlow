@@ -1,0 +1,11 @@
+from,to,source,evidence
+Trigger ingress and monitors,TriggerIndex,core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventIngress.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+TriggerIndex,ExecutionEngine,core/automation-engine/src/main/java/com/nexaflow/core/engine/TriggerIndex.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+ExecutionEngine,TaskManager,core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+TaskManager,WorkflowInterpreter,core/execution/src/main/java/com/nexaflow/core/execution/task/TaskManager.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+WorkflowInterpreter,ActionRegistry,core/execution/src/main/java/com/nexaflow/core/execution/workflow/ActionRegistryExecutor.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+ActionRegistry,family ActionHandlers,core/execution/src/main/java/com/nexaflow/core/execution/handler/ActionRegistry.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+family ActionHandlers,CapabilityRouter,core/execution/src/main/java/com/nexaflow/core/execution/capability/semantic/SemanticActionRouter.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+CapabilityRouter,typed capability strategies,core/execution/src/main/java/com/nexaflow/core/execution/capability/semantic/CapabilityRouter.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+typed capability strategies,Android/root/Shizuku backends,core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
+ExecutionEngine,history and recovery,core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt,STATIC_ARCHITECTURE_EDGE_CANDIDATE_NOT_DYNAMIC_CALL_TRACE
