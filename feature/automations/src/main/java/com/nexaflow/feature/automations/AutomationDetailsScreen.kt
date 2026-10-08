@@ -1368,13 +1368,7 @@ private fun ExecutionHealthCard(
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        if (item.sourceStatus == "CORRUPT_CHECKPOINT") {
-                            Text(
-                                text = stringResource(R.string.recovery_corrupt_checkpoint),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        } else item.message?.takeIf(String::isNotBlank)?.let { message ->
+                        item.message?.takeIf(String::isNotBlank)?.let { message ->
                             Text(
                                 text = stringResource(
                                     R.string.execution_diagnostic_detail,
