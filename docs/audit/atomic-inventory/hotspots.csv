@@ -1,5 +1,5 @@
 rank,score,path,complexity,coupling,churn,evidence
-1,2.227273,core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt,140,55,6,branch_tokens=140;cross_module_imports=55;enum_refs=0;commits_in_last_50_before_4199f4a=6
+1,2.219008,core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt,140,53,6,branch_tokens=140;cross_module_imports=53;enum_refs=0;commits_in_last_50_before_4199f4a=6
 2,1.537839,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt,121,42,3,branch_tokens=121;cross_module_imports=35;enum_refs=7;commits_in_last_50_before_4199f4a=3
 3,1.448150,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt,45,192,2,branch_tokens=45;cross_module_imports=12;enum_refs=180;commits_in_last_50_before_4199f4a=2
 4,1.216667,core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCatalog.kt,7,242,1,branch_tokens=7;cross_module_imports=5;enum_refs=237;commits_in_last_50_before_4199f4a=1
