@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Audit tooling
+
+- Generate deterministic trigger/action, operation, field-parity, lifecycle, plugin-flow, and ranked-hotspot inventories; CI fails when committed audit output drifts from source.
+- Label static candidates and unverified device behavior explicitly; inventory generation does not claim runtime correctness or OEM support.
+
 ### Tests and reliability
 
 - Add a merged-manifest regression test that keeps private app data excluded from cloud backup and device transfer.

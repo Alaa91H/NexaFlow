@@ -65,6 +65,9 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@v7
+      with:
+        # T01 ranks review hotspots using a frozen-base Git churn window.
+        fetch-depth: 0
     - name: set up JDK 17
       uses: actions/setup-java@v5
       with:
@@ -113,6 +116,10 @@ jobs:
       run: python3 -m unittest discover -s tools/nexaflow-agent/tests -p 'test_*.py'
     - name: Catalog parity (trigger/action enum ↔ builder picker)
       run: python3 scripts/audit_catalog_and_releases.py catalog
+    - name: Atomic source inventory parity (T01)
+      run: python3 scripts/audit_atomic_inventory.py --check
+    - name: Test atomic source inventory generator
+      run: python3 -m unittest scripts.tests.test_atomic_inventory
     - name: Canonical automation legacy-surface baseline
       run: python3 scripts/check_canonical_baseline.py
     - name: Canonical automation source inventory
