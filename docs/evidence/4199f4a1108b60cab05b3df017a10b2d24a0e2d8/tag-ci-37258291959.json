@@ -1,0 +1,1466 @@
+{
+  "conclusion": "success",
+  "headSha": "66f0dbd1327365b770901b2fa7d8d528a531ae9b",
+  "jobs": [
+    {
+      "completedAt": "2026-10-05T03:10:15Z",
+      "conclusion": "success",
+      "databaseId": 111599920594,
+      "name": "secret-scan",
+      "startedAt": "2026-10-05T03:10:06Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-05T03:10:08Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-05T03:10:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:10Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-10-05T03:10:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:11Z",
+          "conclusion": "success",
+          "name": "Install pinned Gitleaks",
+          "number": 3,
+          "startedAt": "2026-10-05T03:10:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:14Z",
+          "conclusion": "success",
+          "name": "Scan all Git history and refs for secrets",
+          "number": 4,
+          "startedAt": "2026-10-05T03:10:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:14Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 8,
+          "startedAt": "2026-10-05T03:10:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:14Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 9,
+          "startedAt": "2026-10-05T03:10:14Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959/job/111599920594"
+    },
+    {
+      "completedAt": "2026-10-05T03:09:45Z",
+      "conclusion": "skipped",
+      "databaseId": 111599921840,
+      "name": "merge-dependabot-update",
+      "startedAt": "2026-10-05T03:09:45Z",
+      "status": "completed",
+      "steps": [],
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959/job/111599921840"
+    },
+    {
+      "completedAt": "2026-10-05T03:13:46Z",
+      "conclusion": "success",
+      "databaseId": 111600028451,
+      "name": "lint",
+      "startedAt": "2026-10-05T03:10:17Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-05T03:10:19Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-05T03:10:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:20Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-10-05T03:10:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:33Z",
+          "conclusion": "success",
+          "name": "set up JDK 17",
+          "number": 3,
+          "startedAt": "2026-10-05T03:10:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:33Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21 for unit-test toolchain",
+          "number": 4,
+          "startedAt": "2026-10-05T03:10:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:33Z",
+          "conclusion": "success",
+          "name": "Grant execute permission for gradlew",
+          "number": 5,
+          "startedAt": "2026-10-05T03:10:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:34Z",
+          "conclusion": "success",
+          "name": "Atomic overhaul baseline and architecture fitness",
+          "number": 6,
+          "startedAt": "2026-10-05T03:10:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:34Z",
+          "conclusion": "success",
+          "name": "Auto-fix resource hygiene (orphans, duplicates, balance)",
+          "number": 7,
+          "startedAt": "2026-10-05T03:10:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:35Z",
+          "conclusion": "success",
+          "name": "Verify string parity across all locales",
+          "number": 8,
+          "startedAt": "2026-10-05T03:10:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:35Z",
+          "conclusion": "success",
+          "name": "Translation completeness gate (micro-audit)",
+          "number": 9,
+          "startedAt": "2026-10-05T03:10:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:35Z",
+          "conclusion": "success",
+          "name": "Hardcoded-text gate (no Arabic script in shipped Kotlin/Java)",
+          "number": 10,
+          "startedAt": "2026-10-05T03:10:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:44Z",
+          "conclusion": "success",
+          "name": "Vendor-neutrality gate (no commercial ROM/device names outside protocol files)",
+          "number": 11,
+          "startedAt": "2026-10-05T03:10:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:49Z",
+          "conclusion": "success",
+          "name": "Test the hardcoded-text gate",
+          "number": 12,
+          "startedAt": "2026-10-05T03:10:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:49Z",
+          "conclusion": "success",
+          "name": "Test NexaFlow desktop bridge",
+          "number": 13,
+          "startedAt": "2026-10-05T03:10:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:49Z",
+          "conclusion": "success",
+          "name": "Catalog parity (trigger/action enum ↔ builder picker)",
+          "number": 14,
+          "startedAt": "2026-10-05T03:10:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:49Z",
+          "conclusion": "success",
+          "name": "Canonical automation legacy-surface baseline",
+          "number": 15,
+          "startedAt": "2026-10-05T03:10:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical automation source inventory",
+          "number": 16,
+          "startedAt": "2026-10-05T03:10:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Test canonical automation semantic review invariants",
+          "number": 17,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical automation ADR contract",
+          "number": 18,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical stable identity registry",
+          "number": 19,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Test canonical typed-model gate",
+          "number": 20,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical typed model boundary",
+          "number": 21,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical selection semantics (T05 / ADR-003)",
+          "number": 22,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Test canonical selection semantics gate",
+          "number": 23,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical semantic rules engine (T06 / Gate D)",
+          "number": 24,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Test canonical semantic rules gate",
+          "number": 25,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical capability resolver (T07 / ADR-007)",
+          "number": 26,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Test canonical capability resolver gate",
+          "number": 27,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical dynamic schema engine (T08 / ADR-005)",
+          "number": 28,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Test canonical schema engine gate",
+          "number": 29,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:50Z",
+          "conclusion": "success",
+          "name": "Canonical validation pipeline (T09)",
+          "number": 30,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test canonical validation pipeline gate",
+          "number": 31,
+          "startedAt": "2026-10-05T03:10:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Canonical execution planner (T10 / ADR-008)",
+          "number": 32,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test canonical execution planner gate",
+          "number": 33,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Canonical error model and execution journal (T11 / ADR-009)",
+          "number": 34,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test canonical execution journal gate",
+          "number": 35,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Canonical configurator infrastructure (T12 / ADR-005)",
+          "number": 36,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test canonical configurator gate",
+          "number": 37,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Central summary engine (T13)",
+          "number": 38,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test central summary engine gate",
+          "number": 39,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Legacy canonical adapter framework (T14 / ADR-004)",
+          "number": 40,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test legacy canonical adapter gate",
+          "number": 41,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Legacy mappings coverage 237/237 (T15 / Gates B+E)",
+          "number": 42,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test legacy mappings gate",
+          "number": 43,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Golden migration suite (T16 / Gate E)",
+          "number": 44,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test golden migration gate",
+          "number": 45,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Pilot Open Settings family (T17)",
+          "number": 46,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:51Z",
+          "conclusion": "success",
+          "name": "Test pilot open family gate",
+          "number": 47,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Media & Navigation family (T18)",
+          "number": 48,
+          "startedAt": "2026-10-05T03:10:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test media navigation family gate",
+          "number": 49,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Connectivity family (T19)",
+          "number": 50,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test connectivity family gate",
+          "number": 51,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Display & Sound family (T20)",
+          "number": 52,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test display sound family gate",
+          "number": 53,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Applications family (T21)",
+          "number": 54,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test applications family gate",
+          "number": 55,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Communication family (T22)",
+          "number": 56,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test communication family gate",
+          "number": 57,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Power & Sensors family (T23)",
+          "number": 58,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test power sensors family gate",
+          "number": 59,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Time & Location family (T24)",
+          "number": 60,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test time location family gate",
+          "number": 61,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Data/ROM/Advanced/External family (T25)",
+          "number": 62,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Test advanced external family gate",
+          "number": 63,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:52Z",
+          "conclusion": "success",
+          "name": "Canonical runtime cutover (T26)",
+          "number": 64,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test canonical runtime cutover gate",
+          "number": 65,
+          "startedAt": "2026-10-05T03:10:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Persistence policy dual-read/V3-write (T27)",
+          "number": 66,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test persistence policy gate",
+          "number": 67,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Controlled migration rollout (T28)",
+          "number": 68,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test migration rollout gate",
+          "number": 69,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Safe consolidation optimizer (T29)",
+          "number": 70,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test consolidation optimizer gate",
+          "number": 71,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Diagnostics UI model (T30)",
+          "number": 72,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test diagnostics model gate",
+          "number": 73,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Canonical plugin SDK (T31)",
+          "number": 74,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test plugin SDK gate",
+          "number": 75,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Fault injection (T32)",
+          "number": 76,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test fault injection gate",
+          "number": 77,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Performance budgets (T33)",
+          "number": 78,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Test performance budget gate",
+          "number": 79,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:53Z",
+          "conclusion": "success",
+          "name": "Security auditor (T34)",
+          "number": 80,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:54Z",
+          "conclusion": "success",
+          "name": "Test security auditor gate",
+          "number": 81,
+          "startedAt": "2026-10-05T03:10:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:54Z",
+          "conclusion": "success",
+          "name": "Accessibility/RTL model (T35)",
+          "number": 82,
+          "startedAt": "2026-10-05T03:10:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:54Z",
+          "conclusion": "success",
+          "name": "Test accessibility model gate",
+          "number": 83,
+          "startedAt": "2026-10-05T03:10:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:54Z",
+          "conclusion": "success",
+          "name": "Device matrix (T36)",
+          "number": 84,
+          "startedAt": "2026-10-05T03:10:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:54Z",
+          "conclusion": "success",
+          "name": "Test device matrix gate",
+          "number": 85,
+          "startedAt": "2026-10-05T03:10:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:54Z",
+          "conclusion": "success",
+          "name": "Architecture fitness gates (T37)",
+          "number": 86,
+          "startedAt": "2026-10-05T03:10:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:54Z",
+          "conclusion": "success",
+          "name": "Test architecture fitness gate",
+          "number": 87,
+          "startedAt": "2026-10-05T03:10:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:55Z",
+          "conclusion": "success",
+          "name": "Release candidate readiness (T38)",
+          "number": 88,
+          "startedAt": "2026-10-05T03:10:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:59Z",
+          "conclusion": "success",
+          "name": "Test release readiness gate",
+          "number": 89,
+          "startedAt": "2026-10-05T03:10:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:10:59Z",
+          "conclusion": "success",
+          "name": "Legacy retirement (T39)",
+          "number": 90,
+          "startedAt": "2026-10-05T03:10:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:00Z",
+          "conclusion": "success",
+          "name": "Test legacy retirement gate",
+          "number": 91,
+          "startedAt": "2026-10-05T03:10:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:04Z",
+          "conclusion": "success",
+          "name": "Final canonical audit (T40)",
+          "number": 92,
+          "startedAt": "2026-10-05T03:11:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:11Z",
+          "conclusion": "success",
+          "name": "Test final canonical audit gate",
+          "number": 93,
+          "startedAt": "2026-10-05T03:11:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:12Z",
+          "conclusion": "success",
+          "name": "Plugin condition contract (T41)",
+          "number": 94,
+          "startedAt": "2026-10-05T03:11:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:12Z",
+          "conclusion": "success",
+          "name": "Test plugin condition gate",
+          "number": 95,
+          "startedAt": "2026-10-05T03:11:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:12Z",
+          "conclusion": "success",
+          "name": "Documentation closure (T42)",
+          "number": 96,
+          "startedAt": "2026-10-05T03:11:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:12Z",
+          "conclusion": "success",
+          "name": "Test documentation closure gate",
+          "number": 97,
+          "startedAt": "2026-10-05T03:11:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:12Z",
+          "conclusion": "success",
+          "name": "Measured performance regression (T43)",
+          "number": 98,
+          "startedAt": "2026-10-05T03:11:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:12Z",
+          "conclusion": "success",
+          "name": "Test performance regression gate",
+          "number": 99,
+          "startedAt": "2026-10-05T03:11:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:13Z",
+          "conclusion": "success",
+          "name": "Release closure (T44)",
+          "number": 100,
+          "startedAt": "2026-10-05T03:11:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:14Z",
+          "conclusion": "success",
+          "name": "Test release closure gate",
+          "number": 101,
+          "startedAt": "2026-10-05T03:11:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:14Z",
+          "conclusion": "success",
+          "name": "Runtime configuration contract audit",
+          "number": 102,
+          "startedAt": "2026-10-05T03:11:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:14Z",
+          "conclusion": "success",
+          "name": "Tag hygiene (tag ↔ changelog entry) on version tags",
+          "number": 103,
+          "startedAt": "2026-10-05T03:11:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:15Z",
+          "conclusion": "success",
+          "name": "Unit-test the resource gate (orphan drawable/layout/dimen)",
+          "number": 104,
+          "startedAt": "2026-10-05T03:11:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:18Z",
+          "conclusion": "success",
+          "name": "Install pytest for the resource-gate suite",
+          "number": 105,
+          "startedAt": "2026-10-05T03:11:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:20Z",
+          "conclusion": "success",
+          "name": "pytest the resource gate (orphans, lint report, pins guard, auto-fix)",
+          "number": 106,
+          "startedAt": "2026-10-05T03:11:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:20Z",
+          "conclusion": "success",
+          "name": "Test exported component security gate",
+          "number": 107,
+          "startedAt": "2026-10-05T03:11:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:20Z",
+          "conclusion": "success",
+          "name": "README fact and suppression-budget guardrails",
+          "number": 108,
+          "startedAt": "2026-10-05T03:11:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:11:41Z",
+          "conclusion": "success",
+          "name": "Run Detekt static analysis",
+          "number": 109,
+          "startedAt": "2026-10-05T03:11:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:41Z",
+          "conclusion": "success",
+          "name": "Run Android Lint",
+          "number": 110,
+          "startedAt": "2026-10-05T03:11:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:44Z",
+          "conclusion": "success",
+          "name": "Unified resource gate (banned + orphans + lint UnusedResources)",
+          "number": 111,
+          "startedAt": "2026-10-05T03:13:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:44Z",
+          "conclusion": "skipped",
+          "name": "Upload Lint Report",
+          "number": 112,
+          "startedAt": "2026-10-05T03:13:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:44Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21 for unit-test toolchain",
+          "number": 222,
+          "startedAt": "2026-10-05T03:13:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:44Z",
+          "conclusion": "success",
+          "name": "Post set up JDK 17",
+          "number": 223,
+          "startedAt": "2026-10-05T03:13:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:45Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 224,
+          "startedAt": "2026-10-05T03:13:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:45Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 225,
+          "startedAt": "2026-10-05T03:13:45Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959/job/111600028451"
+    },
+    {
+      "completedAt": "2026-10-05T03:23:49Z",
+      "conclusion": "success",
+      "databaseId": 111600765839,
+      "name": "coverage",
+      "startedAt": "2026-10-05T03:13:48Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-05T03:13:49Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-05T03:13:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:51Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-10-05T03:13:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:51Z",
+          "conclusion": "success",
+          "name": "set up JDK 17",
+          "number": 3,
+          "startedAt": "2026-10-05T03:13:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:52Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21 for unit-test toolchain",
+          "number": 4,
+          "startedAt": "2026-10-05T03:13:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:52Z",
+          "conclusion": "success",
+          "name": "Grant execute permission for gradlew",
+          "number": 5,
+          "startedAt": "2026-10-05T03:13:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:23:42Z",
+          "conclusion": "success",
+          "name": "Enforce configured coverage policy",
+          "number": 6,
+          "startedAt": "2026-10-05T03:13:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:23:47Z",
+          "conclusion": "success",
+          "name": "Upload coverage reports",
+          "number": 7,
+          "startedAt": "2026-10-05T03:23:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:23:47Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21 for unit-test toolchain",
+          "number": 12,
+          "startedAt": "2026-10-05T03:23:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:23:47Z",
+          "conclusion": "success",
+          "name": "Post set up JDK 17",
+          "number": 13,
+          "startedAt": "2026-10-05T03:23:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:23:47Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 14,
+          "startedAt": "2026-10-05T03:23:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:23:47Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-05T03:23:47Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959/job/111600765839"
+    },
+    {
+      "completedAt": "2026-10-05T03:34:36Z",
+      "conclusion": "success",
+      "databaseId": 111600765841,
+      "name": "build",
+      "startedAt": "2026-10-05T03:13:48Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-05T03:13:51Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-05T03:13:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:53Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-10-05T03:13:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:53Z",
+          "conclusion": "success",
+          "name": "Validate release tag",
+          "number": 3,
+          "startedAt": "2026-10-05T03:13:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:54Z",
+          "conclusion": "success",
+          "name": "set up JDK 17",
+          "number": 4,
+          "startedAt": "2026-10-05T03:13:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:54Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21 for unit-test toolchain",
+          "number": 5,
+          "startedAt": "2026-10-05T03:13:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:13:54Z",
+          "conclusion": "success",
+          "name": "Grant execute permission for gradlew",
+          "number": 6,
+          "startedAt": "2026-10-05T03:13:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:16:31Z",
+          "conclusion": "success",
+          "name": "Verify the current Room schema snapshot",
+          "number": 7,
+          "startedAt": "2026-10-05T03:13:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:24:39Z",
+          "conclusion": "success",
+          "name": "Run unit tests",
+          "number": 8,
+          "startedAt": "2026-10-05T03:16:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:24:39Z",
+          "conclusion": "success",
+          "name": "Restore release signing keystore (when configured)",
+          "number": 9,
+          "startedAt": "2026-10-05T03:24:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:24:39Z",
+          "conclusion": "success",
+          "name": "Require production signing for version tags",
+          "number": 10,
+          "startedAt": "2026-10-05T03:24:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:24:39Z",
+          "conclusion": "skipped",
+          "name": "Build untagged APKs with explicit debug signing opt-in",
+          "number": 11,
+          "startedAt": "2026-10-05T03:24:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:33:45Z",
+          "conclusion": "success",
+          "name": "Build production-signed tag APKs",
+          "number": 12,
+          "startedAt": "2026-10-05T03:24:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:33:46Z",
+          "conclusion": "success",
+          "name": "Verify packaged version matches release tag",
+          "number": 13,
+          "startedAt": "2026-10-05T03:33:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:33:46Z",
+          "conclusion": "success",
+          "name": "Verify phone/Wear Data Layer identity contract",
+          "number": 14,
+          "startedAt": "2026-10-05T03:33:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:33:47Z",
+          "conclusion": "success",
+          "name": "Audit merged release exported components",
+          "number": 15,
+          "startedAt": "2026-10-05T03:33:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:33:47Z",
+          "conclusion": "success",
+          "name": "Verify release APK signing certificate",
+          "number": 16,
+          "startedAt": "2026-10-05T03:33:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:33:47Z",
+          "conclusion": "success",
+          "name": "Verify packaged phone-state permission manifest",
+          "number": 17,
+          "startedAt": "2026-10-05T03:33:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:28Z",
+          "conclusion": "success",
+          "name": "Verify dependency verification metadata is up to date",
+          "number": 18,
+          "startedAt": "2026-10-05T03:33:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:28Z",
+          "conclusion": "success",
+          "name": "Verify 16 KB page-size alignment of native libraries",
+          "number": 19,
+          "startedAt": "2026-10-05T03:34:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:28Z",
+          "conclusion": "success",
+          "name": "Verify APK signature (v1/v2/v3)",
+          "number": 20,
+          "startedAt": "2026-10-05T03:34:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:29Z",
+          "conclusion": "success",
+          "name": "Verify production certificate matches keystore on version tags",
+          "number": 21,
+          "startedAt": "2026-10-05T03:34:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:29Z",
+          "conclusion": "success",
+          "name": "Verify zipalign (4 KB + 16 KB native page alignment)",
+          "number": 22,
+          "startedAt": "2026-10-05T03:34:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:30Z",
+          "conclusion": "success",
+          "name": "Verify watch APK signature and certificate on version tags",
+          "number": 23,
+          "startedAt": "2026-10-05T03:34:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:30Z",
+          "conclusion": "success",
+          "name": "Audit native libraries (ABI + size)",
+          "number": 24,
+          "startedAt": "2026-10-05T03:34:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:32Z",
+          "conclusion": "success",
+          "name": "Upload Release APK",
+          "number": 25,
+          "startedAt": "2026-10-05T03:34:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:33Z",
+          "conclusion": "success",
+          "name": "Upload Watch Release APK",
+          "number": 26,
+          "startedAt": "2026-10-05T03:34:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:33Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21 for unit-test toolchain",
+          "number": 50,
+          "startedAt": "2026-10-05T03:34:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:33Z",
+          "conclusion": "success",
+          "name": "Post set up JDK 17",
+          "number": 51,
+          "startedAt": "2026-10-05T03:34:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:34Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 52,
+          "startedAt": "2026-10-05T03:34:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:34Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 53,
+          "startedAt": "2026-10-05T03:34:34Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959/job/111600765841"
+    },
+    {
+      "completedAt": "2026-10-05T03:13:46Z",
+      "conclusion": "skipped",
+      "databaseId": 111600767031,
+      "name": "Android emulator integration",
+      "startedAt": "2026-10-05T03:13:46Z",
+      "status": "completed",
+      "steps": [],
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959/job/111600767031"
+    },
+    {
+      "completedAt": "2026-10-05T03:34:53Z",
+      "conclusion": "success",
+      "databaseId": 111604984493,
+      "name": "Publish tagged release",
+      "startedAt": "2026-10-05T03:34:39Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-05T03:34:41Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-05T03:34:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:43Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-10-05T03:34:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:43Z",
+          "conclusion": "success",
+          "name": "Validate release tag and changelog",
+          "number": 3,
+          "startedAt": "2026-10-05T03:34:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:45Z",
+          "conclusion": "success",
+          "name": "Download phone APK",
+          "number": 4,
+          "startedAt": "2026-10-05T03:34:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:47Z",
+          "conclusion": "success",
+          "name": "Download Wear OS APK",
+          "number": 5,
+          "startedAt": "2026-10-05T03:34:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:47Z",
+          "conclusion": "success",
+          "name": "Prepare versioned release assets",
+          "number": 6,
+          "startedAt": "2026-10-05T03:34:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:51Z",
+          "conclusion": "success",
+          "name": "Publish GitHub Release",
+          "number": 7,
+          "startedAt": "2026-10-05T03:34:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:51Z",
+          "conclusion": "success",
+          "name": "Verify published release",
+          "number": 8,
+          "startedAt": "2026-10-05T03:34:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:51Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 16,
+          "startedAt": "2026-10-05T03:34:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-05T03:34:51Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-10-05T03:34:51Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959/job/111604984493"
+    }
+  ],
+  "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37258291959"
+}
