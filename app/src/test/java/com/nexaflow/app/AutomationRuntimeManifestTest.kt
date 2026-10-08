@@ -2,12 +2,14 @@ package com.nexaflow.app
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.engine.AutomationAlarmReceiver
 import com.nexaflow.core.engine.MonitoringService
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -38,6 +40,23 @@ class AutomationRuntimeManifestTest {
         assertTrue(
             "Monitoring service must declare foreground special use",
             monitoring.foregroundServiceType and ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE != 0
+        )
+    }
+
+    @Test
+    fun scheduledRecovery_waitsForCredentialStorageUnlock() {
+        val packageManager = context.packageManager
+        val component = ComponentName(context, AutomationAlarmReceiver::class.java)
+        val receiver = packageManager.getReceiverInfo(component, 0)
+
+        assertFalse("Credential-protected Room recovery must not be direct-boot aware", receiver.directBootAware)
+        val lockedBoot = Intent(Intent.ACTION_LOCKED_BOOT_COMPLETED)
+            .setPackage(context.packageName)
+        val matchingReceivers = packageManager.queryBroadcastReceivers(lockedBoot, 0)
+
+        assertFalse(
+            "Receiver must not advertise recovery before the first user unlock",
+            matchingReceivers.any { it.activityInfo?.name == component.className }
         )
     }
 

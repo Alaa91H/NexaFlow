@@ -120,6 +120,56 @@ class TimeTriggerCalculatorTest {
     }
 
     @Test
+    fun `repeated fall-back wall time chooses the earlier offset exactly once`() {
+        val berlin = ZoneId.of("Europe/Berlin")
+        val before = zoned("Europe/Berlin", 2026, 10, 24, 12, 0)
+        val next = TimeTriggerCalculator.nextFireTime(mapOf("time" to "02:30"), before, berlin)
+
+        assertNotNull(next)
+        val occurrence = Instant.ofEpochMilli(next!!).atZone(berlin)
+        val expected = ZonedDateTime.ofLocal(
+            java.time.LocalDateTime.of(2026, 10, 25, 2, 30),
+            berlin,
+            berlin.rules.getValidOffsets(java.time.LocalDateTime.of(2026, 10, 25, 2, 30)).first()
+        )
+        assertEquals(expected.toInstant(), occurrence.toInstant())
+        assertEquals(berlin.rules.getValidOffsets(occurrence.toLocalDateTime()).first(), occurrence.offset)
+    }
+
+    @Test
+    fun `overnight range end in spring gap shifts forward by the gap length`() {
+        val berlin = ZoneId.of("Europe/Berlin")
+        val start = zoned("Europe/Berlin", 2026, 3, 28, 22, 0)
+        val end = TimeTriggerCalculator.windowEndMillis(
+            mapOf("timeMode" to "RANGE", "rangeStart" to "22:00", "rangeEnd" to "02:30"),
+            start,
+            berlin
+        )
+
+        assertNotNull(end)
+        val localEnd = Instant.ofEpochMilli(end!!).atZone(berlin)
+        assertEquals(LocalDate.of(2026, 3, 29), localEnd.toLocalDate())
+        assertEquals(3, localEnd.hour)
+        assertEquals(30, localEnd.minute)
+    }
+
+    @Test
+    fun `overnight range end in fall fold uses earlier offset`() {
+        val berlin = ZoneId.of("Europe/Berlin")
+        val start = zoned("Europe/Berlin", 2026, 10, 24, 22, 0)
+        val end = TimeTriggerCalculator.windowEndMillis(
+            mapOf("timeMode" to "RANGE", "rangeStart" to "22:00", "rangeEnd" to "02:30"),
+            start,
+            berlin
+        )
+
+        assertNotNull(end)
+        val localEnd = Instant.ofEpochMilli(end!!).atZone(berlin)
+        val localEndTime = java.time.LocalDateTime.of(2026, 10, 25, 2, 30)
+        assertEquals(berlin.rules.getValidOffsets(localEndTime).first(), localEnd.offset)
+    }
+
+    @Test
     fun `weekly schedule on a DST day keeps weekday and local time`() {
         // 2026-03-08 02:00 EST -> EDT (spring forward in the US).
         val ny = ZoneId.of("America/New_York")
