@@ -536,7 +536,7 @@ jobs:
         git diff --exit-code -- core/database/schemas
         echo "Room schema $ROOM_VERSION is generated and committed."
     - name: Run unit tests
-      run: ./gradlew testDebugUnitTest --no-daemon --stacktrace --console=plain
+      run: ./gradlew :core:datastore:testDebugUnitTest testDebugUnitTest --no-daemon --stacktrace --console=plain
     - name: Restore release signing keystore (when configured)
       env:
         KEYSTORE_B64: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 }}
