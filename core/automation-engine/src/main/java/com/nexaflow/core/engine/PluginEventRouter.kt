@@ -33,11 +33,13 @@ class PluginEventRouter(
     private val lastRunAt = HashMap<String, Long>()
     private var subscription: EventSubscription? = null
     private var started = false
+    private var lifecycleGeneration = 0L
 
     suspend fun start() {
-        synchronized(lock) {
+        val generation = synchronized(lock) {
             if (started) return
             started = true
+            ++lifecycleGeneration
         }
         val created = eventBus.subscribe(
             filter = EventFilter(
@@ -47,7 +49,7 @@ class PluginEventRouter(
             onEvent = ::route
         )
         val discard = synchronized(lock) {
-            if (started) {
+            if (started && lifecycleGeneration == generation) {
                 subscription = created
                 false
             } else {
@@ -60,12 +62,14 @@ class PluginEventRouter(
     fun stop() {
         val active = synchronized(lock) {
             started = false
+            lifecycleGeneration++
             subscription.also { subscription = null }
         }
         if (active != null) scope.launch { eventBus.unsubscribe(active.id) }
     }
 
     private suspend fun route(event: NexaFlowEvent) {
+        if (!synchronized(lock) { started }) return
         val pluginPackage = (event.payload["pluginPackage"] as? JsonPrimitive)?.contentOrNull ?: return
         val component = (event.payload["eventComponent"] as? JsonPrimitive)?.contentOrNull ?: return
         val eventId = (event.payload["pluginEventId"] as? JsonPrimitive)?.contentOrNull ?: return
@@ -93,6 +97,10 @@ class PluginEventRouter(
             }
         targets.forEach { (automation, matchedTriggerIndices) ->
             if (!admitCooldown(automation.id, automation.cooldownMillis, event.occurredAt)) return@forEach
+            // Cancellation/stop may race a callback already queued in the
+            // EventBus channel. Recheck at the dispatch boundary so teardown
+            // cannot admit work after its source has stopped.
+            if (!synchronized(lock) { started }) return
             // The event has already crossed the authenticated receiver → bus →
             // index boundary. This reuses the singleton execution engine rather
             // than constructing an interpreter, manager, or recovery path.
