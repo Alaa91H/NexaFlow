@@ -16,11 +16,11 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
@@ -126,6 +126,84 @@ class PluginEventIngressTest {
         bus.unsubscribe(subscription.id)
         bus.close()
         indexJob.cancel()
+    }
+
+    @Test
+    fun routerStopPreventsAnAlreadyQueuedPluginEventFromStartingAutomation() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler))
+        val workflow = pluginAutomation()
+        val index = TriggerIndex(kotlinx.coroutines.flow.MutableStateFlow(listOf(workflow)))
+        val indexJob = scope.launch { index.start() }
+        runCurrent()
+        val bus = InMemoryNexaFlowEventBus(scope)
+        val history = RecordingHistory()
+        val router = PluginEventRouter(
+            scope, bus, index,
+            testEngine(org.robolectric.RuntimeEnvironment.getApplication(), history),
+            nowMs = { 10_000L },
+        )
+        router.start()
+        runCurrent()
+        val ingress = PluginEventIngress(index, bus, nowMs = { 10_000L })
+        val published = ingress.publish(
+            senderPackage = "com.example.plugin",
+            eventComponent = "com.example.plugin.EditActivity",
+            eventId = "changed",
+            correlationId = "corr-stop",
+            payload = JsonObject(emptyMap()),
+        )
+        assertTrue(published.accepted)
+        router.stop()
+        runCurrent()
+
+        assertTrue(history.exits.isEmpty())
+        bus.close()
+        indexJob.cancel()
+    }
+
+    @Test
+    fun stopDuringSubscriptionCreationDiscardsTheLateSubscription() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        val created = CompletableDeferred<EventSubscription>()
+        val releaseSubscribe = CompletableDeferred<Unit>()
+        val removed = mutableListOf<String>()
+        val bus = object : NexaFlowEventBus {
+            override suspend fun subscribe(
+                filter: EventFilter,
+                onEvent: suspend (NexaFlowEvent) -> Unit,
+            ): EventSubscription {
+                releaseSubscribe.await()
+                return created.await()
+            }
+
+            override suspend fun publish(event: NexaFlowEvent): EventPublishResult =
+                EventPublishResult(false, false, 0, "test bus")
+
+            override suspend fun unsubscribe(subscriptionId: String): Boolean {
+                removed += subscriptionId
+                return true
+            }
+
+            override fun close() = Unit
+        }
+        val router = PluginEventRouter(
+            scope,
+            bus,
+            TriggerIndex(kotlinx.coroutines.flow.MutableStateFlow(emptyList())),
+            testEngine(org.robolectric.RuntimeEnvironment.getApplication(), RecordingHistory()),
+        )
+        val starting = scope.launch { router.start() }
+        router.stop()
+        val subscription = object : EventSubscription {
+            override val id: String = "late-plugin-subscription"
+            override fun close() = Unit
+        }
+        created.complete(subscription)
+        releaseSubscribe.complete(Unit)
+        starting.join()
+
+        assertEquals(listOf(subscription.id), removed)
+        scope.cancel()
     }
 
     @Test
