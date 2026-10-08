@@ -463,8 +463,7 @@
     <string name="clear_recovery_backlog_message">Dadurch werden nur ungelöste Wiederherstellungseinträge dieser Routine entfernt. Aktionen werden weder erneut ausgeführt noch als erfolgreich markiert.</string>
     <string name="clear_recovery_backlog_confirm">Stau löschen</string>
     <string name="recovery_backlog_cleared">%1$d Wiederherstellungseinträge gelöscht. Künftige geplante Ausführungen können zugelassen werden.</string>
-
-    <!-- Routine health navigation to skipped executions. -->
+<!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Übersprungene Ausführungen anzeigen</string>
     <string name="task_delete_failed">Aufgabe konnte nicht gelöscht werden: %1$s</string>
     <string name="task_update_failed">Aufgabe konnte nicht aktualisiert werden: %1$s</string>

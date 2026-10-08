@@ -169,6 +169,35 @@ class ExecutionRecoveryCoordinatorTest {
     }
 
     @Test
+    fun disabledAutomationNeverBecomesSafeResumeCandidate() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = ActiveExecutionStore(context)
+        val runId = "disabled-${System.nanoTime()}"
+        val disabled = automation(updatedAt = 50L).copy(enabled = false)
+        try {
+            assertTrue(store.beginCheckpoint(DurableExecutionCheckpoint(
+                runId = runId,
+                automationId = disabled.id,
+                workflowVersion = disabled.workflowVersion,
+                workflowRevision = disabled.updatedAt,
+                totalActions = disabled.actions.size,
+                nextActionIndex = 0,
+                status = DurableExecutionStatus.STARTED,
+                startedAt = 10L,
+                updatedAt = 10L
+            )))
+            val item = ExecutionRecoveryCoordinator(
+                activeExecutionStore = store,
+                automationRepository = FixedRepository(disabled)
+            ).reconcileStartup().items.single { it.checkpoint.runId == runId }
+            assertEquals(RecoveryDisposition.MANUAL_DIAGNOSTICS_REQUIRED, item.disposition)
+            assertTrue(item.reason.contains("disabled"))
+        } finally {
+            store.clearCheckpoint(runId)
+        }
+    }
+
+    @Test
     fun actionStartedCheckpointRequiresVerifyOrCompensationInsteadOfReplay() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val store = ActiveExecutionStore(context)

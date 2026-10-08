@@ -113,6 +113,12 @@ class ExecutionRecoveryCoordinator(
                 "Workflow schema version changed since execution admission"
             )
         }
+        if (!automation.enabled) {
+            return manual(
+                checkpoint,
+                "Automation is disabled; do not resume automatically"
+            )
+        }
         if (automation.updatedAt != revision) {
             return manual(
                 checkpoint,

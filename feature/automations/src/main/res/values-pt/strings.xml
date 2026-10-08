@@ -463,8 +463,7 @@
     <string name="clear_recovery_backlog_message">Remove apenas registros de recuperação não resolvidos desta rotina. Não repete ações nem marca uma ação incerta como bem-sucedida.</string>
     <string name="clear_recovery_backlog_confirm">Limpar pendências</string>
     <string name="recovery_backlog_cleared">%1$d registros de recuperação foram removidos. Futuros agendamentos podem ser admitidos.</string>
-
-    <!-- Routine health navigation to skipped executions. -->
+<!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Ver execuções ignoradas</string>
     <string name="task_delete_failed">Não foi possível excluir a tarefa: %1$s</string>
     <string name="task_update_failed">Não foi possível atualizar a tarefa: %1$s</string>

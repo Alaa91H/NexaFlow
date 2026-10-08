@@ -33,6 +33,7 @@ class ActiveExecutionStore internal constructor(
         DUPLICATE_RUN_ID,
         DUPLICATE_OCCURRENCE,
         OCCURRENCE_RECEIPT_CAPACITY,
+        CORRUPT_CHECKPOINT_REQUIRES_REVIEW,
         CAPACITY_RESERVED_FOR_RECOVERY
     }
 
@@ -124,6 +125,14 @@ class ActiveExecutionStore internal constructor(
         }
         var admission = CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY
         dataStore.edit { preferences ->
+            val corrupt = (preferences[KEY_CHECKPOINT_CORRUPTIONS].orEmpty() +
+                preferences[KEY_CHECKPOINTS].orEmpty().filterNot(::isValidCheckpoint))
+                .toSet()
+            if (corrupt.isNotEmpty()) preferences[KEY_CHECKPOINT_CORRUPTIONS] = corrupt
+            if (preferences[KEY_CHECKPOINT_CORRUPTIONS].orEmpty().isNotEmpty()) {
+                admission = CheckpointAdmission.CORRUPT_CHECKPOINT_REQUIRES_REVIEW
+                return@edit
+            }
             val checkpoints = checkpoints(preferences)
             if (checkpoint.runId in checkpoints) {
                 admission = CheckpointAdmission.DUPLICATE_RUN_ID
@@ -394,6 +403,27 @@ class ActiveExecutionStore internal constructor(
         return removedCount
     }
 
+    /** Acknowledges all corrupt checkpoint payloads after explicit user confirmation. */
+    suspend fun clearCorruptCheckpointsAfterReview(): Int {
+        var removedCount = 0
+        dataStore.edit { preferences ->
+            val corrupt = preferences[KEY_CHECKPOINT_CORRUPTIONS].orEmpty() +
+                preferences[KEY_CHECKPOINTS].orEmpty().filterNot(::isValidCheckpoint)
+            removedCount = corrupt.size
+            preferences.remove(KEY_CHECKPOINT_CORRUPTIONS)
+            preferences[KEY_CHECKPOINTS] = preferences[KEY_CHECKPOINTS].orEmpty() - corrupt
+        }
+        return removedCount
+    }
+
+    suspend fun corruptCheckpointCount(): Int {
+        val preferences = dataStore.data.first()
+        return (preferences[KEY_CHECKPOINT_CORRUPTIONS].orEmpty() +
+            preferences[KEY_CHECKPOINTS].orEmpty().filterNot(::isValidCheckpoint))
+            .toSet()
+            .size
+    }
+
     /**
      * Returns the unresolved manual-recovery count for one routine from the
      * durable checkpoint ledger. UI health must use this source of truth
@@ -421,6 +451,9 @@ class ActiveExecutionStore internal constructor(
             }
             .sortedByDescending { it.updatedAt }
             .toList()
+
+    suspend fun hasCorruptCheckpoints(): Boolean =
+        corruptCheckpointCount() > 0
 
     /** True when a recurring-maintenance occurrence already completed successfully. */
     suspend fun hasCompletedMaintenanceOccurrence(occurrenceKey: String): Boolean =
@@ -549,12 +582,22 @@ class ActiveExecutionStore internal constructor(
     private fun checkpoints(preferences: Preferences): LinkedHashMap<String, DurableExecutionCheckpoint> {
         val decoded = LinkedHashMap<String, DurableExecutionCheckpoint>()
         preferences[KEY_CHECKPOINTS].orEmpty().forEach { serialized ->
-            runCatching { json.decodeFromString(DurableExecutionCheckpoint.serializer(), serialized) }
-                .getOrNull()
-                ?.let { checkpoint -> decoded.putIfAbsent(checkpoint.runId, checkpoint) }
+            val checkpoint = runCatching {
+                json.decodeFromString(DurableExecutionCheckpoint.serializer(), serialized)
+            }.getOrNull()
+            if (checkpoint == null) {
+                // Kept verbatim in KEY_CHECKPOINTS until explicit review; do not
+                // silently normalize away evidence on a read path.
+            } else {
+                decoded.putIfAbsent(checkpoint.runId, checkpoint)
+            }
         }
         return decoded
     }
+
+    private fun isValidCheckpoint(serialized: String): Boolean = runCatching {
+        json.decodeFromString(DurableExecutionCheckpoint.serializer(), serialized)
+    }.isSuccess
 
     private fun maintenanceReceipts(preferences: Preferences): List<MaintenanceOccurrenceReceipt> =
         preferences[KEY_MAINTENANCE_RECEIPTS].orEmpty().mapNotNull { serialized ->
@@ -590,9 +633,12 @@ class ActiveExecutionStore internal constructor(
         preferences: androidx.datastore.preferences.core.MutablePreferences,
         checkpoints: Map<String, DurableExecutionCheckpoint>
     ) {
-        preferences[KEY_CHECKPOINTS] = checkpoints.values.mapTo(LinkedHashSet()) { checkpoint ->
+        val validSerialized = checkpoints.values.mapTo(LinkedHashSet()) { checkpoint ->
             json.encodeToString(DurableExecutionCheckpoint.serializer(), checkpoint)
         }
+        val corrupt = preferences[KEY_CHECKPOINT_CORRUPTIONS].orEmpty()
+        val unquarantined = preferences[KEY_CHECKPOINTS].orEmpty().filterNot(::isValidCheckpoint)
+        preferences[KEY_CHECKPOINTS] = validSerialized + corrupt + unquarantined
     }
 
     private companion object {
@@ -606,6 +652,7 @@ class ActiveExecutionStore internal constructor(
 
         val KEY_ACTIVE_EXECUTIONS = stringSetPreferencesKey("active_executions")
         val KEY_CHECKPOINTS = stringSetPreferencesKey("execution_checkpoints")
+        val KEY_CHECKPOINT_CORRUPTIONS = stringSetPreferencesKey("execution_checkpoint_corruptions")
         val KEY_MAINTENANCE_RECEIPTS = stringSetPreferencesKey("maintenance_occurrence_receipts")
         val KEY_OCCURRENCE_RECEIPTS = stringSetPreferencesKey("execution_occurrence_receipts")
         const val MAX_CHECKPOINTS_PER_AUTOMATION = 32
