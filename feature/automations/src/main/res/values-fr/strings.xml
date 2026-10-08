@@ -463,7 +463,6 @@
     <string name="clear_recovery_backlog_message">Supprime uniquement les enregistrements de récupération non résolus de cette routine. Aucune action n’est rejouée ni marquée comme réussie.</string>
     <string name="clear_recovery_backlog_confirm">Effacer l’arriéré</string>
     <string name="recovery_backlog_cleared">%1$d enregistrements de récupération supprimés. Les futures exécutions planifiées peuvent être admises.</string>
-    <string name="recovery_corrupt_checkpoint">Les données de récupération enregistrées sont illisibles et ont été conservées. Restaurez une sauvegarde avant de confirmer leur suppression.</string>
 <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Voir les exécutions ignorées</string>
     <string name="task_delete_failed">Impossible de supprimer la tâche : %1$s</string>
