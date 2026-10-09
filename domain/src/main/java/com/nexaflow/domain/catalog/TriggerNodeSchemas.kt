@@ -4,7 +4,8 @@ import com.nexaflow.domain.models.TriggerType
 
 /** Typed configuration contracts for persisted trigger kinds. */
 internal object TriggerNodeSchemas {
-    fun schemaFor(type: TriggerType): NodeConfigurationSchema = when (type) {
+    fun schemaFor(type: TriggerType): NodeConfigurationSchema {
+        val base = when (type) {
         TriggerType.TIME -> schema(
             timeField("time", default = "08:00"),
             stringField("timeMode"),
@@ -200,7 +201,56 @@ internal object TriggerNodeSchemas {
             // Legacy T31 draft key remains readable during cutover.
             stringField("plugin_id")
         )
+        }
+        return withTemporalFilters(type, base)
     }
 
+    private fun withTemporalFilters(type: TriggerType, base: NodeConfigurationSchema): NodeConfigurationSchema {
+        val eventFilters = when (type) {
+            TriggerType.APPLICATION, TriggerType.DEVICE, TriggerType.LOCATION, TriggerType.SMS,
+            TriggerType.BLUETOOTH_DEVICE, TriggerType.NOTIFICATION, TriggerType.CALENDAR, TriggerType.WEBHOOK,
+            TriggerType.ROM_SETTING, TriggerType.HEADPHONE, TriggerType.CHARGER, TriggerType.CALL_STATE,
+            TriggerType.INCOMING_CALL, TriggerType.APP_INSTALLED, TriggerType.MEDIA_PLAYING,
+            TriggerType.VOLUME_CHANGED, TriggerType.CLIPBOARD_CHANGED, TriggerType.TIMEZONE_CHANGED,
+            TriggerType.NFC_TAG_SCANNED, TriggerType.ALARM_SET_CHANGED, TriggerType.WEAR_EVENT,
+            TriggerType.PLUGIN_EVENT, TriggerType.BATTERY, TriggerType.BRIGHTNESS_LEVEL,
+            TriggerType.WIFI_SIGNAL_STRENGTH, TriggerType.CELL_SIGNAL_STRENGTH,
+            TriggerType.BATTERY_TEMPERATURE -> true
+            else -> false
+        }
+        val fields = buildList {
+            addAll(base.fields)
+            if (eventFilters) {
+                add(integerField("rateLimitCount", min = 1.0, max = 1_000.0))
+                add(integerField("rateLimitWindowMs", min = 0.0, max = 604_800_000.0))
+            }
+            if (eventFilters) {
+                add(integerField("minIntervalMs", min = 0.0, max = 604_800_000.0))
+                add(integerField("cooldownMs", min = 0.0, max = 604_800_000.0))
+            }
+            if (type == TriggerType.VOLUME_CHANGED) {
+                add(integerField("debounceMs", min = 0.0, max = 604_800_000.0))
+            }
+            if (type in setOf(
+                    TriggerType.BATTERY,
+                    TriggerType.VOLUME_CHANGED,
+                    TriggerType.BRIGHTNESS_LEVEL,
+                    TriggerType.WIFI_SIGNAL_STRENGTH,
+                    TriggerType.CELL_SIGNAL_STRENGTH,
+                    TriggerType.BATTERY_TEMPERATURE,
+                )
+            ) {
+                add(integerField("stableForMs", min = 0.0, max = 604_800_000.0))
+                val hysteresisMax = when (type) {
+                    TriggerType.BATTERY, TriggerType.VOLUME_CHANGED -> 100.0
+                    TriggerType.BRIGHTNESS_LEVEL -> 255.0
+                    TriggerType.WIFI_SIGNAL_STRENGTH, TriggerType.CELL_SIGNAL_STRENGTH -> 4.0
+                    else -> 100.0
+                }
+                add(decimalField("hysteresis", min = 0.0, max = hysteresisMax))
+            }
+        }
+        return NodeConfigurationSchema(fields = fields, acceptsUnknownKeys = base.acceptsUnknownKeys)
+    }
 
 }

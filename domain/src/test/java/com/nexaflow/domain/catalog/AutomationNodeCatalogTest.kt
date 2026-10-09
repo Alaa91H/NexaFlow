@@ -41,6 +41,25 @@ class AutomationNodeCatalogTest {
     }
 
     @Test
+    fun triggerTemporalFilterSchemaIsTypedBoundedAndOmittedForUnsupportedFamily() {
+        val sms = AutomationNodeCatalog.definitionFor(TriggerType.SMS).configuration
+        assertNull(sms.field("debounceMs"))
+        assertEquals(1_000.0, sms.field("rateLimitCount")?.maxValue!!, 0.0)
+        assertNull(AutomationNodeCatalog.definitionFor(TriggerType.TIME).configuration.field("cooldownMs"))
+
+        val boot = AutomationNodeCatalog.definitionFor(TriggerType.BOOT_COMPLETED).configuration
+        assertNull(boot.field("hysteresis"))
+        assertNull(boot.field("rateLimitCount"))
+
+        val battery = AutomationNodeCatalog.definitionFor(TriggerType.BATTERY).configuration
+        assertEquals(604_800_000.0, battery.field("stableForMs")?.maxValue!!, 0.0)
+        assertEquals(100.0, battery.field("hysteresis")?.maxValue!!, 0.0)
+
+        val volume = AutomationNodeCatalog.definitionFor(TriggerType.VOLUME_CHANGED).configuration
+        assertEquals(604_800_000.0, volume.field("debounceMs")?.maxValue!!, 0.0)
+    }
+
+    @Test
     fun catalog_exposesStableSemanticFamilies() {
         assertEquals(
             AutomationNodeFamily.CONNECTIVITY,

@@ -14,6 +14,7 @@ import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.TriggerOccurrence
+import com.nexaflow.core.execution.TriggerStabilityRecheckQueue
 import com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher
 import com.nexaflow.core.execution.compat.EventSource
 import com.nexaflow.core.execution.compat.TriggerSource
@@ -45,6 +46,8 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.schedule.BatteryTriggerMatcher
+import com.nexaflow.domain.schedule.TriggerFilterReason
+import com.nexaflow.domain.schedule.TriggerTemporalFilterConfigParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -111,6 +114,7 @@ class BatteryMonitor @Inject constructor(
     private val activeBatteryTriggers: MutableSet<String> = ConcurrentHashMap.newKeySet()
     /** Cooldown ledger is reached from broadcasts, refreshes and safety-net ticks concurrently. */
     private val lastRunAt = ConcurrentHashMap<String, Long>()
+    private val stabilityRechecks = TriggerStabilityRecheckQueue(scope)
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
@@ -384,9 +388,11 @@ class BatteryMonitor @Inject constructor(
                 // (AC / USB / WIRELESS / ANY). The active key includes the plug
                 // type so switching chargers (e.g. USB → wireless) re-fires.
                 val hasCanonicalBatteryTrigger = canonicalBatteryTriggers.isNotEmpty()
-                val batteryTrigger = automation.triggers.firstOrNull {
+                val batteryTriggerIndex = automation.triggers.indexOfFirst {
                     it.type == TriggerType.BATTERY
-                }?.takeUnless { hasCanonicalBatteryTrigger }
+                }
+                val batteryTrigger = automation.triggers.getOrNull(batteryTriggerIndex)
+                    ?.takeUnless { hasCanonicalBatteryTrigger }
                 if (batteryTrigger != null) {
                     val config = batteryTrigger.config
                     val plugType = BatteryTriggerMatcher.plugTypeName(plugged)
@@ -396,7 +402,39 @@ class BatteryMonitor @Inject constructor(
                     // triggers stay satisfied while on the charger.
                     val charging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                         status == BatteryManager.BATTERY_STATUS_FULL
-                    val active = BatteryTriggerMatcher.isActive(config, level, plugged, charging)
+                    val threshold = (config["threshold"] ?: config["above"] ?: config["below"] ?: "80")
+                        .toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 80.0
+                    val above = (config["direction"] ?: "ABOVE") != "BELOW"
+                    val levelObservation = if ("hysteresis" in config) {
+                        executionEngine.evaluateTriggerThreshold(
+                            automation, batteryTriggerIndex, level.toDouble(), threshold, above,
+                        )
+                    } else if (BatteryTriggerMatcher.levelCrossed(config, level)) {
+                        ConditionResult.Satisfied
+                    } else ConditionResult.Unsatisfied
+                    val chargingMatches = when (BatteryTriggerMatcher.configuredChargingState(config)) {
+                        BatteryTriggerMatcher.CHARGING_YES -> charging
+                        BatteryTriggerMatcher.CHARGING_NO -> !charging
+                        else -> true
+                    }
+                    val chargerMatches = BatteryTriggerMatcher.configuredChargerType(config) ==
+                        BatteryTriggerMatcher.CHARGER_ANY ||
+                        BatteryTriggerMatcher.plugTypeName(plugged) ==
+                        BatteryTriggerMatcher.configuredChargerType(config)
+                    val observation = if (chargingMatches && chargerMatches) levelObservation
+                        else ConditionResult.Unsatisfied
+                    val stableDecision = executionEngine.evaluateTriggerStability(
+                        automation, batteryTriggerIndex, observation,
+                    )
+                    val active = stableDecision.result == ConditionResult.Satisfied
+                    val stableForMs = TriggerTemporalFilterConfigParser.parse(config)
+                        .let { (it as? com.nexaflow.domain.schedule.TriggerFilterConfigParse.Valid)?.config?.stableForMs }
+                    val recheckKey = "${automation.id}:$batteryTriggerIndex"
+                    if (stableDecision.reason == TriggerFilterReason.STABILITY_PENDING && stableForMs != null) {
+                        stabilityRechecks.schedule(recheckKey, stableForMs) { refresh() }
+                    } else {
+                        stabilityRechecks.cancel(recheckKey)
+                    }
                     // Level-only triggers keep one key per automation so they fire
                     // once per crossing; charger-specific triggers key by plug type
                     // so switching chargers (e.g. USB → wireless) re-fires.
@@ -415,6 +453,12 @@ class BatteryMonitor @Inject constructor(
                                 val occurrenceId = "battery:${automation.id}:${UUID.randomUUID()}"
                                 executionEngine.runAutomation(
                                     automation = automation,
+                                    triggerOccurrence = TriggerOccurrence.single(
+                                        triggerIndex = batteryTriggerIndex,
+                                        occurredAtEpochMs = now,
+                                        sourceId = sourceId,
+                                        eventId = occurrenceId,
+                                    ),
                                     lifecycleContext = AutomationLifecycleContext(
                                         occurrenceId = occurrenceId,
                                         source = sourceId,
@@ -459,6 +503,7 @@ class BatteryMonitor @Inject constructor(
                 // Standalone charger trigger: fires when charging starts or
                 // ends (any plug type), once per transition, and runs the exit
                 // behavior when the configured side ends.
+                val chargerTriggerIndex = automation.triggers.indexOfFirst { it.type == TriggerType.CHARGER }
                 val chargerTrigger = automation.triggers.firstOrNull {
                     it.type == TriggerType.CHARGER
                 }?.takeUnless { hasCanonicalBatteryTrigger }
@@ -476,6 +521,12 @@ class BatteryMonitor @Inject constructor(
                                 val occurrenceId = "charger:${automation.id}:${UUID.randomUUID()}"
                                 executionEngine.runAutomation(
                                     automation = automation,
+                                    triggerOccurrence = TriggerOccurrence.single(
+                                        triggerIndex = chargerTriggerIndex,
+                                        occurredAtEpochMs = now,
+                                        sourceId = sourceId,
+                                        eventId = occurrenceId,
+                                    ),
                                     lifecycleContext = AutomationLifecycleContext(
                                         occurrenceId = occurrenceId,
                                         source = sourceId,

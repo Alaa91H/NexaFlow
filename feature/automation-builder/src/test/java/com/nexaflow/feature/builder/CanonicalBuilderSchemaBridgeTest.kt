@@ -3,6 +3,7 @@ package com.nexaflow.feature.builder
 import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import com.nexaflow.domain.catalog.NodeConfigValueType
 import com.nexaflow.domain.canonical.CanonicalFieldId
+import com.nexaflow.domain.canonical.FamilyPhase24TimeLocation
 import com.nexaflow.domain.canonical.CanonicalValueKind
 import com.nexaflow.domain.canonical.NodeFieldType
 import com.nexaflow.domain.canonical.NodeSchemaField
@@ -86,9 +87,48 @@ class CanonicalBuilderSchemaBridgeTest {
         assertNull(
             CanonicalBuilderSchemaBridge.editingBindingForTrigger(TriggerType.TIME),
         )
+        assertEquals(
+            setOf("time", "timezone"),
+            CanonicalBuilderSchemaBridge.forTrigger(TriggerType.TIME)
+                ?.schema?.fields?.map { it.id.value }?.toSet(),
+        )
+        assertEquals(
+            FamilyPhase24TimeLocation.scheduleSchema().schemaId,
+            CanonicalBuilderSchemaBridge.forTrigger(TriggerType.TIME)?.schema?.schemaId,
+        )
         assertNull(
             CanonicalBuilderSchemaBridge.editingBindingForTrigger(TriggerType.LOCATION),
         )
+    }
+
+    @Test
+    fun temporalFilterSchemaIsAvailableAlongsideSpecializedAndAdvancedEditors() {
+        val expected = mapOf(
+            TriggerType.WEBHOOK to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs"),
+            TriggerType.TIME to emptySet(),
+            TriggerType.CALENDAR to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs"),
+            TriggerType.LOCATION to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs"),
+            TriggerType.BATTERY to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs", "stableForMs", "hysteresis"),
+            TriggerType.VOLUME_CHANGED to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs", "debounceMs", "stableForMs", "hysteresis"),
+        )
+
+        expected.forEach { (type, ids) ->
+            val binding = CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger(type)
+            if (ids.isEmpty()) {
+                assertNull(binding)
+            } else {
+                val fields = requireNotNull(binding).schema.fields
+                assertEquals(ids, fields.map { it.id.value }.toSet())
+                assertEquals(
+                    setOf("debounceMs", "rateLimitWindowMs", "minIntervalMs", "cooldownMs", "stableForMs").intersect(ids),
+                    fields.filter { it.type == NodeFieldType.DURATION_MS }
+                        .map { it.id.value }.toSet(),
+                )
+                if (type == TriggerType.BATTERY) {
+                    assertEquals(NodeFieldType.DECIMAL, fields.single { it.id.value == "hysteresis" }.type)
+                }
+            }
+        }
     }
 
     @Test

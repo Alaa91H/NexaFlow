@@ -46,6 +46,21 @@ class TriggerMatchSerializationTest {
         val decoded = json.decodeFromString(Automation.serializer(), encoded)
         assertEquals(TriggerMatchMode.ALL, decoded.triggerMatch)
     }
+
+    @Test
+    fun temporalTriggerConfigSurvivesJsonRoundTripLosslessly() {
+        val config = mapOf(
+            "debounceMs" to "250", "minIntervalMs" to "1000", "cooldownMs" to "5000",
+            "rateLimitCount" to "3", "rateLimitWindowMs" to "60000", "stableForMs" to "2000",
+            "hysteresis" to "1.5",
+        )
+        val source = AutomationFixtures.simpleAutomation().copy(
+            triggers = listOf(com.nexaflow.domain.models.Trigger(com.nexaflow.domain.models.TriggerType.BATTERY, config))
+        )
+        val encoded = json.encodeToString(Automation.serializer(), source)
+        val decoded = json.decodeFromString(Automation.serializer(), encoded)
+        assertEquals(config, decoded.triggers.single().config)
+    }
 }
 
 /** Minimal valid fixtures shared by engine-gate tests. */

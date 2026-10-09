@@ -15,6 +15,12 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
+import com.nexaflow.core.execution.TriggerStabilityRecheckQueue
+import com.nexaflow.domain.models.ConditionResult
+import com.nexaflow.domain.schedule.TriggerFilterReason
+import com.nexaflow.domain.schedule.TriggerFilterDecision
+import com.nexaflow.domain.schedule.TriggerTemporalFilterConfigParser
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -25,6 +31,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -52,6 +60,8 @@ class VolumeMonitor @Inject constructor(
     private var registered = false
 
     private val evaluationMutex = Mutex()
+    private val stabilityRechecks = TriggerStabilityRecheckQueue(scope)
+    private val debounceJobs = java.util.concurrent.ConcurrentHashMap<String, Job>()
 
     private val observer = object : android.database.ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean, uri: Uri?) {
@@ -150,42 +160,91 @@ class VolumeMonitor @Inject constructor(
                     }
                 }
                 .forEach { automation ->
-                    val trigger = automation.triggers.first {
-                        it.type == TriggerType.VOLUME_CHANGED
-                    }
+                    val triggerIndex = automation.triggers.indexOfFirst { it.type == TriggerType.VOLUME_CHANGED }
+                    val trigger = automation.triggers[triggerIndex]
                     val streamName = configuredStream(trigger)
                     val percentage = percentages[streamName]
                     val state = runtimeStore.current(automation.id)
+                    val recheckKey = "${automation.id}:$triggerIndex"
 
                     if (percentage == null) {
+                        stabilityRechecks.cancel(recheckKey)
+                        executionEngine.evaluateTriggerStability(automation, triggerIndex, ConditionResult.Unknown)
                         if (state?.source == SOURCE) markLegacyActive(state)
                         else if (state == null) clearLegacyState(automation.id)
                         return@forEach
                     }
 
-                    if (matches(trigger, percentage)) {
-                        when {
+                    val threshold = (trigger.config["threshold"] ?: DEFAULT_THRESHOLD.toString())
+                        .toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: DEFAULT_THRESHOLD.toDouble()
+                    val above = (trigger.config["direction"] ?: "ABOVE") != "BELOW"
+                    val observation = if ("hysteresis" in trigger.config) {
+                        executionEngine.evaluateTriggerThreshold(
+                            automation, triggerIndex, percentage.toDouble(), threshold, above,
+                        )
+                    } else if (matches(trigger, percentage)) ConditionResult.Satisfied
+                    else ConditionResult.Unsatisfied
+                    val stable = executionEngine.evaluateTriggerStability(automation, triggerIndex, observation)
+                    val stableForMs = (TriggerTemporalFilterConfigParser.parse(trigger.config)
+                        as? com.nexaflow.domain.schedule.TriggerFilterConfigParse.Valid)?.config?.stableForMs
+                    if (stable.reason == TriggerFilterReason.STABILITY_PENDING && stableForMs != null) {
+                        stabilityRechecks.schedule(recheckKey, stableForMs) { reconcileAutomations() }
+                    } else {
+                        stabilityRechecks.cancel(recheckKey)
+                    }
+
+                    when (stable.result) {
+                        ConditionResult.Satisfied -> when {
                             state?.source == SOURCE -> markLegacyActive(state)
                             state != null -> clearLegacyState(automation.id)
-                            else -> activate(automation, streamName)
+                            else -> activate(automation, streamName, triggerIndex)
                         }
-                    } else if (state?.source == SOURCE) {
-                        requestExit(
-                            automation = automation,
-                            reason = ExitReason.TRIGGER_FALSE,
-                            occurrenceId = state.occurrenceId
-                        )
-                    } else {
-                        clearLegacyState(automation.id)
+                        ConditionResult.Unsatisfied -> if (state?.source == SOURCE) {
+                            requestExit(automation, ExitReason.TRIGGER_FALSE, state.occurrenceId)
+                        } else clearLegacyState(automation.id)
+                        else -> if (state?.source == SOURCE) markLegacyActive(state)
                     }
                 }
         }
 
-    private suspend fun activate(automation: Automation, streamName: String) {
+    private suspend fun activate(automation: Automation, streamName: String, triggerIndex: Int) {
         val occurrenceId = "volume:${automation.id}:${UUID.randomUUID()}"
+        val temporalConfig = TriggerTemporalFilterConfigParser.parse(automation.triggers[triggerIndex].config)
+            as? com.nexaflow.domain.schedule.TriggerFilterConfigParse.Valid
+        val debounceMs = temporalConfig?.config?.debounceMs
+        if (debounceMs != null) {
+            if (executionEngine.observeDebouncedTrigger(automation, triggerIndex) != TriggerFilterDecision.Allowed) return
+            val key = "${automation.id}:$triggerIndex"
+            debounceJobs.remove(key)?.cancel()
+            debounceJobs[key] = scope.launch {
+                delay(debounceMs)
+                debounceJobs.remove(key)
+                if (executionEngine.admitDebouncedTrigger(automation, triggerIndex) == TriggerFilterDecision.Allowed) {
+                    runVolumeAutomation(automation, streamName, triggerIndex, occurrenceId, debounceAdmitted = true)
+                }
+            }
+            return
+        }
+        runVolumeAutomation(automation, streamName, triggerIndex, occurrenceId)
+    }
+
+    private suspend fun runVolumeAutomation(
+        automation: Automation,
+        streamName: String,
+        triggerIndex: Int,
+        occurrenceId: String,
+        debounceAdmitted: Boolean = false,
+    ) {
         val sourceKey = "${automation.id}|$streamName"
         executionEngine.runAutomation(
             automation = automation,
+            triggerOccurrence = TriggerOccurrence.single(
+                triggerIndex = triggerIndex,
+                occurredAtEpochMs = System.currentTimeMillis(),
+                sourceId = SOURCE,
+                eventId = occurrenceId,
+                debounceAdmitted = debounceAdmitted,
+            ),
             lifecycleContext = AutomationLifecycleContext(
                 occurrenceId = occurrenceId,
                 source = SOURCE,

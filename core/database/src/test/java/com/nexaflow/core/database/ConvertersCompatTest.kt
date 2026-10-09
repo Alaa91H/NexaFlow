@@ -82,4 +82,23 @@ class ConvertersCompatTest {
         val json = converters.fromTriggerList(triggers)
         assertEquals(triggers, gson.fromJson<List<Trigger>>(json, type))
     }
+
+    @Test
+    fun temporalFilterFieldsSurviveRoomConverterSaveAndReload() {
+        val automation = listOf(
+            Trigger(
+                TriggerType.VOLUME_CHANGED,
+                mapOf(
+                    "threshold" to "65",
+                    "debounceMs" to "250",
+                    "stableForMs" to "500",
+                    "hysteresis" to "3.5",
+                    "minIntervalMs" to "1000",
+                    "cooldownMs" to "2000",
+                ),
+            ),
+        )
+        val saved = converters.fromTriggerList(automation)
+        assertEquals(automation, converters.toTriggerList(saved))
+    }
 }

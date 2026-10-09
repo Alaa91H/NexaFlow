@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import android.os.SystemClock
 import android.util.Log
 import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.database.AgentApprovalValidator
@@ -44,6 +45,8 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.schedule.TriggerFilterDecision
+import com.nexaflow.domain.schedule.TriggerStateDecision
 import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.ExecutionRecord
@@ -155,7 +158,8 @@ class ExecutionEngine(
     private val runListener: AutomationRunListener = AutomationRunListener.NO_OP,
     private val canonicalNodeDispatcher: com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher? = null,
     private val canonicalTriggerDispatcher: com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher? = null,
-    internal val agentApprovalValidator: AgentApprovalValidator? = null
+    internal val agentApprovalValidator: AgentApprovalValidator? = null,
+    private val elapsedRealtimeMs: () -> Long = SystemClock::elapsedRealtime,
 ) {
     internal val diagnostics = ExecutionDiagnostics(
         context = context,
@@ -235,6 +239,9 @@ class ExecutionEngine(
     private val runningAutomationIds =
         java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
+    /** Bounded optional per-trigger temporal policy. */
+    private val temporalFilterPolicy = TriggerTemporalRuntimePolicy()
+
     /** Same-process replay protection for sources with a trustworthy event id. */
     private val occurrenceDeduplicator = TriggerOccurrenceDeduplicator()
 
@@ -253,6 +260,40 @@ class ExecutionEngine(
         )
     }
 
+    /** Evaluates a live numeric trigger sample with its configured hysteresis band. */
+    fun evaluateTriggerThreshold(
+        automation: Automation,
+        triggerIndex: Int,
+        value: Double,
+        threshold: Double,
+        above: Boolean,
+    ): ConditionResult = temporalFilterPolicy.applyThreshold(
+        automation = automation,
+        index = triggerIndex,
+        value = value,
+        threshold = threshold,
+        above = above,
+        elapsedRealtimeMs = elapsedRealtimeMs(),
+    )
+
+    /** Applies the configured continuous-satisfaction interval to a live sample. */
+    fun evaluateTriggerStability(
+        automation: Automation,
+        triggerIndex: Int,
+        observation: ConditionResult,
+    ): TriggerStateDecision = temporalFilterPolicy.applyStableFor(
+        automation = automation,
+        index = triggerIndex,
+        observation = observation,
+        elapsedRealtimeMs = elapsedRealtimeMs(),
+    )
+
+    /** Admits only the latest occurrence after its configured quiet window. */
+    fun observeDebouncedTrigger(automation: Automation, triggerIndex: Int): TriggerFilterDecision =
+        temporalFilterPolicy.observeDebouncedOccurrence(automation, triggerIndex, elapsedRealtimeMs())
+
+    fun admitDebouncedTrigger(automation: Automation, triggerIndex: Int): TriggerFilterDecision =
+        temporalFilterPolicy.admitDebouncedOccurrence(automation, triggerIndex, elapsedRealtimeMs())
     suspend fun runAutomation(
         automation: Automation,
         // Phase-2 payload context (JSON Merge Patch delta, 256KB budget). When
@@ -303,6 +344,22 @@ class ExecutionEngine(
             historyWriter.record(record)
             diagnostics.recordTimeline(automation, "AGENT_APPROVAL_REJECTED", record, startedAt, payloadContext.runId)
             return record
+        }
+
+        val filterDecision = if (!bypassTriggerMatch && triggerOccurrence != null) {
+            temporalFilterPolicy.applyEventFilters(automation, triggerOccurrence, elapsedRealtimeMs())
+        } else TriggerFilterDecision.Allowed
+        if (filterDecision !is TriggerFilterDecision.Allowed) {
+            val reason = when (filterDecision) {
+                is TriggerFilterDecision.Blocked -> filterDecision.reason.name
+                is TriggerFilterDecision.Unknown -> filterDecision.reason.name
+                TriggerFilterDecision.Allowed -> error("unreachable")
+            }
+            return ExecutionRecord(
+                id = UUID.randomUUID().toString(), automationId = automation.id, automationName = automation.name,
+                success = filterDecision is TriggerFilterDecision.Blocked,
+                message = historyMessage("Skipped: trigger temporal filter $reason"), executedAt = startedAt,
+            )
         }
 
         // Single-flight admission is intentionally process-local. The durable
@@ -1427,6 +1484,7 @@ class ExecutionEngine(
 
     /** Discards any stored snapshot (e.g. when the automation is deleted). */
     suspend fun clearSnapshot(automationId: String) {
+        temporalFilterPolicy.clear(automationId)
         snapshots.remove(automationId)
         activeExecutions.remove(automationId)
         executionProgressTracker.clear(automationId)
@@ -1461,6 +1519,7 @@ class ExecutionEngine(
      * it is the deliberate policy boundary that makes this id unreachable.
      */
     suspend fun onAutomationDeleted(automationId: String) {
+        temporalFilterPolicy.clear(automationId)
         snapshots.remove(automationId)
         activeExecutions.remove(automationId)
         executionProgressTracker.clear(automationId)

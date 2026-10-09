@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -108,6 +109,45 @@ class ExecutionEngineConcurrentAdmissionTest {
         createdAt = 0L,
         updatedAt = 0L,
     )
+
+    @Test
+    fun configuredCooldownSkipsBeforeActionAndCheckpoint() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val task = automation("temporal-cooldown").copy(
+            triggers = listOf(Trigger(TriggerType.SMS, mapOf("cooldownMs" to "60000")))
+        )
+        val store = ActiveExecutionStore(context)
+        store.clear(task.id)
+        val handler = CountingHandler()
+        val blockedRunId = "temporal-cooldown-blocked"
+        var monotonicNow = 10L
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = RecordingHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            activeExecutionStore = store,
+            elapsedRealtimeMs = { monotonicNow },
+        )
+        val first = engine.runAutomation(task, triggerOccurrence = TriggerOccurrence.single(0, 100L, "sms", "first"))
+        val second = engine.runAutomation(
+            task,
+            runContext = WorkflowRunContext(blockedRunId, task.id, 101L),
+            triggerOccurrence = TriggerOccurrence.single(0, 101L, "sms", "second"),
+        )
+        monotonicNow = 60_010L
+        val afterCooldown = engine.runAutomation(
+            task,
+            triggerOccurrence = TriggerOccurrence.single(0, 60_100L, "sms", "third"),
+        )
+        assertTrue(first.success)
+        assertTrue(second.message.contains("COOLDOWN"))
+        assertTrue("afterCooldown: ${afterCooldown.message}", afterCooldown.success)
+        assertFalse("afterCooldown did not execute actions: ${afterCooldown.message}", afterCooldown.actionResults.isEmpty())
+        assertEquals(2, handler.calls)
+        assertNull(store.checkpoint(blockedRunId))
+        store.clear(task.id)
+    }
 
     @Test
     fun concurrentCallbackForSameAutomationIsSkippedAndLeaseIsReleasedAfterCompletion() = runBlocking {
