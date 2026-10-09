@@ -25,4 +25,7 @@ Package broadcasts are dynamic process-lifetime inputs. The classifier has deter
 
 ## Hosted CI
 
-Pending exact-SHA CI for the Package C pull request.
+- Exact PR head SHA: `206df027175e0503ff632adaa17c3e3e527fe209`.
+- PR #241 merged at `2d3c50266ed7ae52f6cb3fc66c6dc227a474167e`: https://github.com/Alaa91H/NexaFlow/pull/241
+- Exact-SHA Actions run: https://github.com/Alaa91H/NexaFlow/actions/runs/37980279533 — secret scan, lint (7m38s), coverage (14m38s), and build (25m53s) all passed.
+- The emulator integration job was skipped by the PR workflow condition; physical-device and OEM behavior are `NOT TESTED`.

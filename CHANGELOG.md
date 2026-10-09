@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+## [v3.91.13] - 2026-10-09
+
+### App and device triggers
+
+- Ignore the intermediate package-removal broadcast during app replacement so an update automation fires once.
+- Validate device event configuration against the monitor-supported screen, power, headset, and Bluetooth events.
+- Select optional app-install package filters through the existing single-app picker while retaining multi-app foreground selection.
+
 ## [v3.91.12] - 2026-10-09
 
 ### Connectivity triggers
@@ -7,14 +17,6 @@
 - Add Wi-Fi filters for Android network validation, captive-portal and metered state, plus exact SSID/BSSID matching. Unknown or redacted identity, including revoked location permission, stays unknown so it cannot be mistaken for a disconnect.
 - Use Android's `NET_CAPABILITY_VALIDATED` result as the bounded reachability probe; the app does not issue repeated or unbounded network requests.
 - Verify the exact PR commit `464703e8355866341317997163393ee415d018fe` in GitHub Actions run [37961903231](https://github.com/Alaa91H/NexaFlow/actions/runs/37961903231): secret scan, lint, coverage, and build passed. Android emulator integration was skipped; physical-device and OEM validation are not included.
-
-## [Unreleased]
-
-### App and device triggers
-
-- Ignore the intermediate package-removal broadcast during app replacement so an update automation fires once.
-- Validate device event configuration against the monitor-supported screen, power, headset, and Bluetooth events.
-- Select optional app-install package filters through the existing single-app picker while retaining multi-app foreground selection.
 
 ## [v3.91.11] - 2026-10-09
 
