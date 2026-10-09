@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">Результат примера: условие не выполнено (предыдущие события смоделированы)</string>
     <string name="trigger_expression_invalid">Выражение неверно или использует неподдерживаемый источник. Исправьте его перед сохранением.</string>
     <string name="trigger_expression_unsupported_source">Выберите поддерживаемый триггер</string>
+    <string name="network_validated">Подключение к интернету подтверждено</string>
+    <string name="network_captive_portal">Портал авторизации</string>
+    <string name="network_metered">Сеть с тарификацией трафика</string>
+    <string name="network_ssid">Имя Wi-Fi (SSID)</string>
+    <string name="network_bssid">Точка доступа (BSSID)</string>
+    <string name="network_identity_permission_hint">Android может запросить разрешение на геолокацию для чтения имени подключённой сети Wi-Fi и точки доступа. NexaFlow использует эти данные только для сопоставления с этим триггером.</string>
 </resources>

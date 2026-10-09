@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Connectivity triggers
+
+- Add Wi-Fi filters for Android network validation, captive-portal and metered state, plus exact SSID/BSSID matching. Unknown or redacted network identity stays unknown so permission loss cannot be mistaken for a disconnect.
+- Use Android's `NET_CAPABILITY_VALIDATED` result as the bounded reachability probe; the app does not issue repeated or unbounded network requests.
+
 ## [v3.91.11] - 2026-10-09
 
 ### Triggers and scheduling

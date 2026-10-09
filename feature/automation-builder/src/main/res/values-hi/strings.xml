@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">नमूना परिणाम: शर्त पूरी नहीं हुई (पिछली घटनाएँ सिम्युलेटेड)</string>
     <string name="trigger_expression_invalid">यह अभिव्यक्ति अमान्य है या असमर्थित स्रोत का उपयोग करती है। सहेजने से पहले ठीक करें।</string>
     <string name="trigger_expression_unsupported_source">समर्थित ट्रिगर चुनें</string>
+    <string name="network_validated">सत्यापित इंटरनेट</string>
+    <string name="network_captive_portal">कैप्टिव पोर्टल</string>
+    <string name="network_metered">मापी गई नेटवर्क</string>
+    <string name="network_ssid">Wi-Fi नाम (SSID)</string>
+    <string name="network_bssid">एक्सेस पॉइंट (BSSID)</string>
+    <string name="network_identity_permission_hint">कनेक्ट किए गए Wi-Fi का नाम और एक्सेस पॉइंट पढ़ने के लिए Android को स्थान अनुमति की आवश्यकता हो सकती है। NexaFlow इन मानों को केवल इस ट्रिगर से मिलान करने के लिए पढ़ता है।</string>
 </resources>

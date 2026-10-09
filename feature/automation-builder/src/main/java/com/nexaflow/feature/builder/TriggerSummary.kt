@@ -184,7 +184,28 @@ internal fun triggerSummary(draft: TriggerDraft): String {
                 state == "CONNECTED" -> stringResource(R.string.state_connected)
                 else -> stringResource(R.string.state_disconnected)
             }
-            "$networkLabel · $stateLabel"
+            val wifiFilters = if (draft.type == TriggerType.WIFI_CONNECTED && state == "CONNECTED") {
+                listOf(
+                    "validated" to stringResource(R.string.network_validated),
+                    "captivePortal" to stringResource(R.string.network_captive_portal),
+                    "metered" to stringResource(R.string.network_metered)
+                ).mapNotNull { (key, label) ->
+                    val filter = c[key]?.uppercase()?.takeIf { it == "YES" || it == "NO" }
+                        ?: return@mapNotNull null
+                    val value = if (filter == "YES") {
+                        stringResource(R.string.builder_state_on)
+                    } else {
+                        stringResource(R.string.builder_state_off)
+                    }
+                    "$label: $value"
+                } + listOfNotNull(
+                    c["ssid"]?.trim()?.takeIf(String::isNotEmpty)?.let { "${stringResource(R.string.network_ssid)}: $it" },
+                    c["bssid"]?.trim()?.takeIf(String::isNotEmpty)?.let { "${stringResource(R.string.network_bssid)}: $it" }
+                )
+            } else {
+                emptyList()
+            }
+            (listOf("$networkLabel · $stateLabel") + wifiFilters).joinToString(" · ")
         }
         TriggerType.HOTSPOT -> {
             val state = if ((c["state"] ?: "ON") == "ON") {

@@ -49,7 +49,14 @@ internal object TriggerNodeSchemas {
             enumField("network", "WIFI", "MOBILE", default = "WIFI"),
             enumField("state", "CONNECTED", "DISCONNECTED", default = "CONNECTED")
         )
-        TriggerType.WIFI_CONNECTED,
+        TriggerType.WIFI_CONNECTED -> schema(
+            enumField("state", "CONNECTED", "DISCONNECTED", default = "CONNECTED"),
+            enumField("validated", "ANY", "YES", "NO", default = "ANY"),
+            enumField("captivePortal", "ANY", "YES", "NO", default = "ANY"),
+            enumField("metered", "ANY", "YES", "NO", default = "ANY"),
+            stringField("ssid"),
+            stringField("bssid")
+        )
         TriggerType.MOBILE_DATA_CONNECTED -> schema(
             enumField("state", "CONNECTED", "DISCONNECTED", default = "CONNECTED")
         )

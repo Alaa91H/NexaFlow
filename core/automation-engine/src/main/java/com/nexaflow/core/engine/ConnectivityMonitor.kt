@@ -431,12 +431,35 @@ class ConnectivityMonitor @Inject constructor(
                     val desiredState = trigger.config["state"]
                         ?: if (network == "HOTSPOT") "ON" else "CONNECTED"
                     val current = currentNetworkValue(network, networkSnapshot)
-                    val matched = if (network == "NETWORK_MODE") {
-                        CellularNetworkReader.matchesNetworkMode(desiredState, current)
-                    } else {
-                        current == desiredState
+                    val stateMatches: Boolean? = when {
+                        current == null -> null
+                        network == "NETWORK_MODE" ->
+                            CellularNetworkReader.matchesNetworkMode(desiredState, current)
+                        else -> current == desiredState
                     }
-                    if (matched && activeStates[automation.id] != desiredState) {
+                    val conditionMatches = when {
+                        stateMatches != true -> stateMatches
+                        network == "WIFI" && desiredState == "CONNECTED" -> {
+                            val capabilityMatch = DefaultNetworkStateReader.matchesCapabilities(
+                                networkSnapshot,
+                                validated = trigger.config["validated"] ?: "ANY",
+                                captivePortal = trigger.config["captivePortal"] ?: "ANY",
+                                metered = trigger.config["metered"] ?: "ANY"
+                            )
+                            if (capabilityMatch != true) {
+                                capabilityMatch
+                            } else {
+                                DefaultNetworkStateReader.matchesWifiIdentity(
+                                    context = context,
+                                    snapshot = networkSnapshot,
+                                    expectedSsid = trigger.config["ssid"],
+                                    expectedBssid = trigger.config["bssid"]
+                                )
+                            }
+                        }
+                        else -> true
+                    }
+                    if (conditionMatches == true && activeStates[automation.id] != desiredState) {
                         val last = lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
@@ -463,7 +486,7 @@ class ConnectivityMonitor @Inject constructor(
                                 handleChange()
                             }
                         }
-                    } else if (current != null && activeStates[automation.id] == desiredState) {
+                    } else if (conditionMatches == false && activeStates[automation.id] == desiredState) {
                         // A known non-matching value ends the condition. An
                         // unreadable cellular generation is deliberately not an
                         // exit event, otherwise a transient permission/OEM read
