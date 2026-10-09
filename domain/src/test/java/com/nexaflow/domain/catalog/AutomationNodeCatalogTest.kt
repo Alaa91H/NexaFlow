@@ -144,6 +144,25 @@ class AutomationNodeCatalogTest {
         assertTrue(dynamic.any { it.key == "timeoutMs" })
     }
 
+    @Test
+    fun validator_acceptsBoundedUniqueIsoExcludedDatesOnly() {
+        val schema = AutomationNodeCatalog.definitionFor(TriggerType.TIME).configuration
+        val valid = NodeConfigurationValidator.validate(
+            schema,
+            mapOf("excludedDates" to "2026-08-05,2026-08-06")
+        )
+        assertFalse(valid.any { it.key == "excludedDates" })
+
+        listOf(
+            "2026-08-05,not-a-date",
+            "2026-08-05,2026-08-05",
+            (1..65).joinToString(",") { "2026-01-%02d".format(it.coerceAtMost(31)) }
+        ).forEach { value ->
+            val issues = NodeConfigurationValidator.validate(schema, mapOf("excludedDates" to value))
+            assertTrue(issues.any { it.key == "excludedDates" && it.code == NodeConfigIssueCode.INVALID_DATE_LIST })
+        }
+    }
+
 
     @Test
     fun everyStaticCatalogDefault_isValidAgainstItsOwnSchema() {

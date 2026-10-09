@@ -48,6 +48,10 @@
     <string name="refresh">Обновить</string>
     <string name="trigger_type_location">Местоположение</string>
     <string name="trigger_time">Время триггера</string>
+    <string name="time_exclusions_title">Исключить даты</string>
+    <string name="time_exclusions_hint">В выбранные даты расписание не запускается.</string>
+    <string name="time_exclusions_add">Добавить исключённую дату</string>
+
     <string name="package_name">Имя пакета</string>
     <string name="choose_from_installed">Выбрать из установленных приложений</string>
     <string name="app_detection_hint">Для обнаружения приложений нужна служба специальных возможностей</string>

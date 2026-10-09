@@ -48,6 +48,10 @@
     <string name="refresh">Yenile</string>
     <string name="trigger_type_location">Konum</string>
     <string name="trigger_time">Tetikleyici zamanı</string>
+    <string name="time_exclusions_title">Tarihleri hariç tut</string>
+    <string name="time_exclusions_hint">Seçilen tarihlerde bu zamanlama çalıştırılmaz.</string>
+    <string name="time_exclusions_add">Hariç tutulan tarih ekle</string>
+
     <string name="package_name">Paket adı</string>
     <string name="choose_from_installed">Yüklü uygulamalardan seç</string>
     <string name="app_detection_hint">Uygulama algılama, erişilebilirlik hizmetini gerektirir</string>

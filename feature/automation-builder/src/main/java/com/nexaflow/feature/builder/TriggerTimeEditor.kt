@@ -231,7 +231,8 @@ internal fun TimeField(
 internal fun TimeRepeatSection(
     draft: TriggerDraft,
     onConfigChange: (TriggerDraft) -> Unit,
-    onPickDate: (String) -> Unit
+    onPickDate: (String) -> Unit,
+    onPickExcludedDate: () -> Unit
 ) {
     val storedRepeat = draft.config["repeat"] ?: "DAILY"
     val isOnce = storedRepeat == "ONCE"
@@ -450,6 +451,35 @@ internal fun TimeRepeatSection(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
                 )
+            }
+            val excludedDates = intervalConfig["excludedDates"].orEmpty().split(',')
+                .map(String::trim).filter(String::isNotBlank).distinct().sorted()
+            Text(text = stringResource(R.string.time_exclusions_title), style = MaterialTheme.typography.titleSmall)
+            Text(text = stringResource(R.string.time_exclusions_hint), style = MaterialTheme.typography.bodySmall)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                excludedDates.forEach { date ->
+                    SelectChip(
+                        selected = false,
+                        onClick = {
+                            val updated = excludedDates.filterNot { it == date }
+                            val config = if (updated.isEmpty()) intervalConfig - "excludedDates"
+                            else intervalConfig + ("excludedDates" to updated.joinToString(","))
+                            onConfigChange(draft.copy(config = config))
+                        },
+                        label = "$date ×"
+                    )
+                }
+            }
+            OutlinedButton(
+                onClick = onPickExcludedDate,
+                enabled = excludedDates.size < 64,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.time_exclusions_add))
             }
         }
         RepeatSummary(draft = draft)

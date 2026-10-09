@@ -108,6 +108,10 @@
     <string name="sms_permission_hint">Needs SMS permission to read messages</string>
     <string name="notification_permission_hint">Needs notification permission</string>
     <string name="trigger_time">Trigger time</string>
+    <string name="time_exclusions_title">Exclude dates</string>
+    <string name="time_exclusions_hint">Selected dates are skipped by this schedule.</string>
+    <string name="time_exclusions_add">Add excluded date</string>
+
     <string name="package_name">Package name</string>
     <string name="choose_from_installed">Choose from installed apps</string>
     <string name="app_detection_hint">App detection needs the accessibility service</string>

@@ -93,6 +93,7 @@ object TimeTriggerCalculator {
         val endDate = specificDate ?: effectiveEndDate(repeat, config)
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) return null
         if (endDate != null && today.isAfter(endDate)) return null
+        if (repeat == REPEAT_ONCE && specificDate != null && isExcludedDate(config, specificDate)) return null
 
         var daysChecked = 0
         var day = today
@@ -107,7 +108,7 @@ object TimeTriggerCalculator {
             // a missing 02:30 into 03:30 and accidentally fire one hour late.
             // A schedule for a nonexistent wall time must skip that date.
             val candidate = safeZonedDateTime(day, localTime, zone)
-            if (candidate != null && matchesRepeat(repeat, config, day)) {
+            if (candidate != null && matchesRepeat(repeat, config, day) && !isExcludedDate(config, day)) {
                 val millis = candidate.toInstant().toEpochMilli()
                 if (millis > fromMillis) {
                     val limit = occurrenceLimit(config)
@@ -169,6 +170,20 @@ object TimeTriggerCalculator {
             REPEAT_SPECIFIC_DATE -> config["date"]?.let(::parseDate) == day
             REPEAT_INTERVAL -> matchesInterval(config, day)
             else -> true // ONCE and DAILY retain their legacy next-occurrence behavior.
+        }
+    }
+
+    private const val EXCLUDED_DATES_KEY = "excludedDates"
+    private const val MAX_EXCLUDED_DATES = 64
+
+    private fun isExcludedDate(config: Map<String, String>, day: LocalDate): Boolean {
+        val raw = config[EXCLUDED_DATES_KEY] ?: return false
+        if (raw.length > MAX_EXCLUDED_DATES * 11) return true
+        val excluded = raw.split(',')
+        if (excluded.size > MAX_EXCLUDED_DATES) return true
+        return excluded.any { value ->
+            val parsed = runCatching { LocalDate.parse(value.trim()) }.getOrNull()
+            parsed == null || parsed == day
         }
     }
 

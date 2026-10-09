@@ -48,6 +48,10 @@
     <string name="refresh">Atualizar</string>
     <string name="trigger_type_location">Localização</string>
     <string name="trigger_time">Hora do gatilho</string>
+    <string name="time_exclusions_title">Excluir datas</string>
+    <string name="time_exclusions_hint">Este agendamento será ignorado nas datas selecionadas.</string>
+    <string name="time_exclusions_add">Adicionar data excluída</string>
+
     <string name="package_name">Nome do pacote</string>
     <string name="choose_from_installed">Escolher entre os apps instalados</string>
     <string name="app_detection_hint">A detecção de apps precisa do serviço de acessibilidade</string>

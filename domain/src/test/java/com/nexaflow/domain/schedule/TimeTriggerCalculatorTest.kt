@@ -62,6 +62,37 @@ class TimeTriggerCalculatorTest {
     }
 
     // ── DST transitions ────────────────────────────────────────────────────────
+    @Test
+    fun `daily recurrence skips excluded dates without shifting local time`() {
+        val from = zoned("Europe/Berlin", 2026, 8, 5, 7, 0)
+        val next = TimeTriggerCalculator.nextFireTime(
+            mapOf("time" to "08:00", "excludedDates" to "2026-08-05,2026-08-06"),
+            from,
+            ZoneId.of("Europe/Berlin")
+        )
+        assertEquals(LocalDate.of(2026, 8, 7), Instant.ofEpochMilli(next!!).atZone(ZoneId.of("Europe/Berlin")).toLocalDate())
+    }
+
+    @Test
+    fun `excluded one shot date has no occurrence`() {
+        val next = TimeTriggerCalculator.nextFireTime(
+            mapOf("time" to "08:00", "repeat" to "SPECIFIC_DATE", "date" to "2026-08-05", "excludedDates" to "2026-08-05"),
+            zoned("Europe/Berlin", 2026, 8, 4, 0, 0),
+            ZoneId.of("Europe/Berlin")
+        )
+        assertNull(next)
+    }
+
+    @Test
+    fun `malformed exclusion fails closed`() {
+        val next = TimeTriggerCalculator.nextFireTime(
+            mapOf("time" to "08:00", "excludedDates" to "2026-08-05,not-a-date"),
+            zoned("Europe/Berlin", 2026, 8, 5, 7, 0),
+            ZoneId.of("Europe/Berlin")
+        )
+        assertNull(next)
+    }
+
     // Wall-clock schedules must survive daylight-saving transitions. These tests
     // pass an explicit zone so they pin the behavior regardless of the host zone.
 

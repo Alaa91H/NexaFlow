@@ -51,6 +51,10 @@
     <string name="refresh">تحديث</string>
     <string name="trigger_type_location">الموقع</string>
     <string name="trigger_time">وقت التشغيل</string>
+    <string name="time_exclusions_title">استثناء التواريخ</string>
+    <string name="time_exclusions_hint">لن يعمل هذا الجدول في التواريخ المحددة.</string>
+    <string name="time_exclusions_add">إضافة تاريخ مستثنى</string>
+
     <string name="package_name">اسم الحزمة</string>
     <string name="choose_from_installed">اختيار من التطبيقات المثبتة</string>
     <string name="app_detection_hint">يتطلب اكتشاف التطبيقات خدمة إمكانية الوصول</string>

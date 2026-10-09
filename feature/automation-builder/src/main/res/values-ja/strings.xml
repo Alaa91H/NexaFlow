@@ -48,6 +48,10 @@
     <string name="refresh">更新</string>
     <string name="trigger_type_location">位置情報</string>
     <string name="trigger_time">トリガー時刻</string>
+    <string name="time_exclusions_title">日付を除外</string>
+    <string name="time_exclusions_hint">選択した日付にはこのスケジュールを実行しません。</string>
+    <string name="time_exclusions_add">除外日を追加</string>
+
     <string name="package_name">パッケージ名</string>
     <string name="choose_from_installed">インストール済みアプリから選択</string>
     <string name="app_detection_hint">アプリ検出にはアクセシビリティサービスが必要です</string>

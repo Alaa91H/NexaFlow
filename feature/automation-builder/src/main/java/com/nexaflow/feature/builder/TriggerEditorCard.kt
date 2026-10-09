@@ -156,7 +156,7 @@ fun TriggerEditorCard(
     val headerLayoutDirection = LocalLayoutDirection.current
     var showTimePicker by remember { mutableStateOf(false) }
     var timePickerTarget by remember { mutableStateOf("time") } // "time" | "rangeStart" | "rangeEnd"
-    var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
+    var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate" | "excludedDate"
     // Fixed header row; the builder owns expansion so the selected card is
     // the sole open card and a new card can close the previous one.
     val accent = builderCardAccent(index)
@@ -384,7 +384,8 @@ fun TriggerEditorCard(
                         TimeRepeatSection(
                             draft = draft,
                             onConfigChange = onConfigChange,
-                            onPickDate = { datePickerTarget = it }
+                            onPickDate = { datePickerTarget = it },
+                            onPickExcludedDate = { datePickerTarget = "excludedDate" }
                         )
                     }
                 }
@@ -2236,9 +2237,15 @@ fun TriggerEditorCard(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        onConfigChange(
-                            draft.copy(config = draft.config + (target to millisToDateString(millis)))
-                        )
+                        val selectedDate = millisToDateString(millis)
+                        val updatedConfig = if (target == "excludedDate") {
+                            val dates = draft.config["excludedDates"].orEmpty().split(',')
+                                .map(String::trim).filter(String::isNotBlank)
+                            draft.config + ("excludedDates" to (dates + selectedDate).distinct().sorted().joinToString(","))
+                        } else {
+                            draft.config + (target to selectedDate)
+                        }
+                        onConfigChange(draft.copy(config = updatedConfig))
                     }
                     datePickerTarget = null
                 }) {
