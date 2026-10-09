@@ -97,5 +97,3 @@
 - [x] Record that dynamic package broadcasts are process-lifetime inputs and that emulator/device/OEM results are `NOT TESTED` unless the CI run supplies them.
 - [x] Add an English `[Unreleased]` entry for app/device trigger hardening without altering the published `v3.91.12` section.
 - [ ] Run a final `git diff --check`, inspect `git status --short`, commit only the Package C change, push the branch, open one PR for Package C, and wait for exact-SHA CI before merge.
-
-
