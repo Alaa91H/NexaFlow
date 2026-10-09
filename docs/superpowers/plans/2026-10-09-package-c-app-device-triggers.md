@@ -96,4 +96,4 @@
 - [x] Run focused automation-engine, domain, and builder tests; then run `python scripts/audit_atomic_inventory.py --check`, `python scripts/check_strings_parity.py`, `python scripts/check_resources.py`, and `git diff --check`, recording their exit codes and concise outputs.
 - [x] Record that dynamic package broadcasts are process-lifetime inputs and that emulator/device/OEM results are `NOT TESTED` unless the CI run supplies them.
 - [x] Add an English `[Unreleased]` entry for app/device trigger hardening without altering the published `v3.91.12` section.
-- [ ] Run a final `git diff --check`, inspect `git status --short`, commit only the Package C change, push the branch, open one PR for Package C, and wait for exact-SHA CI before merge.
+- [x] Run a final `git diff --check`, inspect `git status --short`, commit only the Package C change, push the branch, open one PR for Package C, and wait for exact-SHA CI before merge.

@@ -56,5 +56,5 @@ The parent issue remains open until all packages meet their evidence gates.
 - [x] Remove the obsolete `optional_package` translation from all supported locales; resource and parity gates pass.
 - [x] Focused classifier, schema/catalog, picker tests passed locally; builder Kotlin compilation passed.
 - [x] Complete combined monitor regression suite and final inventory/resource/string/diff gates.
-- [ ] Exact-SHA hosted CI and PR merge.
+- [x] Exact-SHA hosted CI passed for PR #241 and the PR merged.
 - [ ] Emulator, physical-device, and OEM package-manager validation (`NOT TESTED`).
