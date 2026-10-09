@@ -1314,4 +1314,5 @@
     <string name="bluetooth_advanced_hide">Gelişmiş seçenekleri gizle</string>
     <string name="bluetooth_device_name">Cihaz adı</string>
     <string name="bluetooth_device_address">MAC adresi</string>
+    <string name="trigger_temporal_filters_title">Zamansal filtreler</string>
 </resources>
