@@ -45,8 +45,6 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.Automation
-import com.nexaflow.domain.schedule.TriggerFilterDecision
-import com.nexaflow.domain.schedule.TriggerStateDecision
 import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.ExecutionRecord
@@ -159,7 +157,6 @@ class ExecutionEngine(
     private val canonicalNodeDispatcher: com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher? = null,
     private val canonicalTriggerDispatcher: com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher? = null,
     internal val agentApprovalValidator: AgentApprovalValidator? = null,
-    private val elapsedRealtimeMs: () -> Long = SystemClock::elapsedRealtime,
 ) {
     internal val diagnostics = ExecutionDiagnostics(
         context = context,
@@ -240,7 +237,7 @@ class ExecutionEngine(
         java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     /** Bounded optional per-trigger temporal policy. */
-    private val temporalFilterPolicy = TriggerTemporalRuntimePolicy()
+    internal val temporalFilterPolicy = TriggerTemporalRuntimePolicy()
 
     /** Same-process replay protection for sources with a trustworthy event id. */
     private val occurrenceDeduplicator = TriggerOccurrenceDeduplicator()
@@ -260,40 +257,6 @@ class ExecutionEngine(
         )
     }
 
-    /** Evaluates a live numeric trigger sample with its configured hysteresis band. */
-    fun evaluateTriggerThreshold(
-        automation: Automation,
-        triggerIndex: Int,
-        value: Double,
-        threshold: Double,
-        above: Boolean,
-    ): ConditionResult = temporalFilterPolicy.applyThreshold(
-        automation = automation,
-        index = triggerIndex,
-        value = value,
-        threshold = threshold,
-        above = above,
-        elapsedRealtimeMs = elapsedRealtimeMs(),
-    )
-
-    /** Applies the configured continuous-satisfaction interval to a live sample. */
-    fun evaluateTriggerStability(
-        automation: Automation,
-        triggerIndex: Int,
-        observation: ConditionResult,
-    ): TriggerStateDecision = temporalFilterPolicy.applyStableFor(
-        automation = automation,
-        index = triggerIndex,
-        observation = observation,
-        elapsedRealtimeMs = elapsedRealtimeMs(),
-    )
-
-    /** Admits only the latest occurrence after its configured quiet window. */
-    fun observeDebouncedTrigger(automation: Automation, triggerIndex: Int): TriggerFilterDecision =
-        temporalFilterPolicy.observeDebouncedOccurrence(automation, triggerIndex, elapsedRealtimeMs())
-
-    fun admitDebouncedTrigger(automation: Automation, triggerIndex: Int): TriggerFilterDecision =
-        temporalFilterPolicy.admitDebouncedOccurrence(automation, triggerIndex, elapsedRealtimeMs())
     suspend fun runAutomation(
         automation: Automation,
         // Phase-2 payload context (JSON Merge Patch delta, 256KB budget). When
@@ -346,21 +309,7 @@ class ExecutionEngine(
             return record
         }
 
-        val filterDecision = if (!bypassTriggerMatch && triggerOccurrence != null) {
-            temporalFilterPolicy.applyEventFilters(automation, triggerOccurrence, elapsedRealtimeMs())
-        } else TriggerFilterDecision.Allowed
-        if (filterDecision !is TriggerFilterDecision.Allowed) {
-            val reason = when (filterDecision) {
-                is TriggerFilterDecision.Blocked -> filterDecision.reason.name
-                is TriggerFilterDecision.Unknown -> filterDecision.reason.name
-                TriggerFilterDecision.Allowed -> error("unreachable")
-            }
-            return ExecutionRecord(
-                id = UUID.randomUUID().toString(), automationId = automation.id, automationName = automation.name,
-                success = filterDecision is TriggerFilterDecision.Blocked,
-                message = historyMessage("Skipped: trigger temporal filter $reason"), executedAt = startedAt,
-            )
-        }
+        rejectTemporalOccurrence(automation, triggerOccurrence, bypassTriggerMatch, startedAt)?.let { return it }
 
         // Single-flight admission is intentionally process-local. The durable
         // checkpoint store handles crash recovery; this guard prevents two live
@@ -1663,38 +1612,5 @@ class ExecutionEngine(
             ),
         )
     }
-
-    /**
-     * Makes Tasker setting outputs available to actions later in the same run as
-     * `%CTX.pluginOutputs.<lower_case_name>`. Values remain execution-local.
-     */
-    private fun publishPluginOutputVariables(
-        metadata: Map<String, String>,
-        runContext: WorkflowRunContext?
-    ) {
-        val context = runContext ?: return
-        val outputs = metadata
-            .asSequence()
-            .filter { (key, _) -> key.startsWith("pluginOutput.") }
-            .associate { (key, value) -> key.removePrefix("pluginOutput.") to value }
-        if (outputs.isEmpty()) return
-        val merged = LinkedHashMap<String, Any?>()
-        (context.get("$.pluginOutputs") as? Map<*, *>)
-            ?.forEach { (key, value) -> if (key is String) merged[key] = value }
-        merged.putAll(outputs)
-        // The client bounds the collection and every value. The run-context
-        // budget remains authoritative, and a rejected best-effort publication
-        // must not turn a successful external action into a failure.
-        runCatching { context.put("$.pluginOutputs", merged) }
-    }
-
-    private fun ConditionResult.toGateMessage(): String = when (this) {
-        ConditionResult.Satisfied -> "constraints satisfied"
-        ConditionResult.Unsatisfied -> "constraints not met"
-        ConditionResult.Unknown -> "constraint state is unknown"
-        ConditionResult.Unavailable -> "constraint provider is unavailable"
-        is ConditionResult.Error -> "constraint evaluation error: $reason"
-    }
-
 
 }

@@ -127,8 +127,8 @@ class ExecutionEngineConcurrentAdmissionTest {
             notificationPreferences = NotificationPreferences(context),
             actionRegistry = ActionRegistry.from(listOf(handler)),
             activeExecutionStore = store,
-            elapsedRealtimeMs = { monotonicNow },
         )
+        engine.temporalFilterPolicy.clock = { monotonicNow }
         val first = engine.runAutomation(task, triggerOccurrence = TriggerOccurrence.single(0, 100L, "sms", "first"))
         val second = engine.runAutomation(
             task,

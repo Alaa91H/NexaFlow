@@ -33,6 +33,8 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.evaluateTriggerThreshold
+import com.nexaflow.core.execution.evaluateTriggerStability
 import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.execution.TriggerStabilityRecheckQueue
 import com.nexaflow.domain.models.ConditionResult
