@@ -117,7 +117,7 @@ class AtomicInventoryTest(unittest.TestCase):
                     for row in trigger_rows + action_rows)
             )
             self.assertTrue(all(row["parity_status"] for row in field_rows))
-            self.assertEqual(757, len(field_rows))
+            self.assertEqual(758, len(field_rows))
             self.assertFalse(any(row["schema_producer"] == "UNMAPPED" for row in field_rows))
             self.assertTrue(
                 all(
@@ -153,6 +153,8 @@ class AtomicInventoryTest(unittest.TestCase):
             self.assertEqual("DECLARED_UNUSED_BY_OPERATION", encoding_end["parity_status"])
             plugin_trigger = next(row for row in field_rows if row["kind"] == "TRIGGER" and row["legacy_type"] == "PLUGIN_EVENT" and row["field"] == "pluginEventId")
             self.assertEqual("DECLARED_AND_RUNTIME_READ", plugin_trigger["parity_status"])
+            time_excluded_dates = next(row for row in field_rows if row["kind"] == "TRIGGER" and row["legacy_type"] == "TIME" and row["field"] == "excludedDates")
+            self.assertEqual("DECLARED_AND_RUNTIME_READ", time_excluded_dates["parity_status"])
             legacy_plugin_alias = next(row for row in field_rows if row["kind"] == "TRIGGER" and row["legacy_type"] == "PLUGIN_EVENT" and row["field"] == "plugin_id")
             self.assertEqual("DECLARED_CANONICAL_COMPATIBILITY_ALIAS", legacy_plugin_alias["parity_status"])
             battery_below = next(row for row in field_rows if row["kind"] == "ACTION" and row["legacy_type"] == "BATTERY_ALERTS" and row["field"] == "below")
