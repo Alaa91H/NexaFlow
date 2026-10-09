@@ -53,6 +53,14 @@ class ConnectivityMonitor @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
+    private data class WifiFilterConfig(
+        val validated: String = "ANY",
+        val captivePortal: String = "ANY",
+        val metered: String = "ANY",
+        val ssid: String? = null,
+        val bssid: String? = null
+    )
+
     @Volatile
     private var initialized = false
 
@@ -430,6 +438,20 @@ class ConnectivityMonitor @Inject constructor(
                     }
                     val desiredState = trigger.config["state"]
                         ?: if (network == "HOTSPOT") "ON" else "CONNECTED"
+                    // Keep this type-specific extraction explicit: the atomic
+                    // source inventory audits literal config reads inside the
+                    // owning TriggerType arm, and this makes the new schema to
+                    // runtime contract reviewable there as well.
+                    val wifiFilters = when (trigger.type) {
+                        TriggerType.WIFI_CONNECTED -> WifiFilterConfig(
+                            validated = trigger.config["validated"] ?: "ANY",
+                            captivePortal = trigger.config["captivePortal"] ?: "ANY",
+                            metered = trigger.config["metered"] ?: "ANY",
+                            ssid = trigger.config["ssid"],
+                            bssid = trigger.config["bssid"]
+                        )
+                        else -> WifiFilterConfig()
+                    }
                     val current = currentNetworkValue(network, networkSnapshot)
                     val stateMatches: Boolean? = when {
                         current == null -> null
@@ -442,9 +464,9 @@ class ConnectivityMonitor @Inject constructor(
                         network == "WIFI" && desiredState == "CONNECTED" -> {
                             val capabilityMatch = DefaultNetworkStateReader.matchesCapabilities(
                                 networkSnapshot,
-                                validated = trigger.config["validated"] ?: "ANY",
-                                captivePortal = trigger.config["captivePortal"] ?: "ANY",
-                                metered = trigger.config["metered"] ?: "ANY"
+                                validated = wifiFilters.validated,
+                                captivePortal = wifiFilters.captivePortal,
+                                metered = wifiFilters.metered
                             )
                             if (capabilityMatch != true) {
                                 capabilityMatch
@@ -452,8 +474,8 @@ class ConnectivityMonitor @Inject constructor(
                                 DefaultNetworkStateReader.matchesWifiIdentity(
                                     context = context,
                                     snapshot = networkSnapshot,
-                                    expectedSsid = trigger.config["ssid"],
-                                    expectedBssid = trigger.config["bssid"]
+                                    expectedSsid = wifiFilters.ssid,
+                                    expectedBssid = wifiFilters.bssid
                                 )
                             }
                         }

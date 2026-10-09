@@ -5,7 +5,7 @@ This is static source evidence. Catalog membership and static references do not 
 
 - Trigger enum entries: 57; discoverable per current visibility metadata: 55.
 - Action enum entries: 180; operation rows: 213 (data transform operations expanded individually).
-- Field parity rows: 758; runtime/schema mismatches: 0; explicitly unused-by-type/operation/handler: 271; UI/canonical non-runtime consumers: 4; unresolved declared reads: 0.
+- Field parity rows: 763; runtime/schema mismatches: 0; explicitly unused-by-type/operation/handler: 271; UI/canonical non-runtime consumers: 4; unresolved declared reads: 0.
 - Trigger lifecycle rows: 855 across 15 stages per trigger; picker, validation, and dispatch links require node-specific static references.
 - Combined trigger/action-operation lifecycle rows: 4050 across 15 stages; unmapped entries remain explicit and shared lifecycle owners are distinguished.
 - Dependency graph edges: 10 static architecture candidates; duplicate owners, legacy references, action gaps, and placeholder tokens are inventoried in architecture-findings.csv.
