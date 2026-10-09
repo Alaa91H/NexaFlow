@@ -108,6 +108,11 @@ internal object CanonicalWorkflowV3ReadMapper {
             actions = actions,
             exitActions = exitActions,
             canonicalNodes = document.canonicalNodes,
+            // Revision is row-level concurrency metadata. The Room column is
+            // advanced transactionally on definition edits; older canonical
+            // payloads can legitimately lag until the next dual-write.
+            workflowRevision = legacy.workflowRevision,
+            triggerExpressionV2 = document.triggerExpressionV2 ?: legacy.triggerExpressionV2,
             triggerMatch = when (document.conditionLogic) {
                 ConditionLogic.ALL -> TriggerMatchMode.ALL
                 ConditionLogic.ANY -> TriggerMatchMode.ANY

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Trigger expressions
+
+- Add opt-in, schema-v2 trigger expressions with bounded AND/OR/NOT-state, ordered sequence, and count-within operators while preserving legacy ANY/ALL behavior when no expression is configured.
+- Persist minimal HMAC-keyed monotonic temporal history with strict size/retention limits and fail-closed handling for invalid or unavailable state; add a builder preview using the shared runtime evaluator.
+
 ### Audit tooling
 
 - Generate deterministic trigger/action, operation, field-parity, lifecycle, plugin-flow, and ranked-hotspot inventories; CI fails when committed audit output drifts from source.

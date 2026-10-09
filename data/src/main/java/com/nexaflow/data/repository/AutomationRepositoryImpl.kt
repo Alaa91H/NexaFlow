@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AutomationRepositoryImpl @Inject constructor(
-    private val automationDao: AutomationDao
+    private val automationDao: AutomationDao,
+    private val clearTemporalHistory: suspend (String) -> Unit = {}
 ) : AutomationRepository {
 
     override fun getAutomations(): Flow<List<Automation>> {
@@ -24,35 +25,47 @@ class AutomationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun saveAutomation(automation: Automation) {
-        automationDao.insertAutomation(automation.toEntity())
+        automationDao.upsertDefinitionWithRevision(automation.toEntity())
+        if (!automation.enabled) clearTemporalHistory(automation.id)
     }
 
     override suspend fun saveAutomationIfRevisionMatches(
         automation: Automation,
         expectedRevision: Long
-    ): Boolean = automationDao.compareAndSetAutomation(
-        automation = automation.toEntity(),
-        expectedRevision = expectedRevision
-    )
+    ): Boolean {
+        val saved = automationDao.compareAndSetAutomation(
+            automation = automation.toEntity(),
+            expectedRevision = expectedRevision
+        )
+        if (saved && !automation.enabled) clearTemporalHistory(automation.id)
+        return saved
+    }
 
     override suspend fun saveAutomationsAtomically(automations: List<Automation>) {
         if (automations.isEmpty()) return
-        automationDao.insertAutomations(automations.map { it.toEntity() })
+        automationDao.upsertDefinitionsWithRevision(automations.map { it.toEntity() })
+        automations.filterNot { it.enabled }.forEach { clearTemporalHistory(it.id) }
     }
 
     override suspend fun deleteAutomation(automation: Automation) {
         automationDao.deleteAutomation(automation.toEntity())
+        clearTemporalHistory(automation.id)
     }
 
     override suspend fun deleteAutomationIfRevisionMatches(
         automationId: String,
         expectedRevision: Long
-    ): Boolean = automationDao.deleteAutomationIfRevisionMatches(
-        id = automationId,
-        expectedRevision = expectedRevision
-    ) == 1
+    ): Boolean {
+        val deleted = automationDao.deleteAutomationIfRevisionMatches(
+            id = automationId,
+            expectedRevision = expectedRevision
+        ) == 1
+        if (deleted) clearTemporalHistory(automationId)
+        return deleted
+    }
 
     override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
         automationDao.updateAutomationStatus(id, enabled)
+        if (!enabled) clearTemporalHistory(id)
     }
 }

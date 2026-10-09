@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">Имя устройства</string>
     <string name="bluetooth_device_address">MAC-адрес</string>
     <string name="trigger_temporal_filters_title">Временные фильтры</string>
+
+    <string name="trigger_expression_title">Расширенное выражение триггеров</string>
+    <string name="trigger_expression_description">Дополнительные правила с временной историей; текущее поведение ANY/ALL не меняется до включения.</string>
+    <string name="trigger_expression_all">ВСЕ</string>
+    <string name="trigger_expression_any">ЛЮБОЕ</string>
+    <string name="trigger_expression_not_state">НЕ состояние</string>
+    <string name="trigger_expression_sequence">A, затем B</string>
+    <string name="trigger_expression_count">Количество за интервал</string>
+    <string name="trigger_expression_trigger">Первый триггер</string>
+    <string name="trigger_expression_second_trigger">Второй триггер</string>
+    <string name="trigger_expression_window_seconds">Интервал (секунды, макс. 604800)</string>
+    <string name="trigger_expression_minimum_count">Минимальное количество (1–1000)</string>
+    <string name="trigger_expression_add_nested">Сгруппировать остальные триггеры</string>
+    <string name="trigger_expression_preview">Предпросмотр примера</string>
+    <string name="trigger_expression_preview_satisfied">Результат примера: условие выполнено (предыдущие события смоделированы)</string>
+    <string name="trigger_expression_preview_not_satisfied">Результат примера: условие не выполнено (предыдущие события смоделированы)</string>
+    <string name="trigger_expression_invalid">Выражение неверно или использует неподдерживаемый источник. Исправьте его перед сохранением.</string>
+    <string name="trigger_expression_unsupported_source">Выберите поддерживаемый триггер</string>
 </resources>

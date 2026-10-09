@@ -1313,4 +1313,22 @@
     <string name="bluetooth_device_name">اسم الجهاز</string>
     <string name="bluetooth_device_address">عنوان MAC</string>
     <string name="trigger_temporal_filters_title">فلاتر التوقيت</string>
+
+    <string name="trigger_expression_title">تعبير محفزات متقدم</string>
+    <string name="trigger_expression_description">قواعد اختيارية تحفظ سجلًا زمنيًا؛ يظل سلوك ANY/ALL الحالي كما هو حتى تفعيلها.</string>
+    <string name="trigger_expression_all">الكل</string>
+    <string name="trigger_expression_any">أيّ منها</string>
+    <string name="trigger_expression_not_state">نفي الحالة</string>
+    <string name="trigger_expression_sequence">أ ثم ب</string>
+    <string name="trigger_expression_count">العدد ضمن نافذة</string>
+    <string name="trigger_expression_trigger">المحفز الأول</string>
+    <string name="trigger_expression_second_trigger">المحفز الثاني</string>
+    <string name="trigger_expression_window_seconds">النافذة (بالثواني، الحد 604800)</string>
+    <string name="trigger_expression_minimum_count">الحد الأدنى للعدد (1–1000)</string>
+    <string name="trigger_expression_add_nested">تجميع المحفزات المتبقية داخل مجموعة</string>
+    <string name="trigger_expression_preview">معاينة عينة</string>
+    <string name="trigger_expression_preview_satisfied">نتيجة العينة: الشرط متحقق (مع أحداث سابقة محاكاة)</string>
+    <string name="trigger_expression_preview_not_satisfied">نتيجة العينة: الشرط غير متحقق (مع أحداث سابقة محاكاة)</string>
+    <string name="trigger_expression_invalid">هذا التعبير غير صالح أو يستخدم مصدرًا غير مدعوم. أصلحه قبل الحفظ.</string>
+    <string name="trigger_expression_unsupported_source">اختر محفزًا مدعومًا</string>
 </resources>

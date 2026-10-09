@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">Nome do dispositivo</string>
     <string name="bluetooth_device_address">Endereço MAC</string>
     <string name="trigger_temporal_filters_title">Filtros temporais</string>
+
+    <string name="trigger_expression_title">Expressão avançada de gatilhos</string>
+    <string name="trigger_expression_description">Regras opcionais com histórico temporal; o comportamento ANY/ALL atual permanece até a ativação.</string>
+    <string name="trigger_expression_all">TODOS</string>
+    <string name="trigger_expression_any">QUALQUER</string>
+    <string name="trigger_expression_not_state">NÃO estado</string>
+    <string name="trigger_expression_sequence">A depois B</string>
+    <string name="trigger_expression_count">Contagem no intervalo</string>
+    <string name="trigger_expression_trigger">Primeiro gatilho</string>
+    <string name="trigger_expression_second_trigger">Segundo gatilho</string>
+    <string name="trigger_expression_window_seconds">Intervalo (segundos, máx. 604800)</string>
+    <string name="trigger_expression_minimum_count">Contagem mínima (1–1000)</string>
+    <string name="trigger_expression_add_nested">Agrupar os demais gatilhos</string>
+    <string name="trigger_expression_preview">Pré-visualizar amostra</string>
+    <string name="trigger_expression_preview_satisfied">Amostra: condição satisfeita (eventos anteriores simulados)</string>
+    <string name="trigger_expression_preview_not_satisfied">Amostra: condição não satisfeita (eventos anteriores simulados)</string>
+    <string name="trigger_expression_invalid">Expressão inválida ou fonte não compatível. Corrija antes de salvar.</string>
+    <string name="trigger_expression_unsupported_source">Escolha um gatilho compatível</string>
 </resources>

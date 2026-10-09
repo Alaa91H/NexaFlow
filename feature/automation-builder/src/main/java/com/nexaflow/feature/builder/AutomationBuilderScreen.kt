@@ -207,6 +207,10 @@ import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.TriggerMatchMode
+import com.nexaflow.domain.workflow.TriggerExpressionDefinitionV2
+import com.nexaflow.domain.workflow.TriggerExpressionValidator
+import com.nexaflow.domain.workflow.moveTriggerReference
+import com.nexaflow.domain.workflow.removeTriggerReference
 import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.PluginInfo
@@ -309,6 +313,7 @@ fun AutomationBuilderScreen(
     // exist — with a single trigger the choice is meaningless.
     var triggerMatchName by rememberSaveable { mutableStateOf(TriggerMatchMode.ALL.name) }
     val triggerMatch = TriggerMatchMode.entries.firstOrNull { it.name == triggerMatchName } ?: TriggerMatchMode.ANY
+    var triggerExpressionV2 by remember { mutableStateOf<TriggerExpressionDefinitionV2?>(null) }
     val constraints = rememberSaveable(saver = ConstraintDraftListSaver) { mutableStateListOf<ConstraintDraft>() }
     var showConstraintPicker by remember { mutableStateOf(false) }
     // A freshly picked constraint opens its editor; loaded ones stay collapsed.
@@ -476,6 +481,7 @@ fun AutomationBuilderScreen(
                 ?.let { template ->
                 triggers.clear()
                 template.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
+                triggerExpressionV2 = null
                 actionDrafts.clear()
                 template.actions.forEach { action ->
                     actionOptions.find { it.actionType == action.type }?.let { option ->
@@ -513,6 +519,7 @@ fun AutomationBuilderScreen(
         triggers.clear()
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
         triggerMatchName = loaded.triggerMatch.name
+        triggerExpressionV2 = loaded.triggerExpressionV2
         selectedTriggerTypes.clear()
         selectedActionTypes.clear()
         expandedTriggerIndex = null
@@ -832,6 +839,7 @@ fun AutomationBuilderScreen(
     fun moveTrigger(from: Int, to: Int) {
         val expanded = expandedTriggerIndex
         if (BuilderDraftOperations.move(triggers, from, to)) {
+            triggerExpressionV2 = triggerExpressionV2?.moveTriggerReference(from, to)
             expandedTriggerIndex = BuilderDraftOperations.movedExpandedIndex(expanded, from, to)
         }
     }
@@ -881,6 +889,10 @@ fun AutomationBuilderScreen(
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
+        if (triggerExpressionV2?.let { TriggerExpressionValidator.validate(it, builtTriggers).isNotEmpty() } == true) {
+            showSnackbar(configurationContext.getString(R.string.trigger_expression_invalid))
+            return
+        }
         val actions = actionDrafts.map { it.toAction() }
         val builtConstraints = constraints.map { Constraint(it.type, it.config) }
         val exitActions = selectedExitActions.map { Action(it.actionType, exitActionConfigs[it.actionType] ?: emptyMap()) }
@@ -892,6 +904,7 @@ fun AutomationBuilderScreen(
             iconColor = selectedIconColor,
             triggers = builtTriggers,
             triggerMatch = triggerMatch,
+            triggerExpressionV2 = triggerExpressionV2,
             actions = actions,
             canonicalNodes = buildList {
                 addAll(loadedAutomation?.canonicalNodes.orEmpty().filter {
@@ -1338,6 +1351,7 @@ fun AutomationBuilderScreen(
                         triggers[index] = updated
                     },
                     onRemove = {
+                        triggerExpressionV2 = triggerExpressionV2?.removeTriggerReference(index)
                         triggers.removeAt(index)
                         expandedTriggerIndex = when {
                             expandedTriggerIndex == index -> null
@@ -1376,6 +1390,14 @@ fun AutomationBuilderScreen(
                                         triggerMatchBuiltWarning(triggers) !=
                                             TriggerMatchPolicy.AllModeEventSemantics.NONE
                                 } == true,
+                    )
+                }
+                if (canonicalTriggerNodes.isEmpty()) {
+                    TriggerExpressionEditorCard(
+                        triggers = triggers.map { Trigger(it.type, it.config) },
+                        legacyMatch = triggerMatch,
+                        definition = triggerExpressionV2,
+                        onDefinitionChange = { triggerExpressionV2 = it }
                     )
                 }
 

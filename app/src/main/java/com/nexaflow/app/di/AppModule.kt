@@ -43,6 +43,7 @@ import com.nexaflow.core.datastore.PrivacyPreferences
 import com.nexaflow.core.datastore.SmsDeliveryStore
 import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
+import com.nexaflow.core.datastore.TriggerExpressionHistoryStore
 import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher
@@ -85,6 +86,8 @@ import com.nexaflow.core.logging.LogStore
 import com.nexaflow.core.logging.RedactingLogStore
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.core.security.KeystoreSecureStorage
+import com.nexaflow.core.security.AndroidKeystoreOccurrenceIdentityHmac
+import com.nexaflow.core.security.OccurrenceIdentityHmac
 import com.nexaflow.core.security.SecretVault
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
@@ -187,6 +190,17 @@ object AppModule {
     @Singleton
     fun provideSecretVault(secureStorage: SecureStorage): SecretVault =
         SecretVault(secureStorage)
+
+    @Provides
+    @Singleton
+    fun provideOccurrenceIdentityHmac(): OccurrenceIdentityHmac = AndroidKeystoreOccurrenceIdentityHmac()
+
+    @Provides
+    @Singleton
+    fun provideTriggerExpressionHistoryStore(
+        @ApplicationContext context: Context,
+        identityHmac: OccurrenceIdentityHmac
+    ): TriggerExpressionHistoryStore = TriggerExpressionHistoryStore(context, identityHmac)
 
     @Provides
     @Singleton
@@ -326,8 +340,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAutomationRepository(dao: AutomationDao): AutomationRepository {
-        return AutomationRepositoryImpl(dao)
+    fun provideAutomationRepository(
+        dao: AutomationDao,
+        triggerExpressionHistoryStore: TriggerExpressionHistoryStore
+    ): AutomationRepository {
+        return AutomationRepositoryImpl(dao) { automationId -> triggerExpressionHistoryStore.clearAutomation(automationId) }
     }
 
     @Provides
@@ -335,11 +352,13 @@ object AppModule {
     fun provideAutomationMutationPersistence(
         database: AppDatabase,
         automationDao: AutomationDao,
-        agentPlatformDao: AgentPlatformDao
+        agentPlatformDao: AgentPlatformDao,
+        triggerExpressionHistoryStore: TriggerExpressionHistoryStore
     ): AutomationMutationPersistence = RoomAutomationMutationPersistence(
         database = database,
         automationDao = automationDao,
-        agentPlatformDao = agentPlatformDao
+        agentPlatformDao = agentPlatformDao,
+        clearTemporalHistory = { automationId -> triggerExpressionHistoryStore.clearAutomation(automationId) }
     )
 
     @Provides
@@ -575,6 +594,7 @@ object AppModule {
         privilegeStateStore: PrivilegeStateStore,
         semanticWorkflowPlanner: com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner,
         automationRuntimeStore: AutomationRuntimeStore,
+        triggerExpressionHistoryStore: TriggerExpressionHistoryStore,
         semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter,
         runEventBridge: AgentRunEventBridge,
         smsActivityRepository: com.nexaflow.domain.repositories.SmsActivityRepository,
@@ -590,6 +610,7 @@ object AppModule {
             logStore = logStore,
             variableRepository = variableRepository,
             automationRuntimeStore = automationRuntimeStore,
+            triggerExpressionHistoryStore = triggerExpressionHistoryStore,
             capabilityExecutionService = capabilityExecutionService,
             capabilitySnapshotProvider = { capabilityStateStore.snapshot.value },
             privilegeSnapshotProvider = { privilegeStateStore.snapshot.value },

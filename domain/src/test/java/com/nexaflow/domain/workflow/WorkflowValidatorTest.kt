@@ -3,6 +3,8 @@ package com.nexaflow.domain.workflow
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -42,6 +44,17 @@ class WorkflowValidatorTest {
 
         assertFalse(result.isValid)
         assertTrue(result.issues.any { it.code == WorkflowValidationCode.CONFIG_VALUE_TOO_LONG })
+    }
+
+    @Test
+    fun rejectsInvalidOptedInTriggerExpressionBeforePersistence() {
+        val invalid = automation().copy(
+            triggers = listOf(Trigger(TriggerType.SMS, emptyMap())),
+            triggerExpressionV2 = TriggerExpressionDefinitionV2(root = TriggerExpressionNodeV2.State(0))
+        )
+        val result = WorkflowValidator.validate(invalid)
+        assertFalse(result.isValid)
+        assertTrue(result.issues.any { it.code == WorkflowValidationCode.INVALID_TRIGGER_EXPRESSION })
     }
 
     @Test

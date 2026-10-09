@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">Gerätename</string>
     <string name="bluetooth_device_address">MAC-Adresse</string>
     <string name="trigger_temporal_filters_title">Zeitfilter</string>
+
+    <string name="trigger_expression_title">Erweiterter Trigger-Ausdruck</string>
+    <string name="trigger_expression_description">Optionale Regeln mit Zeitverlauf; das bestehende ANY/ALL-Verhalten bleibt bis zur Aktivierung unverändert.</string>
+    <string name="trigger_expression_all">ALLE</string>
+    <string name="trigger_expression_any">BELIEBIG</string>
+    <string name="trigger_expression_not_state">NICHT Zustand</string>
+    <string name="trigger_expression_sequence">A dann B</string>
+    <string name="trigger_expression_count">Anzahl im Zeitfenster</string>
+    <string name="trigger_expression_trigger">Erster Trigger</string>
+    <string name="trigger_expression_second_trigger">Zweiter Trigger</string>
+    <string name="trigger_expression_window_seconds">Zeitfenster (Sekunden, max. 604800)</string>
+    <string name="trigger_expression_minimum_count">Mindestanzahl (1–1000)</string>
+    <string name="trigger_expression_add_nested">Übrige Trigger verschachteln</string>
+    <string name="trigger_expression_preview">Beispiel anzeigen</string>
+    <string name="trigger_expression_preview_satisfied">Beispiel: Bedingung erfüllt (frühere Ereignisse simuliert)</string>
+    <string name="trigger_expression_preview_not_satisfied">Beispiel: Bedingung nicht erfüllt (frühere Ereignisse simuliert)</string>
+    <string name="trigger_expression_invalid">Dieser Ausdruck ist ungültig oder verwendet eine nicht unterstützte Quelle. Vor dem Speichern korrigieren.</string>
+    <string name="trigger_expression_unsupported_source">Unterstützten Trigger auswählen</string>
 </resources>

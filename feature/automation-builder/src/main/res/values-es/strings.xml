@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">Nombre del dispositivo</string>
     <string name="bluetooth_device_address">Dirección MAC</string>
     <string name="trigger_temporal_filters_title">Filtros temporales</string>
+
+    <string name="trigger_expression_title">Expresión avanzada de activadores</string>
+    <string name="trigger_expression_description">Reglas opcionales con historial temporal; el comportamiento ANY/ALL actual no cambia hasta activarlas.</string>
+    <string name="trigger_expression_all">TODOS</string>
+    <string name="trigger_expression_any">CUALQUIERA</string>
+    <string name="trigger_expression_not_state">NO estado</string>
+    <string name="trigger_expression_sequence">A y después B</string>
+    <string name="trigger_expression_count">Recuento en intervalo</string>
+    <string name="trigger_expression_trigger">Primer activador</string>
+    <string name="trigger_expression_second_trigger">Segundo activador</string>
+    <string name="trigger_expression_window_seconds">Intervalo (segundos, máx. 604800)</string>
+    <string name="trigger_expression_minimum_count">Recuento mínimo (1–1000)</string>
+    <string name="trigger_expression_add_nested">Anidar los activadores restantes</string>
+    <string name="trigger_expression_preview">Previsualizar muestra</string>
+    <string name="trigger_expression_preview_satisfied">Muestra: condición satisfecha (eventos anteriores simulados)</string>
+    <string name="trigger_expression_preview_not_satisfied">Muestra: condición no satisfecha (eventos anteriores simulados)</string>
+    <string name="trigger_expression_invalid">La expresión no es válida o usa una fuente no compatible. Corrígela antes de guardar.</string>
+    <string name="trigger_expression_unsupported_source">Elige un activador compatible</string>
 </resources>

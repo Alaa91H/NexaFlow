@@ -5,6 +5,7 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.workflow.TriggerExpressionDefinitionV2
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
@@ -41,6 +42,17 @@ class Converters {
     @TypeConverter
     fun toMaintenanceProfile(value: String?): MaintenanceProfile? =
         value?.let { json.decodeFromString(MaintenanceProfile.serializer(), it) }
+
+    @TypeConverter
+    fun fromTriggerExpressionV2(value: TriggerExpressionDefinitionV2?): String? =
+        value?.let { json.encodeToString(TriggerExpressionDefinitionV2.serializer(), it) }
+
+    @TypeConverter
+    fun toTriggerExpressionV2(value: String?): TriggerExpressionDefinitionV2? =
+        value?.let {
+            runCatching { json.decodeFromString(TriggerExpressionDefinitionV2.serializer(), it) }
+                .getOrElse { TriggerExpressionDefinitionV2.invalidSentinel() }
+        }
 
     @TypeConverter
     fun fromActionList(value: List<Action>): String =

@@ -105,6 +105,8 @@ class ExecutionEngine(
     private val activeExecutionStore: ActiveExecutionStore = ActiveExecutionStore(context),
     /** Occurrence-aware durable source of truth for stateful trigger lifecycles. */
     private val automationRuntimeStore: AutomationRuntimeStore = AutomationRuntimeStore(context),
+    /** Bounded occurrence history for explicitly opted-in trigger expressions. */
+    triggerExpressionHistoryStore: com.nexaflow.core.datastore.TriggerExpressionHistoryStore? = null,
     /** Optional safe-capability seam; null preserves legacy handler-only construction. */
     private val capabilityExecutionService: CapabilityExecutionService? = null,
     /** Current shared availability observation; absent only in legacy/test construction. */
@@ -241,6 +243,11 @@ class ExecutionEngine(
 
     /** Same-process replay protection for sources with a trustworthy event id. */
     private val occurrenceDeduplicator = TriggerOccurrenceDeduplicator()
+    internal val triggerExpressionRuntimeEvaluator = TriggerExpressionRuntimeEvaluator(triggerExpressionHistoryStore)
+    internal val triggerExpressionDiagnostics: ExecutionDiagnostics get() = diagnostics
+    internal val triggerExpressionSkipReportThrottle: ExecutionSkipReportThrottle get() = skipReportThrottle
+    internal val triggerExpressionHistoryWriter: ExecutionHistoryWriter get() = historyWriter
+    internal val triggerExpressionTraceRecorder: com.nexaflow.core.logging.TraceRecorder get() = traceRecorder
 
     /** Serializes the paired in-memory and durable exit-ledger consumption per task. */
     private val exitConsumptionLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
@@ -560,7 +567,11 @@ class ExecutionEngine(
         // before any checkpoint so a rejected run performs no work and leaves
         // no queue residue. A single condition is live-evaluated too: a past
         // event is not current truth.
-        if (!bypassTriggerMatch &&
+        if (!bypassTriggerMatch && automation.triggerExpressionV2 != null) {
+            rejectTriggerExpression(
+                context, automation, triggerOccurrence, startedAt, payloadContext.runId, channel?.type?.name, recordMessagePrefix
+            )?.let { return it }
+        } else if (!bypassTriggerMatch &&
             automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
             automation.triggers.isNotEmpty()
         ) {

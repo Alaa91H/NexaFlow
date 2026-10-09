@@ -262,6 +262,21 @@ class RoomAutomationMutationPersistenceTest {
     }
 
     @Test
+    fun workflowRevisionAdvancesOnlyForDefinitionChanges() = runTest {
+        val dao = database.automationDao()
+        val original = automation("workflow-revision", "Original", 100L)
+        assertEquals(1L, dao.upsertDefinitionWithRevision(original.toEntity()))
+        assertEquals(
+            1L,
+            dao.upsertDefinitionWithRevision(original.copy(enabled = true, updatedAt = 200L).toEntity())
+        )
+        assertEquals(
+            2L,
+            dao.upsertDefinitionWithRevision(original.copy(name = "Changed", updatedAt = 300L).toEntity())
+        )
+    }
+
+    @Test
     fun outOfBandDefinitionEditAdvancesRevisionAndRejectsPreflightRace() = runTest {
         val persistence = persistence()
         val original = automation(id = "task", name = "Original", updatedAt = 100L)
