@@ -76,7 +76,7 @@
 - Rejections use stable reason codes and do not write a durable execution checkpoint. Delayed state candidates are revalidated against live state before action execution.
 - State is bounded across automations and stale config revisions; disable/remove/reset paths clear owned reducer state.
 
-- [x] Write regression tests proving configured cooldown/debounce applies only to matching trigger occurrences, stable-for waits for its duration, threshold jitter respects hysteresis, and UNKNOWN observations remain UNKNOWN. Device permission denial/regrant remains NOT TESTED.
+- [x] Write regression tests proving configured cooldown/debounce applies only to matching trigger occurrences, trailing-edge replacement runs only the latest action, stable-for waits for its duration, threshold jitter respects hysteresis, and UNKNOWN observations remain UNKNOWN. Device permission denial/regrant remains NOT TESTED.
 - [x] Run targeted tests against real domain reducers and the existing execution gate; no assertions solely on test doubles.
 - [x] Connect event filters to the shared admission path with injectable monotonic clock and typed outcomes.
 - [ ] Test event/state/schedule semantics separately and ensure wall-clock edits do not alter elapsed filters.

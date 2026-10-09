@@ -37,4 +37,19 @@ class TriggerStabilityRecheckQueueTest {
         assertEquals(0, queue.pendingCountForTest())
         assertTrue(queue.schedule("b:0", 1_000) {})
     }
+
+    @Test
+    fun replaceRestartsQuietWindowAndRunsOnlyLatestAction() = runTest {
+        val queue = TriggerStabilityRecheckQueue(backgroundScope)
+        var calls = 0
+        assertTrue(queue.replace("automation:0", 1_000) { calls++ })
+        advanceTimeBy(500)
+        assertTrue(queue.replace("automation:0", 1_000) { calls += 10 })
+        advanceTimeBy(500)
+        runCurrent()
+        assertEquals(0, calls)
+        advanceTimeBy(500)
+        runCurrent()
+        assertEquals(10, calls)
+    }
 }

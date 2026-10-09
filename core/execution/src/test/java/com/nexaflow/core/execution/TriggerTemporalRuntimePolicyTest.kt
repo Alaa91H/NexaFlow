@@ -57,4 +57,14 @@ class TriggerTemporalRuntimePolicyTest {
         assertEquals(TriggerFilterDecision.Allowed, policy.applyEventFilters(task, admitted, 151))
         assertEquals(TriggerFilterDecision.Blocked(TriggerFilterReason.DEBOUNCE_PENDING), policy.applyEventFilters(task, admitted, 152))
     }
+
+    @Test
+    fun debounceConfigOnAnUnsupportedTriggerIsExplicitlyUnknown() {
+        val task = workflow(Trigger(TriggerType.SMS, mapOf("debounceMs" to "100")))
+        val policy = TriggerTemporalRuntimePolicy()
+        assertEquals(
+            TriggerFilterDecision.Unknown(TriggerFilterReason.INVALID_STATE),
+            policy.applyEventFilters(task, TriggerOccurrence.single(0, 1), 10),
+        )
+    }
 }

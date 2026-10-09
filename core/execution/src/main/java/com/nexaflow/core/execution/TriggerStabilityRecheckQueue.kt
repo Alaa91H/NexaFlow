@@ -40,6 +40,35 @@ class TriggerStabilityRecheckQueue(
         return true
     }
 
+    /** Replaces pending work for a noisy trigger while retaining the queue bound. */
+    fun replace(key: String, delayMs: Long, action: suspend () -> Unit): Boolean {
+        require(key.isNotBlank())
+        require(delayMs >= 0L)
+        lateinit var previous: Job
+        var hadPrevious = false
+        val job = synchronized(lock) {
+            jobs.remove(key)?.also {
+                previous = it
+                hadPrevious = true
+            }
+            if (jobs.size >= capacity) return false
+            lateinit var created: Job
+            created = scope.launch(start = CoroutineStart.LAZY) {
+                try {
+                    delay(delayMs)
+                    action()
+                } finally {
+                    synchronized(lock) { jobs.remove(key, created) }
+                }
+            }
+            jobs[key] = created
+            created
+        }
+        if (hadPrevious) previous.cancel()
+        job.start()
+        return true
+    }
+
     fun cancel(key: String) {
         synchronized(lock) { jobs.remove(key) }?.cancel()
     }
@@ -47,6 +76,14 @@ class TriggerStabilityRecheckQueue(
     fun cancelPrefix(prefix: String) {
         val removed = synchronized(lock) {
             val keys = jobs.keys.filter { it.startsWith(prefix) }
+            keys.mapNotNull { key -> jobs.remove(key) }
+        }
+        removed.forEach(Job::cancel)
+    }
+
+    fun cancelExcept(retainedKeys: Set<String>) {
+        val removed = synchronized(lock) {
+            val keys = jobs.keys.filter { it !in retainedKeys }
             keys.mapNotNull { key -> jobs.remove(key) }
         }
         removed.forEach(Job::cancel)

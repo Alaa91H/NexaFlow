@@ -4,6 +4,7 @@ import android.os.SystemClock
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TriggerFilterConfigParse
 import com.nexaflow.domain.schedule.TriggerFilterDecision
 import com.nexaflow.domain.schedule.TriggerFilterReason
@@ -34,6 +35,9 @@ class TriggerTemporalRuntimePolicy(
                 is TriggerFilterConfigParse.Valid -> {
                     val config = parsed.config
                     if (config.debounceMs != null) {
+                        if (trigger.type != TriggerType.VOLUME_CHANGED) {
+                            return TriggerFilterDecision.Unknown(TriggerFilterReason.INVALID_STATE)
+                        }
                         if (index !in occurrence.debounceAdmittedTriggerIndices ||
                             !state.consumeDebouncedAdmission(key(automation, index))
                         ) return TriggerFilterDecision.Blocked(TriggerFilterReason.DEBOUNCE_PENDING)
@@ -59,6 +63,8 @@ class TriggerTemporalRuntimePolicy(
             TriggerFilterConfigParse.Unconfigured -> TriggerFilterDecision.Allowed
             is TriggerFilterConfigParse.Valid -> if (parsed.config.debounceMs == null) {
                 TriggerFilterDecision.Allowed
+            } else if (trigger.type != TriggerType.VOLUME_CHANGED) {
+                TriggerFilterDecision.Unknown(TriggerFilterReason.INVALID_STATE)
             } else {
                 state.observeDebounced(key(automation, triggerIndex), parsed.config, elapsedRealtimeMs)
             }
@@ -74,9 +80,9 @@ class TriggerTemporalRuntimePolicy(
         return when (val parsed = TriggerTemporalFilterConfigParser.parse(trigger.config)) {
             TriggerFilterConfigParse.Unconfigured -> TriggerFilterDecision.Allowed
             is TriggerFilterConfigParse.Invalid -> TriggerFilterDecision.Unknown(TriggerFilterReason.INVALID_STATE)
-            is TriggerFilterConfigParse.Valid -> state.admitDebounced(
-                key(automation, triggerIndex), parsed.config, elapsedRealtimeMs,
-            )
+            is TriggerFilterConfigParse.Valid -> if (parsed.config.debounceMs != null && trigger.type != TriggerType.VOLUME_CHANGED) {
+                TriggerFilterDecision.Unknown(TriggerFilterReason.INVALID_STATE)
+            } else state.admitDebounced(key(automation, triggerIndex), parsed.config, elapsedRealtimeMs)
         }
     }
 

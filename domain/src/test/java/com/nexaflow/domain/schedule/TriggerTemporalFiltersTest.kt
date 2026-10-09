@@ -111,6 +111,19 @@ class TriggerTemporalFiltersTest {
     }
 
     @Test
+    fun unavailableAndErrorObservationsResetStableForWithoutBecomingFalse() {
+        val config = validConfig(stableForMs = 1_000L)
+        listOf(ConditionResult.Unavailable, ConditionResult.Error("permission denied")).forEachIndexed { index, unknown ->
+            val state = TriggerTemporalFilterState()
+            val key = "workflow:unknown:$index"
+            assertEquals(ConditionResult.Unknown, state.evaluateStability(key, ConditionResult.Satisfied, config, 0L).result)
+            assertEquals(unknown, state.evaluateStability(key, unknown, config, 500L).result)
+            assertEquals(TriggerFilterReason.STABILITY_PENDING, state.evaluateStability(key, ConditionResult.Satisfied, config, 600L).reason)
+            assertEquals(ConditionResult.Satisfied, state.evaluateStability(key, ConditionResult.Satisfied, config, 1_600L).result)
+        }
+    }
+
+    @Test
     fun monotonicClockRollbackClearsHistoryAndReturnsUnknownOnce() {
         val config = validConfig(cooldownMs = 100L)
         val state = TriggerTemporalFilterState()

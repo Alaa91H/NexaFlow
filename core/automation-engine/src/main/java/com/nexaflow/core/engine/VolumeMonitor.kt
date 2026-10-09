@@ -35,8 +35,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -65,7 +63,7 @@ class VolumeMonitor @Inject constructor(
 
     private val evaluationMutex = Mutex()
     private val stabilityRechecks = TriggerStabilityRecheckQueue(scope)
-    private val debounceJobs = java.util.concurrent.ConcurrentHashMap<String, Job>()
+    private val debounceRechecks = TriggerStabilityRecheckQueue(scope)
 
     private val observer = object : android.database.ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean, uri: Uri?) {
@@ -132,6 +130,19 @@ class VolumeMonitor @Inject constructor(
         evaluationMutex.withLock {
             val automations = repository.getAutomations().first()
             val byId = automations.associateBy { it.id }
+            val retainedDebounceKeys = automations.asSequence()
+                .filter { it.enabled }
+                .flatMap { automation ->
+                    automation.triggers.mapIndexedNotNull { index, trigger ->
+                        val config = (TriggerTemporalFilterConfigParser.parse(trigger.config)
+                            as? com.nexaflow.domain.schedule.TriggerFilterConfigParse.Valid)?.config
+                        if (trigger.type == TriggerType.VOLUME_CHANGED && config?.debounceMs != null) {
+                            debounceKey(automation, index)
+                        } else null
+                    }
+                }
+                .toSet()
+            debounceRechecks.cancelExcept(retainedDebounceKeys)
 
             // Resolve definitions that changed while a volume occurrence was
             // active before evaluating the current threshold.
@@ -144,9 +155,11 @@ class VolumeMonitor @Inject constructor(
                             // Without the immutable definition there is no safe
                             // exit to invent. Keep the durable evidence visible.
                             clearLegacyState(state.automationId)
+                            debounceRechecks.cancelPrefix("${state.automationId}:")
                         }
                         !automation.enabled ||
                             automation.triggers.none { it.type == TriggerType.VOLUME_CHANGED } -> {
+                            debounceRechecks.cancelPrefix("${automation.id}:")
                             requestExit(
                                 automation = automation,
                                 reason = ExitReason.AUTOMATION_DISABLED,
@@ -173,6 +186,7 @@ class VolumeMonitor @Inject constructor(
 
                     if (percentage == null) {
                         stabilityRechecks.cancel(recheckKey)
+                        debounceRechecks.cancel(recheckKey)
                         executionEngine.evaluateTriggerStability(automation, triggerIndex, ConditionResult.Unknown)
                         if (state?.source == SOURCE) markLegacyActive(state)
                         else if (state == null) clearLegacyState(automation.id)
@@ -196,6 +210,7 @@ class VolumeMonitor @Inject constructor(
                     } else {
                         stabilityRechecks.cancel(recheckKey)
                     }
+                    if (stable.result != ConditionResult.Satisfied) debounceRechecks.cancel(recheckKey)
 
                     when (stable.result) {
                         ConditionResult.Satisfied -> when {
@@ -218,18 +233,48 @@ class VolumeMonitor @Inject constructor(
         val debounceMs = temporalConfig?.config?.debounceMs
         if (debounceMs != null) {
             if (executionEngine.observeDebouncedTrigger(automation, triggerIndex) != TriggerFilterDecision.Allowed) return
-            val key = "${automation.id}:$triggerIndex"
-            debounceJobs.remove(key)?.cancel()
-            debounceJobs[key] = scope.launch {
-                delay(debounceMs)
-                debounceJobs.remove(key)
-                if (executionEngine.admitDebouncedTrigger(automation, triggerIndex) == TriggerFilterDecision.Allowed) {
-                    runVolumeAutomation(automation, streamName, triggerIndex, occurrenceId, debounceAdmitted = true)
-                }
+            val key = debounceKey(automation, triggerIndex)
+            debounceRechecks.replace(key, debounceMs) {
+                runDebouncedIfStillSatisfied(automation, streamName, triggerIndex, occurrenceId)
             }
             return
         }
         runVolumeAutomation(automation, streamName, triggerIndex, occurrenceId)
+    }
+
+    private fun debounceKey(automation: Automation, triggerIndex: Int): String {
+        val fingerprint = automation.triggers[triggerIndex].config.toSortedMap().hashCode().toUInt().toString(16)
+        return "${automation.id}:$triggerIndex:$fingerprint"
+    }
+
+    private suspend fun runDebouncedIfStillSatisfied(
+        scheduledAutomation: Automation,
+        streamName: String,
+        triggerIndex: Int,
+        occurrenceId: String,
+    ) {
+        val automation = repository.getAutomations().first()
+            .firstOrNull { it.id == scheduledAutomation.id && it.enabled } ?: return
+        val scheduledTrigger = scheduledAutomation.triggers.getOrNull(triggerIndex) ?: return
+        val trigger = automation.triggers.getOrNull(triggerIndex)
+            ?.takeIf { it.type == TriggerType.VOLUME_CHANGED && it == scheduledTrigger } ?: return
+        val percentage = readCurrentSnapshot()[streamName]
+        if (percentage == null) {
+            executionEngine.evaluateTriggerStability(automation, triggerIndex, ConditionResult.Unknown)
+            return
+        }
+        val threshold = (trigger.config["threshold"] ?: DEFAULT_THRESHOLD.toString())
+            .toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: DEFAULT_THRESHOLD.toDouble()
+        val above = (trigger.config["direction"] ?: "ABOVE") != "BELOW"
+        val observation = if ("hysteresis" in trigger.config) {
+            executionEngine.evaluateTriggerThreshold(automation, triggerIndex, percentage.toDouble(), threshold, above)
+        } else if (matches(trigger, percentage)) ConditionResult.Satisfied else ConditionResult.Unsatisfied
+        if (executionEngine.evaluateTriggerStability(automation, triggerIndex, observation).result != ConditionResult.Satisfied) return
+        if (executionEngine.admitDebouncedTrigger(automation, triggerIndex) == TriggerFilterDecision.Allowed) {
+            scope.launch {
+                runVolumeAutomation(automation, streamName, triggerIndex, occurrenceId, debounceAdmitted = true)
+            }
+        }
     }
 
     private suspend fun runVolumeAutomation(
