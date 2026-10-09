@@ -1,6 +1,6 @@
 rank,score,path,complexity,coupling,churn,evidence
 1,2.219008,core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt,139,53,6,branch_tokens=139;cross_module_imports=53;enum_refs=0;commits_in_last_50_before_4199f4a=6
-2,1.574975,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt,123,46,3,branch_tokens=123;cross_module_imports=39;enum_refs=7;commits_in_last_50_before_4199f4a=3
+2,1.612016,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt,127,48,3,branch_tokens=127;cross_module_imports=39;enum_refs=9;commits_in_last_50_before_4199f4a=3
 3,1.450463,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt,45,192,2,branch_tokens=45;cross_module_imports=12;enum_refs=180;commits_in_last_50_before_4199f4a=2
 4,1.217026,core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCatalog.kt,7,242,1,branch_tokens=7;cross_module_imports=5;enum_refs=237;commits_in_last_50_before_4199f4a=1
 5,1.168658,domain/src/main/java/com/nexaflow/domain/catalog/AutomationNodeCatalog.kt,2,239,1,branch_tokens=2;cross_module_imports=2;enum_refs=237;commits_in_last_50_before_4199f4a=1

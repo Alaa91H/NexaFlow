@@ -581,7 +581,6 @@
     <string name="volume_above">Üzerinde</string>
     <string name="volume_below">Altında</string>
     <string name="volume_threshold">Eşik</string>
-    <string name="optional_package">Paket (isteğe bağlı)</string>
     <string name="action_set_setting">Ayar belirle</string>
     <string name="action_set_setting_sub">Herhangi bir sistem ayarını yaz</string>
     <string name="action_screenshot">Ekran görüntüsü</string>

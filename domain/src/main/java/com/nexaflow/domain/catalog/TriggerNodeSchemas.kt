@@ -41,7 +41,18 @@ internal object TriggerNodeSchemas {
             packageField("package")
         )
         TriggerType.DEVICE -> schema(
-            stringField("event", default = "SCREEN_ON"),
+            enumField(
+                "event",
+                "SCREEN_ON",
+                "SCREEN_OFF",
+                "POWER_CONNECTED",
+                "POWER_DISCONNECTED",
+                "HEADSET_CONNECTED",
+                "HEADSET_DISCONNECTED",
+                "BLUETOOTH_CONNECTED",
+                "BLUETOOTH_DISCONNECTED",
+                default = "SCREEN_ON"
+            ),
             stringField("deviceName"),
             stringField("deviceAddress")
         )

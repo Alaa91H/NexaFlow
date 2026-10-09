@@ -625,7 +625,6 @@
     <string name="volume_above">Above</string>
     <string name="volume_below">Below</string>
     <string name="volume_threshold">Threshold</string>
-    <string name="optional_package">Package (optional)</string>
     <string name="action_set_setting">Set setting</string>
     <string name="action_set_setting_sub">Write any system setting</string>
     <string name="action_screenshot">Screenshot</string>

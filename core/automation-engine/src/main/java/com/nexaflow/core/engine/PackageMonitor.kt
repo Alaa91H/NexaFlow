@@ -41,15 +41,10 @@ class PackageMonitor @Inject constructor(
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
-            val event = when (intent.action) {
-                Intent.ACTION_PACKAGE_ADDED -> {
-                    if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) "UPDATED" else "INSTALLED"
-                }
-                Intent.ACTION_PACKAGE_REMOVED -> {
-                    if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) "UPDATED" else "REMOVED"
-                }
-                else -> return
-            }
+            val event = PackageEventClassifier.classify(
+                action = intent.action,
+                replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+            )?.name ?: return
             val pkg = intent.data?.schemeSpecificPart ?: return
             // Reuse this existing package lifecycle source: registry discovery
             // remains lazy and performs no background scan until a consumer asks.

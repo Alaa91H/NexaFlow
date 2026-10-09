@@ -581,7 +581,6 @@
     <string name="volume_above">Выше</string>
     <string name="volume_below">Ниже</string>
     <string name="volume_threshold">Порог</string>
-    <string name="optional_package">Пакет (необязательно)</string>
     <string name="action_set_setting">Установить параметр</string>
     <string name="action_set_setting_sub">Записать любой параметр системы</string>
     <string name="action_screenshot">Скриншот</string>

@@ -584,7 +584,6 @@
     <string name="volume_above">Über</string>
     <string name="volume_below">Unter</string>
     <string name="volume_threshold">Schwelle</string>
-    <string name="optional_package">Paket (optional)</string>
     <string name="action_set_setting">Einstellung setzen</string>
     <string name="action_set_setting_sub">Beliebige Systemeinstellung schreiben</string>
     <string name="action_screenshot">Screenshot</string>
