@@ -10,8 +10,12 @@
   `metered` ANY/YES/NO filters and optional exact SSID/BSSID filters.
 - Runtime reads `NetworkCapabilities` and Wi-Fi `transportInfo`. A known failed
   filter is a non-match; unavailable/redacted identity remains UNKNOWN and does
-  not synthesize an exit. SSID/BSSID editing requests the existing fine-location
-  runtime permission path.
+  not synthesize an exit. The runtime explicitly checks fine-location permission
+  before reading identity; SSID/BSSID editing requests the existing permission
+  path, and a revoke/regrant is observed as UNKNOWN until a later permitted read.
+- One `@Suppress("DEPRECATION")` keeps the `WifiManager.connectionInfo`
+  fallback for Android 8/9, where `NetworkCapabilities.transportInfo` is not
+  available. The suppression budget records this compatibility fallback.
 - VPN remains the existing `VPN_CONNECTED` state trigger in
   `DeviceStateMonitor28`; no duplicate trigger enum or source was added.
 - Reachability uses Android's framework-owned `NET_CAPABILITY_VALIDATED` signal.
@@ -20,7 +24,7 @@
 
 ## Local verification
 
-- `:core:common:testDebugUnitTest --tests com.nexaflow.core.common.ReaderStateTest` — PASS (8 tests).
+- `:core:common:testDebugUnitTest --tests com.nexaflow.core.common.ReaderStateTest` — PASS (9 tests).
 - `:domain:testDebugUnitTest --tests com.nexaflow.domain.catalog.TriggerNodeSchemasTest` — PASS (1 test).
 - `:core:automation-engine:testDebugUnitTest --tests com.nexaflow.core.engine.ConnectivityMonitorExitReconcileTest` — PASS (3 tests).
 - `:feature:automation-builder:compileDebugKotlin` — PASS.

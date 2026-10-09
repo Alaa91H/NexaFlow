@@ -199,6 +199,29 @@ class ReaderStateTest {
     }
 
     @Test
+    @Config(sdk = [34])
+    fun `wifi identity is unknown when location permission is revoked`() {
+        shadowOf(context.applicationContext as android.app.Application)
+            .denyPermissions(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        val wifiInfo = ShadowWifiInfo.newInstance()
+        shadowOf(wifiInfo).setSSID("Studio Wi-Fi")
+        val capabilities = ShadowNetworkCapabilities.newInstance()
+        shadowOf(capabilities).apply {
+            addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            setTransportInfo(wifiInfo)
+        }
+
+        assertEquals(
+            null,
+            DefaultNetworkStateReader.matchesWifiIdentity(
+                context,
+                DefaultNetworkSnapshot.Available(capabilities),
+                expectedSsid = "Studio Wi-Fi"
+            )
+        )
+    }
+
+    @Test
     fun `cellular reader returns null when no telephony service answers`() {
         assertNull(CellularNetworkReader.read(context))
     }

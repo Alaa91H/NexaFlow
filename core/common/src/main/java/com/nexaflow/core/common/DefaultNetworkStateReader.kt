@@ -133,8 +133,7 @@ object DefaultNetworkStateReader {
      * than a mismatch, so a missing runtime grant cannot fire an exit or claim
      * that a different access point is connected.
      */
-    @SuppressLint("MissingPermission")
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION") // API 26-28 expose Wi-Fi identity only through WifiManager.connectionInfo.
     fun matchesWifiIdentity(
         context: Context,
         snapshot: DefaultNetworkSnapshot,
@@ -151,6 +150,11 @@ object DefaultNetworkStateReader {
             DefaultNetworkSnapshot.Unavailable -> return null
         }
         if (!capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return false
+        if (context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            return null
+        }
 
         val wifiInfo = runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
