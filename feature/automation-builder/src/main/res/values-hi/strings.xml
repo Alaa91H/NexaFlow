@@ -48,6 +48,10 @@
     <string name="refresh">रीफ़्रेश</string>
     <string name="trigger_type_location">स्थान</string>
     <string name="trigger_time">ट्रिगर समय</string>
+    <string name="time_exclusions_title">तिथियाँ छोड़ें</string>
+    <string name="time_exclusions_hint">चुनी गई तिथियों पर यह शेड्यूल नहीं चलेगा।</string>
+    <string name="time_exclusions_add">अपवाद तिथि जोड़ें</string>
+
     <string name="package_name">पैकेज नाम</string>
     <string name="choose_from_installed">इंस्टॉल किए गए ऐप्स से चुनें</string>
     <string name="app_detection_hint">ऐप पहचान के लिए एक्सेसिबिलिटी सेवा आवश्यक है</string>

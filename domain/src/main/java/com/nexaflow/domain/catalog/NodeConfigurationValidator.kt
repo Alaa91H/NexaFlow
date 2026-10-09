@@ -1,5 +1,7 @@
 package com.nexaflow.domain.catalog
 
+import java.time.LocalDate
+
 /**
  * Stable machine-readable validation codes. UI layers localize these codes;
  * execution/history must never embed sensitive config values in an issue.
@@ -11,7 +13,8 @@ enum class NodeConfigIssueCode {
     INVALID_INTEGER,
     INVALID_DECIMAL,
     INVALID_ENUM,
-    OUT_OF_RANGE
+    OUT_OF_RANGE,
+    INVALID_DATE_LIST
 }
 
 data class NodeConfigValidationIssue(
@@ -44,6 +47,14 @@ object NodeConfigurationValidator {
             if (value.isNullOrBlank() || isDynamic(field, value)) return@forEach
 
             issues += validateLiteral(field, value)
+        }
+
+        config["excludedDates"]?.takeIf { "excludedDates" in schema.knownKeys && it.isNotBlank() }?.let { raw ->
+            val values = raw.split(',').map(String::trim)
+            val valid = raw.length <= 640 && values.size <= 64 &&
+                values.none(String::isBlank) && values.distinct().size == values.size &&
+                values.all { value -> runCatching { LocalDate.parse(value) }.isSuccess }
+            if (!valid) issues += NodeConfigValidationIssue("excludedDates", NodeConfigIssueCode.INVALID_DATE_LIST)
         }
 
         if (!schema.acceptsUnknownKeys) {

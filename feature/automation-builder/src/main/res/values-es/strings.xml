@@ -51,6 +51,10 @@
     <string name="refresh">Actualizar</string>
     <string name="trigger_type_location">Ubicación</string>
     <string name="trigger_time">Hora del disparador</string>
+    <string name="time_exclusions_title">Excluir fechas</string>
+    <string name="time_exclusions_hint">Este horario se omite en las fechas seleccionadas.</string>
+    <string name="time_exclusions_add">Añadir fecha excluida</string>
+
     <string name="package_name">Nombre del paquete</string>
     <string name="choose_from_installed">Elegir entre las apps instaladas</string>
     <string name="app_detection_hint">La detección de apps necesita el servicio de accesibilidad</string>

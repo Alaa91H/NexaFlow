@@ -25,7 +25,8 @@ internal object TriggerNodeSchemas {
             integerField("weekday", min = 1.0, max = 7.0),
             enumField("weekOfMonth", "1", "2", "3", "4", "5", "LAST", default = "1"),
             enumField("zonePolicy", "DEVICE_LOCAL", "FIXED_IANA", default = "DEVICE_LOCAL"),
-            stringField("zoneId")
+            stringField("zoneId"),
+            stringField("excludedDates")
         )
         TriggerType.BATTERY -> schema(
             enumField("direction", "ABOVE", "BELOW", default = "ABOVE"),

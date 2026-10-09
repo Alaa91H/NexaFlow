@@ -51,6 +51,10 @@
     <string name="refresh">Aktualisieren</string>
     <string name="trigger_type_location">Standort</string>
     <string name="trigger_time">Trigger-Zeit</string>
+    <string name="time_exclusions_title">Daten ausschließen</string>
+    <string name="time_exclusions_hint">Dieser Zeitplan wird an ausgewählten Daten übersprungen.</string>
+    <string name="time_exclusions_add">Ausnahmedatum hinzufügen</string>
+
     <string name="package_name">Paketname</string>
     <string name="choose_from_installed">Aus installierten Apps wählen</string>
     <string name="app_detection_hint">App-Erkennung benötigt den Barrierefreiheitsdienst</string>

@@ -51,6 +51,10 @@
     <string name="refresh">Actualiser</string>
     <string name="trigger_type_location">Position</string>
     <string name="trigger_time">Heure du déclencheur</string>
+    <string name="time_exclusions_title">Exclure des dates</string>
+    <string name="time_exclusions_hint">Cette programmation est ignorée aux dates sélectionnées.</string>
+    <string name="time_exclusions_add">Ajouter une date exclue</string>
+
     <string name="package_name">Nom du paquet</string>
     <string name="choose_from_installed">Choisir parmi les applications installées</string>
     <string name="app_detection_hint">La détection d\u2019applications nécessite le service d\u2019accessibilité</string>
