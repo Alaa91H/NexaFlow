@@ -2,24 +2,30 @@
 
 ## [Unreleased]
 
-### Trigger expressions
+## [v3.91.11] - 2026-10-09
 
-- Add opt-in, schema-v2 trigger expressions with bounded AND/OR/NOT-state, ordered sequence, and count-within operators while preserving legacy ANY/ALL behavior when no expression is configured.
-- Persist minimal HMAC-keyed monotonic temporal history with strict size/retention limits and fail-closed handling for invalid or unavailable state; add a builder preview using the shared runtime evaluator.
+### Triggers and scheduling
 
-### Audit tooling
+- Add opt-in, schema-v2 trigger expressions with bounded AND/OR/NOT-state, ordered sequence, and count-within operators. Existing ANY/ALL workflows keep their prior behavior when no expression is configured.
+- Store only bounded HMAC-keyed temporal event history, fail closed when history is invalid or unavailable, and preview expressions with the same evaluator used at runtime.
+- Add bounded temporal trigger filters for rate limits, minimum intervals, cooldowns, and debounce; revalidate deferred work before it executes.
+- Add optional excluded local dates to recurring time triggers, with a 64-date limit and fail-closed validation for malformed persisted data.
 
-- Generate deterministic trigger/action, operation, field-parity, lifecycle, plugin-flow, and ranked-hotspot inventories; CI fails when committed audit output drifts from source.
-- Label static candidates and unverified device behavior explicitly; inventory generation does not claim runtime correctness or OEM support.
-- Trace literal configuration reads inside each node's own dispatch arm, flag handler-unread declared fields, and classify shared data-operation fields by action type.
-- Add an evidence-backed atomic finding register with exact source references, explicit confidence classes, hash-pinned test logs, and deterministic lint/tests in CI.
-- Capture the current Windows DataStore write-replacement failures as a confirmed follow-up for T03, with the exact 46-test/5-failure report set preserved.
+### Runtime reliability
 
-### Tests and reliability
+- Persist trigger occurrence admission to prevent duplicate execution across process recovery.
+- Apply the shared scheduling policy after boot and classify late deliveries as misfires before action side effects.
+- Preserve crash-recovery evidence and require safe review before resuming uncertain work.
+- Fence plugin-router lifecycle races and improve task fairness and restore ownership.
 
-- Add a merged-manifest regression test that keeps private app data excluded from cloud backup and device transfer.
-- Cover SIM subscription change detection, duplicate callback suppression, and gate reset behavior; physical-device soak remains pending.
-- Record the unresolved locked-boot/direct-boot behavior and required storage design decision.
+### Audit and validation
+
+- Generate deterministic trigger/action, operation, field-parity, lifecycle, plugin-flow, and hotspot inventories, and fail CI when generated evidence drifts from source.
+- Add evidence-backed audit findings with source references, confidence classes, and deterministic CI checks.
+- Pin Android test tooling to a supported Robolectric API on Windows and add regression coverage for the manifest backup policy and telephony subscription changes.
+- Physical-device, emulator integration, and multi-OEM soak results are not included in this release evidence.
+
+## [Unreleased]
 
 ## [v3.91.10] - 2026-10-05
 
