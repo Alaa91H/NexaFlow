@@ -13,6 +13,9 @@ import com.nexaflow.domain.canonical.LegacyMappingTable
 import com.nexaflow.domain.canonical.LegacyNodeInput
 import com.nexaflow.domain.canonical.LegacyNodeKind
 import com.nexaflow.domain.canonical.NodeSchema
+import com.nexaflow.domain.canonical.NodeFieldType
+import com.nexaflow.domain.canonical.CanonicalFieldId
+import com.nexaflow.domain.canonical.NodeSchemaField
 import com.nexaflow.domain.canonical.NodeSchemaKind
 import com.nexaflow.domain.canonical.PilotOpenFamily
 import com.nexaflow.domain.catalog.AutomationNodeCatalog
@@ -147,6 +150,94 @@ internal object CanonicalBuilderSchemaBridge {
             return null
         }
         return catalogBindingForTrigger(type)
+    }
+
+    /** Shared typed filter controls for specialized and advanced trigger editors. */
+    fun temporalFiltersBindingForTrigger(type: TriggerType): CanonicalBuilderSchemaBinding? {
+        val full = catalogBindingForTrigger(type)
+        val fields = full.schema.fields
+            .filter { it.id.value in temporalFilterFieldIds }
+            .map { field ->
+                field.copy(
+                    minimum = if (field.id.value in temporalDurationFieldIds) 0L else field.minimum,
+                    maximum = if (field.id.value in temporalDurationFieldIds) {
+                        604_800_000L
+                    } else {
+                        field.maximum
+                    },
+                    type = temporalFieldTypes.getValue(field.id.value),
+                )
+            }
+            .toMutableList()
+        val fieldIds = fields.mapTo(linkedSetOf()) { it.id.value }
+        temporalFieldTypes.forEach { (id, fieldType) ->
+            if (id !in fieldIds && id in supportedTemporalFields(type)) {
+                fields += NodeSchemaField(
+                    id = CanonicalFieldId(id),
+                    type = fieldType,
+                    minimum = temporalMinimum(id),
+                    maximum = temporalMaximum(id, type),
+                )
+            }
+        }
+        if (fields.isEmpty()) return null
+        return full.copy(schema = full.schema.copy(fields = fields))
+    }
+
+    private val temporalDurationFieldIds = setOf(
+        "debounceMs",
+        "rateLimitWindowMs",
+        "minIntervalMs",
+        "cooldownMs",
+        "stableForMs",
+    )
+
+    private val temporalFilterFieldIds = setOf(
+        "debounceMs",
+        "rateLimitCount",
+        "rateLimitWindowMs",
+        "minIntervalMs",
+        "cooldownMs",
+        "stableForMs",
+        "hysteresis",
+    )
+
+    private val temporalFieldTypes = mapOf(
+        "debounceMs" to NodeFieldType.DURATION_MS,
+        "rateLimitCount" to NodeFieldType.INTEGER,
+        "rateLimitWindowMs" to NodeFieldType.DURATION_MS,
+        "minIntervalMs" to NodeFieldType.DURATION_MS,
+        "cooldownMs" to NodeFieldType.DURATION_MS,
+        "stableForMs" to NodeFieldType.DURATION_MS,
+        "hysteresis" to NodeFieldType.DECIMAL,
+    )
+
+    private fun supportedTemporalFields(type: TriggerType): Set<String> = when (type) {
+        TriggerType.VOLUME_CHANGED -> setOf("debounceMs", "stableForMs", "hysteresis")
+        TriggerType.BATTERY,
+        TriggerType.BRIGHTNESS_LEVEL,
+        TriggerType.WIFI_SIGNAL_STRENGTH,
+        TriggerType.CELL_SIGNAL_STRENGTH,
+        TriggerType.BATTERY_TEMPERATURE -> setOf("stableForMs", "hysteresis")
+        else -> emptySet()
+    }
+
+    private fun temporalMinimum(id: String): Long? = when (id) {
+        "rateLimitCount" -> 1L
+        else -> 0L
+    }
+
+    private fun temporalMaximum(id: String, type: TriggerType): Long? = when (id) {
+        "rateLimitCount" -> 1_000L
+        "debounceMs", "rateLimitWindowMs", "minIntervalMs", "cooldownMs", "stableForMs" -> 604_800_000L
+        "hysteresis" -> when (type) {
+            TriggerType.BATTERY, TriggerType.VOLUME_CHANGED -> 100L
+            TriggerType.BRIGHTNESS_LEVEL -> 255L
+            TriggerType.WIFI_SIGNAL_STRENGTH, TriggerType.CELL_SIGNAL_STRENGTH -> 4L
+            TriggerType.BATTERY_TEMPERATURE -> 100L
+            else -> null
+        }
+        else -> null
     }
 
     private fun catalogBindingForAction(type: ActionType): CanonicalBuilderSchemaBinding {

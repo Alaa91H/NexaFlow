@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import android.os.SystemClock
 import android.util.Log
 import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.database.AgentApprovalValidator
@@ -155,7 +156,7 @@ class ExecutionEngine(
     private val runListener: AutomationRunListener = AutomationRunListener.NO_OP,
     private val canonicalNodeDispatcher: com.nexaflow.core.execution.canonical.CanonicalNodeDispatcher? = null,
     private val canonicalTriggerDispatcher: com.nexaflow.core.execution.canonical.CanonicalTriggerDispatcher? = null,
-    internal val agentApprovalValidator: AgentApprovalValidator? = null
+    internal val agentApprovalValidator: AgentApprovalValidator? = null,
 ) {
     internal val diagnostics = ExecutionDiagnostics(
         context = context,
@@ -235,6 +236,9 @@ class ExecutionEngine(
     private val runningAutomationIds =
         java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
+    /** Bounded optional per-trigger temporal policy. */
+    internal val temporalFilterPolicy = TriggerTemporalRuntimePolicy()
+
     /** Same-process replay protection for sources with a trustworthy event id. */
     private val occurrenceDeduplicator = TriggerOccurrenceDeduplicator()
 
@@ -304,6 +308,8 @@ class ExecutionEngine(
             diagnostics.recordTimeline(automation, "AGENT_APPROVAL_REJECTED", record, startedAt, payloadContext.runId)
             return record
         }
+
+        rejectTemporalOccurrence(automation, triggerOccurrence, bypassTriggerMatch, startedAt)?.let { return it }
 
         // Single-flight admission is intentionally process-local. The durable
         // checkpoint store handles crash recovery; this guard prevents two live
@@ -1427,6 +1433,7 @@ class ExecutionEngine(
 
     /** Discards any stored snapshot (e.g. when the automation is deleted). */
     suspend fun clearSnapshot(automationId: String) {
+        temporalFilterPolicy.clear(automationId)
         snapshots.remove(automationId)
         activeExecutions.remove(automationId)
         executionProgressTracker.clear(automationId)
@@ -1461,6 +1468,7 @@ class ExecutionEngine(
      * it is the deliberate policy boundary that makes this id unreachable.
      */
     suspend fun onAutomationDeleted(automationId: String) {
+        temporalFilterPolicy.clear(automationId)
         snapshots.remove(automationId)
         activeExecutions.remove(automationId)
         executionProgressTracker.clear(automationId)
@@ -1604,38 +1612,5 @@ class ExecutionEngine(
             ),
         )
     }
-
-    /**
-     * Makes Tasker setting outputs available to actions later in the same run as
-     * `%CTX.pluginOutputs.<lower_case_name>`. Values remain execution-local.
-     */
-    private fun publishPluginOutputVariables(
-        metadata: Map<String, String>,
-        runContext: WorkflowRunContext?
-    ) {
-        val context = runContext ?: return
-        val outputs = metadata
-            .asSequence()
-            .filter { (key, _) -> key.startsWith("pluginOutput.") }
-            .associate { (key, value) -> key.removePrefix("pluginOutput.") to value }
-        if (outputs.isEmpty()) return
-        val merged = LinkedHashMap<String, Any?>()
-        (context.get("$.pluginOutputs") as? Map<*, *>)
-            ?.forEach { (key, value) -> if (key is String) merged[key] = value }
-        merged.putAll(outputs)
-        // The client bounds the collection and every value. The run-context
-        // budget remains authoritative, and a rejected best-effort publication
-        // must not turn a successful external action into a failure.
-        runCatching { context.put("$.pluginOutputs", merged) }
-    }
-
-    private fun ConditionResult.toGateMessage(): String = when (this) {
-        ConditionResult.Satisfied -> "constraints satisfied"
-        ConditionResult.Unsatisfied -> "constraints not met"
-        ConditionResult.Unknown -> "constraint state is unknown"
-        ConditionResult.Unavailable -> "constraint provider is unavailable"
-        is ConditionResult.Error -> "constraint evaluation error: $reason"
-    }
-
 
 }

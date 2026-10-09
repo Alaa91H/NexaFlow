@@ -1314,4 +1314,5 @@
     <string name="bluetooth_advanced_hide">Скрыть расширенные настройки</string>
     <string name="bluetooth_device_name">Имя устройства</string>
     <string name="bluetooth_device_address">MAC-адрес</string>
+    <string name="trigger_temporal_filters_title">Временные фильтры</string>
 </resources>

@@ -259,6 +259,8 @@ fun TriggerEditorCard(
                     onConfirm = { onExpandedChange(false) },
                     onDismiss = { onExpandedChange(false) }
                 ) {
+                    val temporalFiltersBinding =
+                        CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger(draft.type)
                     // A task card configures its already-selected trigger only.
                     // Simple contracts render directly from the canonicalized
                     // catalog schema. Platform pickers and advanced contracts
@@ -273,6 +275,20 @@ fun TriggerEditorCard(
                                 onConfigChange(draft.copy(config = updated))
                             },
                         )
+                        if (temporalFiltersBinding != null) {
+                            HorizontalDivider()
+                            Text(
+                                text = stringResource(R.string.trigger_temporal_filters_title),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            CanonicalSchemaFieldEditor(
+                                binding = temporalFiltersBinding,
+                                config = draft.config,
+                                onConfigChange = { updated ->
+                                    onConfigChange(draft.copy(config = updated))
+                                },
+                            )
+                        }
                     } else {
                         when (draft.type) {
                 TriggerType.TIME -> {
@@ -2172,6 +2188,20 @@ fun TriggerEditorCard(
                 // visible but cannot be changed to an unsafe partial config.
                 TriggerType.PLUGIN_EVENT ->
                     Text(text = stringResource(R.string.plugin_no_edit), style = MaterialTheme.typography.bodyMedium)
+                        }
+                        if (temporalFiltersBinding != null) {
+                            HorizontalDivider()
+                            Text(
+                                text = stringResource(R.string.trigger_temporal_filters_title),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            CanonicalSchemaFieldEditor(
+                                binding = temporalFiltersBinding,
+                                config = draft.config,
+                                onConfigChange = { updated ->
+                                    onConfigChange(draft.copy(config = updated))
+                                },
+                            )
                         }
                     }
                 }

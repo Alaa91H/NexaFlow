@@ -33,7 +33,13 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.evaluateTriggerThreshold
+import com.nexaflow.core.execution.evaluateTriggerStability
 import com.nexaflow.core.execution.TriggerOccurrence
+import com.nexaflow.core.execution.TriggerStabilityRecheckQueue
+import com.nexaflow.domain.models.ConditionResult
+import com.nexaflow.domain.schedule.TriggerFilterReason
+import com.nexaflow.domain.schedule.TriggerTemporalFilterConfigParser
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -91,6 +97,7 @@ class DeviceStateMonitor28 @Inject constructor(
 
     /** Serializes callbacks/observers/edit reconciliation for one durable lifecycle. */
     private val evaluationMutex = Mutex()
+    private val stabilityRechecks = TriggerStabilityRecheckQueue(scope)
 
     @Volatile
     private var lastHdmiPlugged: Boolean? = null
@@ -390,35 +397,24 @@ class DeviceStateMonitor28 @Inject constructor(
         automations
             .filter { it.enabled && it.triggers.any { trigger -> trigger.type in STATE_TRIGGERS } }
             .forEach { automation ->
-                val trigger = automation.triggers.first { it.type in STATE_TRIGGERS }
+                val triggerIndex = automation.triggers.indexOfFirst { it.type in STATE_TRIGGERS }
+                val trigger = automation.triggers[triggerIndex]
                 val current = runtimeStore.current(automation.id)
-                val satisfied = runCatching {
-                    isSatisfied(trigger.type, trigger.config)
-                }.getOrNull()
+                val observation = runCatching { evaluateConfiguredState(automation, triggerIndex) }
+                    .getOrElse { ConditionResult.Unknown }
 
-                when (satisfied) {
-                    true -> when {
+                when (observation) {
+                    ConditionResult.Satisfied -> when {
                         current?.source == SOURCE -> markLegacyActive(current)
                         current != null -> clearLegacyState(automation.id)
-                        else -> activate(automation, trigger.type)
+                        else -> activate(automation, trigger.type, triggerIndex)
                     }
-
-                    false -> {
-                        if (current?.source == SOURCE) {
-                            requestExit(
-                                automation = automation,
-                                reason = ExitReason.TRIGGER_FALSE,
-                                occurrenceId = current.occurrenceId
-                            )
-                        } else if (current == null) {
-                            clearLegacyState(automation.id)
-                        }
+                    ConditionResult.Unsatisfied -> {
+                        if (current?.source == SOURCE) requestExit(
+                            automation, ExitReason.TRIGGER_FALSE, current.occurrenceId,
+                        ) else if (current == null) clearLegacyState(automation.id)
                     }
-
-                    null -> {
-                        if (current?.source == SOURCE) markLegacyActive(current)
-                        else if (current == null) clearLegacyState(automation.id)
-                    }
+                    else -> if (current?.source == SOURCE) markLegacyActive(current)
                 }
             }
     }
@@ -477,13 +473,10 @@ class DeviceStateMonitor28 @Inject constructor(
         }
     }
 
-    private suspend fun activate(automation: Automation, type: TriggerType) {
+    private suspend fun activate(automation: Automation, type: TriggerType, triggerIndex: Int) {
         val occurrenceId = "device-state:${automation.id}:${UUID.randomUUID()}"
         val sourceKey = "${automation.id}|${type.name}"
         val now = System.currentTimeMillis()
-        val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
-            index.takeIf { trigger.type == type }
-        }.toSet()
 
         executionEngine.runAutomation(
             automation = automation,
@@ -493,7 +486,7 @@ class DeviceStateMonitor28 @Inject constructor(
                 sourceKey = sourceKey
             ),
             triggerOccurrence = TriggerOccurrence(
-                matchedTriggerIndices = matchedTriggerIndices,
+                matchedTriggerIndices = setOf(triggerIndex),
                 occurredAtEpochMs = now,
                 sourceId = SOURCE
             )
@@ -537,6 +530,62 @@ class DeviceStateMonitor28 @Inject constructor(
         activeStore.clearAutomation(SOURCE, automationId)
     }
 
+    private fun evaluateConfiguredState(automation: Automation, index: Int): ConditionResult {
+        val trigger = automation.triggers.getOrNull(index) ?: return ConditionResult.Unknown
+        val config = trigger.config
+        val thresholdValue = when (trigger.type) {
+            TriggerType.WIFI_SIGNAL_STRENGTH -> currentWifiRssi()?.let(::wifiSignalLevel)?.toDouble()
+            TriggerType.CELL_SIGNAL_STRENGTH -> {
+                val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    ?: return ConditionResult.Unknown
+                runCatching {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) telephony.signalStrength?.level?.toDouble()
+                    else null
+                }.getOrNull()
+            }
+            TriggerType.BATTERY_TEMPERATURE -> {
+                val intent = runCatching {
+                    context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                }.getOrNull() ?: return ConditionResult.Unknown
+                val raw = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
+                if (raw == Int.MIN_VALUE || raw < 0) null else raw / 10.0
+            }
+            else -> null
+        }
+        val observation = if (trigger.type in THRESHOLD_TRIGGERS) {
+            val value = thresholdValue ?: return ConditionResult.Unknown.also {
+                stabilityRechecks.cancel("${automation.id}:$index")
+                executionEngine.evaluateTriggerStability(automation, index, ConditionResult.Unknown)
+            }
+            val fallback = when (trigger.type) {
+                TriggerType.WIFI_SIGNAL_STRENGTH, TriggerType.CELL_SIGNAL_STRENGTH -> "3"
+                else -> "40"
+            }
+            val threshold = (config["threshold"] ?: fallback).toDoubleOrNull()
+                ?: return ConditionResult.Unknown
+            executionEngine.evaluateTriggerThreshold(
+                automation = automation,
+                triggerIndex = index,
+                value = value,
+                threshold = threshold,
+                above = (config["direction"] ?: "ABOVE") != "BELOW",
+            )
+        } else when (isSatisfied(trigger.type, config)) {
+            true -> ConditionResult.Satisfied
+            false -> ConditionResult.Unsatisfied
+            null -> ConditionResult.Unknown
+        }
+        val stable = executionEngine.evaluateTriggerStability(automation, index, observation)
+        val recheckKey = "${automation.id}:$index"
+        val stableForMs = (TriggerTemporalFilterConfigParser.parse(config)
+            as? com.nexaflow.domain.schedule.TriggerFilterConfigParse.Valid)?.config?.stableForMs
+        if (stable.reason == TriggerFilterReason.STABILITY_PENDING && stableForMs != null) {
+            stabilityRechecks.schedule(recheckKey, stableForMs) { reconcileStateTriggers() }
+        } else {
+            stabilityRechecks.cancel(recheckKey)
+        }
+        return stable.result
+    }
     /** Evaluates a single state trigger against the live device state. */
     internal fun isSatisfied(type: TriggerType, config: Map<String, String>): Boolean? {
         val wantOn = (config["state"] ?: "ON") == "ON"
@@ -680,6 +729,11 @@ class DeviceStateMonitor28 @Inject constructor(
         const val MIN_WIFI_RSSI = -100
         const val MAX_WIFI_RSSI = -55
         const val WIFI_SIGNAL_LEVELS = 5
+        val THRESHOLD_TRIGGERS = setOf(
+            TriggerType.WIFI_SIGNAL_STRENGTH,
+            TriggerType.CELL_SIGNAL_STRENGTH,
+            TriggerType.BATTERY_TEMPERATURE,
+        )
         val STATE_TRIGGERS = setOf(
             TriggerType.DND_STATE,
             TriggerType.STAY_AWAKE_STATE,

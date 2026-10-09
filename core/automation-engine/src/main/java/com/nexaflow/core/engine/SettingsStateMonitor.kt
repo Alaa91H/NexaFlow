@@ -23,6 +23,13 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.evaluateTriggerThreshold
+import com.nexaflow.core.execution.evaluateTriggerStability
+import com.nexaflow.core.execution.TriggerOccurrence
+import com.nexaflow.core.execution.TriggerStabilityRecheckQueue
+import com.nexaflow.domain.models.ConditionResult
+import com.nexaflow.domain.schedule.TriggerFilterReason
+import com.nexaflow.domain.schedule.TriggerTemporalFilterConfigParser
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -67,6 +74,7 @@ class SettingsStateMonitor @Inject constructor(
     private val activeStates = ConcurrentHashMap<String, String>()
     private val lastRunAt = ConcurrentHashMap<String, Long>()
     private val evaluationMutex = Mutex()
+    private val stabilityRechecks = TriggerStabilityRecheckQueue(scope)
     private var lastKnownAutomations: Map<String, Automation> = emptyMap()
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -177,13 +185,38 @@ class SettingsStateMonitor @Inject constructor(
     }
 
     private suspend fun evaluateAutomation(automation: Automation, trigger: Trigger) {
-        when (evaluate(trigger.type, trigger.config)) {
-            ConditionState.SATISFIED -> activateIfNeeded(automation, trigger)
-            ConditionState.NOT_SATISFIED -> requestConditionExit(automation)
-            ConditionState.UNKNOWN -> Unit
+        val index = automation.triggers.indexOfFirst { it === trigger }.takeIf { it >= 0 }
+            ?: automation.triggers.indexOfFirst { it.type == trigger.type }
+        val observed = if (trigger.type == TriggerType.BRIGHTNESS_LEVEL && index >= 0) {
+            val value = runCatching {
+                Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS)
+            }.getOrNull()
+            if (value == null) ConditionResult.Unknown else {
+                val threshold = (trigger.config["threshold"] ?: "128").toDoubleOrNull() ?: 128.0
+                val above = (trigger.config["direction"] ?: "ABOVE") != "BELOW"
+                executionEngine.evaluateTriggerThreshold(automation, index, value.toDouble(), threshold, above)
+            }
+        } else when (evaluate(trigger.type, trigger.config)) {
+            ConditionState.SATISFIED -> ConditionResult.Satisfied
+            ConditionState.NOT_SATISFIED -> ConditionResult.Unsatisfied
+            ConditionState.UNKNOWN -> ConditionResult.Unknown
+        }
+        val stable = if (index >= 0) executionEngine.evaluateTriggerStability(automation, index, observed)
+            else com.nexaflow.domain.schedule.TriggerStateDecision(observed)
+        val recheckKey = "${automation.id}:$index"
+        val stableForMs = (TriggerTemporalFilterConfigParser.parse(trigger.config)
+            as? com.nexaflow.domain.schedule.TriggerFilterConfigParse.Valid)?.config?.stableForMs
+        if (stable.reason == TriggerFilterReason.STABILITY_PENDING && stableForMs != null) {
+            stabilityRechecks.schedule(recheckKey, stableForMs) { evaluateAll() }
+        } else {
+            stabilityRechecks.cancel(recheckKey)
+        }
+        when (stable.result) {
+            ConditionResult.Satisfied -> activateIfNeeded(automation, trigger)
+            ConditionResult.Unsatisfied -> requestConditionExit(automation)
+            else -> Unit
         }
     }
-
     private suspend fun activateIfNeeded(automation: Automation, trigger: Trigger) {
         val existing = runtimeStore.current(automation.id)
         if (existing?.source == SOURCE) {
@@ -205,8 +238,13 @@ class SettingsStateMonitor @Inject constructor(
         val sourceKey = sourceKey(automation.id, trigger)
         val occurrenceId = "settings:${automation.id}:${UUID.randomUUID()}"
         lastRunAt[automation.id] = now
+        val triggerIndex = automation.triggers.indexOfFirst { it === trigger }.takeIf { it >= 0 }
+            ?: automation.triggers.indexOfFirst { it.type == trigger.type }
         executionEngine.runAutomation(
             automation = automation,
+            triggerOccurrence = triggerIndex.takeIf { it >= 0 }?.let { index ->
+                TriggerOccurrence.single(index, now, sourceId = SOURCE, eventId = occurrenceId)
+            },
             lifecycleContext = AutomationLifecycleContext(
                 occurrenceId = occurrenceId,
                 source = SOURCE,

@@ -1314,4 +1314,5 @@
     <string name="bluetooth_advanced_hide">उन्नत विकल्प छिपाएँ</string>
     <string name="bluetooth_device_name">डिवाइस का नाम</string>
     <string name="bluetooth_device_address">MAC पता</string>
+    <string name="trigger_temporal_filters_title">समय-आधारित फ़िल्टर</string>
 </resources>

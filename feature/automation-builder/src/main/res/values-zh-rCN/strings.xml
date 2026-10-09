@@ -1314,4 +1314,5 @@
     <string name="bluetooth_advanced_hide">隐藏高级选项</string>
     <string name="bluetooth_device_name">设备名称</string>
     <string name="bluetooth_device_address">MAC 地址</string>
+    <string name="trigger_temporal_filters_title">时间筛选器</string>
 </resources>

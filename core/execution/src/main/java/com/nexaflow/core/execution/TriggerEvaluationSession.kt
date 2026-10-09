@@ -29,6 +29,8 @@ data class TriggerOccurrence(
     val eventId: String? = null,
     /** Bounded, process-local values used by communication reply actions. Never persisted or logged. */
     val eventData: Map<String, String> = emptyMap(),
+    /** Trigger indices admitted by their source after a trailing-edge debounce window. */
+    val debounceAdmittedTriggerIndices: Set<Int> = emptySet(),
 ) {
     init {
         require(matchedTriggerIndices.isNotEmpty()) {
@@ -36,6 +38,9 @@ data class TriggerOccurrence(
         }
         require(matchedTriggerIndices.all { it >= 0 }) {
             "TriggerOccurrence indices must be non-negative"
+        }
+        require(debounceAdmittedTriggerIndices.all { it in matchedTriggerIndices }) {
+            "Debounce admission must reference a matched trigger"
         }
         require(occurredAtEpochMs >= 0L) {
             "TriggerOccurrence timestamp must be non-negative"
@@ -64,12 +69,14 @@ data class TriggerOccurrence(
             sourceId: String? = null,
             eventId: String? = null,
             eventData: Map<String, String> = emptyMap(),
+            debounceAdmitted: Boolean = false,
         ): TriggerOccurrence = TriggerOccurrence(
             matchedTriggerIndices = setOf(triggerIndex),
             occurredAtEpochMs = occurredAtEpochMs,
             sourceId = sourceId,
             eventId = eventId,
             eventData = eventData.toMap(),
+            debounceAdmittedTriggerIndices = if (debounceAdmitted) setOf(triggerIndex) else emptySet(),
         )
 
         private val ALLOWED_EVENT_DATA_KEYS = setOf(

@@ -1312,4 +1312,5 @@
     <string name="bluetooth_advanced_hide">إخفاء الخيارات المتقدمة</string>
     <string name="bluetooth_device_name">اسم الجهاز</string>
     <string name="bluetooth_device_address">عنوان MAC</string>
+    <string name="trigger_temporal_filters_title">فلاتر التوقيت</string>
 </resources>

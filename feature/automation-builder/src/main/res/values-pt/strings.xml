@@ -1314,4 +1314,5 @@
     <string name="bluetooth_advanced_hide">Ocultar opções avançadas</string>
     <string name="bluetooth_device_name">Nome do dispositivo</string>
     <string name="bluetooth_device_address">Endereço MAC</string>
+    <string name="trigger_temporal_filters_title">Filtros temporais</string>
 </resources>
