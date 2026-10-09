@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">Amostra: condição não satisfeita (eventos anteriores simulados)</string>
     <string name="trigger_expression_invalid">Expressão inválida ou fonte não compatível. Corrija antes de salvar.</string>
     <string name="trigger_expression_unsupported_source">Escolha um gatilho compatível</string>
+    <string name="network_validated">Internet validada</string>
+    <string name="network_captive_portal">Portal cativo</string>
+    <string name="network_metered">Rede limitada por dados</string>
+    <string name="network_ssid">Nome do Wi-Fi (SSID)</string>
+    <string name="network_bssid">Ponto de acesso (BSSID)</string>
+    <string name="network_identity_permission_hint">O Android pode exigir permissão de localização para ler o nome da rede Wi-Fi conectada e o ponto de acesso. O NexaFlow lê esses valores somente para corresponder a este gatilho.</string>
 </resources>

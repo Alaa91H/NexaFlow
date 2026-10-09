@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">Beispiel: Bedingung nicht erfüllt (frühere Ereignisse simuliert)</string>
     <string name="trigger_expression_invalid">Dieser Ausdruck ist ungültig oder verwendet eine nicht unterstützte Quelle. Vor dem Speichern korrigieren.</string>
     <string name="trigger_expression_unsupported_source">Unterstützten Trigger auswählen</string>
+    <string name="network_validated">Internetverbindung bestätigt</string>
+    <string name="network_captive_portal">Captive-Portal</string>
+    <string name="network_metered">Getaktetes Netzwerk</string>
+    <string name="network_ssid">WLAN-Name (SSID)</string>
+    <string name="network_bssid">Zugangspunkt (BSSID)</string>
+    <string name="network_identity_permission_hint">Android benötigt möglicherweise den Standortzugriff, um den Namen des verbundenen WLANs und den Zugangspunkt zu lesen. NexaFlow liest diese Werte nur für diesen Trigger.</string>
 </resources>

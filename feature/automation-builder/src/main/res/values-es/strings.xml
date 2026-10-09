@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">Muestra: condición no satisfecha (eventos anteriores simulados)</string>
     <string name="trigger_expression_invalid">La expresión no es válida o usa una fuente no compatible. Corrígela antes de guardar.</string>
     <string name="trigger_expression_unsupported_source">Elige un activador compatible</string>
+    <string name="network_validated">Internet validado</string>
+    <string name="network_captive_portal">Portal cautivo</string>
+    <string name="network_metered">Red de uso medido</string>
+    <string name="network_ssid">Nombre de Wi-Fi (SSID)</string>
+    <string name="network_bssid">Punto de acceso (BSSID)</string>
+    <string name="network_identity_permission_hint">Android puede requerir permiso de ubicación para leer el nombre de la red Wi-Fi conectada y el punto de acceso. NexaFlow solo lee estos valores para comparar este activador.</string>
 </resources>

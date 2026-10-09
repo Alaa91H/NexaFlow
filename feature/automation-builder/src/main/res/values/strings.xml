@@ -1344,4 +1344,10 @@
     <string name="bluetooth_device_name">Device name</string>
     <string name="bluetooth_device_address">MAC address</string>
     <string name="trigger_temporal_filters_title">Trigger filters</string>
+    <string name="network_validated">Validated internet</string>
+    <string name="network_captive_portal">Captive portal</string>
+    <string name="network_metered">Metered network</string>
+    <string name="network_ssid">Wi-Fi name (SSID)</string>
+    <string name="network_bssid">Access point (BSSID)</string>
+    <string name="network_identity_permission_hint">Android may require location permission to read the connected Wi-Fi name and access point. NexaFlow reads these values only to match this trigger.</string>
 </resources>

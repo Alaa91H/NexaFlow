@@ -53,6 +53,14 @@ class ConnectivityMonitor @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
+    private data class WifiFilterConfig(
+        val validated: String = "ANY",
+        val captivePortal: String = "ANY",
+        val metered: String = "ANY",
+        val ssid: String? = null,
+        val bssid: String? = null
+    )
+
     @Volatile
     private var initialized = false
 
@@ -430,13 +438,50 @@ class ConnectivityMonitor @Inject constructor(
                     }
                     val desiredState = trigger.config["state"]
                         ?: if (network == "HOTSPOT") "ON" else "CONNECTED"
-                    val current = currentNetworkValue(network, networkSnapshot)
-                    val matched = if (network == "NETWORK_MODE") {
-                        CellularNetworkReader.matchesNetworkMode(desiredState, current)
-                    } else {
-                        current == desiredState
+                    // Keep this type-specific extraction explicit: the atomic
+                    // source inventory audits literal config reads inside the
+                    // owning TriggerType arm, and this makes the new schema to
+                    // runtime contract reviewable there as well.
+                    val wifiFilters = when (trigger.type) {
+                        TriggerType.WIFI_CONNECTED -> WifiFilterConfig(
+                            validated = trigger.config["validated"] ?: "ANY",
+                            captivePortal = trigger.config["captivePortal"] ?: "ANY",
+                            metered = trigger.config["metered"] ?: "ANY",
+                            ssid = trigger.config["ssid"],
+                            bssid = trigger.config["bssid"]
+                        )
+                        else -> WifiFilterConfig()
                     }
-                    if (matched && activeStates[automation.id] != desiredState) {
+                    val current = currentNetworkValue(network, networkSnapshot)
+                    val stateMatches: Boolean? = when {
+                        current == null -> null
+                        network == "NETWORK_MODE" ->
+                            CellularNetworkReader.matchesNetworkMode(desiredState, current)
+                        else -> current == desiredState
+                    }
+                    val conditionMatches = when {
+                        stateMatches != true -> stateMatches
+                        network == "WIFI" && desiredState == "CONNECTED" -> {
+                            val capabilityMatch = DefaultNetworkStateReader.matchesCapabilities(
+                                networkSnapshot,
+                                validated = wifiFilters.validated,
+                                captivePortal = wifiFilters.captivePortal,
+                                metered = wifiFilters.metered
+                            )
+                            if (capabilityMatch != true) {
+                                capabilityMatch
+                            } else {
+                                DefaultNetworkStateReader.matchesWifiIdentity(
+                                    context = context,
+                                    snapshot = networkSnapshot,
+                                    expectedSsid = wifiFilters.ssid,
+                                    expectedBssid = wifiFilters.bssid
+                                )
+                            }
+                        }
+                        else -> true
+                    }
+                    if (conditionMatches == true && activeStates[automation.id] != desiredState) {
                         val last = lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
@@ -463,7 +508,7 @@ class ConnectivityMonitor @Inject constructor(
                                 handleChange()
                             }
                         }
-                    } else if (current != null && activeStates[automation.id] == desiredState) {
+                    } else if (conditionMatches == false && activeStates[automation.id] == desiredState) {
                         // A known non-matching value ends the condition. An
                         // unreadable cellular generation is deliberately not an
                         // exit event, otherwise a transient permission/OEM read

@@ -688,7 +688,6 @@ fun TriggerEditorCard(
                         )
                     }
                 }
-                TriggerType.WIFI_CONNECTED,
                 TriggerType.MOBILE_DATA_CONNECTED -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
@@ -701,6 +700,73 @@ fun TriggerEditorCard(
                             selected = draft.config["state"] ?: "CONNECTED",
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
                         )
+                    }
+                }
+                TriggerType.WIFI_CONNECTED -> {
+                    val wifiState = draft.config["state"] ?: "CONNECTED"
+                    val filters = listOf(
+                        "validated" to R.string.network_validated,
+                        "captivePortal" to R.string.network_captive_portal,
+                        "metered" to R.string.network_metered
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
+                        OptionChips(
+                            options = listOf("CONNECTED", "DISCONNECTED"),
+                            labels = mapOf(
+                                "CONNECTED" to stringResource(R.string.state_connected),
+                                "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                            ),
+                            selected = wifiState,
+                            onSelect = { state ->
+                                val config = if (state == "CONNECTED") {
+                                    draft.config + ("state" to state)
+                                } else {
+                                    (draft.config + ("state" to state)).minus("ssid").minus("bssid")
+                                }
+                                onConfigChange(draft.copy(config = config))
+                            }
+                        )
+                        filters.forEach { (key, labelRes) ->
+                            Text(text = stringResource(labelRes), style = MaterialTheme.typography.titleSmall)
+                            OptionChips(
+                                options = listOf("ANY", "YES", "NO"),
+                                labels = mapOf(
+                                    "ANY" to stringResource(R.string.charger_any),
+                                    "YES" to stringResource(R.string.builder_state_on),
+                                    "NO" to stringResource(R.string.builder_state_off)
+                                ),
+                                selected = draft.config[key] ?: "ANY",
+                                onSelect = { onConfigChange(draft.copy(config = draft.config + (key to it))) }
+                            )
+                        }
+                        if (wifiState == "CONNECTED") {
+                            OutlinedTextField(
+                                value = draft.config["ssid"] ?: "",
+                                onValueChange = { onConfigChange(draft.copy(config = draft.config + ("ssid" to it))) },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(text = stringResource(R.string.network_ssid)) },
+                                singleLine = true
+                            )
+                            OutlinedTextField(
+                                value = draft.config["bssid"] ?: "",
+                                onValueChange = { onConfigChange(draft.copy(config = draft.config + ("bssid" to it))) },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(text = stringResource(R.string.network_bssid)) },
+                                singleLine = true
+                            )
+                            if (!draft.config["ssid"].isNullOrBlank() || !draft.config["bssid"].isNullOrBlank()) {
+                                RuntimePermissionHint(
+                                    context = context,
+                                    permissions = listOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                                    text = stringResource(R.string.network_identity_permission_hint),
+                                    buttonLabel = stringResource(R.string.grant),
+                                    onRequest = {
+                                        onRequestPermission(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION))
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
                 TriggerType.CONNECTIVITY -> {

@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">Exemple : condition non satisfaite (événements antérieurs simulés)</string>
     <string name="trigger_expression_invalid">Expression invalide ou source non prise en charge. Corrigez-la avant l’enregistrement.</string>
     <string name="trigger_expression_unsupported_source">Choisissez un déclencheur pris en charge</string>
+    <string name="network_validated">Internet validé</string>
+    <string name="network_captive_portal">Portail captif</string>
+    <string name="network_metered">Réseau avec données limitées</string>
+    <string name="network_ssid">Nom du Wi-Fi (SSID)</string>
+    <string name="network_bssid">Point d’accès (BSSID)</string>
+    <string name="network_identity_permission_hint">Android peut exiger l’autorisation de localisation pour lire le nom du Wi-Fi connecté et le point d’accès. NexaFlow ne lit ces valeurs que pour vérifier ce déclencheur.</string>
 </resources>

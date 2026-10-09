@@ -1335,4 +1335,10 @@
     <string name="trigger_expression_preview_not_satisfied">نتيجة العينة: الشرط غير متحقق (مع أحداث سابقة محاكاة)</string>
     <string name="trigger_expression_invalid">هذا التعبير غير صالح أو يستخدم مصدرًا غير مدعوم. أصلحه قبل الحفظ.</string>
     <string name="trigger_expression_unsupported_source">اختر محفزًا مدعومًا</string>
+    <string name="network_validated">اتصال إنترنت متحقق</string>
+    <string name="network_captive_portal">بوابة تسجيل دخول للشبكة</string>
+    <string name="network_metered">شبكة باستهلاك محسوب</string>
+    <string name="network_ssid">اسم شبكة Wi-Fi (SSID)</string>
+    <string name="network_bssid">نقطة الوصول (BSSID)</string>
+    <string name="network_identity_permission_hint">قد يتطلب Android إذن الموقع لقراءة اسم شبكة Wi-Fi المتصل بها ونقطة الوصول. يقرأ NexaFlow هذه القيم لمطابقة هذا المحفز فقط.</string>
 </resources>

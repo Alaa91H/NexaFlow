@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">サンプル結果：条件不成立（過去のイベントはシミュレーション）</string>
     <string name="trigger_expression_invalid">式が無効か、未対応のソースを使用しています。保存前に修正してください。</string>
     <string name="trigger_expression_unsupported_source">対応するトリガーを選択</string>
+    <string name="network_validated">検証済みインターネット</string>
+    <string name="network_captive_portal">キャプティブポータル</string>
+    <string name="network_metered">従量制ネットワーク</string>
+    <string name="network_ssid">Wi-Fi 名（SSID）</string>
+    <string name="network_bssid">アクセスポイント（BSSID）</string>
+    <string name="network_identity_permission_hint">接続中の Wi-Fi 名とアクセスポイントを読み取るには、Android で位置情報の権限が必要になる場合があります。NexaFlow はこのトリガーの照合にのみこれらの値を使用します。</string>
 </resources>

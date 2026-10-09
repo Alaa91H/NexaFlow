@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">示例结果：条件不满足（模拟了更早的事件）</string>
     <string name="trigger_expression_invalid">表达式无效或使用了不支持的来源。请在保存前修正。</string>
     <string name="trigger_expression_unsupported_source">请选择受支持的触发器</string>
+    <string name="network_validated">已验证的互联网</string>
+    <string name="network_captive_portal">强制门户</string>
+    <string name="network_metered">按流量计费的网络</string>
+    <string name="network_ssid">Wi-Fi 名称（SSID）</string>
+    <string name="network_bssid">接入点（BSSID）</string>
+    <string name="network_identity_permission_hint">Android 可能需要位置权限才能读取当前连接的 Wi-Fi 名称和接入点。NexaFlow 仅为匹配此触发器读取这些值。</string>
 </resources>

@@ -1337,4 +1337,10 @@
     <string name="trigger_expression_preview_not_satisfied">Örnek sonucu: koşul sağlanmadı (önceki olaylar benzetildi)</string>
     <string name="trigger_expression_invalid">Bu ifade geçersiz veya desteklenmeyen kaynak kullanıyor. Kaydetmeden önce düzeltin.</string>
     <string name="trigger_expression_unsupported_source">Desteklenen bir tetikleyici seçin</string>
+    <string name="network_validated">Doğrulanmış internet</string>
+    <string name="network_captive_portal">Ağ giriş portalı</string>
+    <string name="network_metered">Kotalı ağ</string>
+    <string name="network_ssid">Wi-Fi adı (SSID)</string>
+    <string name="network_bssid">Erişim noktası (BSSID)</string>
+    <string name="network_identity_permission_hint">Android, bağlı Wi-Fi adını ve erişim noktasını okumak için konum izni isteyebilir. NexaFlow bu değerleri yalnızca bu tetikleyiciyi eşleştirmek için okur.</string>
 </resources>
