@@ -584,7 +584,6 @@
     <string name="volume_above">فوق</string>
     <string name="volume_below">تحت</string>
     <string name="volume_threshold">الحد</string>
-    <string name="optional_package">الحزمة (اختياري)</string>
     <string name="action_set_setting">تعيين إعداد</string>
     <string name="action_set_setting_sub">كتابة أي إعداد في النظام</string>
     <string name="action_screenshot">لقطة شاشة</string>

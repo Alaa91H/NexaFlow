@@ -584,7 +584,6 @@
     <string name="volume_above">Au-dessus</string>
     <string name="volume_below">En dessous</string>
     <string name="volume_threshold">Seuil</string>
-    <string name="optional_package">Paquet (optionnel)</string>
     <string name="action_set_setting">Définir un réglage</string>
     <string name="action_set_setting_sub">Écrire n’importe quel réglage système</string>
     <string name="action_screenshot">Capture d’écran</string>

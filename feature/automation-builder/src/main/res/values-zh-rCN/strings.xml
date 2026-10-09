@@ -581,7 +581,6 @@
     <string name="volume_above">以上</string>
     <string name="volume_below">以下</string>
     <string name="volume_threshold">阈值</string>
-    <string name="optional_package">包名（可选）</string>
     <string name="action_set_setting">设置项</string>
     <string name="action_set_setting_sub">写入任意系统设置</string>
     <string name="action_screenshot">截屏</string>

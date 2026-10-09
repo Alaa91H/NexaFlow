@@ -581,7 +581,6 @@
     <string name="volume_above">Acima</string>
     <string name="volume_below">Abaixo</string>
     <string name="volume_threshold">Limiar</string>
-    <string name="optional_package">Pacote (opcional)</string>
     <string name="action_set_setting">Definir configuração</string>
     <string name="action_set_setting_sub">Escrever qualquer configuração do sistema</string>
     <string name="action_screenshot">Captura de tela</string>

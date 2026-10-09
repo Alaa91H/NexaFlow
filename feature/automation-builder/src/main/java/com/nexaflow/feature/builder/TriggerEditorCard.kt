@@ -1907,15 +1907,19 @@ fun TriggerEditorCard(
                         selected = draft.config["event"] ?: "INSTALLED",
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
                     )
-                    OutlinedTextField(
-                        value = draft.config["package"] ?: "",
-                        onValueChange = { v ->
-                            onConfigChange(draft.copy(config = draft.config + ("package" to v)))
-                        },
-                        label = { Text(text = stringResource(R.string.optional_package)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                    val packageName = draft.config["package"]?.trim().orEmpty()
+                    Text(
+                        text = packageName.ifBlank { stringResource(R.string.no_apps_selected) },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
                     )
+                    OutlinedButton(onClick = onPickApp, modifier = Modifier.fillMaxWidth()) {
+                        Icon(imageVector = Icons.Filled.Apps, contentDescription = null)
+                        Text(
+                            text = stringResource(R.string.choose_app),
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
                 }
                 TriggerType.MEDIA_PLAYING -> {
                     Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)

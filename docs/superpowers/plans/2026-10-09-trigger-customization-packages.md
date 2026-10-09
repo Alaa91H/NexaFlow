@@ -47,3 +47,14 @@ The parent issue remains open until all packages meet their evidence gates.
 - `scripts/check_resources.py` — all resource, translation, typography, and lint checks zero; `RESOURCE_GATE: OK`.
 - `git diff --check` — exit 0.
 - Android alarm delivery, emulator integration, physical device, and OEM behavior: `NOT TESTED`.
+
+## Package C: app and device state
+
+- [x] Ignore package-replacement removal and emit one update on replacement add; cover every classifier branch with unit tests.
+- [x] Constrain `DEVICE.event` to current screen, power, headset, and Bluetooth event strings while preserving USB `ON`/`OFF`.
+- [x] Reuse the app picker for the optional `APP_INSTALLED.package` filter; retain `APPLICATION` multi-select behavior.
+- [x] Remove the obsolete `optional_package` translation from all supported locales; resource and parity gates pass.
+- [x] Focused classifier, schema/catalog, picker tests passed locally; builder Kotlin compilation passed.
+- [x] Complete combined monitor regression suite and final inventory/resource/string/diff gates.
+- [ ] Exact-SHA hosted CI and PR merge.
+- [ ] Emulator, physical-device, and OEM package-manager validation (`NOT TESTED`).

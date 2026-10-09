@@ -10,6 +10,12 @@
 
 ## [Unreleased]
 
+### App and device triggers
+
+- Ignore the intermediate package-removal broadcast during app replacement so an update automation fires once.
+- Validate device event configuration against the monitor-supported screen, power, headset, and Bluetooth events.
+- Select optional app-install package filters through the existing single-app picker while retaining multi-app foreground selection.
+
 ## [v3.91.11] - 2026-10-09
 
 ### Triggers and scheduling

@@ -581,7 +581,6 @@
     <string name="volume_above">以上</string>
     <string name="volume_below">以下</string>
     <string name="volume_threshold">阈值</string>
-    <string name="optional_package">パッケージ（任意）</string>
     <string name="action_set_setting">設定を設定</string>
     <string name="action_set_setting_sub">任意のシステム設定を書き込む</string>
     <string name="action_screenshot">スクリーンショット</string>

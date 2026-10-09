@@ -581,7 +581,6 @@
     <string name="volume_above">ऊपर</string>
     <string name="volume_below">नीचे</string>
     <string name="volume_threshold">सीमा</string>
-    <string name="optional_package">पैकेज (वैकल्पिक)</string>
     <string name="action_set_setting">सेटिंग सेट करें</string>
     <string name="action_set_setting_sub">कोई भी सिस्टम सेटिंग लिखें</string>
     <string name="action_screenshot">स्क्रीनशॉट</string>

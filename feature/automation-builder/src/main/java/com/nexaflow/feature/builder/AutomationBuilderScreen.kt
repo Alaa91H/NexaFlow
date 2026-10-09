@@ -1848,29 +1848,52 @@ fun AutomationBuilderScreen(
     appPickerTarget?.let { target ->
         val triggerIndex = target.removePrefix("trigger:").toIntOrNull()
         if (triggerIndex != null) {
-            val triggerPackages = (triggers[triggerIndex].config["packages"] ?: triggers[triggerIndex].config["package"] ?: "")
-                .split(',').map { it.trim() }.filter { it.isNotEmpty() }
-            AppPickerDialog(
-                onPickSingle = { app ->
-                    val merged = (triggerPackages + app.packageName).distinct()
-                    val current = triggers[triggerIndex]
-                    triggers[triggerIndex] = current.copy(
-                        config = mapOf("packages" to merged.joinToString(","))
+            val currentTrigger = triggers.getOrNull(triggerIndex)
+            when (currentTrigger?.type) {
+                TriggerType.APPLICATION -> {
+                    val triggerPackages = (currentTrigger.config["packages"] ?: currentTrigger.config["package"] ?: "")
+                        .split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                    AppPickerDialog(
+                        onPickSingle = { app ->
+                            val current = triggers.getOrNull(triggerIndex)
+                            if (current?.type == TriggerType.APPLICATION) {
+                                triggers[triggerIndex] = current.withPickedPackage(app.packageName)
+                            }
+                            appPickerTarget = null
+                        },
+                        onPickMultiple = { apps ->
+                            val current = triggers.getOrNull(triggerIndex)
+                            if (current?.type == TriggerType.APPLICATION) {
+                                triggers[triggerIndex] = apps.fold(current) { draft, app ->
+                                    draft.withPickedPackage(app.packageName)
+                                }
+                            }
+                            appPickerTarget = null
+                        },
+                        multiSelect = true,
+                        preSelectedPackages = triggerPackages,
+                        recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
+                        onDismiss = { appPickerTarget = null }
                     )
-                    appPickerTarget = null
-                },
-                onPickMultiple = { apps ->
-                    val current = triggers[triggerIndex]
-                    triggers[triggerIndex] = current.copy(
-                        config = mapOf("packages" to apps.joinToString(",") { it.packageName })
+                }
+                TriggerType.APP_INSTALLED -> {
+                    val packageName = currentTrigger.config["package"]?.trim().orEmpty()
+                    AppPickerDialog(
+                        onPickSingle = { app ->
+                            val current = triggers.getOrNull(triggerIndex)
+                            if (current?.type == TriggerType.APP_INSTALLED) {
+                                triggers[triggerIndex] = current.withPickedPackage(app.packageName)
+                            }
+                            appPickerTarget = null
+                        },
+                        multiSelect = false,
+                        preSelectedPackages = listOfNotNull(packageName.takeIf(String::isNotEmpty)),
+                        recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
+                        onDismiss = { appPickerTarget = null }
                     )
-                    appPickerTarget = null
-                },
-                multiSelect = true,
-                preSelectedPackages = triggerPackages,
-                recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
-                onDismiss = { appPickerTarget = null }
-            )
+                }
+                else -> appPickerTarget = null
+            }
         } else {
             val actionId = target.removePrefix("action:")
             val actionIndex = actionDrafts.indexOfFirst { it.id == actionId }
