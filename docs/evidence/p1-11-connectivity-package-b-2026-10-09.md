@@ -1,8 +1,12 @@
 # P1-11 Package B: connectivity evidence
 
-**State: IMPLEMENTED LOCALLY; NOT READY TO CLOSE.** This work is on
-`audit/2026-10-09-t12-connectivity-events` at base
-`4838fc35511eed126bf23520edb3c2990ebddd77`. No PR or remote CI run exists yet.
+**State: IMPLEMENTED; PR CI PASSED; NOT READY TO CLOSE.** This work is on
+`audit/2026-10-09-t12-connectivity-events`, submitted as
+[PR #240](https://github.com/Alaa91H/NexaFlow/pull/240). Exact head
+`464703e8355866341317997163393ee415d018fe` passed GitHub Actions run
+[37961903231](https://github.com/Alaa91H/NexaFlow/actions/runs/37961903231):
+secret scan, lint, coverage, and build succeeded. Android emulator integration
+was skipped. PR review and post-merge/tag-release checks remain separate.
 
 ## Implemented
 
@@ -31,10 +35,10 @@
 - `python scripts/check_strings_parity.py` — PASS (`PARITY_PROBLEMS: 0`).
 - Combined Gradle command completed successfully; 267 actionable tasks, 132 executed.
 - `git diff --check` — PASS.
+- GitHub Actions run `37961903231` at exact PR SHA `464703e8355866341317997163393ee415d018fe` — PASS for secret scan, lint, coverage, and build; Android emulator integration skipped.
 
 ## Remaining before issue closure
 
-- No exact-SHA remote CI or code review yet.
 - No physical-device/OEM validation; permission revoke/regrant behavior is only
   represented by UNKNOWN/redaction unit contracts.
 - Keep #134 open until all eight packages and the remaining lifecycle,
