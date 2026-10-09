@@ -173,11 +173,10 @@ object TimeTriggerCalculator {
         }
     }
 
-    private const val EXCLUDED_DATES_KEY = "excludedDates"
     private const val MAX_EXCLUDED_DATES = 64
 
     private fun isExcludedDate(config: Map<String, String>, day: LocalDate): Boolean {
-        val raw = config[EXCLUDED_DATES_KEY] ?: return false
+        val raw = config["excludedDates"] ?: return false
         if (raw.length > MAX_EXCLUDED_DATES * 11) return true
         val excluded = raw.split(',')
         if (excluded.size > MAX_EXCLUDED_DATES) return true
