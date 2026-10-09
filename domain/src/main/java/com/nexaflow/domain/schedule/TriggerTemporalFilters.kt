@@ -200,7 +200,7 @@ class TriggerTemporalFilterState(
     }
 
     @Synchronized
-    fun observeDebounced(key: String, config: TriggerTemporalFilterConfig, elapsedRealtimeMs: Long): TriggerFilterDecision {
+    fun observeDebounced(key: String, elapsedRealtimeMs: Long): TriggerFilterDecision {
         require(key.isNotBlank())
         if (elapsedRealtimeMs < 0L) return TriggerFilterDecision.Unknown(TriggerFilterReason.CLOCK_RESET)
         val entry = entry(key)

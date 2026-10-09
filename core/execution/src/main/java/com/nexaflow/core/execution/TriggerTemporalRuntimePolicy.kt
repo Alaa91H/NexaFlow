@@ -66,7 +66,7 @@ class TriggerTemporalRuntimePolicy(
             } else if (trigger.type != TriggerType.VOLUME_CHANGED) {
                 TriggerFilterDecision.Unknown(TriggerFilterReason.INVALID_STATE)
             } else {
-                state.observeDebounced(key(automation, triggerIndex), parsed.config, elapsedRealtimeMs)
+                state.observeDebounced(key(automation, triggerIndex), elapsedRealtimeMs)
             }
         }
     }
