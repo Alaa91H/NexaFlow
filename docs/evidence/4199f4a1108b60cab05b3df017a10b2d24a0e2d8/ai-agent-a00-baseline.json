@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Read-only A00 AI-agent baseline; shared T00 baseline is PR #226",
+  "capturedDate": "2026-10-08",
+  "source": {
+    "repository": "Alaa91H/NexaFlow",
+    "branch": "main",
+    "commit": "4199f4a1108b60cab05b3df017a10b2d24a0e2d8",
+    "tree": "9aec81ba0cc9d659d280c0e8f2e4130fefcc0a7d",
+    "mainCommitTimeUtc": "2026-10-05T06:36:40Z",
+    "release": "v3.91.10"
+  },
+  "related": {
+    "platformMaster": 122,
+    "platformT00": 123,
+    "platformT00PullRequest": 226,
+    "agentMaster": 149,
+    "agentA00": 150
+  },
+  "configuration": {
+    "gradle": "9.6.1",
+    "androidGradlePlugin": "9.3.1",
+    "kotlin": "2.4.10",
+    "javaTarget": 17,
+    "unitTestToolchainJdk": 21,
+    "compileSdk": 37,
+    "targetSdk": 37,
+    "minSdk": 26,
+    "roomSchemaVersion": 27,
+    "dependencyVerificationMetadata": "gradle/verification-metadata.xml"
+  },
+  "moduleSourceInventory": {
+    "core/ai-runtime": {
+      "productionKotlinFiles": 19,
+      "jvmTestKotlinFiles": 15
+    },
+    "core/agent-api": {
+      "productionKotlinFiles": 14,
+      "jvmTestKotlinFiles": 8
+    },
+    "core/agent-runtime": {
+      "productionKotlinFiles": 2,
+      "jvmTestKotlinFiles": 1
+    },
+    "core/agent-security": {
+      "productionKotlinFiles": 5,
+      "jvmTestKotlinFiles": 1
+    },
+    "core/agent-relay": {
+      "productionKotlinFiles": 5,
+      "jvmTestKotlinFiles": 3
+    }
+  },
+  "providerCatalog": {
+    "definitionCount": 13,
+    "explicitPresetCount": 4,
+    "definitions": [
+      "openai",
+      "anthropic",
+      "google",
+      "opencode",
+      "openrouter",
+      "groq",
+      "mistral",
+      "deepseek",
+      "xai",
+      "ollama",
+      "lm_studio",
+      "openai_compatible",
+      "custom"
+    ],
+    "presets": [
+      "openai",
+      "claude",
+      "gemini",
+      "opencode_zen"
+    ],
+    "caveat": "Source definitions/presets are not proof of live account availability or network interoperability"
+  },
+  "requiredMainChecks": [
+    "secret-scan",
+    "lint",
+    "Android emulator integration",
+    "coverage",
+    "build"
+  ],
+  "evidence": [
+    {
+      "id": "main_ci_37625029211",
+      "state": "VERIFIED_PASS",
+      "commit": "4199f4a1108b60cab05b3df017a10b2d24a0e2d8",
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37625029211",
+      "scope": "baseline hosted main code"
+    },
+    {
+      "id": "t00_pr_226",
+      "state": "IN_PROGRESS_AT_CAPTURE",
+      "commit": "6fc7e86c6a3a2d9be88d4d5328ded54a10a2d15a",
+      "url": "https://github.com/Alaa91H/NexaFlow/actions/runs/37723239512",
+      "scope": "separate platform T00 PR; recheck"
+    },
+    {
+      "id": "t00_windows_script_probe",
+      "state": "T00_REPORTED_ONLY",
+      "url": "https://github.com/Alaa91H/NexaFlow/pull/226",
+      "scope": "T00 worktree scripts and Gradle projects; not independently run in A00"
+    },
+    {
+      "id": "a00_direct_local_gradle",
+      "state": "NOT_TESTED",
+      "reason": "authorized remote desktop offline; no checkout in A00 review"
+    },
+    {
+      "id": "a00_live_ai_provider",
+      "state": "NOT_TESTED",
+      "reason": "no approved test account, credential or verified model session"
+    },
+    {
+      "id": "a00_physical_android",
+      "state": "NOT_TESTED",
+      "reason": "no attached device in T00 snapshot; no A00 device probe"
+    },
+    {
+      "id": "a00_72_hour_soak",
+      "state": "NOT_TESTED",
+      "reason": "no physical session or soak report"
+    }
+  ],
+  "sourceConfirmedFindings": [
+    {
+      "id": "cost_cap_immediate_rejection",
+      "issue": 156,
+      "path": "app/src/main/java/com/nexaflow/app/agent/ManagedAgentRunCoordinator.kt",
+      "startLine": 119,
+      "endLine": 123
+    },
+    {
+      "id": "chat_ephemeral_state",
+      "issue": 178,
+      "path": "feature/ai/src/main/java/com/nexaflow/feature/ai/AiChatViewModel.kt",
+      "startLine": 34,
+      "endLine": 35
+    },
+    {
+      "id": "a2a_no_stream_cancel",
+      "issue": 199,
+      "path": "core/agent-api/src/main/java/com/nexaflow/core/agentapi/AgentA2AController.kt",
+      "startLine": 90,
+      "endLine": 104
+    },
+    {
+      "id": "agent_run_interrupted_no_auto_replay",
+      "issue": 160,
+      "path": "data/src/main/java/com/nexaflow/data/agents/AgentRunRepository.kt",
+      "startLine": 260,
+      "endLine": 267
+    },
+    {
+      "id": "relay_server_external",
+      "issue": 200,
+      "path": "docs/AGENT_RELAY.md"
+    }
+  ],
+  "mergeOrder": [
+    "T00 PR #226",
+    "A00 documentation PR (this branch); revalidate exact SHA and required checks"
+  ],
+  "completionState": "PARTIAL; no physical or live-provider validation claimed",
+  "secretsIncluded": false,
+  "applicationBehaviorChanged": false,
+  "schemaChanged": false,
+  "permissionsChanged": false
+}
