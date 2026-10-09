@@ -117,7 +117,7 @@ class AtomicInventoryTest(unittest.TestCase):
                     for row in trigger_rows + action_rows)
             )
             self.assertTrue(all(row["parity_status"] for row in field_rows))
-            self.assertEqual(758, len(field_rows))
+            self.assertEqual(763, len(field_rows))
             self.assertFalse(any(row["schema_producer"] == "UNMAPPED" for row in field_rows))
             self.assertTrue(
                 all(
@@ -138,6 +138,15 @@ class AtomicInventoryTest(unittest.TestCase):
             self.assertTrue(all(row["parity_status"] == "DECLARED_AND_RUNTIME_READ" for row in time_zone_fields))
             connectivity_state = next(row for row in field_rows if row["kind"] == "TRIGGER" and row["legacy_type"] == "CONNECTIVITY" and row["field"] == "state")
             self.assertIn("TriggerStateEvaluator.kt", connectivity_state["runtime_consumer"])
+            wifi_fields = [
+                row for row in field_rows
+                if row["kind"] == "TRIGGER"
+                and row["legacy_type"] == "WIFI_CONNECTED"
+                and row["field"] in {"validated", "captivePortal", "metered", "ssid", "bssid"}
+            ]
+            self.assertEqual(5, len(wifi_fields))
+            self.assertTrue(all(row["parity_status"] == "DECLARED_AND_RUNTIME_READ" for row in wifi_fields))
+            self.assertTrue(all("ConnectivityMonitor.kt" in row["runtime_consumer"] for row in wifi_fields))
             random_min = next(row for row in field_rows if row["kind"] == "ACTION" and row["legacy_type"] == "DATA_RANDOM" and row["field"] == "min" and row["sub_operation"] == "INTEGER")
             self.assertIn("DataTransforms.kt", random_min["runtime_consumer"])
             hash_argument = next(row for row in field_rows if row["kind"] == "ACTION" and row["legacy_type"] == "DATA_HASH" and row["field"] == "argument" and row["sub_operation"] == "SHA-256")
