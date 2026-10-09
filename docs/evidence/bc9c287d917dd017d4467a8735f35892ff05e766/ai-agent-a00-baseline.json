@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "purpose": "A00 read-only AI-agent baseline at current main HEAD; no live provider/device acceptance",
+  "capturedDate": "2026-10-09",
+  "source": {
+    "repository": "Alaa91H/NexaFlow",
+    "branch": "main",
+    "commit": "bc9c287d917dd017d4467a8735f35892ff05e766",
+    "tree": "9d213368a999e776d980378d3f6bd07bc616db85",
+    "mainCommitTimeUtc": "2026-10-09T20:38:38Z",
+    "commitSubject": "Merge pull request #242 from Alaa91H/release/v3.91.13",
+    "release": "v3.91.13"
+  },
+  "related": {
+    "platformMaster": 122,
+    "platformT00": 123,
+    "platformT00PullRequest": 226,
+    "agentMaster": 149,
+    "agentA00": 150,
+    "previousA00PullRequest": 227
+  },
+  "previousBaseline": {
+    "commit": "4199f4a1108b60cab05b3df017a10b2d24a0e2d8",
+    "aiSourcePathsChangedSincePreviousBaseline": false,
+    "note": "AI source findings remain applicable because the audited AI source owners were unchanged; environment and CI observations were refreshed."
+  },
+  "configuration": {
+    "gradle": "9.6.1",
+    "androidGradlePlugin": "9.3.1",
+    "kotlin": "2.4.10",
+    "javaTarget": 17,
+    "unitTestToolchainJdk": 21,
+    "compileSdk": 37,
+    "targetSdk": 37,
+    "minSdk": 26,
+    "roomSchemaVersion": 27,
+    "dependencyVerificationMetadata": "gradle/verification-metadata.xml"
+  },
+  "moduleSourceInventory": {
+    "core/ai-runtime": {
+      "productionKotlinFiles": 19,
+      "jvmTestKotlinFiles": 15
+    },
+    "core/agent-api": {
+      "productionKotlinFiles": 14,
+      "jvmTestKotlinFiles": 8
+    },
+    "core/agent-runtime": {
+      "productionKotlinFiles": 2,
+      "jvmTestKotlinFiles": 1
+    },
+    "core/agent-security": {
+      "productionKotlinFiles": 5,
+      "jvmTestKotlinFiles": 1
+    },
+    "core/agent-relay": {
+      "productionKotlinFiles": 5,
+      "jvmTestKotlinFiles": 3
+    }
+  },
+  "providerCatalog": {
+    "definitionCount": 13,
+    "explicitPresetCount": 4,
+    "liveConnectivityTested": false
+  },
+  "currentEnvironment": {
+    "javaRuntime": "21.0.12.1",
+    "javaCompilerAvailable": false,
+    "androidSdkPlatform37Available": false,
+    "androidHomeConfigured": false,
+    "gradleTasksConfigurable": false,
+    "githubWriteApiAvailable": false
+  },
+  "localChecks": [
+    {
+      "command": "python3 scripts/auto_fix.py --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 scripts/check_strings_parity.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 scripts/audit_catalog_and_releases.py catalog",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts/tests -p test_exported_components.py",
+      "result": "PASS",
+      "tests": 9
+    },
+    {
+      "command": "./gradlew tasks --all --no-daemon",
+      "result": "BLOCKED",
+      "reason": "Installed Java runtime does not provide JAVA_COMPILER"
+    }
+  ],
+  "githubChecksOnCurrentHead": "NOT_VERIFIED_AUTHENTICATION_UNAVAILABLE",
+  "deviceAndLiveProviderAcceptance": "NOT_RUN"
+}
