@@ -56,6 +56,10 @@ data class Automation(
      * until the user reviews and saves them through the builder.
      */
     val workflowVersion: Int = CURRENT_WORKFLOW_VERSION,
+    /** Monotonic definition revision used to invalidate temporal trigger state. */
+    val workflowRevision: Long = 1L,
+    /** Explicit opt-in to the bounded trigger-expression schema; null preserves legacy matching. */
+    val triggerExpressionV2: com.nexaflow.domain.workflow.TriggerExpressionDefinitionV2? = null,
     /** Optional recurring-maintenance metadata; null preserves ordinary automations unchanged. */
     val maintenanceProfile: MaintenanceProfile? = null,
     /**
@@ -72,6 +76,7 @@ data class Automation(
 ) {
     init {
         require(workflowVersion in 1..CURRENT_WORKFLOW_VERSION) { "Unsupported workflow version" }
+        require(workflowRevision > 0L) { "Workflow revision must be positive" }
     }
 
     companion object {

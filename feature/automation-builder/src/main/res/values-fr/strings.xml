@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">Nom de l’appareil</string>
     <string name="bluetooth_device_address">Adresse MAC</string>
     <string name="trigger_temporal_filters_title">Filtres temporels</string>
+
+    <string name="trigger_expression_title">Expression avancée de déclencheurs</string>
+    <string name="trigger_expression_description">Règles facultatives avec historique temporel ; le comportement ANY/ALL actuel reste inchangé jusqu’à activation.</string>
+    <string name="trigger_expression_all">TOUS</string>
+    <string name="trigger_expression_any">UN AU MOINS</string>
+    <string name="trigger_expression_not_state">NON état</string>
+    <string name="trigger_expression_sequence">A puis B</string>
+    <string name="trigger_expression_count">Nombre dans la fenêtre</string>
+    <string name="trigger_expression_trigger">Premier déclencheur</string>
+    <string name="trigger_expression_second_trigger">Deuxième déclencheur</string>
+    <string name="trigger_expression_window_seconds">Fenêtre (secondes, max. 604800)</string>
+    <string name="trigger_expression_minimum_count">Nombre minimal (1–1000)</string>
+    <string name="trigger_expression_add_nested">Imbriquer les autres déclencheurs</string>
+    <string name="trigger_expression_preview">Prévisualiser un exemple</string>
+    <string name="trigger_expression_preview_satisfied">Exemple : condition satisfaite (événements antérieurs simulés)</string>
+    <string name="trigger_expression_preview_not_satisfied">Exemple : condition non satisfaite (événements antérieurs simulés)</string>
+    <string name="trigger_expression_invalid">Expression invalide ou source non prise en charge. Corrigez-la avant l’enregistrement.</string>
+    <string name="trigger_expression_unsupported_source">Choisissez un déclencheur pris en charge</string>
 </resources>

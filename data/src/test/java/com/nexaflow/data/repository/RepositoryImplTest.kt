@@ -93,6 +93,25 @@ class RepositoryImplTest {
             rows.value = next
         }
 
+        override suspend fun upsertDefinitionWithRevision(automation: AutomationEntity): Long {
+            val current = getAutomationById(automation.id)
+            val same = current != null && current.name == automation.name &&
+                current.triggersJson == automation.triggersJson && current.actionsJson == automation.actionsJson &&
+                current.triggerMatch == automation.triggerMatch &&
+                current.triggerExpressionJson == automation.triggerExpressionJson
+            val revision = when {
+                current == null -> 1L
+                same -> current.workflowRevision
+                else -> current.workflowRevision + 1L
+            }
+            insertAutomation(automation.copy(workflowRevision = revision))
+            return revision
+        }
+
+        override suspend fun upsertDefinitionsWithRevision(automations: List<AutomationEntity>) {
+            automations.forEach { upsertDefinitionWithRevision(it) }
+        }
+
         override suspend fun updateAutomation(automation: AutomationEntity) {
             insertAutomation(automation)
         }
@@ -469,6 +488,24 @@ class RepositoryImplTest {
         assertEquals(edited.triggers, loaded?.triggers)
         assertEquals(TriggerMatchMode.ALL, loaded?.triggerMatch)
         assertEquals(2L, loaded?.updatedAt)
+        assertEquals(2L, loaded?.workflowRevision)
+    }
+
+    @Test
+    fun `status only save does not advance the immutable workflow revision`() = runTest {
+        val dao = FakeAutomationDao()
+        val repository = AutomationRepositoryImpl(dao)
+        val original = Automation(
+            id = "definition-revision", name = "Revision", description = "", icon = "bolt",
+            iconColor = 0L, backgroundColor = 0L, category = "custom", priority = 1,
+            enabled = false, triggers = listOf(Trigger(TriggerType.BATTERY, emptyMap())),
+            actions = emptyList(), createdAt = 1L, updatedAt = 1L
+        )
+        repository.saveAutomation(original)
+        repository.saveAutomation(original.copy(enabled = true, updatedAt = 2L))
+        assertEquals(1L, repository.getAutomationById(original.id)?.workflowRevision)
+        repository.saveAutomation(original.copy(enabled = true, name = "Changed", updatedAt = 3L))
+        assertEquals(2L, repository.getAutomationById(original.id)?.workflowRevision)
     }
 
     @Test

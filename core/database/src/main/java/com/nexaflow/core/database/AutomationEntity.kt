@@ -27,6 +27,11 @@ data class AutomationEntity(
     val revertOnExit: Boolean = false, // Restore device state on exit instead
     val cooldownSeconds: Int = 10, // Minimum gap between two runs of this task
     val workflowVersion: Int = 1, // Persisted workflow schema revision
+    /** Revision of the definition, independent from API optimistic concurrency. */
+    @ColumnInfo(defaultValue = "1")
+    val workflowRevision: Long = 1L,
+    /** Explicit v2 trigger expression; null leaves legacy ANY/ALL active. */
+    val triggerExpressionJson: String? = null,
     /** Optional typed recurring-maintenance metadata, stored with its automation. */
     val maintenanceJson: String? = null,
     /**

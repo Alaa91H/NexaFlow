@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">डिवाइस का नाम</string>
     <string name="bluetooth_device_address">MAC पता</string>
     <string name="trigger_temporal_filters_title">समय-आधारित फ़िल्टर</string>
+
+    <string name="trigger_expression_title">उन्नत ट्रिगर अभिव्यक्ति</string>
+    <string name="trigger_expression_description">समय-आधारित इतिहास वाले वैकल्पिक नियम; सक्षम करने तक मौजूदा ANY/ALL व्यवहार नहीं बदलेगा।</string>
+    <string name="trigger_expression_all">सभी</string>
+    <string name="trigger_expression_any">कोई भी</string>
+    <string name="trigger_expression_not_state">स्थिति नहीं</string>
+    <string name="trigger_expression_sequence">A फिर B</string>
+    <string name="trigger_expression_count">समय-सीमा में गिनती</string>
+    <string name="trigger_expression_trigger">पहला ट्रिगर</string>
+    <string name="trigger_expression_second_trigger">दूसरा ट्रिगर</string>
+    <string name="trigger_expression_window_seconds">समय-सीमा (सेकंड, अधिकतम 604800)</string>
+    <string name="trigger_expression_minimum_count">न्यूनतम गिनती (1–1000)</string>
+    <string name="trigger_expression_add_nested">बाकी ट्रिगर को समूह में रखें</string>
+    <string name="trigger_expression_preview">नमूना देखें</string>
+    <string name="trigger_expression_preview_satisfied">नमूना परिणाम: शर्त पूरी हुई (पिछली घटनाएँ सिम्युलेटेड)</string>
+    <string name="trigger_expression_preview_not_satisfied">नमूना परिणाम: शर्त पूरी नहीं हुई (पिछली घटनाएँ सिम्युलेटेड)</string>
+    <string name="trigger_expression_invalid">यह अभिव्यक्ति अमान्य है या असमर्थित स्रोत का उपयोग करती है। सहेजने से पहले ठीक करें।</string>
+    <string name="trigger_expression_unsupported_source">समर्थित ट्रिगर चुनें</string>
 </resources>

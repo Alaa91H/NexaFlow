@@ -12,6 +12,7 @@ import com.nexaflow.core.datastore.AutomationLifecycleContext
 import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
 import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.TriggerExpressionHistoryStore
 import com.nexaflow.core.datastore.DurableVerificationState
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
@@ -105,6 +106,8 @@ class ExecutionEngine(
     private val activeExecutionStore: ActiveExecutionStore = ActiveExecutionStore(context),
     /** Occurrence-aware durable source of truth for stateful trigger lifecycles. */
     private val automationRuntimeStore: AutomationRuntimeStore = AutomationRuntimeStore(context),
+    /** Bounded occurrence history for explicitly opted-in trigger expressions. */
+    private val triggerExpressionHistoryStore: TriggerExpressionHistoryStore? = null,
     /** Optional safe-capability seam; null preserves legacy handler-only construction. */
     private val capabilityExecutionService: CapabilityExecutionService? = null,
     /** Current shared availability observation; absent only in legacy/test construction. */
@@ -241,6 +244,7 @@ class ExecutionEngine(
 
     /** Same-process replay protection for sources with a trustworthy event id. */
     private val occurrenceDeduplicator = TriggerOccurrenceDeduplicator()
+    private val triggerExpressionRuntimeEvaluator = TriggerExpressionRuntimeEvaluator(triggerExpressionHistoryStore)
 
     /** Serializes the paired in-memory and durable exit-ledger consumption per task. */
     private val exitConsumptionLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
@@ -560,7 +564,44 @@ class ExecutionEngine(
         // before any checkpoint so a rejected run performs no work and leaves
         // no queue residue. A single condition is live-evaluated too: a past
         // event is not current truth.
-        if (!bypassTriggerMatch &&
+        if (!bypassTriggerMatch && automation.triggerExpressionV2 != null) {
+            val evaluation = triggerExpressionRuntimeEvaluator.evaluate(
+                context = context,
+                automation = automation,
+                occurrence = triggerOccurrence,
+                elapsedRealtimeMs = SystemClock.elapsedRealtime()
+            )
+            if (evaluation.result != ConditionResult.Satisfied) {
+                val reason = when {
+                    evaluation.invalid -> "INVALID_EXPRESSION"
+                    evaluation.result == ConditionResult.Unknown -> "UNKNOWN"
+                    evaluation.result == ConditionResult.Unavailable -> "UNAVAILABLE"
+                    evaluation.result is ConditionResult.Error -> "ERROR"
+                    else -> "UNSATISFIED"
+                }
+                val record = ExecutionRecord(
+                    id = UUID.randomUUID().toString(),
+                    automationId = automation.id,
+                    automationName = automation.name,
+                    success = true,
+                    message = historyMessage("Skipped: trigger expression $reason"),
+                    executedAt = startedAt,
+                    channel = channel?.type?.name
+                )
+                if (skipReportThrottle.shouldReport(automation.id, "TRIGGER_EXPRESSION:$reason", startedAt)) {
+                    historyWriter.record(record)
+                }
+                diagnostics.recordTimeline(automation, "TRIGGER_EXPRESSION_BLOCKED", record, startedAt, payloadContext.runId)
+                traceRecorder.recordGateBlocked(
+                    runId = payloadContext.runId,
+                    automationId = automation.id,
+                    reasonCode = TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
+                    detail = "EXPRESSION_$reason",
+                    atEpochMs = startedAt,
+                )
+                return record
+            }
+        } else if (!bypassTriggerMatch &&
             automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
             automation.triggers.isNotEmpty()
         ) {

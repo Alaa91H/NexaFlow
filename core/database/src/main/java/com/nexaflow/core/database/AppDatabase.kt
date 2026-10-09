@@ -19,7 +19,7 @@ import androidx.room.TypeConverters
         AgentAutomationApprovalEntity::class,
         SmsActivityEntity::class
     ],
-    version = 27,
+    version = 28,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

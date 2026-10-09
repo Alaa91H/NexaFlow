@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">デバイス名</string>
     <string name="bluetooth_device_address">MAC アドレス</string>
     <string name="trigger_temporal_filters_title">時間フィルター</string>
+
+    <string name="trigger_expression_title">高度なトリガー式</string>
+    <string name="trigger_expression_description">時間履歴を使う任意のルールです。有効にするまで既存のANY/ALL動作は変わりません。</string>
+    <string name="trigger_expression_all">すべて</string>
+    <string name="trigger_expression_any">いずれか</string>
+    <string name="trigger_expression_not_state">状態の否定</string>
+    <string name="trigger_expression_sequence">A の後に B</string>
+    <string name="trigger_expression_count">期間内の回数</string>
+    <string name="trigger_expression_trigger">最初のトリガー</string>
+    <string name="trigger_expression_second_trigger">2番目のトリガー</string>
+    <string name="trigger_expression_window_seconds">期間（秒、最大604800）</string>
+    <string name="trigger_expression_minimum_count">最小回数（1～1000）</string>
+    <string name="trigger_expression_add_nested">残りのトリガーを入れ子にする</string>
+    <string name="trigger_expression_preview">サンプルをプレビュー</string>
+    <string name="trigger_expression_preview_satisfied">サンプル結果：条件成立（過去のイベントはシミュレーション）</string>
+    <string name="trigger_expression_preview_not_satisfied">サンプル結果：条件不成立（過去のイベントはシミュレーション）</string>
+    <string name="trigger_expression_invalid">式が無効か、未対応のソースを使用しています。保存前に修正してください。</string>
+    <string name="trigger_expression_unsupported_source">対応するトリガーを選択</string>
 </resources>

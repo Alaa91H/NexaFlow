@@ -31,6 +31,24 @@ interface AutomationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAutomations(automations: List<AutomationEntity>)
 
+    /** Upsert while advancing the definition revision only for content changes. */
+    @Transaction
+    suspend fun upsertDefinitionWithRevision(automation: AutomationEntity): Long {
+        val current = getAutomationById(automation.id)
+        val nextRevision = when {
+            current == null -> 1L
+            current.sameWorkflowDefinition(automation) -> current.workflowRevision
+            else -> current.workflowRevision + 1L
+        }
+        insertAutomation(automation.copy(workflowRevision = nextRevision))
+        return nextRevision
+    }
+
+    @Transaction
+    suspend fun upsertDefinitionsWithRevision(automations: List<AutomationEntity>) {
+        automations.forEach { upsertDefinitionWithRevision(it) }
+    }
+
     @Update
     suspend fun updateAutomation(automation: AutomationEntity)
 
@@ -46,7 +64,12 @@ interface AutomationDao {
     ): Boolean {
         val current = getAutomationById(automation.id) ?: return false
         if (current.updatedAt != expectedRevision) return false
-        updateAutomation(automation)
+        val revision = if (current.sameWorkflowDefinition(automation)) {
+            current.workflowRevision
+        } else {
+            current.workflowRevision + 1L
+        }
+        updateAutomation(automation.copy(workflowRevision = revision))
         return true
     }
 
@@ -66,3 +89,20 @@ interface AutomationDao {
     @Query("UPDATE automations SET enabled = :enabled WHERE id = :id")
     suspend fun updateAutomationStatus(id: String, enabled: Boolean)
 }
+
+private fun AutomationEntity.sameWorkflowDefinition(other: AutomationEntity): Boolean =
+    name == other.name && description == other.description && icon == other.icon &&
+        iconColor == other.iconColor && backgroundColor == other.backgroundColor &&
+        category == other.category && priority == other.priority && showToastOnToggle == other.showToastOnToggle &&
+        triggersJson == other.triggersJson && actionsJson == other.actionsJson &&
+        constraintsJson == other.constraintsJson && exitActionsJson == other.exitActionsJson &&
+        revertOnExit == other.revertOnExit && cooldownSeconds == other.cooldownSeconds &&
+        workflowVersion == other.workflowVersion && triggerMatch == other.triggerMatch &&
+        maintenanceJson == other.maintenanceJson && deepLinkToken == other.deepLinkToken &&
+        triggerExpressionJson == other.triggerExpressionJson &&
+        canonicalDefinition(canonicalWorkflowJson) == canonicalDefinition(other.canonicalWorkflowJson)
+
+private fun canonicalDefinition(value: String?): String? = value?.replace(
+    Regex("\\\"workflowRevision\\\":\\d+"),
+    "\"workflowRevision\":0"
+)

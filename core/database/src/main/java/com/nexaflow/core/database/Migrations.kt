@@ -467,6 +467,14 @@ object Migrations {
         }
     }
 
+    /** v27 -> v28: opt-in expression payload and independent definition revision. */
+    val MIGRATION_27_28 = object : Migration(27, 28) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `workflowRevision` INTEGER NOT NULL DEFAULT 1")
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `triggerExpressionJson` TEXT")
+        }
+    }
+
 
     val ALL = listOf(
         MIGRATION_1_2,
@@ -494,6 +502,7 @@ object Migrations {
         MIGRATION_23_24,
         MIGRATION_24_25,
         MIGRATION_25_26,
-        MIGRATION_26_27
+        MIGRATION_26_27,
+        MIGRATION_27_28
     )
 }

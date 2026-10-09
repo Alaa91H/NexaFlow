@@ -51,6 +51,27 @@ class MigrationTest {
         migrated.close()
     }
 
+    @Test
+    fun migrate27To28_defaultsDefinitionRevisionAndExpressionToLegacyState() {
+        helper.createDatabase(27).apply {
+            execSQL(
+                "INSERT INTO automations (id,name,description,icon,iconColor,backgroundColor,category,priority,enabled," +
+                    "showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson,revertOnExit,cooldownSeconds," +
+                    "workflowVersion,maintenanceJson,deepLinkToken,triggerMatch,createdAt,updatedAt,canonicalWriteState) " +
+                    "VALUES ('legacy-v28','Legacy','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]',0,10,2,NULL,NULL,'ALL',100,200,'LEGACY_ONLY')"
+            )
+            close()
+        }
+        val migrated = helper.runMigrationsAndValidate(28, listOf(Migrations.MIGRATION_27_28))
+        migrated.prepare("SELECT workflowRevision,triggerExpressionJson,triggerMatch FROM automations WHERE id='legacy-v28'").use {
+            assertTrue(it.step())
+            assertEquals(1L, it.getLong(0))
+            assertTrue(it.isNull(1))
+            assertEquals("ALL", it.getText(2))
+        }
+        migrated.close()
+    }
+
     @Test fun migrate20To21BackfillsProvenanceAndCreatesAgentLedger() {
         helper.createDatabase(20).apply {
             execSQL(
@@ -157,10 +178,10 @@ class MigrationTest {
         migrated.close()
     }
 
-    @Test fun historicalChainsReach27() {
+    @Test fun historicalChainsReach28() {
         for (version in listOf(1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)) {
             helper.createDatabase(version).close()
-            helper.runMigrationsAndValidate(27, Migrations.ALL).close()
+            helper.runMigrationsAndValidate(28, Migrations.ALL).close()
             dbFile.delete()
         }
     }

@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">Cihaz adı</string>
     <string name="bluetooth_device_address">MAC adresi</string>
     <string name="trigger_temporal_filters_title">Zamansal filtreler</string>
+
+    <string name="trigger_expression_title">Gelişmiş tetikleyici ifadesi</string>
+    <string name="trigger_expression_description">Zamansal geçmiş kullanan isteğe bağlı kurallar; etkinleştirilene kadar mevcut ANY/ALL davranışı değişmez.</string>
+    <string name="trigger_expression_all">TÜMÜ</string>
+    <string name="trigger_expression_any">HERHANGİ BİRİ</string>
+    <string name="trigger_expression_not_state">Durum DEĞİL</string>
+    <string name="trigger_expression_sequence">Önce A, sonra B</string>
+    <string name="trigger_expression_count">Zaman aralığındaki sayı</string>
+    <string name="trigger_expression_trigger">İlk tetikleyici</string>
+    <string name="trigger_expression_second_trigger">İkinci tetikleyici</string>
+    <string name="trigger_expression_window_seconds">Aralık (saniye, en fazla 604800)</string>
+    <string name="trigger_expression_minimum_count">En az sayı (1–1000)</string>
+    <string name="trigger_expression_add_nested">Kalan tetikleyicileri iç içe grupla</string>
+    <string name="trigger_expression_preview">Örneği önizle</string>
+    <string name="trigger_expression_preview_satisfied">Örnek sonucu: koşul sağlandı (önceki olaylar benzetildi)</string>
+    <string name="trigger_expression_preview_not_satisfied">Örnek sonucu: koşul sağlanmadı (önceki olaylar benzetildi)</string>
+    <string name="trigger_expression_invalid">Bu ifade geçersiz veya desteklenmeyen kaynak kullanıyor. Kaydetmeden önce düzeltin.</string>
+    <string name="trigger_expression_unsupported_source">Desteklenen bir tetikleyici seçin</string>
 </resources>

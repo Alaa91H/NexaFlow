@@ -89,5 +89,6 @@ dependencies {
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
     testImplementation(libs.androidx.paging.paging.common)
     testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.datastore.datastore.preferences)
     testImplementation(libs.org.robolectric.robolectric)
 }

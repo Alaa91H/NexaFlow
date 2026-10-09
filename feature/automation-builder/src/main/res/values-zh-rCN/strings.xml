@@ -1315,4 +1315,22 @@
     <string name="bluetooth_device_name">设备名称</string>
     <string name="bluetooth_device_address">MAC 地址</string>
     <string name="trigger_temporal_filters_title">时间筛选器</string>
+
+    <string name="trigger_expression_title">高级触发器表达式</string>
+    <string name="trigger_expression_description">可选的时间历史规则；启用前现有 ANY/ALL 行为保持不变。</string>
+    <string name="trigger_expression_all">全部</string>
+    <string name="trigger_expression_any">任一</string>
+    <string name="trigger_expression_not_state">非状态</string>
+    <string name="trigger_expression_sequence">先 A 后 B</string>
+    <string name="trigger_expression_count">时间窗口内计数</string>
+    <string name="trigger_expression_trigger">第一个触发器</string>
+    <string name="trigger_expression_second_trigger">第二个触发器</string>
+    <string name="trigger_expression_window_seconds">窗口（秒，最多 604800）</string>
+    <string name="trigger_expression_minimum_count">最小次数（1–1000）</string>
+    <string name="trigger_expression_add_nested">将其余触发器嵌套分组</string>
+    <string name="trigger_expression_preview">预览示例</string>
+    <string name="trigger_expression_preview_satisfied">示例结果：条件满足（模拟了更早的事件）</string>
+    <string name="trigger_expression_preview_not_satisfied">示例结果：条件不满足（模拟了更早的事件）</string>
+    <string name="trigger_expression_invalid">表达式无效或使用了不支持的来源。请在保存前修正。</string>
+    <string name="trigger_expression_unsupported_source">请选择受支持的触发器</string>
 </resources>

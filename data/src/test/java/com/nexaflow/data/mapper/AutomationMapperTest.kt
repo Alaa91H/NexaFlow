@@ -86,8 +86,10 @@ class AutomationMapperTest {
         val payload = requireNotNull(entity.canonicalWorkflowJson)
         val document = CanonicalWorkflowV3Codec.decode(payload)
 
-        assertEquals(4, document.schemaVersion)
+        assertEquals(5, document.schemaVersion)
         assertEquals(automation.id, document.workflowId)
+        assertEquals(automation.workflowRevision, document.workflowRevision)
+        assertEquals(automation.triggerExpressionV2, document.triggerExpressionV2)
         assertEquals(automation.triggers.size, document.triggers.size)
         assertEquals(automation.actions.size, document.actions.size)
         assertTrue(document.triggers.all { it.node is com.nexaflow.domain.canonical.ObserveNode })

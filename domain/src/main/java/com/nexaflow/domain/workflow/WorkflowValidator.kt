@@ -8,6 +8,8 @@ enum class WorkflowValidationCode {
     BLANK_AUTOMATION_ID,
     BLANK_AUTOMATION_NAME,
     INVALID_COOLDOWN,
+    INVALID_TRIGGER_EXPRESSION,
+    INVALID_WORKFLOW_REVISION,
     TOO_MANY_TRIGGERS,
     TOO_MANY_ACTIONS,
     TOO_MANY_EXIT_ACTIONS,
@@ -48,12 +50,18 @@ object WorkflowValidator {
         if (automation.id.isBlank()) issues += issue(WorkflowValidationCode.BLANK_AUTOMATION_ID, "id")
         if (automation.name.isBlank()) issues += issue(WorkflowValidationCode.BLANK_AUTOMATION_NAME, "name")
         if (automation.cooldownSeconds < 0) issues += issue(WorkflowValidationCode.INVALID_COOLDOWN, "cooldownSeconds")
+        if (automation.workflowRevision <= 0L) issues += issue(WorkflowValidationCode.INVALID_WORKFLOW_REVISION, "workflowRevision")
         if (automation.triggers.size > MAX_TRIGGERS) issues += issue(WorkflowValidationCode.TOO_MANY_TRIGGERS, "triggers")
         if (automation.actions.size > MAX_ACTIONS) issues += issue(WorkflowValidationCode.TOO_MANY_ACTIONS, "actions")
         if (automation.exitActions.size > MAX_ACTIONS) issues += issue(WorkflowValidationCode.TOO_MANY_EXIT_ACTIONS, "exitActions")
         automation.triggers.forEachIndexed { index, trigger -> validateConfig("triggers[$index]", trigger.config, issues) }
         automation.actions.forEachIndexed { index, action -> validateConfig("actions[$index]", action.config, issues) }
         automation.exitActions.forEachIndexed { index, action -> validateConfig("exitActions[$index]", action.config, issues) }
+        automation.triggerExpressionV2?.let { definition ->
+            TriggerExpressionValidator.validate(definition, automation.triggers).forEach { expressionIssue ->
+                issues += issue(WorkflowValidationCode.INVALID_TRIGGER_EXPRESSION, "triggerExpressionV2.${expressionIssue.path}")
+            }
+        }
         return WorkflowValidationResult(issues)
     }
 

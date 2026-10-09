@@ -31,6 +31,7 @@ import com.nexaflow.domain.models.GlobalVariable
 import com.nexaflow.domain.models.PluginInfo
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
+import com.nexaflow.domain.workflow.TriggerExpressionDefinitionV2
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.PluginRepository
 import com.nexaflow.domain.repositories.VariableRepository
@@ -188,6 +189,7 @@ class AutomationBuilderViewModel @Inject constructor(
         iconColor: Long = 0xFF0B57D0,
         triggers: List<Trigger>,
         triggerMatch: TriggerMatchMode = TriggerMatchMode.ANY,
+        triggerExpressionV2: TriggerExpressionDefinitionV2? = null,
         actions: List<Action>,
         constraints: List<Constraint> = emptyList(),
         exitActions: List<Action> = emptyList(),
@@ -219,6 +221,8 @@ class AutomationBuilderViewModel @Inject constructor(
                 enabled = false,
                 triggers = triggers,
                 triggerMatch = triggerMatch,
+                triggerExpressionV2 = triggerExpressionV2,
+                workflowRevision = prev?.workflowRevision ?: 1L,
                 actions = actions,
                 constraints = constraints,
                 exitActions = exitActions,

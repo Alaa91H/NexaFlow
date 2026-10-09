@@ -274,11 +274,16 @@ object WorkflowPersistencePolicy {
             reasons + ReadFallbackReason.DOCUMENT_REJECTED,
         )
 
-        // The document does not model deepLinkToken (it must never leak into
-        // exports); the legacy snapshot is its only carrier.
+        // Capability tokens never leak into portable documents. Expression
+        // metadata also remains in the lossless snapshot until WorkflowDocument
+        // V1 adopts an independent versioned envelope.
         return StorageReadResult.V3Row(
             row = row,
-            automation = fromDocument.copy(deepLinkToken = legacyAutomation.deepLinkToken),
+            automation = fromDocument.copy(
+                deepLinkToken = legacyAutomation.deepLinkToken,
+                workflowRevision = legacyAutomation.workflowRevision,
+                triggerExpressionV2 = legacyAutomation.triggerExpressionV2,
+            ),
         )
     }
 }

@@ -5,6 +5,7 @@ import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import com.nexaflow.domain.catalog.AutomationNodeDefinition
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehavior
+import com.nexaflow.domain.workflow.TriggerExpressionDefinitionV2
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -28,12 +29,16 @@ data class CanonicalWorkflowDocumentV3(
     val requiresLegacyFallback: Boolean = false,
     /** Nodes authored against stable canonical definitions without legacy enums. */
     val canonicalNodes: List<CanonicalWorkflowNode> = emptyList(),
+    /** Independently versioned definition metadata (defaults preserve schemas 3/4). */
+    val workflowRevision: Long = 1L,
+    val triggerExpressionV2: TriggerExpressionDefinitionV2? = null,
 ) {
     init {
         require(schemaVersion in LEGACY_SCHEMA_VERSION..SCHEMA_VERSION) {
             "Unsupported canonical workflow schemaVersion=$schemaVersion"
         }
         require(workflowId.isNotBlank()) { "workflowId must not be blank" }
+        require(workflowRevision > 0L) { "workflowRevision must be positive" }
         require(
             requiresLegacyFallback ==
                 (triggers + actions + exitActions).any { it.legacyFallbackRequired },
@@ -60,7 +65,7 @@ data class CanonicalWorkflowDocumentV3(
 
     companion object {
         const val LEGACY_SCHEMA_VERSION = 3
-        const val SCHEMA_VERSION = 4
+        const val SCHEMA_VERSION = 5
     }
 }
 
@@ -311,6 +316,8 @@ object CanonicalWorkflowV3Codec {
             exitActions = exitActions,
             requiresLegacyFallback = requiresLegacyFallback,
             canonicalNodes = automation.canonicalNodes,
+            workflowRevision = automation.workflowRevision,
+            triggerExpressionV2 = automation.triggerExpressionV2,
         )
     }
 

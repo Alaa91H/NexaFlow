@@ -38,7 +38,8 @@ class RoomAutomationMutationPersistence(
     private val auditIdGenerator: () -> String = { UUID.randomUUID().toString() },
     private val idempotencyRetentionMs: Long = DEFAULT_IDEMPOTENCY_RETENTION_MS,
     private val auditRetentionMs: Long = DEFAULT_AUDIT_RETENTION_MS,
-    private val maxAuditRows: Int = DEFAULT_MAX_AUDIT_ROWS
+    private val maxAuditRows: Int = DEFAULT_MAX_AUDIT_ROWS,
+    private val clearTemporalHistory: suspend (String) -> Unit = {}
 ) : AutomationMutationPersistence {
 
     init {
@@ -55,8 +56,13 @@ class RoomAutomationMutationPersistence(
 
     override suspend fun commit(
         request: AutomationMutationCommitRequest
-    ): AutomationPersistenceResult = database.withTransaction {
-        commitOne(request)
+    ): AutomationPersistenceResult {
+        val result = database.withTransaction { commitOne(request) }
+        if (result is AutomationPersistenceResult.Committed &&
+            request.kind in setOf(AutomationMutationKind.UPDATE, AutomationMutationKind.DISABLE, AutomationMutationKind.DELETE)) {
+            clearTemporalHistory(request.automation.id)
+        }
+        return result
     }
 
     /**
@@ -66,7 +72,8 @@ class RoomAutomationMutationPersistence(
      */
     override suspend fun commitBatch(
         requests: List<com.nexaflow.core.automationcontrol.AutomationMutationCommitRequest>
-    ): com.nexaflow.core.automationcontrol.AutomationBatchResult = try {
+    ): com.nexaflow.core.automationcontrol.AutomationBatchResult {
+        val result = try {
         database.withTransaction {
             val commits = ArrayList<AutomationPersistenceResult.Committed>(requests.size)
             val failures = ArrayList<com.nexaflow.core.automationcontrol.AutomationBatchItemFailure>()
@@ -87,6 +94,12 @@ class RoomAutomationMutationPersistence(
         }
     } catch (rollback: BatchRollback) {
         com.nexaflow.core.automationcontrol.AutomationBatchResult.Aborted(rollback.failures)
+    }
+        if (result is com.nexaflow.core.automationcontrol.AutomationBatchResult.AllCommitted) {
+            requests.filter { it.kind in setOf(AutomationMutationKind.UPDATE, AutomationMutationKind.DISABLE, AutomationMutationKind.DELETE) }
+                .forEach { clearTemporalHistory(it.automation.id) }
+        }
+        return result
     }
 
     private class BatchRollback(
@@ -192,7 +205,7 @@ class RoomAutomationMutationPersistence(
             request.context.origin == AutomationMutationOrigin.AGENT &&
                 request.context.riskLevel in HIGH_RISK_LEVELS && request.context.approvalId != null
         }?.let { com.nexaflow.core.automationcontrol.AgentAutomationApprovalHash.of(it) }
-        automationDao.insertAutomation(request.automation.toEntity())
+        automationDao.upsertDefinitionWithRevision(request.automation.toEntity())
         agentPlatformDao.upsertAutomationMetadata(
             AutomationApiMetadataEntity(
                 automationId = automationId,
@@ -303,7 +316,7 @@ class RoomAutomationMutationPersistence(
             }?.let { com.nexaflow.core.automationcontrol.AgentAutomationApprovalHash.of(it) } ?: if (
                 request.context.origin == AutomationMutationOrigin.AGENT
             ) null else metadata.approvedContentHash
-            automationDao.insertAutomation(request.automation.toEntity())
+            automationDao.upsertDefinitionWithRevision(request.automation.toEntity())
             agentPlatformDao.upsertAutomationMetadata(
                 metadata.copy(
                     lastActorId = request.context.actorId,
