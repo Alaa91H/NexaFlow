@@ -135,7 +135,9 @@ internal object TriggerNodeSchemas {
             stringField("event", default = "COVERED"),
             decimalField("threshold", default = "200"),
             decimalField("upperThreshold"),
-            decimalField("sensitivity", default = "14", min = 0.0)
+            decimalField("sensitivity", default = "14", min = 0.0),
+            decimalField("calibrationOffset"),
+            integerField("samplePeriodUs", default = "200000", min = 20000.0, max = 200000.0)
         )
         TriggerType.WEBHOOK -> schema(
             stringField("path", required = true, default = "/nexaflow"),

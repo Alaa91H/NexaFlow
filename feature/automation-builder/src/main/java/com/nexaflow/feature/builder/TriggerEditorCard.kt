@@ -1513,6 +1513,37 @@ fun TriggerEditorCard(
                                     supportingText = { if (invalid) Text(stringResource(if (invalidRange) R.string.sensor_invalid_range else R.string.sensor_invalid_threshold)) },
                                     modifier = Modifier.fillMaxWidth(), singleLine = true)
                             }
+                            val calibration = draft.config[com.nexaflow.domain.models.NumericSensors.CALIBRATION_OFFSET_KEY].orEmpty()
+                            val parsedCalibration = calibration.toFloatOrNull()?.takeIf { it.isFinite() }
+                            val calibrationInvalid = calibration.isNotBlank() &&
+                                (parsedCalibration == null || kotlin.math.abs(parsedCalibration) > numeric.calibrationLimit)
+                            OutlinedTextField(
+                                value = calibration,
+                                onValueChange = {
+                                    onConfigChange(draft.copy(config = draft.config +
+                                        (com.nexaflow.domain.models.NumericSensors.CALIBRATION_OFFSET_KEY to it)))
+                                },
+                                label = { Text(stringResource(R.string.sensor_numeric_calibration, numeric.unit)) },
+                                isError = calibrationInvalid,
+                                supportingText = {
+                                    if (calibrationInvalid) Text(stringResource(R.string.sensor_invalid_calibration, numeric.calibrationLimit, numeric.unit))
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                            val samplingPeriod = com.nexaflow.domain.models.NumericSensors.samplePeriodUs(draft.config)
+                            Text(stringResource(R.string.sensor_sampling_rate), style = MaterialTheme.typography.titleSmall)
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                com.nexaflow.domain.models.NumericSensors.samplePeriodsUs.sorted().forEach { period ->
+                                    val hz = 1_000_000 / period
+                                    SelectChip(
+                                        selected = samplingPeriod == period,
+                                        onClick = { onConfigChange(draft.copy(config = draft.config +
+                                            (com.nexaflow.domain.models.NumericSensors.SAMPLE_PERIOD_KEY to period.toString()))) },
+                                        label = stringResource(R.string.sensor_sampling_rate_option, hz)
+                                    )
+                                }
+                            }
                         }
                         when (sensor) {
                             "PROXIMITY" -> {

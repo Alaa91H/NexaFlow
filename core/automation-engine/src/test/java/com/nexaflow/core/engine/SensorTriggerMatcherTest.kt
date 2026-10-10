@@ -156,6 +156,16 @@ class SensorTriggerMatcherTest {
     }
 
     @Test
+    fun numericCalibrationIsAppliedBeforeMatchingAndRangeChecks() {
+        val config = mapOf(
+            "sensor" to "TEMPERATURE", "event" to "ABOVE", "threshold" to "25",
+            "calibrationOffset" to "2"
+        )
+        assertTrue(SensorTriggerMatcher.matches(config, "TEMPERATURE", 0f, 0f, 0f, 0, 0f, 28f))
+        assertFalse(SensorTriggerMatcher.matches(config, "TEMPERATURE", 0f, 0f, 0f, 0, 0f, 22f))
+    }
+
+    @Test
     fun invalidPhysicalSamplesDoNotCauseEntryOrExit() {
         val config = mapOf("event" to "UNCOVERED")
         assertFalse(SensorTriggerMatcher.matches(config, "PROXIMITY", Float.NaN, 0f, 0f, 0, 5f))

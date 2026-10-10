@@ -1281,6 +1281,10 @@
     <string name="sensor_numeric_gravity">Модуль гравитации (м/с²)</string>
     <string name="sensor_numeric_hinge">Угол шарнира (°)</string>
     <string name="sensor_numeric_help">Требуется физический датчик. Векторные показания — по модулю. Подходящее условие активно, пока совпадает.</string>
+    <string name="sensor_numeric_calibration">Смещение калибровки (%1$s)</string>
+    <string name="sensor_invalid_calibration">Введите конечное смещение от −%1$s до %1$s %2$s.</string>
+    <string name="sensor_sampling_rate">Частота измерений</string>
+    <string name="sensor_sampling_rate_option">%1$d Гц</string>
     <string name="sensor_numeric_lower">Порог / нижняя граница (%1$s)</string>
     <string name="sensor_numeric_upper">Верхняя граница (%1$s)</string>
     <string name="http_custom_headers">Заголовки запроса (имя: значение в каждой строке)</string>

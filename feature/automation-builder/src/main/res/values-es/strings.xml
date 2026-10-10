@@ -1284,6 +1284,10 @@
     <string name="sensor_numeric_gravity">Magnitud de gravedad (m/s²)</string>
     <string name="sensor_numeric_hinge">Ángulo de bisagra (°)</string>
     <string name="sensor_numeric_help">Requiere el sensor físico. Las lecturas vectoriales usan la magnitud. Una condición coincidente permanece activa hasta que deje de coincidir.</string>
+    <string name="sensor_numeric_calibration">Desfase de calibración (%1$s)</string>
+    <string name="sensor_invalid_calibration">Introduce un desfase finito entre −%1$s y %1$s %2$s.</string>
+    <string name="sensor_sampling_rate">Frecuencia de muestreo</string>
+    <string name="sensor_sampling_rate_option">%1$d Hz</string>
     <string name="sensor_numeric_lower">Umbral / límite inferior (%1$s)</string>
     <string name="sensor_numeric_upper">Límite superior (%1$s)</string>
     <string name="http_custom_headers">Encabezados de solicitud (un Nombre: valor por línea)</string>

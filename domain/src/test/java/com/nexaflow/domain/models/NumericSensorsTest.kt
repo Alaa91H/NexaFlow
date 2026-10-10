@@ -30,6 +30,38 @@ class NumericSensorsTest {
         assertEquals("COVERED", NumericSensors.configurationFor("PROXIMITY", temperature)["event"])
     }
 
+    @Test fun calibrationIsAppliedWithinUnitSpecificBoundsAndClearedOnSensorChange() {
+        val calibrated = mapOf("sensor" to "TEMPERATURE", "threshold" to "25", "calibrationOffset" to "2.5")
+        assertEquals(27.5f, NumericSensors.calibratedValue("TEMPERATURE", calibrated, 25f)!!, 0f)
+        assertTrue(NumericSensors.matches(calibrated, 27f))
+        assertTrue(NumericSensors.matches(calibrated, 28f))
+        assertFalse(NumericSensors.matches(calibrated + ("calibrationOffset" to "51"), 25f))
+        assertFalse(NumericSensors.matches(calibrated + ("calibrationOffset" to "NaN"), 25f))
+        assertFalse(NumericSensors.matches(calibrated + ("sensor" to "UNKNOWN"), 25f))
+        assertFalse(NumericSensors.configurationFor("PRESSURE", calibrated).containsKey("calibrationOffset"))
+        assertEquals(25f, NumericSensors.calibratedValue("TEMPERATURE", mapOf("sensor" to "TEMPERATURE"), 25f)!!, 0f)
+    }
+
+    @Test fun samplingPeriodUsesOnlySupportedPowerAndResponsivenessChoices() {
+        assertEquals(200_000, NumericSensors.samplePeriodUs(emptyMap()))
+        NumericSensors.samplePeriodsUs.forEach { period ->
+            assertEquals(period, NumericSensors.samplePeriodUs(mapOf("samplePeriodUs" to period.toString())))
+        }
+        assertEquals(200_000, NumericSensors.samplePeriodUs(mapOf("samplePeriodUs" to "1000")))
+        assertEquals(200_000, NumericSensors.samplePeriodUs(mapOf("samplePeriodUs" to "invalid")))
+    }
+
+    @Test fun calibrationAdjustsThresholdsAndRangeBounds() {
+        val calibrated = mapOf(
+            "sensor" to "TEMPERATURE", "event" to "BETWEEN", "threshold" to "20",
+            "upperThreshold" to "22", "calibrationOffset" to "2"
+        )
+        assertTrue(NumericSensors.matches(calibrated, 18f))
+        assertTrue(NumericSensors.matches(calibrated, 20f))
+        assertFalse(NumericSensors.matches(calibrated, 17f))
+        assertFalse(NumericSensors.matches(calibrated, 21f))
+    }
+
     @Test fun rangeBoundariesAreInclusiveWhileAboveAndBelowAreStrict() {
         val config = mapOf("threshold" to "10", "upperThreshold" to "20")
         assertFalse(NumericSensors.matches(config + ("event" to "ABOVE"), 10f))

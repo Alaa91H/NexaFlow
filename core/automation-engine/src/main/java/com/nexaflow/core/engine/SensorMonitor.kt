@@ -80,6 +80,7 @@ class SensorMonitor @Inject constructor(
     private val stateMutex = Mutex()
     @Volatile private var monitorScope: CoroutineScope? = null
     private val registeredListeners = mutableSetOf<SensorEventListener>()
+    private val samplingPeriodsByListener = mutableMapOf<SensorEventListener, Int>()
     /** Transient events are throttled; state changes must never be dropped. */
     private val lastSensorEventAt = ConcurrentHashMap<String, Long>()
     /** Cached candidates per sensor — rebuilt only on refresh, not per reading. */
@@ -365,7 +366,14 @@ class SensorMonitor @Inject constructor(
         setRegistration(SENSOR_SHAKE, shakeListener, wantedBy("SHAKE", automations))
         setRegistration(SENSOR_STEP, stepListener, wantedBy("STEP", automations))
         numericListeners.forEach { (kind, listener) ->
-            setRegistration(NumericSensors.specs.getValue(kind).type, listener, wantedBy(kind, automations))
+            val configs = automations.asSequence()
+                .filter { it.enabled }
+                .flatMap { it.triggers.asSequence() }
+                .filter { it.type == TriggerType.SENSOR && SensorTriggerMatcher.sensorOf(it.config) == kind }
+                .map { it.config }
+                .toList()
+            val periodUs = configs.minOfOrNull(NumericSensors::samplePeriodUs) ?: NumericSensors.DEFAULT_SAMPLE_PERIOD_US
+            setRegistration(NumericSensors.specs.getValue(kind).type, listener, configs.isNotEmpty(), periodUs)
         }
     }
 
@@ -375,23 +383,34 @@ class SensorMonitor @Inject constructor(
     private fun setRegistration(
         sensorType: Int,
         listener: SensorEventListener,
-        wanted: Boolean
+        wanted: Boolean,
+        samplingPeriodUs: Int = SensorManager.SENSOR_DELAY_NORMAL
     ) {
         if (!wanted) {
-            if (registeredListeners.remove(listener)) runCatching { sensorManager.unregisterListener(listener) }
+            unregister(listener)
             if (listener === stepListener) stepListener.lastSteps = -1
             return
         }
-        if (listener in registeredListeners) return
-        val sensor = sensorManager.getDefaultSensor(sensorType) ?: return
-        if (runCatching { sensorManager.registerListener(listener, sensor, SENSOR_DELAY, handler) }.getOrDefault(false)) {
-            registeredListeners.add(listener)
+        if (listener in registeredListeners) {
+            if (samplingPeriodsByListener[listener] == samplingPeriodUs) return
+            unregister(listener)
         }
+        val sensor = sensorManager.getDefaultSensor(sensorType) ?: return
+        if (runCatching { sensorManager.registerListener(listener, sensor, samplingPeriodUs, handler) }.getOrDefault(false)) {
+            registeredListeners.add(listener)
+            samplingPeriodsByListener[listener] = samplingPeriodUs
+        }
+    }
+
+    private fun unregister(listener: SensorEventListener) {
+        if (registeredListeners.remove(listener)) runCatching { sensorManager.unregisterListener(listener) }
+        samplingPeriodsByListener.remove(listener)
     }
 
     private fun unregisterAll() {
         registeredListeners.toList().forEach { listener -> runCatching { sensorManager.unregisterListener(listener) } }
         registeredListeners.clear()
+        samplingPeriodsByListener.clear()
     }
 
     // ---- event handling ---------------------------------------------------
@@ -742,9 +761,6 @@ class SensorMonitor @Inject constructor(
         const val SENSOR_LIGHT = Sensor.TYPE_LIGHT
         const val SENSOR_SHAKE = Sensor.TYPE_LINEAR_ACCELERATION
         const val SENSOR_STEP = Sensor.TYPE_STEP_COUNTER
-        // Normal rate keeps battery impact low; shake/step only need coarse
-        // samples and proximity/light are stateful, not time-critical.
-        const val SENSOR_DELAY = SensorManager.SENSOR_DELAY_NORMAL
         const val TRANSIENT_DEBOUNCE_MS = 200L
         const val SOURCE = "sensor"
     }

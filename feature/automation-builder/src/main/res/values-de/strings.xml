@@ -1284,6 +1284,10 @@
     <string name="sensor_numeric_gravity">Schwerebeschleunigung (m/s²)</string>
     <string name="sensor_numeric_hinge">Scharnierwinkel (°)</string>
     <string name="sensor_numeric_help">Erfordert den physischen Sensor. Vektorwerte nutzen die Magnitude. Eine passende Bedingung bleibt aktiv, bis sie nicht mehr passt.</string>
+    <string name="sensor_numeric_calibration">Kalibrierungsversatz (%1$s)</string>
+    <string name="sensor_invalid_calibration">Geben Sie einen endlichen Versatz zwischen −%1$s und %1$s %2$s ein.</string>
+    <string name="sensor_sampling_rate">Abtastrate</string>
+    <string name="sensor_sampling_rate_option">%1$d Hz</string>
     <string name="sensor_numeric_lower">Schwelle / Untergrenze (%1$s)</string>
     <string name="sensor_numeric_upper">Obergrenze (%1$s)</string>
     <string name="http_custom_headers">Request-Header (ein Name: Wert pro Zeile)</string>
