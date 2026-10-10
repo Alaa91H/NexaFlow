@@ -90,6 +90,8 @@
     <string name="special_dnd_body">タスクが通知をミュートしたり、サウンドを自動的に復元したりできるようにします。</string>
     <string name="special_notification_access_title">通知へのアクセス</string>
     <string name="special_notification_access_body">タスクがアプリの通知を読み取り、反応し、またはブロックできるようにします。</string>
+    <string name="special_call_screening_title">通話スクリーニングの役割</string>
+    <string name="special_call_screening_body">NexaFlow が着信のスクリーニング情報を受け取り、設定したルールを適用できるようにします。着信トリガーや通話操作を使う場合にのみ許可してください。</string>
     <string name="special_accessibility_title">ユーザー補助サービス</string>
     <string name="special_accessibility_body">アプリの起動を検出して自動的に閉じるために使用します。</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1053,6 +1055,7 @@
     <string name="call_category_private">非通知番号</string>
     <string name="call_category_contact">連絡先</string>
     <string name="call_screening_hint">着信前にブロックするにはシステム設定で「発信者 ID とスパム対策」の役割を許可してください</string>
+    <string name="call_contacts_permission_hint">連絡先へのアクセスは、保存済みの発信者を識別する場合にのみ使います。許可されていない場合、通話は不明として扱われます。</string>
     <string name="call_block_hint">現在着信中の通話を拒否します。確認役割またはこの権限が必要です</string>
     <string name="call_silence_hint">拒否せずに着信音をサイレントにします</string>
     <string name="action_call_block">通話をブロック</string>

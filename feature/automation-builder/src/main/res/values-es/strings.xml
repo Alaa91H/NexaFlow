@@ -93,6 +93,8 @@
     <string name="special_dnd_body">Permite que tus tareas silencien notificaciones o restauren el sonido automáticamente.</string>
     <string name="special_notification_access_title">Acceso a notificaciones</string>
     <string name="special_notification_access_body">Permite que las tareas lean notificaciones de apps, reaccionen o las bloqueen por ti.</string>
+    <string name="special_call_screening_title">Rol de filtrado de llamadas</string>
+    <string name="special_call_screening_body">Permite que NexaFlow reciba datos para filtrar llamadas entrantes y aplique tus reglas. Concede este rol solo si usas activadores o controles de llamadas.</string>
     <string name="special_accessibility_title">Servicio de accesibilidad</string>
     <string name="special_accessibility_body">NexaFlow lo usa para detectar cuándo se abren las apps y cerrarlas automáticamente.</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1056,6 +1058,7 @@
     <string name="call_category_private">Números ocultos</string>
     <string name="call_category_contact">Contactos</string>
     <string name="call_screening_hint">Concede el rol de identificación y filtrado de llamadas en los ajustes del sistema para bloquear antes de sonar</string>
+    <string name="call_contacts_permission_hint">El acceso a Contactos solo se usa para identificar a quienes tienes guardados. Sin este permiso, las llamadas se consideran desconocidas.</string>
     <string name="call_block_hint">Rechaza la llamada entrante actual; necesita el rol de filtrado o este permiso</string>
     <string name="call_silence_hint">Silencia el tono sin rechazar la llamada</string>
     <string name="action_call_block">Bloquear llamada</string>

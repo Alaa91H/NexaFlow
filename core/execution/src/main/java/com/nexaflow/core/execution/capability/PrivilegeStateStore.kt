@@ -277,6 +277,13 @@ class AndroidPrivilegeStateProbe(
                 runCatching { PermissionStatus.isNotificationListenerGranted(appContext) }.getOrDefault(false)
             ),
             booleanObservation(
+                PrivilegeSnapshot.SPECIAL_CALL_SCREENING,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && runCatching {
+                    appContext.getSystemService(android.app.role.RoleManager::class.java)
+                        ?.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING) == true
+                }.getOrDefault(false)
+            ),
+            booleanObservation(
                 PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS,
                 runCatching { Settings.System.canWrite(appContext) }.getOrDefault(false)
             ),

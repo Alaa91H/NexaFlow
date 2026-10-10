@@ -76,6 +76,35 @@ The parent issue remains open until all packages meet their evidence gates.
   compilation; all passed locally.
 - [x] String parity and resource gates passed; no physical sensor, thermal,
   emulator, or OEM behavior was claimed as tested.
-- [ ] Exact-SHA hosted CI and PR merge.
+- [x] Exact-SHA hosted CI passed and PR #243 merged as `b21e1918c9eb70c811f8ae345cb6bed2c55218cc`.
 - [ ] Physical sensor, thermal transition, emulator, and OEM validation
   (`NOT TESTED`).
+
+## Package E: notifications, SMS, and calls
+
+- [x] Incoming-call triggers request Android's call-screening role and expose
+  its live grant status; broad phone-state access is no longer incorrectly
+  shown as the trigger requirement. Existing `CALL_STATE` keeps its own
+  phone-state permission.
+- [x] Contact caller classification requests `READ_CONTACTS` only when the
+  trigger category is `CONTACT`; unavailable contact access safely classifies
+  callers as unknown.
+- [x] Notification matching applies both package lists and content filters,
+  and continues to honor legacy singular `package` configurations.
+- [x] SMS and call matchers reject unknown persisted match modes instead of
+  broadening a trigger unexpectedly.
+- [x] Added focused regression tests for call-role/contact requirements,
+  notification package compatibility, and fail-closed SMS/call modes.
+- [x] Local focused Gradle tests and builder Kotlin compilation passed; string,
+  translation, resource, atomic-inventory, and diff gates passed.
+- [ ] Exact-SHA hosted CI and PR merge.
+- [ ] Validate role grant/revocation and notification/SMS delivery on physical
+  devices and supported OEM builds (`NOT TESTED`).
+
+## Development branch workflow
+
+- [x] Use `feat/trigger-customization-followup` as the single ongoing development
+  branch, based on current `main`; package changes are reviewed and merged to
+  `main` via their package PR before work advances.
+- [ ] Continue from the updated `main` after each package merge and retain the
+  clean integration branch for ongoing follow-up work.

@@ -146,6 +146,19 @@ class CallPolicyEvaluatorTest {
     }
 
     @Test
+    fun `unknown number matching mode fails closed`() {
+        assertEquals(
+            CallPolicyEvaluator.Verdict.NONE,
+            CallPolicyEvaluator.evaluate(
+                listOf(callTask(from = "", matchMode = "UNRECOGNIZED")),
+                "123456",
+                CallPolicyEvaluator.CATEGORY_UNKNOWN,
+                false
+            )
+        )
+    }
+
+    @Test
     fun `category gate separates unknown private and contacts`() {
         val unknownOnly = callTask(category = "UNKNOWN")
         assertEquals(

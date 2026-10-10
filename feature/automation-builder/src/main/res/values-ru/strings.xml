@@ -90,6 +90,8 @@
     <string name="special_dnd_body">Позволяет задачам автоматически отключать уведомления или восстанавливать звук.</string>
     <string name="special_notification_access_title">Доступ к уведомлениям</string>
     <string name="special_notification_access_body">Позволяет задачам читать уведомления приложений, реагировать на них или блокировать их.</string>
+    <string name="special_call_screening_title">Роль фильтрации вызовов</string>
+    <string name="special_call_screening_body">Позволяет NexaFlow получать сведения для фильтрации входящих вызовов и применять ваши правила. Назначайте эту роль, только если используете триггеры или управление вызовами.</string>
     <string name="special_accessibility_title">Служба специальных возможностей</string>
     <string name="special_accessibility_body">NexaFlow использует её для определения открытия приложений и их автоматического закрытия.</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1053,6 +1055,7 @@
     <string name="call_category_private">Скрытые номера</string>
     <string name="call_category_contact">Контакты</string>
     <string name="call_screening_hint">Предоставьте роль «Определитель номера и защита от спама» в настройках системы, чтобы блокировать до звонка</string>
+    <string name="call_contacts_permission_hint">Доступ к контактам нужен только для распознавания сохранённых абонентов. Без него вызовы считаются неизвестными.</string>
     <string name="call_block_hint">Отклоняет текущий входящий звонок; нужна роль проверки или это разрешение</string>
     <string name="call_silence_hint">Заглушает звонок, не отклоняя вызов</string>
     <string name="action_call_block">Заблокировать звонок</string>

@@ -90,6 +90,8 @@
     <string name="special_dnd_body">Görevlerinizin bildirimleri sessize almasını veya sesi otomatik olarak geri yüklemesini sağlar.</string>
     <string name="special_notification_access_title">Bildirim erişimi</string>
     <string name="special_notification_access_body">Görevlerin uygulama bildirimlerini okumasını, tepki vermesini veya sizin için engellemesini sağlar.</string>
+    <string name="special_call_screening_title">Arama tarama rolü</string>
+    <string name="special_call_screening_body">NexaFlow’un gelen aramaların tarama bilgilerini alıp kurallarınızı uygulamasını sağlar. Bu rolü yalnızca gelen arama tetikleyicilerini veya arama denetimlerini kullanıyorsanız verin.</string>
     <string name="special_accessibility_title">Erişilebilirlik hizmeti</string>
     <string name="special_accessibility_body">NexaFlow, uygulamaların ne zaman açıldığını algılamak ve otomatik kapatmak için kullanır.</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1053,6 +1055,7 @@
     <string name="call_category_private">Gizli numaralar</string>
     <string name="call_category_contact">Kişiler</string>
     <string name="call_screening_hint">Çalmadan önce engellemek için sistem ayarlarında "Arayan kimliği ve spam filtresi" rolünü verin</string>
+    <string name="call_contacts_permission_hint">Kişiler erişimi yalnızca kayıtlı arayanları tanımak için kullanılır. Bu izin yoksa aramalar bilinmeyen olarak değerlendirilir.</string>
     <string name="call_block_hint">Şu an çalan aramayı reddeder; filtreleme rolü veya bu izin gerekir</string>
     <string name="call_silence_hint">Aramayı reddetmeden zil sesini kapatır</string>
     <string name="action_call_block">Aramayı engelle</string>

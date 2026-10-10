@@ -103,6 +103,7 @@ internal fun WorkflowSpecialPermission.toUiSpecialPermission(): SpecialPermissio
     WorkflowSpecialPermission.WRITE_SETTINGS -> SpecialPermission.WRITE_SETTINGS
     WorkflowSpecialPermission.DND_ACCESS -> SpecialPermission.DND_ACCESS
     WorkflowSpecialPermission.NOTIFICATION_ACCESS -> SpecialPermission.NOTIFICATION_ACCESS
+    WorkflowSpecialPermission.CALL_SCREENING -> SpecialPermission.CALL_SCREENING
     WorkflowSpecialPermission.ACCESSIBILITY -> SpecialPermission.ACCESSIBILITY
     WorkflowSpecialPermission.SHIZUKU -> SpecialPermission.SHIZUKU
     WorkflowSpecialPermission.ROOT -> SpecialPermission.ROOT

@@ -57,6 +57,17 @@ class PermissionCatalogTest {
     }
 
     @Test
+    fun `incoming call trigger uses screening role and only asks for contacts when selected`() {
+        assertEquals(emptyList<String>(), PermissionCatalog.runtimePermissionsFor(TriggerType.INCOMING_CALL))
+        assertEquals(SpecialPermission.CALL_SCREENING, PermissionCatalog.specialPermissionFor(TriggerType.INCOMING_CALL))
+        assertEquals(
+            listOf(Manifest.permission.READ_CONTACTS),
+            PermissionCatalog.runtimePermissionsFor(Trigger(TriggerType.INCOMING_CALL, mapOf("category" to "CONTACT")))
+        )
+        assertTrue(PermissionCatalog.runtimePermissionsFor(Trigger(TriggerType.INCOMING_CALL, mapOf("category" to "ANY"))).isEmpty())
+    }
+
+    @Test
     fun `charging limit requires root because shell cannot write sysfs power nodes`() {
         assertEquals(SpecialPermission.ROOT, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_CHARGING_LIMIT))
     }

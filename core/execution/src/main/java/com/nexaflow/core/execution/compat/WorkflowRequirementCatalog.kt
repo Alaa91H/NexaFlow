@@ -28,6 +28,7 @@ enum class WorkflowSpecialPermission {
     DND_ACCESS,
     NOTIFICATION_ACCESS,
     ACCESSIBILITY,
+    CALL_SCREENING,
     SHIZUKU,
     ROOT,
     ELEVATED,
@@ -334,6 +335,10 @@ object WorkflowRequirementCatalog {
             sdk >= Build.VERSION_CODES.S ->
             listOf(Manifest.permission.BLUETOOTH_CONNECT)
 
+        trigger.type == TriggerType.INCOMING_CALL &&
+            trigger.config["category"].orEmpty().equals("CONTACT", ignoreCase = true) ->
+            listOf(Manifest.permission.READ_CONTACTS)
+
         else -> runtimePermissionsFor(trigger.type, sdk)
     }
 
@@ -344,7 +349,10 @@ object WorkflowRequirementCatalog {
         val explicit = when (triggerType) {
             TriggerType.NETWORK_MODE -> listOf(Manifest.permission.READ_PHONE_STATE)
             TriggerType.SMS -> listOf(Manifest.permission.RECEIVE_SMS)
-            TriggerType.INCOMING_CALL -> listOf(Manifest.permission.READ_PHONE_STATE)
+            // The screening service receives incoming calls through the
+            // user-granted CALL_SCREENING role; it does not require broad
+            // phone-state access. Contact matching is requested per trigger
+            // only when the user selects the CONTACT category.
             TriggerType.LOCATION -> listOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
@@ -414,6 +422,7 @@ object WorkflowRequirementCatalog {
     fun specialPermissionFor(triggerType: TriggerType): WorkflowSpecialPermission? = when (triggerType) {
         TriggerType.TIME -> WorkflowSpecialPermission.EXACT_ALARM
         TriggerType.NOTIFICATION -> WorkflowSpecialPermission.NOTIFICATION_ACCESS
+        TriggerType.INCOMING_CALL -> WorkflowSpecialPermission.CALL_SCREENING
         TriggerType.APPLICATION -> WorkflowSpecialPermission.ACCESSIBILITY
         else -> null
     }
@@ -463,6 +472,8 @@ object WorkflowRequirementCatalog {
                     special(PrivilegeSnapshot.SPECIAL_DND_POLICY)
                 WorkflowSpecialPermission.NOTIFICATION_ACCESS ->
                     special(PrivilegeSnapshot.SPECIAL_NOTIFICATION_LISTENER)
+                WorkflowSpecialPermission.CALL_SCREENING ->
+                    special(PrivilegeSnapshot.SPECIAL_CALL_SCREENING)
                 WorkflowSpecialPermission.ACCESSIBILITY ->
                     special(PrivilegeSnapshot.SPECIAL_ACCESSIBILITY_SERVICE)
                 WorkflowSpecialPermission.SHIZUKU -> shizukuAuthority()
@@ -487,6 +498,8 @@ object WorkflowRequirementCatalog {
                 special(PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS)
             WorkflowSpecialPermission.DND_ACCESS ->
                 special(PrivilegeSnapshot.SPECIAL_DND_POLICY)
+            WorkflowSpecialPermission.CALL_SCREENING ->
+                special(PrivilegeSnapshot.SPECIAL_CALL_SCREENING)
             WorkflowSpecialPermission.SHIZUKU -> shizukuAuthority()
             WorkflowSpecialPermission.ROOT -> rootAuthority()
             WorkflowSpecialPermission.ELEVATED -> elevatedAuthority()
@@ -525,6 +538,12 @@ private fun isSpecialGrantMissing(
         snapshot.isGranted(
             PrivilegeSurface.SPECIAL_ACCESS,
             PrivilegeSnapshot.SPECIAL_DND_POLICY
+        ) == false
+
+    WorkflowSpecialPermission.CALL_SCREENING ->
+        snapshot.isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_CALL_SCREENING
         ) == false
 
     WorkflowSpecialPermission.NOTIFICATION_ACCESS ->

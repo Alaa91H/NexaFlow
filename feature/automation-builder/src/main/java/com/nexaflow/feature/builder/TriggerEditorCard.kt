@@ -1151,13 +1151,22 @@ fun TriggerEditorCard(
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                        RuntimePermissionHint(
+                        SpecialPermissionStatusRow(
+                            hintText = stringResource(R.string.call_screening_hint),
+                            special = SpecialPermission.CALL_SCREENING,
                             context = context,
-                            permissions = listOf(Manifest.permission.READ_PHONE_STATE),
-                            text = stringResource(R.string.call_screening_hint),
-                            buttonLabel = stringResource(R.string.grant),
-                            onRequest = { onRequestPermission(arrayOf(Manifest.permission.READ_PHONE_STATE)) }
+                            refreshKey = refreshKey,
+                            onRequest = { onExplainSpecial(SpecialPermission.CALL_SCREENING) }
                         )
+                        if (storedCategory == "CONTACT") {
+                            RuntimePermissionHint(
+                                context = context,
+                                permissions = listOf(Manifest.permission.READ_CONTACTS),
+                                text = stringResource(R.string.call_contacts_permission_hint),
+                                buttonLabel = stringResource(R.string.grant),
+                                onRequest = { onRequestPermission(arrayOf(Manifest.permission.READ_CONTACTS)) }
+                            )
+                        }
                     }
                 }
                 TriggerType.RINGER_MODE -> {

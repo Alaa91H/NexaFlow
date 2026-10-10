@@ -90,6 +90,8 @@
     <string name="special_dnd_body">आपके कार्यों को सूचनाएँ म्यूट करने या ध्वनि स्वचालित रूप से बहाल करने देता है।</string>
     <string name="special_notification_access_title">सूचना पहुंच</string>
     <string name="special_notification_access_body">कार्यों को ऐप सूचनाएँ पढ़ने, उन पर प्रतिक्रिया देने या उन्हें ब्लॉक करने देता है।</string>
+    <string name="special_call_screening_title">कॉल स्क्रीनिंग भूमिका</string>
+    <string name="special_call_screening_body">NexaFlow को आने वाली कॉल की स्क्रीनिंग जानकारी लेकर आपके नियम लागू करने देती है। यह भूमिका तभी दें जब आप इनकमिंग कॉल ट्रिगर या कॉल नियंत्रण का उपयोग करते हों।</string>
     <string name="special_accessibility_title">एक्सेसिबिलिटी सेवा</string>
     <string name="special_accessibility_body">NexaFlow इसका उपयोग ऐप खुलने का पता लगाने और उन्हें स्वचालित रूप से बंद करने के लिए करता है।</string>
     <string name="special_shizuku_title">शिज़ुकु</string>
@@ -1053,6 +1055,7 @@
     <string name="call_category_private">छिपे नंबर</string>
     <string name="call_category_contact">संपर्क</string>
     <string name="call_screening_hint">रिंग से पहले ब्लॉक करने के लिए सिस्टम सेटिंग में कॉलर आईडी और स्क्रीनिंग भूमिका दें</string>
+    <string name="call_contacts_permission_hint">Contacts की अनुमति केवल सहेजे गए कॉलर की पहचान के लिए उपयोग होती है। इसके बिना कॉल अज्ञात मानी जाती हैं।</string>
     <string name="call_block_hint">वर्तमान रिंग हो रहे कॉल को अस्वीकार करता है; स्क्रीनिंग भूमिका या यह अनुमति आवश्यक है</string>
     <string name="call_silence_hint">कॉल अस्वीकार किए बिना रिंग को मौन करता है</string>
     <string name="action_call_block">कॉल ब्लॉक करें</string>

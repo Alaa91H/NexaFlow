@@ -240,6 +240,22 @@ class WorkflowRequirementCatalogTest {
     }
 
     @Test
+    fun `incoming call role replaces broad phone permission and contacts are conditional`() {
+        assertTrue(WorkflowRequirementCatalog.runtimePermissionsFor(TriggerType.INCOMING_CALL, sdk = 37).isEmpty())
+        assertEquals(
+            listOf("android.permission.READ_CONTACTS"),
+            WorkflowRequirementCatalog.runtimePermissionsFor(
+                Trigger(TriggerType.INCOMING_CALL, mapOf("category" to "CONTACT")),
+                sdk = 37
+            )
+        )
+        assertEquals(
+            WorkflowSpecialPermission.CALL_SCREENING,
+            WorkflowRequirementCatalog.specialPermissionFor(TriggerType.INCOMING_CALL)
+        )
+    }
+
+    @Test
     fun `private network HTTP permission is config and API aware`() {
         val action = Action(
             ActionType.SYSTEM_HTTP_REQUEST,
