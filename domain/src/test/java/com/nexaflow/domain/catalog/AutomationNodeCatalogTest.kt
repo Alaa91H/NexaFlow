@@ -227,6 +227,8 @@ class AutomationNodeCatalogTest {
 
         val sensor = AutomationNodeCatalog.definitionFor(TriggerType.SENSOR).configuration
         assertTrue("upperThreshold" in sensor.knownKeys)
+        assertTrue("calibrationOffset" in sensor.knownKeys)
+        assertEquals(200_000.0, requireNotNull(sensor.field("samplePeriodUs")).defaultValue!!.toDouble(), 0.0)
         assertTrue("GYROSCOPE" in requireNotNull(sensor.field("sensor")).allowedValues)
 
         val oneShotTriggers = mapOf(

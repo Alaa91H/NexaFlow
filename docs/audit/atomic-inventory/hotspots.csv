@@ -7,7 +7,7 @@ rank,score,path,complexity,coupling,churn,evidence
 6,1.033097,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/CanonicalSchemaFieldEditor.kt,36,26,4,branch_tokens=36;cross_module_imports=26;enum_refs=0;commits_in_last_50_before_4199f4a=4
 7,0.928989,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt,2,181,1,branch_tokens=2;cross_module_imports=1;enum_refs=180;commits_in_last_50_before_4199f4a=1
 8,0.896635,core/execution/src/main/java/com/nexaflow/core/execution/TriggerStateEvaluator.kt,85,69,0,branch_tokens=85;cross_module_imports=12;enum_refs=57;commits_in_last_50_before_4199f4a=0
-9,0.877173,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt,62,64,1,branch_tokens=62;cross_module_imports=7;enum_refs=57;commits_in_last_50_before_4199f4a=1
+9,0.884367,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt,63,64,1,branch_tokens=63;cross_module_imports=7;enum_refs=57;commits_in_last_50_before_4199f4a=1
 10,0.843966,core/automation-engine/src/main/java/com/nexaflow/core/engine/BatteryMonitor.kt,66,49,1,branch_tokens=66;cross_module_imports=45;enum_refs=4;commits_in_last_50_before_4199f4a=1
 11,0.831361,data/src/main/java/com/nexaflow/data/agents/AgentRunRepository.kt,16,12,4,branch_tokens=16;cross_module_imports=12;enum_refs=0;commits_in_last_50_before_4199f4a=4
 12,0.786075,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionPresentation.kt,30,138,0,branch_tokens=30;cross_module_imports=7;enum_refs=131;commits_in_last_50_before_4199f4a=0
@@ -26,7 +26,7 @@ rank,score,path,complexity,coupling,churn,evidence
 25,0.500000,core/database/src/main/java/com/nexaflow/core/database/AppDatabase.kt,0,0,3,branch_tokens=0;cross_module_imports=0;enum_refs=0;commits_in_last_50_before_4199f4a=3
 26,0.478308,core/automation-engine/src/main/java/com/nexaflow/core/engine/BluetoothMonitor.kt,37,11,1,branch_tokens=37;cross_module_imports=9;enum_refs=2;commits_in_last_50_before_4199f4a=1
 27,0.473235,domain/src/main/java/com/nexaflow/domain/canonical/CanonicalWorkflowDocumentV3.kt,16,6,2,branch_tokens=16;cross_module_imports=6;enum_refs=0;commits_in_last_50_before_4199f4a=2
-28,0.454605,core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorMonitor.kt,54,16,0,branch_tokens=54;cross_module_imports=15;enum_refs=1;commits_in_last_50_before_4199f4a=0
+28,0.461799,core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorMonitor.kt,55,16,0,branch_tokens=55;cross_module_imports=15;enum_refs=1;commits_in_last_50_before_4199f4a=0
 29,0.435460,core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt,41,34,0,branch_tokens=41;cross_module_imports=18;enum_refs=16;commits_in_last_50_before_4199f4a=0
 30,0.417563,core/automation-engine/src/main/java/com/nexaflow/core/engine/CalendarMonitor.kt,50,14,0,branch_tokens=50;cross_module_imports=13;enum_refs=1;commits_in_last_50_before_4199f4a=0
 31,0.410349,core/automation-engine/src/main/java/com/nexaflow/core/engine/MonitoringService.kt,31,5,1,branch_tokens=31;cross_module_imports=5;enum_refs=0;commits_in_last_50_before_4199f4a=1

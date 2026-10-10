@@ -58,3 +58,24 @@ The parent issue remains open until all packages meet their evidence gates.
 - [x] Complete combined monitor regression suite and final inventory/resource/string/diff gates.
 - [x] Exact-SHA hosted CI passed for PR #241 and the PR merged.
 - [ ] Emulator, physical-device, and OEM package-manager validation (`NOT TESTED`).
+
+## Package D: battery, thermal, and sensors
+
+- [x] Reuse existing battery and battery-temperature threshold, hysteresis, and
+  stable-duration runtime paths; no duplicate power monitor was introduced.
+- [x] Add unit-bounded numeric sensor calibration offsets, with legacy configs
+  retaining zero-offset behavior and sensor changes clearing stale calibration.
+- [x] Add bounded sensor sampling choices and apply the fastest configured rate
+  among enabled triggers sharing a physical sensor; re-register on rate changes.
+- [x] Add sensor editor controls and typed schema fields for calibration and
+  sampling; existing battery and battery-temperature hysteresis remains in its
+  established runtime paths.
+- [ ] Numeric sensor hysteresis and stable-duration runtime wiring remain a
+  follow-up; no new controls claim support for them in this package.
+- [x] Run focused domain, sensor matcher and lifecycle tests, plus builder
+  compilation; all passed locally.
+- [x] String parity and resource gates passed; no physical sensor, thermal,
+  emulator, or OEM behavior was claimed as tested.
+- [ ] Exact-SHA hosted CI and PR merge.
+- [ ] Physical sensor, thermal transition, emulator, and OEM validation
+  (`NOT TESTED`).
