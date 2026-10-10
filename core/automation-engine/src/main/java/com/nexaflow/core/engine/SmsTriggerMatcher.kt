@@ -37,7 +37,8 @@ object SmsTriggerMatcher {
         val textMatch = when (mode) {
             MATCH_EXACT -> contains.isNotEmpty() && body.trim().equals(contains, ignoreCase = true)
             MATCH_ANY -> true
-            else -> contains.isEmpty() || body.contains(contains, ignoreCase = true)
+            MATCH_CONTAINS -> contains.isEmpty() || body.contains(contains, ignoreCase = true)
+            else -> false
         }
         return fromMatch && textMatch
     }

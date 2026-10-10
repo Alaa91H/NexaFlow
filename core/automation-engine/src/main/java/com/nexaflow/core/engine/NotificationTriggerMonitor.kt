@@ -344,18 +344,7 @@ class NotificationTriggerMonitor @Inject constructor(
         packageName: String,
         title: String?,
         text: String?
-    ): Boolean {
-        val packages = config["packages"].orEmpty()
-            .split(',')
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-        if (packages.isNotEmpty() && packageName !in packages) return false
-
-        val contains = config["contains"].orEmpty().trim()
-        if (contains.isEmpty()) return true
-        val haystack = listOfNotNull(title, text).joinToString(" ")
-        return haystack.contains(contains, ignoreCase = true)
-    }
+    ): Boolean = NotificationTriggerMatcher.matches(config, packageName, title, text)
 
     private fun encodeSourceKey(automationId: String, occurrence: Occurrence): String =
         listOf(
@@ -382,5 +371,26 @@ class NotificationTriggerMonitor @Inject constructor(
         const val EVENT_POSTED = "POSTED"
         const val EVENT_REMOVED = "REMOVED"
         const val SEPARATOR = "|"
+    }
+}
+
+/** Pure matching for notification package and content filters. */
+internal object NotificationTriggerMatcher {
+    fun matches(
+        config: Map<String, String>,
+        packageName: String,
+        title: String?,
+        text: String?
+    ): Boolean {
+        val configuredPackages = config["packages"].orEmpty()
+            .takeIf { it.isNotBlank() }
+            ?: config["package"].orEmpty()
+        val packages = configuredPackages.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        if (packages.isNotEmpty() && packageName !in packages) return false
+
+        val contains = config["contains"].orEmpty().trim()
+        if (contains.isEmpty()) return true
+        val haystack = listOfNotNull(title, text).joinToString(" ")
+        return haystack.contains(contains, ignoreCase = true)
     }
 }

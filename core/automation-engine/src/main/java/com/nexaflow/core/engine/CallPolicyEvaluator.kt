@@ -130,7 +130,8 @@ object CallPolicyEvaluator {
             SmsTriggerMatcher.MATCH_EXACT -> from.isNotEmpty() && number.trim() == from
             SmsTriggerMatcher.MATCH_ANY -> true
             // CONTAINS mirrors the SMS body filter: an empty filter matches.
-            else -> from.isEmpty() || number.contains(from, ignoreCase = true)
+            SmsTriggerMatcher.MATCH_CONTAINS -> from.isEmpty() || number.contains(from, ignoreCase = true)
+            else -> false
         }
     }
 

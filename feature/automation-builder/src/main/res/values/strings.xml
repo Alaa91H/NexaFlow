@@ -150,6 +150,8 @@
     <string name="special_dnd_body">Lets your tasks silence notifications or restore sound automatically.</string>
     <string name="special_notification_access_title">Notification access</string>
     <string name="special_notification_access_body">Lets tasks read app notifications, react to them, or block them for you.</string>
+    <string name="special_call_screening_title">Call screening role</string>
+    <string name="special_call_screening_body">Lets NexaFlow receive incoming-call screening details and apply your call rules. Grant this role only if you use incoming-call triggers or call controls.</string>
     <string name="special_accessibility_title">Accessibility service</string>
     <string name="special_accessibility_body">NexaFlow uses it to detect when apps open and to close them automatically.</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1083,6 +1085,7 @@
     <string name="call_category_private">Hidden numbers</string>
     <string name="call_category_contact">Contacts</string>
     <string name="call_screening_hint">Grant the Caller ID &amp; spam screening role in system settings for pre-ring blocking</string>
+    <string name="call_contacts_permission_hint">Contacts access is used only to identify callers saved in your contacts. Without it, calls are treated as unknown.</string>
     <string name="call_block_hint">Rejects the currently ringing call; needs the screening role or this permission</string>
     <string name="call_block_silent_hint">Disallows a matching call and suppresses its notification where Android supports it</string>
     <string name="call_silence_hint">Silences the ring without rejecting the call</string>

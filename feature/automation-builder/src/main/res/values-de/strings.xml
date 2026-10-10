@@ -93,6 +93,8 @@
     <string name="special_dnd_body">Lässt deine Aufgaben Benachrichtigungen stummschalten oder den Ton automatisch wiederherstellen.</string>
     <string name="special_notification_access_title">Benachrichtigungszugriff</string>
     <string name="special_notification_access_body">Lässt Aufgaben App-Benachrichtigungen lesen, darauf reagieren oder sie für dich blockieren.</string>
+    <string name="special_call_screening_title">Rolle zur Anrufprüfung</string>
+    <string name="special_call_screening_body">Ermöglicht NexaFlow, Angaben zur Prüfung eingehender Anrufe zu erhalten und deine Regeln anzuwenden. Vergib diese Rolle nur, wenn du Anrufauslöser oder Anruffunktionen verwendest.</string>
     <string name="special_accessibility_title">Barrierefreiheitsdienst</string>
     <string name="special_accessibility_body">NexaFlow nutzt ihn, um zu erkennen, wann Apps geöffnet werden, und sie automatisch zu schließen.</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1056,6 +1058,7 @@
     <string name="call_category_private">Unterdrückte Nummern</string>
     <string name="call_category_contact">Kontakte</string>
     <string name="call_screening_hint">Gewähre die Rolle „Anrufer-ID &amp; Spam-Schutz“ in den Systemeinstellungen für Blockieren vor dem Klingeln</string>
+    <string name="call_contacts_permission_hint">Der Kontaktezugriff dient nur dazu, gespeicherte Anrufer zu erkennen. Ohne ihn gelten Anrufe als unbekannt.</string>
     <string name="call_block_hint">Lehnt den aktuell klingelnden Anruf ab; benötigt die Prüfrolle oder diese Berechtigung</string>
     <string name="call_silence_hint">Stummschaltet den Klingelton, ohne den Anruf abzulehnen</string>
     <string name="action_call_block">Anruf blockieren</string>

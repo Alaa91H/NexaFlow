@@ -88,6 +88,7 @@ data class PrivilegeSnapshot(
     companion object {
         const val SPECIAL_ACCESSIBILITY_SERVICE = "accessibility_service"
         const val SPECIAL_NOTIFICATION_LISTENER = "notification_listener"
+        const val SPECIAL_CALL_SCREENING = "call_screening"
         const val SPECIAL_WRITE_SETTINGS = "write_settings"
         const val SPECIAL_DRAW_OVERLAYS = "draw_overlays"
         const val SPECIAL_DND_POLICY = "notification_policy"

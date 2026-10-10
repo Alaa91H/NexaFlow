@@ -107,6 +107,11 @@ class SmsTriggerMatcherTest {
     }
 
     @Test
+    fun matches_unknownMode_failsClosed() {
+        assertFalse(SmsTriggerMatcher.matches(mapOf("matchMode" to "UNRECOGNIZED"), "BANK", "any body"))
+    }
+
+    @Test
     fun matches_exactMode_stillRequiresFromFilterToPass() {
         val config = mapOf("from" to "BANK", "matchMode" to "EXACT", "contains" to "STOP")
         assertTrue(SmsTriggerMatcher.matches(config, "BANK", "stop"))

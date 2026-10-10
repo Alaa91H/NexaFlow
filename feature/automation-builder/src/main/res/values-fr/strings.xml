@@ -93,6 +93,8 @@
     <string name="special_dnd_body">Permet à vos tâches de couper les notifications ou de rétablir le son automatiquement.</string>
     <string name="special_notification_access_title">Accès aux notifications</string>
     <string name="special_notification_access_body">"Permet aux tâches de lire les notifications, d\'y réagir ou de les bloquer pour vous."</string>
+    <string name="special_call_screening_title">Rôle de filtrage des appels</string>
+    <string name="special_call_screening_body">Permet à NexaFlow de recevoir les informations de filtrage des appels entrants et d’appliquer vos règles. Accordez ce rôle uniquement si vous utilisez les déclencheurs ou commandes d’appel.</string>
     <string name="special_accessibility_title">"Service d\'accessibilité"</string>
     <string name="special_accessibility_body">"NexaFlow l\'utilise pour détecter l\'ouverture des applications et les fermer automatiquement."</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1056,6 +1058,7 @@
     <string name="call_category_private">Numéros masqués</string>
     <string name="call_category_contact">Contacts</string>
     <string name="call_screening_hint">Accordez le rôle « Identification et filtrage des appels » dans les paramètres système pour bloquer avant la sonnerie</string>
+    <string name="call_contacts_permission_hint">L’accès aux contacts sert uniquement à reconnaître les appelants enregistrés. Sans cet accès, les appels sont considérés comme inconnus.</string>
     <string name="call_block_hint">Refuse l\'appel entrant actuel ; nécessite le rôle de filtrage ou cette autorisation</string>
     <string name="call_silence_hint">Met la sonnerie en silencieux sans rejeter l\'appel</string>
     <string name="action_call_block">Bloquer l\'appel</string>

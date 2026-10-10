@@ -50,6 +50,7 @@ enum class SpecialPermission {
     WRITE_SETTINGS,
     DND_ACCESS,
     NOTIFICATION_ACCESS,
+    CALL_SCREENING,
     ACCESSIBILITY,
     SHIZUKU,
     ROOT,
@@ -95,6 +96,8 @@ fun specialPermissionExplainInfo(type: SpecialPermission): PermissionExplainInfo
         PermissionExplainInfo(Icons.Filled.DoNotDisturb, Color(0xFFBA1A1A), R.string.special_dnd_title, R.string.special_dnd_body)
     SpecialPermission.NOTIFICATION_ACCESS ->
         PermissionExplainInfo(Icons.Filled.Notifications, Color(0xFF8F4C00), R.string.special_notification_access_title, R.string.special_notification_access_body)
+    SpecialPermission.CALL_SCREENING ->
+        PermissionExplainInfo(Icons.Filled.NotificationsActive, Color(0xFF0B57D0), R.string.special_call_screening_title, R.string.special_call_screening_body)
     SpecialPermission.ACCESSIBILITY ->
         PermissionExplainInfo(Icons.Filled.Accessibility, Color(0xFF6750A4), R.string.special_accessibility_title, R.string.special_accessibility_body)
     SpecialPermission.SHIZUKU ->

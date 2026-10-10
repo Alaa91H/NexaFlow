@@ -1,6 +1,7 @@
 package com.nexaflow.feature.builder
 
 import android.app.AlarmManager
+import android.app.role.RoleManager
 import android.content.Context
 import android.content.res.Configuration
 import android.content.Intent
@@ -663,6 +664,7 @@ fun PermissionHintForAction(
             SpecialPermission.ROOT -> R.string.root_hint
             SpecialPermission.ELEVATED -> R.string.elevated_hint
             SpecialPermission.NOTIFICATION_ACCESS -> R.string.notification_access_hint
+            SpecialPermission.CALL_SCREENING -> R.string.call_screening_hint
             else -> return
         }
         SpecialPermissionStatusRow(
@@ -688,6 +690,8 @@ object PermissionShortcuts {
                 nm.isNotificationPolicyAccessGranted
             }
             SpecialPermission.NOTIFICATION_ACCESS -> PermissionStatus.isNotificationListenerGranted(context)
+            SpecialPermission.CALL_SCREENING -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                runCatching { context.getSystemService(RoleManager::class.java)?.isRoleHeld(RoleManager.ROLE_CALL_SCREENING) == true }.getOrDefault(false)
             SpecialPermission.ACCESSIBILITY -> PermissionStatus.isAccessibilityServiceEnabled(context)
             // Real detection via the rom-integration module (same probes the
             // execution engine uses), so a previously granted Shizuku/root
@@ -760,6 +764,7 @@ object PermissionShortcuts {
             SpecialPermission.WRITE_SETTINGS -> openWriteSettings(context)
             SpecialPermission.DND_ACCESS -> openNotificationPolicy(context)
             SpecialPermission.NOTIFICATION_ACCESS -> openNotificationAccessSettings(context)
+            SpecialPermission.CALL_SCREENING -> openCallScreeningRole(context)
             SpecialPermission.ACCESSIBILITY -> openAccessibilitySettings(context)
             // Shizuku: request the permission in-app when the server is already
             // running (one tap, no detour); otherwise open the Shizuku app.
@@ -845,6 +850,24 @@ object PermissionShortcuts {
 
     fun openNotificationAccessSettings(context: Context) =
         PermissionStatus.openNotificationAccessSettings(context)
+
+    private fun openCallScreeningRole(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            runCatching {
+                val roleManager = context.getSystemService(RoleManager::class.java)
+                if (roleManager?.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING) == true) {
+                    context.startActivity(
+                        roleManager.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                    return
+                }
+            }
+        }
+        runCatching {
+            context.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
 }
 
 /** Shared stream type options used in ActionConfigEditor and EndBehaviorEditor. */

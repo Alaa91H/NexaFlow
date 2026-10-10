@@ -93,6 +93,8 @@
     <string name="special_dnd_body">يتيح لمهامك كتم الإشعارات أو إعادة الصوت تلقائياً.</string>
     <string name="special_notification_access_title">الوصول إلى الإشعارات</string>
     <string name="special_notification_access_body">يتيح للمهام قراءة إشعارات التطبيقات أو التفاعل معها أو حظرها.</string>
+    <string name="special_call_screening_title">دور فحص المكالمات</string>
+    <string name="special_call_screening_body">يتيح لـ NexaFlow تلقي بيانات فحص المكالمات الواردة وتطبيق قواعدك. امنح هذا الدور فقط عند استخدام محفزات المكالمات الواردة أو عناصر التحكم بالمكالمات.</string>
     <string name="special_accessibility_title">خدمة إمكانية الوصول</string>
     <string name="special_accessibility_body">يستخدمه نيكسافلو لمعرفة فتح التطبيقات وإغلاقها تلقائياً.</string>
     <string name="special_shizuku_title">شيزوكو</string>
@@ -1056,6 +1058,7 @@
     <string name="call_category_private">أرقام مخفية</string>
     <string name="call_category_contact">جهات الاتصال</string>
     <string name="call_screening_hint">امنح دور "معرّف المتصل وفحص المكالمات" من إعدادات النظام لتمكين الحظر قبل الرنين</string>
+    <string name="call_contacts_permission_hint">يُستخدم الوصول إلى جهات الاتصال فقط للتعرّف على المتصلين المحفوظين لديك. من دونه تُعامل المكالمات على أنها من أرقام غير معروفة.</string>
     <string name="call_block_hint">يرفض المكالمة الواردة الحالية؛ يحتاج دور الفحص أو هذا الإذن</string>
     <string name="call_block_silent_hint">يمنع المكالمة المطابقة ويخفي إشعارها حيثما يدعم أندرويد ذلك</string>
     <string name="call_silence_hint">يكتم الرنين دون رفض المكالمة</string>

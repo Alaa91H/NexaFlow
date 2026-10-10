@@ -90,6 +90,8 @@
     <string name="special_dnd_body">允许您的任务自动静音通知或恢复声音。</string>
     <string name="special_notification_access_title">通知访问</string>
     <string name="special_notification_access_body">让任务读取应用通知、对其做出反应或为您阻止它们。</string>
+    <string name="special_call_screening_title">来电筛选角色</string>
+    <string name="special_call_screening_body">允许 NexaFlow 接收来电筛选信息并应用你设置的规则。仅在使用来电触发器或通话控制时授予此角色。</string>
     <string name="special_accessibility_title">无障碍服务</string>
     <string name="special_accessibility_body">NexaFlow 使用它检测应用何时打开并自动关闭它们。</string>
     <string name="special_shizuku_title">Shizuku</string>
@@ -1053,6 +1055,7 @@
     <string name="call_category_private">隐藏号码</string>
     <string name="call_category_contact">联系人</string>
     <string name="call_screening_hint">在系统设置中授予“来电识别与骚扰拦截”角色，以便在响铃前拦截</string>
+    <string name="call_contacts_permission_hint">联系人权限仅用于识别已保存的来电号码。未授予时，来电会被视为未知号码。</string>
     <string name="call_block_hint">拒绝当前正在响铃的来电；需要筛查角色或此权限</string>
     <string name="call_silence_hint">静音响铃而不拒接来电</string>
     <string name="action_call_block">拦截来电</string>
