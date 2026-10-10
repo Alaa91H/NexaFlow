@@ -1284,7 +1284,7 @@
     <string name="sensor_numeric_calibration">校准偏移量（%1$s）</string>
     <string name="sensor_invalid_calibration">请输入 −%1$s 至 %1$s %2$s 范围内的有限数值。</string>
     <string name="sensor_sampling_rate">采样率</string>
-    <string name="sensor_sampling_rate_option">%1$d Hz</string>
+    <string name="sensor_sampling_rate_option">%1$d 赫兹</string>
     <string name="sensor_numeric_lower">阈值 / 下限 (%1$s)</string>
     <string name="sensor_numeric_upper">上限 (%1$s)</string>
     <string name="http_custom_headers">请求头（每行一个名称: 值）</string>
