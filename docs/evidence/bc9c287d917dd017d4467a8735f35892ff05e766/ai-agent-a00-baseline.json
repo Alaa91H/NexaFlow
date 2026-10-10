@@ -69,7 +69,11 @@
     "androidSdkPlatform37Available": false,
     "androidHomeConfigured": false,
     "gradleTasksConfigurable": false,
-    "githubWriteApiAvailable": false
+    "githubWriteApiAvailable": false,
+    "githubApiEgressCurrentlyAllowed": false,
+    "githubApiEgressDraftSaved": true,
+    "githubApiEgressDraftRequiresPublish": true,
+    "ghCliAuthenticationReady": false
   },
   "localChecks": [
     {

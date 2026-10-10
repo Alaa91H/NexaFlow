@@ -57,7 +57,7 @@ For precise source paths and historical evidence provenance, see [the 2026-10-08
 | Java | Java 21 runtime is present. The installed JDK lacks `javac` and Gradle reports it cannot provide `JAVA_COMPILER`. |
 | Android SDK | No SDK platform 37 or `sdkmanager` was found; `ANDROID_HOME` and `ANDROID_SDK_ROOT` are unset. |
 | Android Gradle tasks | Not runnable in this environment until a full JDK and Android SDK 37 are available. No application build, Robolectric suite, lint, or Detekt pass is claimed. |
-| GitHub write/API access | `gh auth status` reports the injected `GH_TOKEN` is invalid; a GitHub API request returned 403. Read-only Git fetch and public repository pages work. No PR update, merge, issue edit, or close was performed. |
+| GitHub write/API access | The current proxy policy rejects the HTTPS `CONNECT` to `api.github.com`; `github.com` and Git fetch work. `gh auth status` also reports its selected token invalid. A draft egress rule for `api.github.com` was saved for user review and publication; it has not been applied to this running environment. No PR update, merge, issue edit, or close was performed. |
 
 ## 5. Checks run on current `main`
 
