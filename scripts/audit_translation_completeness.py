@@ -113,6 +113,8 @@ PER_LOCALE_IDENTICAL_OK: dict[str, set[str]] = {
         "Updates", "Version %1$s", "Global", "Secure", "Timeout",
         "Screenshot", "Wearables", "Plugins", "ms", "%1$d Hz", "Maximum: %1$d%%",
         "Radius: %1$d m",
+        # Colour names and appearance terms that are the same words in German.
+        "Indigo",
     },
     "es": {
         "Color", "General", "Manual", "Global", "Total", "Variables",
@@ -127,6 +129,8 @@ PER_LOCALE_IDENTICAL_OK: dict[str, set[str]] = {
         "Notifications", "Orange", "Portrait", "Total", "Version %1$s",
         "Volume", "Volume %1$d", "occurrences", "via %1$s", "ms",
         "%1$d Hz", "%1$d min", "1 min", "5 min", "10 min",
+        # Colour names and appearance terms that are the same words in French.
+        "Indigo", "Violet", "Rose", "Style", "Monochrome",
     },
     "pt": {
         "Manual", "Global", "Total", "Latitude", "Longitude", "Namespace",
