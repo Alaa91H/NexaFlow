@@ -6,11 +6,12 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Semantic color roles that Material 3's [androidx.compose.material3.ColorScheme]
- * does not define but this app needs: a success family (green tonal palette,
- * dark-aware). Error roles are already part of the M3 scheme and must be read
- * from `MaterialTheme.colorScheme` — never duplicated here.
+ * does not define but this app needs: a success family, a warning family and
+ * the brand's own gradient stops. Error roles are already part of the M3
+ * scheme and must be read from `MaterialTheme.colorScheme` — never
+ * duplicated here.
  *
- * Both variants are dark-aware so a raw green like #006D3C never lands on a
+ * Both variants are dark-aware so a raw green like #1D8A5B never lands on a
  * dark surface (the classic invisible-text bug).
  */
 @Immutable
@@ -22,30 +23,47 @@ data class NexaFlowColors(
     val warning: Color,
     val onWarning: Color,
     val warningContainer: Color,
-    val onWarningContainer: Color
+    val onWarningContainer: Color,
+    /** Start of the brand gradient. */
+    val brandStart: Color = NexaFlowBrandStart,
+    /** Middle of the brand gradient. */
+    val brandViolet: Color = NexaFlowBrandViolet,
+    /** End of the brand gradient. */
+    val brandEnd: Color = NexaFlowBrandEnd,
+    /** The hairline color used for card edges and dividers. */
+    val hairline: Color = NexaFlowBrandEnd
 )
 
-/** Google-green tonal palette (seed #2FA84F), tone 40/80 split per M3 spec. */
+/** The light semantic palette. */
 val LightNexaFlowColors = NexaFlowColors(
-    success = Color(0xFF006D3C),
-    onSuccess = Color.White,
-    successContainer = Color(0xFFE4F4E9),
-    onSuccessContainer = Color(0xFF00210D),
-    warning = Color(0xFF8F4C00),
-    onWarning = Color.White,
-    warningContainer = Color(0xFFFDF3E0),
-    onWarningContainer = Color(0xFF2D1600)
+    success = Color(0xFF178050),
+    onSuccess = Color(0xFFFFFFFF),
+    successContainer = Color(0xFFBFF0D6),
+    onSuccessContainer = Color(0xFF00281A),
+    warning = Color(0xFF9A5B00),
+    onWarning = Color(0xFFFFFFFF),
+    warningContainer = Color(0xFFFFDEA8),
+    onWarningContainer = Color(0xFF2B1700),
+    brandStart = NexaFlowBrandStart,
+    brandViolet = NexaFlowBrandViolet,
+    brandEnd = NexaFlowBrandEnd,
+    hairline = Color(0xFFD3D8E3)
 )
 
+/** The dark semantic palette. */
 val DarkNexaFlowColors = NexaFlowColors(
-    success = Color(0xFF78DAA0),
-    onSuccess = Color(0xFF00391D),
-    successContainer = Color(0xFF00522B),
-    onSuccessContainer = Color(0xFF94F7B6),
-    warning = Color(0xFFFFB86C),
-    onWarning = Color(0xFF4A2800),
-    warningContainer = Color(0xFF683900),
-    onWarningContainer = Color(0xFFFFDCC2)
+    success = Color(0xFF5BD6A0),
+    onSuccess = Color(0xFF003824),
+    successContainer = Color(0xFF0B3D26),
+    onSuccessContainer = Color(0xFFBFF0D6),
+    warning = Color(0xFFFBBF24),
+    onWarning = Color(0xFF402C00),
+    warningContainer = Color(0xFF5A3D00),
+    onWarningContainer = Color(0xFFFFDEA8),
+    brandStart = NexaFlowBrandStartDark,
+    brandViolet = NexaFlowBrandVioletDark,
+    brandEnd = NexaFlowBrandEndDark,
+    hairline = Color(0xFF282D39)
 )
 
 /** Composition local — provided by the app theme, read by every module. */
