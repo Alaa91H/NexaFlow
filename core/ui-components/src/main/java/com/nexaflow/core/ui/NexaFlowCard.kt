@@ -14,11 +14,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.Dimens.Space4
+import com.nexaflow.core.ui.theme.NexaFlowTraitsDefaults
 
 /**
- * Google-style filled card. Borderless, 16dp radius, resting on the tonal
- * surface-container tier — the same recipe Google apps (Tasks, Keep, Clock)
- * use for content blocks.
+ * The app's content card.
+ *
+ * A filled card on the tonal surface-container tier, with a hairline edge
+ * that the appearance settings can turn off. The edge is what separates a
+ * card from the canvas on a near-black surface, where a tonal step alone
+ * barely reads.
  */
 @Composable
 fun NexaFlowCard(
@@ -31,6 +35,12 @@ fun NexaFlowCard(
     val resolvedContainerColor = containerColor
         ?: alternatingIndex?.let { alternatingSurfaceColor(it) }
         ?: MaterialTheme.colorScheme.surfaceContainerLow
+
+    val hairline = NexaFlowTraitsDefaults.outline(
+        color = NexaFlowTraitsDefaults.borderColor(MaterialTheme.colorScheme.outlineVariant),
+        width = 1.dp
+    )
+
     Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
@@ -38,7 +48,10 @@ fun NexaFlowCard(
             containerColor = resolvedContainerColor,
             contentColor = contentColor
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = NexaFlowTraitsDefaults.cardElevation(0.dp)
+        ),
+        border = hairline
     ) {
         Column(modifier = Modifier.padding(Space4), content = content)
     }
