@@ -1,0 +1,877 @@
+name: NexaFlow CI and APK Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    tags: [ "v[0-9]*" ]
+  pull_request:
+    branches: [ "main" ]
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+  schedule:
+    - cron: '0 6 * * *'
+
+permissions: {}
+
+# Keep checkout's internal `git init` warning-free. This only disables
+# Git's default-branch-name advice; compiler, Gradle, lint and test warnings
+# remain visible and gated normally.
+env:
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: advice.defaultBranchName
+  GIT_CONFIG_VALUE_0: "false"
+
+# Concurrency belongs to the whole workflow, not individual jobs. With
+# per-job concurrency an older run can finish lint later, start its build, and
+# cancel the build of a newer commit. The newest run for the same event/ref now
+# owns the complete lint -> test -> build chain.
+concurrency:
+  group: nexaflow-ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    if: github.event_name != 'pull_request_target'
+    permissions:
+      contents: read
+    runs-on: ubuntu-26.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Install pinned Gitleaks
+      shell: bash
+      run: |
+        set -euo pipefail
+        version=8.30.1
+        archive="gitleaks_${version}_linux_x64.tar.gz"
+        url="https://github.com/gitleaks/gitleaks/releases/download/v${version}/${archive}"
+        curl --fail --location --silent --show-error "$url" -o "$RUNNER_TEMP/$archive"
+        echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/$archive" | sha256sum --check --status
+        mkdir -p "$RUNNER_TEMP/gitleaks"
+        tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/gitleaks" gitleaks
+        "$RUNNER_TEMP/gitleaks/gitleaks" version
+    - name: Scan all Git history and refs for secrets
+      run: "$RUNNER_TEMP/gitleaks/gitleaks git --redact=100 --log-opts=--all ."
+
+  lint:
+    needs: secret-scan
+    if: github.event_name != 'pull_request_target'
+    permissions:
+      contents: read
+    # Exercise the newest GitHub-hosted Ubuntu LTS image explicitly.
+    runs-on: ubuntu-26.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        # T01 ranks review hotspots using a frozen-base Git churn window.
+        fetch-depth: 0
+    - name: set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    - name: Set up JDK 21 for unit-test toolchain
+      uses: actions/setup-java@v5
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Atomic overhaul baseline and architecture fitness
+      run: |
+        python3 scripts/check_atomic_overhaul_baseline.py
+        python3 scripts/check_atomic_architecture_fitness.py --self-test
+        python3 scripts/check_atomic_architecture_fitness.py
+        python3 scripts/check_persistence_safety.py
+        python3 scripts/check_ai_secret_boundary.py
+        python3 scripts/check_ai_provider_registry.py
+    - name: Auto-fix resource hygiene (orphans, duplicates, balance)
+      # --check: the tree must already be auto-fix-clean. If this fails, run
+      # `python3 scripts/auto_fix.py` locally and commit the result.
+      run: python3 scripts/auto_fix.py --check
+    - name: Verify string parity across all locales
+      run: python3 scripts/check_strings_parity.py
+    - name: Translation completeness gate (micro-audit)
+      # Every locale value must be a real translation: flags untranslated
+      # English copies, foreign-script leakage, placeholder mismatches and
+      # empty values across all modules and locales.
+      run: |
+        python3 scripts/audit_translation_completeness.py --self-test
+        python3 scripts/audit_translation_completeness.py
+    - name: Hardcoded-text gate (no Arabic script in shipped Kotlin/Java)
+      # Keeps issue #4 (Arabic strings hardcoded in the builder UI) from ever
+      # shipping again; legitimate occurrences live in the reviewed ALLOWLIST.
+      run: python3 scripts/check_hardcoded_text.py --self-test
+    - name: Vendor-neutrality gate (no commercial ROM/device names outside protocol files)
+      # The engine reasons about neutral capability tiers (RomFamily), never
+      # products; detection evidence stays in the protocol allowlist only.
+      run: python3 scripts/check_vendor_neutrality.py --self-test && python3 scripts/check_vendor_neutrality.py
+    - name: Test the hardcoded-text gate
+      run: python3 -m unittest discover -s scripts/tests -p test_check_hardcoded_text.py
+    - name: Design-token gate (no raw colors or radii outside the theme packages)
+      # The NexaFlow One token layer only holds if no screen hardcodes a color
+      # or a radius. Pre-existing offenders are pinned in a reviewed baseline
+      # that must only ever shrink.
+      run: python3 scripts/check_design_tokens.py --self-test && python3 scripts/check_design_tokens.py
+    - name: Test the design-token gate
+      run: python3 -m unittest discover -s scripts/tests -p test_check_design_tokens.py
+    - name: Test NexaFlow desktop bridge
+      run: python3 -m unittest discover -s tools/nexaflow-agent/tests -p 'test_*.py'
+    - name: Catalog parity (trigger/action enum ↔ builder picker)
+      run: python3 scripts/audit_catalog_and_releases.py catalog
+    - name: Atomic source inventory parity (T01)
+      run: python3 scripts/audit_atomic_inventory.py --check
+    - name: Test atomic source inventory generator
+      run: python3 -m unittest scripts.tests.test_atomic_inventory
+    - name: Evidence-backed T02 finding register
+      run: python3 scripts/audit_findings.py --check
+    - name: Test T02 finding register auditor
+      run: python3 -m unittest scripts.tests.test_audit_findings
+    - name: Canonical automation legacy-surface baseline
+      run: python3 scripts/check_canonical_baseline.py
+    - name: Canonical automation source inventory
+      run: python3 scripts/generate_canonical_inventory.py --check
+    - name: Test canonical automation semantic review invariants
+      run: python3 -m unittest scripts.tests.test_canonical_inventory_review
+    - name: Canonical automation ADR contract
+      run: python3 scripts/check_canonical_adrs.py
+    - name: Canonical stable identity registry
+      run: python3 scripts/check_canonical_identity_registry.py
+    - name: Test canonical typed-model gate
+      run: python3 -m unittest scripts.tests.test_canonical_typed_model_gate
+    - name: Canonical typed model boundary
+      run: python3 scripts/check_canonical_typed_model.py
+    - name: Canonical selection semantics (T05 / ADR-003)
+      run: python3 scripts/check_canonical_selection_semantics.py
+    - name: Test canonical selection semantics gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_selection_semantics
+    - name: Canonical semantic rules engine (T06 / Gate D)
+      run: python3 scripts/check_canonical_semantic_rules.py
+    - name: Test canonical semantic rules gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_semantic_rules
+    - name: Canonical capability resolver (T07 / ADR-007)
+      run: python3 scripts/check_canonical_capability_resolver.py
+    - name: Test canonical capability resolver gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_capability_resolver
+    - name: Canonical dynamic schema engine (T08 / ADR-005)
+      run: python3 scripts/check_canonical_schema_engine.py
+    - name: Test canonical schema engine gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_schema_engine
+    - name: Canonical validation pipeline (T09)
+      run: python3 scripts/check_canonical_validation_pipeline.py
+    - name: Test canonical validation pipeline gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_validation_pipeline
+    - name: Canonical execution planner (T10 / ADR-008)
+      run: python3 scripts/check_canonical_execution_planner.py
+    - name: Test canonical execution planner gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_execution_planner
+    - name: Canonical error model and execution journal (T11 / ADR-009)
+      run: python3 scripts/check_canonical_execution_journal.py
+    - name: Test canonical execution journal gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_execution_journal
+    - name: Canonical configurator infrastructure (T12 / ADR-005)
+      run: python3 scripts/check_canonical_configurator.py
+    - name: Test canonical configurator gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_configurator
+    - name: Central summary engine (T13)
+      run: python3 scripts/check_canonical_summary_engine.py
+    - name: Test central summary engine gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_summary_engine
+    - name: Legacy canonical adapter framework (T14 / ADR-004)
+      run: python3 scripts/check_canonical_legacy_adapter.py
+    - name: Test legacy canonical adapter gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_legacy_adapter
+    - name: Legacy mappings coverage 237/237 (T15 / Gates B+E)
+      run: python3 scripts/check_canonical_legacy_mappings.py
+    - name: Test legacy mappings gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_legacy_mappings
+    - name: Golden migration suite (T16 / Gate E)
+      run: python3 scripts/check_canonical_golden_migration.py
+    - name: Test golden migration gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_golden_migration
+    - name: Pilot Open Settings family (T17)
+      run: python3 scripts/check_canonical_pilot_open_family.py
+    - name: Test pilot open family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_pilot_open_family
+    - name: Media & Navigation family (T18)
+      run: python3 scripts/check_canonical_family_media_navigation.py
+    - name: Test media navigation family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_media_navigation
+    - name: Connectivity family (T19)
+      run: python3 scripts/check_canonical_family_connectivity.py
+    - name: Test connectivity family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_connectivity
+    - name: Display & Sound family (T20)
+      run: python3 scripts/check_canonical_family_display_sound.py
+    - name: Test display sound family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_display_sound
+    - name: Applications family (T21)
+      run: python3 scripts/check_canonical_family_applications.py
+    - name: Test applications family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_applications
+    - name: Communication family (T22)
+      run: python3 scripts/check_canonical_family_communication.py
+    - name: Test communication family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_communication
+    - name: Power & Sensors family (T23)
+      run: python3 scripts/check_canonical_family_power_sensors.py
+    - name: Test power sensors family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_power_sensors
+    - name: Time & Location family (T24)
+      run: python3 scripts/check_canonical_family_time_location.py
+    - name: Test time location family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_time_location
+    - name: Data/ROM/Advanced/External family (T25)
+      run: python3 scripts/check_canonical_family_advanced_external.py
+    - name: Test advanced external family gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_family_advanced_external
+    - name: Canonical runtime cutover (T26)
+      run: python3 scripts/check_canonical_runtime_cutover.py
+    - name: Test canonical runtime cutover gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_runtime_cutover
+    - name: Persistence policy dual-read/V3-write (T27)
+      run: python3 scripts/check_canonical_persistence_policy.py
+    - name: Test persistence policy gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_persistence_policy
+    - name: Controlled migration rollout (T28)
+      run: python3 scripts/check_canonical_migration_rollout.py
+    - name: Test migration rollout gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_migration_rollout
+    - name: Safe consolidation optimizer (T29)
+      run: python3 scripts/check_canonical_consolidation_optimizer.py
+    - name: Test consolidation optimizer gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_consolidation_optimizer
+    - name: Diagnostics UI model (T30)
+      run: python3 scripts/check_canonical_diagnostics_model.py
+    - name: Test diagnostics model gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_diagnostics_model
+    - name: Canonical plugin SDK (T31)
+      run: python3 scripts/check_canonical_plugin_sdk.py
+    - name: Test plugin SDK gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_plugin_sdk
+    - name: Fault injection (T32)
+      run: python3 scripts/check_canonical_fault_injection.py
+    - name: Test fault injection gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_fault_injection
+    - name: Performance budgets (T33)
+      run: python3 scripts/check_canonical_performance_budget.py
+    - name: Test performance budget gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_performance_budget
+    - name: Security auditor (T34)
+      run: python3 scripts/check_canonical_security_auditor.py
+    - name: Test security auditor gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_security_auditor
+    - name: Accessibility/RTL model (T35)
+      run: python3 scripts/check_canonical_accessibility_model.py
+    - name: Test accessibility model gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_accessibility_model
+    - name: Device matrix (T36)
+      run: python3 scripts/check_canonical_device_matrix.py
+    - name: Test device matrix gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_device_matrix
+    - name: Architecture fitness gates (T37)
+      run: python3 scripts/check_canonical_architecture_fitness.py
+    - name: Test architecture fitness gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_architecture_fitness
+    - name: Release candidate readiness (T38)
+      run: python3 scripts/check_canonical_release_readiness.py
+    - name: Test release readiness gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_release_readiness
+    - name: Legacy retirement (T39)
+      run: python3 scripts/check_canonical_legacy_retirement.py
+    - name: Test legacy retirement gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_legacy_retirement
+    - name: Final canonical audit (T40)
+      run: python3 scripts/check_canonical_final_audit.py
+    - name: Test final canonical audit gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_final_audit
+    - name: Plugin condition contract (T41)
+      run: python3 scripts/check_canonical_plugin_conditions.py
+    - name: Test plugin condition gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_plugin_conditions
+    - name: Documentation closure (T42)
+      run: python3 scripts/check_canonical_docs_closure.py
+    - name: Test documentation closure gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_docs_closure
+    - name: Measured performance regression (T43)
+      run: python3 scripts/check_canonical_perf_regression.py
+    - name: Test performance regression gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_perf_regression
+    - name: Release closure (T44)
+      run: python3 scripts/check_canonical_release_closure.py
+    - name: Test release closure gate
+      run: python3 -m unittest scripts.tests.test_check_canonical_release_closure
+    - name: Runtime configuration contract audit
+      run: python3 scripts/check_node_contracts.py
+    - name: Tag hygiene (tag ↔ changelog entry) on version tags
+      if: startsWith(github.ref, 'refs/tags/')
+      run: python3 scripts/audit_catalog_and_releases.py tag-changelog "${{ github.ref_name }}"
+    - name: Unit-test the resource gate (orphan drawable/layout/dimen)
+      run: python3 scripts/tests/test_check_resources.py
+    - name: Install pytest for the resource-gate suite
+      run: python3 -m pip install --quiet pytest
+    - name: pytest the resource gate (orphans, lint report, pins guard, auto-fix)
+      run: >-
+        python3 -m pytest
+        scripts/tests/test_check_resources_pytest.py
+        scripts/tests/test_check_lint_config.py
+        scripts/tests/test_auto_fix.py
+        -q
+    - name: Test exported component security gate
+      run: python3 -m unittest discover -s scripts/tests -p test_exported_components.py
+    - name: README fact and suppression-budget guardrails
+      run: |
+        python3 -m unittest discover -s scripts/tests -p 'test_readme_stale_counts.py'
+        python3 scripts/check_readme_stale_counts.py
+        python3 -m unittest discover -s scripts/tests -p 'test_suppression_budget.py'
+        python3 scripts/check_suppression_budget.py
+    - name: Run Detekt static analysis
+      run: ./gradlew detekt
+    - name: Run Android Lint
+      run: ./gradlew lintDebug
+    - name: Unified resource gate (banned + orphans + lint UnusedResources)
+      if: always()
+      run: python3 scripts/check_resources.py
+    - name: Upload Lint Report
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: lint-report
+        if-no-files-found: ignore
+        path: |
+          app/build/reports/lint-results-debug.html
+          app/build/reports/lint-results-debug.xml
+          **/build/reports/lint-results-debug.*
+
+  coverage:
+    needs: lint
+    if: github.event_name != 'pull_request_target'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Set up JDK 21 for unit-test toolchain
+      uses: actions/setup-java@v5
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Enforce configured coverage policy
+      run: ./gradlew coverageGate --continue --no-configuration-cache --no-parallel --max-workers=2 --no-daemon --stacktrace --console=plain
+    - name: Upload coverage reports
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-reports
+        if-no-files-found: ignore
+        path: |
+          **/build/coverage/report.xml
+          **/build/coverage/html/**
+
+  android-integration:
+    name: Android emulator integration
+    needs: lint
+    # Connected Android tests are intentionally a scheduled/manual evidence
+    # lane first. They do not consume PR capacity until the emulator suite has
+    # demonstrated stable signal across repeated runs.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    - name: Set up Android SDK command-line tools
+      uses: android-actions/setup-android@v4.0.4
+    - name: Verify Android SDK tooling
+      shell: bash
+      run: |
+        set -euo pipefail
+        command -v sdkmanager
+        command -v avdmanager
+        command -v adb
+        sdkmanager --version
+    - name: Grant Gradle execute permission
+      run: chmod +x gradlew
+    - name: Provision Android 15 emulator
+      shell: bash
+      run: |
+        set -euo pipefail
+        sdkmanager_path="$(readlink -f "$(command -v sdkmanager)")"
+        sdk_root="$(dirname "$(dirname "$(dirname "$(dirname "$sdkmanager_path")")")")"
+        echo "Android SDK root resolved from sdkmanager: $sdk_root"
+        echo "$sdk_root/emulator" >> "$GITHUB_PATH"
+        export PATH="$sdk_root/emulator:$PATH"
+        sudo apt-get update
+        sudo apt-get install --yes libpulse0
+        if [ -e /dev/kvm ]; then
+          sudo chmod 666 /dev/kvm
+        fi
+        yes | sdkmanager --licenses >/dev/null || true
+        sdkmanager           "platform-tools"           "emulator"           "system-images;android-35;google_apis;x86_64"
+        echo "no" | avdmanager create avd           --force           --name nexaflow-ci-api35           --package "system-images;android-35;google_apis;x86_64"           --device "pixel_6"
+        command -v emulator
+        emulator -version
+    - name: Boot emulator
+      shell: bash
+      run: |
+        set -euo pipefail
+        nohup emulator           -avd nexaflow-ci-api35           -no-window           -noaudio           -no-boot-anim           -no-snapshot           -gpu swiftshader_indirect           -camera-back none           -camera-front none           > "$RUNNER_TEMP/nexaflow-emulator.log" 2>&1 &
+        deadline=$((SECONDS + 300))
+        until timeout 10s adb wait-for-device; do
+          if [ "$SECONDS" -ge "$deadline" ]; then
+            echo "::error::Android emulator did not connect to ADB within 5 minutes."
+            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
+            adb devices -l || true
+            exit 1
+          fi
+          sleep 2
+        done
+        until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
+          if [ "$SECONDS" -ge "$deadline" ]; then
+            echo "::error::Android emulator did not finish booting within 5 minutes."
+            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
+            exit 1
+          fi
+          sleep 2
+        done
+        adb shell input keyevent 82 || true
+        adb shell settings put global window_animation_scale 0
+        adb shell settings put global transition_animation_scale 0
+        adb shell settings put global animator_duration_scale 0
+        adb shell getprop ro.build.version.sdk
+    - name: Install app and grant system-setting permissions for instrumentation fixture
+      run: |
+        ./gradlew :app:installDebug --no-parallel --max-workers=2 --console=plain
+        adb shell appops set com.nexaflow.app WRITE_SETTINGS allow
+        adb shell pm grant com.nexaflow.app android.permission.WRITE_SECURE_SETTINGS
+    - name: Run connected app instrumentation tests
+      run: ./gradlew :app:connectedDebugAndroidTest --no-parallel --max-workers=2 --console=plain
+    - name: Capture emulator diagnostics
+      if: always()
+      shell: bash
+      run: |
+        timeout 15s adb logcat -d > android-integration-logcat.txt 2>/dev/null || \
+          echo "ADB logcat unavailable or timed out." >> android-integration-logcat.txt
+        timeout 15s adb shell getprop > android-integration-properties.txt 2>/dev/null || \
+          echo "ADB properties unavailable or timed out." >> android-integration-properties.txt
+        cp "$RUNNER_TEMP/nexaflow-emulator.log" android-emulator.log 2>/dev/null || true
+    - name: Upload Android integration evidence
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: android-integration-evidence-api35
+        if-no-files-found: ignore
+        path: |
+          app/build/outputs/androidTest-results/**
+          app/build/reports/androidTests/**
+          android-integration-logcat.txt
+          android-integration-properties.txt
+          android-emulator.log
+
+  build:
+    needs: lint
+    if: github.event_name != 'pull_request_target'
+    # Keep lint and packaging on the same reviewed runner baseline.
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        # GitVersion derives versionCode from the nearest v* tag; without the
+        # tag history a main-branch build falls back to 0.0.1 (versionCode 1),
+        # producing APKs that can never upgrade a real install.
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Validate release tag
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        set -euo pipefail
+        TAG="$GITHUB_REF_NAME"
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+          echo "::error::Invalid release tag '$TAG'. Expected vMAJOR.MINOR.PATCH with an optional prerelease suffix."
+          exit 1
+        fi
+        EXACT_TAG="$(git describe --tags --exact-match --match 'v[0-9]*' HEAD 2>/dev/null || true)"
+        test "$EXACT_TAG" = "$TAG" || { echo "::error::Checked-out commit does not resolve exactly to release tag $TAG."; exit 1; }
+        git fetch origin main --no-tags
+        git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::Release tags must point to a commit contained in main."; exit 1; }
+    - name: set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Set up JDK 21 for unit-test toolchain
+      uses: actions/setup-java@v5
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Verify the current Room schema snapshot
+      run: |
+        ./gradlew :core:database:kspDebugKotlin --no-configuration-cache --no-daemon --console=plain
+        ROOM_VERSION="$(sed -n 's/^[[:space:]]*version = \([0-9][0-9]*\),/\1/p' core/database/src/main/java/com/nexaflow/core/database/AppDatabase.kt | head -1)"
+        test -n "$ROOM_VERSION" || { echo "Could not read the Room database version." >&2; exit 1; }
+        ROOM_SCHEMA="core/database/schemas/com.nexaflow.core.database.AppDatabase/${ROOM_VERSION}.json"
+        test -s "$ROOM_SCHEMA" || { echo "Room schema snapshot missing: $ROOM_SCHEMA" >&2; exit 1; }
+        git diff --exit-code -- core/database/schemas
+        echo "Room schema $ROOM_VERSION is generated and committed."
+    - name: Run unit tests
+      run: ./gradlew :core:datastore:testDebugUnitTest testDebugUnitTest --no-daemon --stacktrace --console=plain
+    - name: Restore release signing keystore (when configured)
+      env:
+        KEYSTORE_B64: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.NEXAFLOW_KEY_PASSWORD }}
+      run: |
+        if [ -n "$KEYSTORE_B64" ]; then
+          mkdir -p keystore
+          echo "$KEYSTORE_B64" | base64 -d > keystore/nexaflow-release.jks
+          echo "Release keystore restored."
+          # Export an all-or-nothing signing configuration for later steps. A
+          # partial configuration must never turn an ordinary main build into
+          # an invalid release build; tags are rejected explicitly below.
+          if [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            {
+              echo "NEXAFLOW_KEYSTORE_FILE=keystore/nexaflow-release.jks"
+              echo "NEXAFLOW_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+              echo "NEXAFLOW_KEY_ALIAS=$KEY_ALIAS"
+              echo "NEXAFLOW_KEY_PASSWORD=$KEY_PASSWORD"
+              echo "NEXAFLOW_SIGNING_CONFIGURED=true"
+            } >> "$GITHUB_ENV"
+          else
+            echo "Release keystore credentials are incomplete; signing variables were not exported."
+          fi
+        else
+          echo "No keystore secret configured - local/ad-hoc release builds use debug signing only."
+        fi
+        # The build reads NEXAFLOW_* env vars over keystore.properties.
+    - name: Require production signing for version tags
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        NEXAFLOW_KEYSTORE_FILE: keystore/nexaflow-release.jks
+        NEXAFLOW_KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
+        NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
+        NEXAFLOW_KEY_PASSWORD: ${{ secrets.NEXAFLOW_KEY_PASSWORD }}
+      run: |
+        test -s "$NEXAFLOW_KEYSTORE_FILE" || { echo "Version tags require NEXAFLOW_KEYSTORE_BASE64." >&2; exit 1; }
+        test -n "$NEXAFLOW_KEYSTORE_PASSWORD" || { echo "Version tags require NEXAFLOW_KEYSTORE_PASSWORD." >&2; exit 1; }
+        test -n "$NEXAFLOW_KEY_ALIAS" || { echo "Version tags require NEXAFLOW_KEY_ALIAS." >&2; exit 1; }
+        test -n "$NEXAFLOW_KEY_PASSWORD" || { echo "Version tags require NEXAFLOW_KEY_PASSWORD." >&2; exit 1; }
+    - name: Build untagged APKs with explicit debug signing opt-in
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      env:
+        # Google Maps API key for the embedded map picker; baked into every
+        # distributed APK so the map works for all users, not just local builds.
+        NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
+      run: ./gradlew assembleDebug assembleRelease -PallowDebugSigning=true
+    - name: Build production-signed tag APKs
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
+      run: ./gradlew assembleDebug assembleRelease
+    - name: Verify packaged version matches release tag
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        set -euo pipefail
+        APK=app/build/outputs/apk/release/app-release.apk
+        AAPT="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/aapt | sort -V | tail -1)"
+        ACTUAL_VERSION="$("$AAPT" dump badging "$APK" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)"
+        test "$ACTUAL_VERSION" = "$GITHUB_REF_NAME" || {
+          echo "::error::Packaged versionName '$ACTUAL_VERSION' does not match release tag '$GITHUB_REF_NAME'."
+          exit 1
+        }
+        WATCH_APK=wear/build/outputs/apk/release/wear-release.apk
+        WATCH_VERSION="$("$AAPT" dump badging "$WATCH_APK" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)"
+        test "$WATCH_VERSION" = "$GITHUB_REF_NAME" || {
+          echo "::error::Packaged Wear versionName '$WATCH_VERSION' does not match release tag '$GITHUB_REF_NAME'."
+          exit 1
+        }
+        echo "Phone and Wear package versions verified: $ACTUAL_VERSION"
+    - name: Verify phone/Wear Data Layer identity contract
+      run: |
+        PHONE_APK=app/build/outputs/apk/release/app-release.apk
+        WATCH_APK=wear/build/outputs/apk/release/wear-release.apk
+        test -s "$PHONE_APK" || { echo "Phone release APK missing: $PHONE_APK" >&2; exit 1; }
+        test -s "$WATCH_APK" || { echo "Watch release APK missing: $WATCH_APK" >&2; exit 1; }
+
+        AAPT="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/aapt | sort -V | tail -1)"
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+
+        PHONE_PACKAGE="$("$AAPT" dump badging "$PHONE_APK" | sed -n "s/^package: name='\([^\']*\)'.*/\1/p" | head -1)"
+        WATCH_PACKAGE="$("$AAPT" dump badging "$WATCH_APK" | sed -n "s/^package: name='\([^\']*\)'.*/\1/p" | head -1)"
+        test -n "$PHONE_PACKAGE" || { echo "Could not read phone applicationId." >&2; exit 1; }
+        test -n "$WATCH_PACKAGE" || { echo "Could not read Wear applicationId." >&2; exit 1; }
+        test "$PHONE_PACKAGE" = "$WATCH_PACKAGE" || {
+          echo "Wear Data Layer package mismatch: phone=$PHONE_PACKAGE watch=$WATCH_PACKAGE" >&2
+          exit 1
+        }
+        test "$PHONE_PACKAGE" = "com.nexaflow.app" || {
+          echo "Unexpected NexaFlow Data Layer package: $PHONE_PACKAGE" >&2
+          exit 1
+        }
+
+        PHONE_CERT="$("$APKSIGNER" verify --print-certs "$PHONE_APK" | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        WATCH_CERT="$("$APKSIGNER" verify --print-certs "$WATCH_APK" | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        test -n "$PHONE_CERT" || { echo "Could not read phone signing certificate." >&2; exit 1; }
+        test -n "$WATCH_CERT" || { echo "Could not read Wear signing certificate." >&2; exit 1; }
+        test "$PHONE_CERT" = "$WATCH_CERT" || {
+          echo "Wear Data Layer certificate mismatch between phone and watch APKs." >&2
+          exit 1
+        }
+
+        "$APKSIGNER" verify --verbose "$WATCH_APK" | grep -E "Verified using v(2|3) scheme.*: true"
+        echo "Wear Data Layer contract OK: package=$PHONE_PACKAGE certificate=$PHONE_CERT"
+    - name: Audit merged release exported components
+      run: python3 scripts/audit_exported_components.py --merged app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml
+    - name: Verify release APK signing certificate
+      if: env.NEXAFLOW_SIGNING_CONFIGURED == 'true'
+      run: |
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+        echo "=== Release APK signing certificate ==="
+        "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk \
+          | grep -E "Signer|CN=|SHA-256" || true
+        echo ""
+        echo "Compare the SHA-256 above with the expected certificate."
+        echo "If they differ, the CI secrets contain a different keystore than local builds."
+    - name: Verify packaged phone-state permission manifest
+      run: python3 scripts/check_apk_phone_permission.py app/build/outputs/apk/release/app-release.apk
+    - name: Verify dependency verification metadata is up to date
+      run: |
+        cp gradle/verification-metadata.xml /tmp/verification-metadata.expected.xml
+        ./gradlew --write-verification-metadata sha256 :app:assembleDebug --console=plain
+        python3 scripts/check_verification_metadata.py \
+          /tmp/verification-metadata.expected.xml gradle/verification-metadata.xml
+    - name: Verify 16 KB page-size alignment of native libraries
+      run: python3 scripts/check_16kb.py app/build/outputs/apk/release/app-release.apk
+    - name: Verify APK signature (v1/v2/v3)
+      run: |
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+        echo "== APK signature verification (verbose) =="
+        "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk
+        # Gate: at least one modern signature scheme (v2 or v3) must verify.
+        "$APKSIGNER" verify --verbose app/build/outputs/apk/release/app-release.apk \
+          | grep -E "Verified using v(2|3) scheme.*: true"
+    - name: Verify production certificate matches keystore on version tags
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        NEXAFLOW_KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
+        NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
+      run: |
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+        EXPECTED="$(keytool -list -v -keystore keystore/nexaflow-release.jks -storepass "$NEXAFLOW_KEYSTORE_PASSWORD" -alias "$NEXAFLOW_KEY_ALIAS" 2>/dev/null | awk -F': ' '/SHA256:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        ACTUAL="$("$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        test -n "$EXPECTED" || { echo "Could not read the release-keystore certificate fingerprint." >&2; exit 1; }
+        test -n "$ACTUAL" || { echo "Could not read the APK certificate fingerprint." >&2; exit 1; }
+        test "$EXPECTED" = "$ACTUAL" || { echo "APK certificate does not match the production keystore." >&2; exit 1; }
+        echo "APK certificate matches the configured production keystore."
+    - name: Verify zipalign (4 KB + 16 KB native page alignment)
+      run: |
+        ZIPALIGN="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/zipalign | sort -V | tail -1)"
+        "$ZIPALIGN" -c -P 16 -v 4 app/build/outputs/apk/release/app-release.apk
+    - name: Verify watch APK signature and certificate on version tags
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        NEXAFLOW_KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
+        NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
+      run: |
+        WATCH_APK=wear/build/outputs/apk/release/wear-release.apk
+        test -s "$WATCH_APK" || { echo "Watch release APK missing: $WATCH_APK" >&2; exit 1; }
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+        "$APKSIGNER" verify --verbose "$WATCH_APK" | grep -E "Verified using v(2|3) scheme.*: true"
+        EXPECTED="$(keytool -list -v -keystore keystore/nexaflow-release.jks -storepass "$NEXAFLOW_KEYSTORE_PASSWORD" -alias "$NEXAFLOW_KEY_ALIAS" 2>/dev/null | awk -F': ' '/SHA256:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        ACTUAL="$("$APKSIGNER" verify --print-certs "$WATCH_APK" | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        test -n "$EXPECTED" || { echo "Could not read the release-keystore certificate fingerprint." >&2; exit 1; }
+        test -n "$ACTUAL" || { echo "Could not read the watch APK certificate fingerprint." >&2; exit 1; }
+        test "$EXPECTED" = "$ACTUAL" || { echo "Watch APK certificate does not match the production keystore." >&2; exit 1; }
+        echo "Watch APK certificate matches the production keystore."
+    - name: Audit native libraries (ABI + size)
+      run: python3 scripts/check_apk_libs.py app/build/outputs/apk/release/app-release.apk
+    - name: Upload Release APK
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@v7
+      with:
+        name: nexaflow-release-apk
+        if-no-files-found: error
+        path: app/build/outputs/apk/release/app-release.apk
+    - name: Upload Watch Release APK
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@v7
+      with:
+        name: nexaflow-wear-release-apk
+        if-no-files-found: error
+        path: wear/build/outputs/apk/release/wear-release.apk
+  release:
+    name: Publish tagged release
+    needs: [lint, coverage, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    concurrency:
+      group: nexaflow-release-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Validate release tag and changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]] || {
+            echo "::error::Invalid release tag '$TAG'."
+            exit 1
+          }
+          python3 scripts/audit_catalog_and_releases.py tag-changelog "$TAG"
+
+      - name: Download phone APK
+        uses: actions/download-artifact@v7
+        with:
+          name: nexaflow-release-apk
+          path: release-assets/phone
+
+      - name: Download Wear OS APK
+        uses: actions/download-artifact@v7
+        with:
+          name: nexaflow-wear-release-apk
+          path: release-assets/wear
+
+      - name: Prepare versioned release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          cp release-assets/phone/app-release.apk "$PHONE"
+          cp release-assets/wear/wear-release.apk "$WEAR"
+          test -s "$PHONE"
+          test -s "$WEAR"
+          python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          PRERELEASE=()
+          [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$PHONE" "$WEAR" --clobber
+            gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
+          else
+            gh release create "$TAG" "$PHONE" "$WEAR" \
+              --verify-tag \
+              --title "NexaFlow $TAG" \
+              --notes-file release-notes.md \
+              "${PRERELEASE[@]}"
+          fi
+
+          # Keep reruns of an existing tag as clean as a newly created release:
+          # only the exact versioned phone and Wear APKs remain attached.
+          RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq .id)"
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" \
+            --paginate --jq ".[] | select(.name != \"$PHONE\" and .name != \"$WEAR\") | .id" \
+            | while read -r ASSET_ID; do
+                test -n "$ASSET_ID" && gh api --method DELETE \
+                  "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
+              done
+
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
+          MISSING="$(jq \
+            --arg phone "$PHONE" --arg wear "$WEAR" \
+            '[$phone, $wear] - [.assets[].name] | length' \
+            <<<"$RELEASE_JSON")"
+          test "$MISSING" = "0"
+          EXTRA="$(jq \
+            --arg phone "$PHONE" --arg wear "$WEAR" \
+            '[.assets[].name | select(. != $phone and . != $wear)] | length' \
+            <<<"$RELEASE_JSON")"
+          test "$EXTRA" = "0" || { echo "::error::Release contains unexpected non-versioned assets."; exit 1; }
+          for ASSET in "$PHONE" "$WEAR"; do
+            [[ "$ASSET" == *.apk ]]
+            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
+            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
+            test -n "$SIZE" && test "$SIZE" -gt 0
+            test "$STATE" = "uploaded"
+          done
+          echo "Release $TAG published and verified."
+
+  # Branch integration is intentionally PR-only. The former consolidate job
+  # merged every remote branch into main with incoming-branch conflict wins and
+  # then deleted all branches. That made an arbitrary stale or experimental
+  # branch capable of entering main without focused review. Keep integration at
+  # the pull-request boundary where the normal lint/build gates apply.
+
+  merge-dependabot-update:
+    permissions:
+      contents: write
+      pull-requests: write
+    # Do not check out or execute code from the pull request. This workflow
+    # only asks GitHub to watch its required checks and merge the PR after they
+    # pass, so it retains pull_request_target permissions safely.
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Wait for all pull-request checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr checks "$PR_URL" --watch --fail-fast
+      - name: Enable squash auto-merge after verified checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --auto --squash --delete-branch
