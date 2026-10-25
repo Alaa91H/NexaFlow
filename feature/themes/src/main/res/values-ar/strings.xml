@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">السمات</string>
+    <string name="themes_title">المظهر</string>
     <string name="section_appearance">المظهر</string>
     <string name="mode_system">افتراضي النظام</string>
     <string name="mode_system_sub">يتبع سمة الجهاز</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">استخدام السمة الفاتحة دائماً</string>
     <string name="mode_dark">داكن</string>
     <string name="mode_dark_sub">استخدام السمة الداكنة دائماً</string>
-    <string name="theme_follows_system">يتبع مظهر النظام تلقائياً</string>
-    <string name="theme_manual">تم اختيار تجاوز يدوي للسمة</string>
     <string name="section_accent">لون التمييز</string>
     <string name="accent_selected">المحدد: %1$s</string>
-    <string name="accent_blue">أزرق</string>
-    <string name="accent_green">أخضر</string>
-    <string name="accent_red">أحمر</string>
-    <string name="accent_purple">بنفسجي</string>
     <string name="accent_amber">كهرماني</string>
     <string name="accent_teal">تركوازي</string>
     <string name="section_preview">معاينة</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">اللون الديناميكي</string>
     <string name="dynamic_color_sub">استخدام ألوان الخلفية (Material You)</string>
     <string name="accent_disabled_hint">متاح عند إيقاف اللون الديناميكي</string>
-    <string name="preview_dynamic">ألوان الخلفية (Material You)</string>
+    <string name="accent_indigo">نيلي</string>
+    <string name="accent_violet">بنفسجي</string>
+    <string name="accent_emerald">زمردي</string>
+    <string name="accent_rose">وردي</string>
+    <string name="accent_disabled_mono">الوضع أحادي اللون يُسطّح كل الألوان</string>
+    <string name="section_background">الخلفية</string>
+    <string name="background_ambient">محيط</string>
+    <string name="background_ember">جمر</string>
+    <string name="background_quiet">هادئ</string>
+    <string name="background_none">بدون</string>
+    <string name="section_traits">النمط</string>
+    <string name="trait_monochrome">أحادي اللون</string>
+    <string name="trait_monochrome_sub">تحويل كل الألوان إلى درجات محايدة</string>
+    <string name="trait_item_colors">ألوان العناصر</string>
+    <string name="trait_item_colors_sub">السماح للأتمتات بألوانها الخاصة</string>
+    <string name="trait_outlines">الحدود</string>
+    <string name="trait_outlines_sub">رسم حد رفيع حول البطاقات</string>
+    <string name="trait_translucent">أشرطة شفافة</string>
+    <string name="trait_translucent_sub">إظهار المحتوى أسفل الشريط العائم</string>
+    <string name="trait_ambient">أشكال الخلفية</string>
+    <string name="trait_ambient_sub">رسم أشكال ناعمة خلف المحتوى</string>
+    <string name="section_density">الكثافة</string>
+    <string name="density_comfortable">مريحة</string>
+    <string name="density_compact">مضغوطة</string>
+    <string name="pure_black">أسود خالص</string>
+    <string name="pure_black_sub">استخدام الأسود الحقيقي لشاشات OLED</string>
 </resources>

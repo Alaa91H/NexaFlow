@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">Designs</string>
+    <string name="themes_title">Darstellung</string>
     <string name="section_appearance">Darstellung</string>
     <string name="mode_system">Systemstandard</string>
     <string name="mode_system_sub">Folgt dem Geräte-Design</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">Immer das helle Design verwenden</string>
     <string name="mode_dark">Dunkel</string>
     <string name="mode_dark_sub">Immer das dunkle Design verwenden</string>
-    <string name="theme_follows_system">Folgt automatisch der Systemdarstellung</string>
-    <string name="theme_manual">Manuelle Design-Überschreibung ausgewählt</string>
     <string name="section_accent">Akzentfarbe</string>
     <string name="accent_selected">Ausgewählt: %1$s</string>
-    <string name="accent_blue">Blau</string>
-    <string name="accent_green">Grün</string>
-    <string name="accent_red">Rot</string>
-    <string name="accent_purple">Lila</string>
     <string name="accent_amber">Bernstein</string>
     <string name="accent_teal">Petrol</string>
     <string name="section_preview">Vorschau</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">Dynamische Farbe</string>
     <string name="dynamic_color_sub">Wallpaper-Farben verwenden (Material You)</string>
     <string name="accent_disabled_hint">Verfügbar, wenn die dynamische Farbe deaktiviert ist</string>
-    <string name="preview_dynamic">Hintergrundfarben (Material You)</string>
+    <string name="accent_indigo">Indigo</string>
+    <string name="accent_violet">Violett</string>
+    <string name="accent_emerald">Smaragd</string>
+    <string name="accent_rose">Rosé</string>
+    <string name="accent_disabled_mono">Monochrom flacht alle Akzente ab</string>
+    <string name="section_background">Hintergrund</string>
+    <string name="background_ambient">Umgebend</string>
+    <string name="background_ember">Glut</string>
+    <string name="background_quiet">Ruhig</string>
+    <string name="background_none">Keiner</string>
+    <string name="section_traits">Stil</string>
+    <string name="trait_monochrome">Monochrom</string>
+    <string name="trait_monochrome_sub">Alle Farben in neutrale Töne umwandeln</string>
+    <string name="trait_item_colors">Elementfarben</string>
+    <string name="trait_item_colors_sub">Routinen ihre eigenen Farben behalten lassen</string>
+    <string name="trait_outlines">Konturen</string>
+    <string name="trait_outlines_sub">Eine feine Linie um Karten zeichnen</string>
+    <string name="trait_translucent">Durchsichtige Leisten</string>
+    <string name="trait_translucent_sub">Inhalt unter der schwebenden Leiste zeigen</string>
+    <string name="trait_ambient">Umgebungsformen</string>
+    <string name="trait_ambient_sub">Weiche Formen hinter dem Inhalt zeichnen</string>
+    <string name="section_density">Dichte</string>
+    <string name="density_comfortable">Komfortabel</string>
+    <string name="density_compact">Kompakt</string>
+    <string name="pure_black">Reines Schwarz</string>
+    <string name="pure_black_sub">Echtes Schwarz für OLED-Bildschirme</string>
 </resources>

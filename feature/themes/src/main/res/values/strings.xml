@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">Themes</string>
+    <string name="themes_title">Appearance</string>
     <string name="section_appearance">Appearance</string>
     <string name="mode_system">System default</string>
     <string name="mode_system_sub">Follows the device theme</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">Always use the light theme</string>
     <string name="mode_dark">Dark</string>
     <string name="mode_dark_sub">Always use the dark theme</string>
-    <string name="theme_follows_system">Follows your system appearance automatically</string>
-    <string name="theme_manual">Manual theme override selected</string>
     <string name="section_accent">Accent color</string>
     <string name="accent_selected">Selected: %1$s</string>
-    <string name="accent_blue">Blue</string>
-    <string name="accent_green">Green</string>
-    <string name="accent_red">Red</string>
-    <string name="accent_purple">Purple</string>
     <string name="accent_amber">Amber</string>
     <string name="accent_teal">Teal</string>
     <string name="section_preview">Preview</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">Dynamic color</string>
     <string name="dynamic_color_sub">Use wallpaper colors (Material You)</string>
     <string name="accent_disabled_hint">Available when Dynamic color is off</string>
-    <string name="preview_dynamic">Wallpaper colors (Material You)</string>
+    <string name="accent_indigo">Indigo</string>
+    <string name="accent_violet">Violet</string>
+    <string name="accent_emerald">Emerald</string>
+    <string name="accent_rose">Rose</string>
+    <string name="accent_disabled_mono">Monochrome flattens every accent</string>
+    <string name="section_background">Background</string>
+    <string name="background_ambient">Ambient</string>
+    <string name="background_ember">Ember</string>
+    <string name="background_quiet">Quiet</string>
+    <string name="background_none">None</string>
+    <string name="section_traits">Style</string>
+    <string name="trait_monochrome">Monochrome</string>
+    <string name="trait_monochrome_sub">Flatten every color into neutral tones</string>
+    <string name="trait_item_colors">Item colors</string>
+    <string name="trait_item_colors_sub">Let routines keep their own colors</string>
+    <string name="trait_outlines">Outlines</string>
+    <string name="trait_outlines_sub">Draw a hairline edge around cards</string>
+    <string name="trait_translucent">Translucent bars</string>
+    <string name="trait_translucent_sub">Show the content under the floating bar</string>
+    <string name="trait_ambient">Ambient shapes</string>
+    <string name="trait_ambient_sub">Draw soft shapes behind the content</string>
+    <string name="section_density">Density</string>
+    <string name="density_comfortable">Comfortable</string>
+    <string name="density_compact">Compact</string>
+    <string name="pure_black">Pure black</string>
+    <string name="pure_black_sub">Use true black for OLED screens</string>
 </resources>

@@ -31,4 +31,36 @@ class ThemeViewModel @Inject constructor(
     fun setDynamicColor(enabled: Boolean) {
         viewModelScope.launch { themePreferences.setDynamicColor(enabled) }
     }
+
+    fun setMonochrome(enabled: Boolean) {
+        viewModelScope.launch { themePreferences.setMonochrome(enabled) }
+    }
+
+    fun setColorAccents(enabled: Boolean) {
+        viewModelScope.launch { themePreferences.setColorAccents(enabled) }
+    }
+
+    fun setOutlines(enabled: Boolean) {
+        viewModelScope.launch { themePreferences.setOutlines(enabled) }
+    }
+
+    fun setBlur(enabled: Boolean) {
+        viewModelScope.launch { themePreferences.setBlur(enabled) }
+    }
+
+    fun setAmbientBackground(enabled: Boolean) {
+        viewModelScope.launch { themePreferences.setAmbientBackground(enabled) }
+    }
+
+    fun setDensity(density: String) {
+        viewModelScope.launch { themePreferences.setDensity(density) }
+    }
+
+    fun setBackground(background: String) {
+        viewModelScope.launch { themePreferences.setBackground(background) }
+    }
+
+    fun setPureBlack(enabled: Boolean) {
+        viewModelScope.launch { themePreferences.setPureBlack(enabled) }
+    }
 }
