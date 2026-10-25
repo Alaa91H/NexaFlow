@@ -3,15 +3,18 @@ package com.nexaflow.app
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
+import com.nexaflow.core.ui.ambient.AmbientCanvas
 import com.nexaflow.core.ui.isSystemReduceMotionEnabled
 import com.nexaflow.core.ui.nexaFlowEffectsSpec
 import com.nexaflow.core.ui.nexaFlowSpatialSpec
@@ -65,7 +68,10 @@ fun NexaFlowApp(reviewAutomationId: String? = null, onReviewOpened: () -> Unit =
     // Fade spec from the same scheme.
     val fadeSpec = nexaFlowEffectsSpec<Float>()
 
-    Scaffold { innerPadding ->
+    // The ambient canvas draws the soft shapes behind everything; the
+    // scaffold is transparent so they show through.
+    AmbientCanvas(modifier = Modifier.fillMaxSize()) {
+    Scaffold(containerColor = Color.Transparent) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "dashboard",
@@ -209,5 +215,6 @@ fun NexaFlowApp(reviewAutomationId: String? = null, onReviewOpened: () -> Unit =
                 ManagedAgentRunScreen(navController = navController)
             }
         }
+    }
     }
 }

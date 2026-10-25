@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark-mode splash background: neutral M3 dark surface (same tone as the
-         app's dark theme) so the splash flows into the UI without a colored flash. -->
-    <color name="splash_background">#1C1B1F</color>
+    <!-- Dark-mode splash background: the app's dark canvas (#0A0B10) so the
+         splash flows into the UI without a colored flash. -->
+    <color name="splash_background">#0A0B10</color>
+
+    <!-- The brand gradient, tuned for the dark canvas. -->
+    <color name="brand_start">#8AA0FF</color>
+    <color name="brand_violet">#B9A3FF</color>
+    <color name="brand_end">#4FE3C8</color>
 </resources>

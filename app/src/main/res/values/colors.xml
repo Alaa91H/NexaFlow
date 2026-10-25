@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Fallback for legacy launchers without adaptive-icon support; matches
-         the solid white adaptive background. -->
-    <!-- Branded splash (core-splashscreen): matches the white canvas so the
-         splash flows into the adaptive icon seamlessly. -->
-    <color name="splash_background">#FFFFFF</color>
+    <!-- Branded splash (core-splashscreen): matches the light canvas
+         (#FBFBFD) so the splash flows into the app without a flash. -->
+    <color name="splash_background">#FBFBFD</color>
+
+    <!-- The brand gradient, for the launcher icon and the splash. -->
+    <color name="brand_start">#3B5BFF</color>
+    <color name="brand_violet">#7A5AF8</color>
+    <color name="brand_end">#00D6B4</color>
 </resources>

@@ -133,7 +133,15 @@ class MainActivity : AppCompatActivity() {
             NexaFlowTheme(
                 themeMode = theme.mode,
                 accent = theme.accent,
-                dynamicColor = theme.dynamicColor
+                dynamicColor = theme.dynamicColor,
+                monochrome = theme.monochrome,
+                colorAccents = theme.colorAccents,
+                outlines = theme.outlines,
+                blur = theme.blur,
+                ambientBackground = theme.ambientBackground,
+                density = theme.density,
+                background = theme.background,
+                pureBlack = theme.pureBlack
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
