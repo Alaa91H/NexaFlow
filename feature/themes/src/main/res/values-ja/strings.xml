@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">テーマ</string>
+    <string name="themes_title">外観</string>
     <string name="section_appearance">外観</string>
     <string name="mode_system">システム既定</string>
     <string name="mode_system_sub">端末のテーマに従う</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">常にライトテーマを使用</string>
     <string name="mode_dark">ダーク</string>
     <string name="mode_dark_sub">常にダークテーマを使用</string>
-    <string name="theme_follows_system">システムの外観に自動的に従います</string>
-    <string name="theme_manual">手動テーマが選択されました</string>
     <string name="section_accent">アクセントカラー</string>
     <string name="accent_selected">選択中: %1$s</string>
-    <string name="accent_blue">青</string>
-    <string name="accent_green">緑</string>
-    <string name="accent_red">赤</string>
-    <string name="accent_purple">紫</string>
     <string name="accent_amber">琥珀</string>
     <string name="accent_teal">ティール</string>
     <string name="section_preview">プレビュー</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">ダイナミックカラー</string>
     <string name="dynamic_color_sub">壁紙の色を使用（Material You）</string>
     <string name="accent_disabled_hint">ダイナミックカラーがオフのときに利用できます</string>
-    <string name="preview_dynamic">壁紙の色 (Material You)</string>
+    <string name="accent_indigo">インディゴ</string>
+    <string name="accent_violet">バイオレット</string>
+    <string name="accent_emerald">エメラルド</string>
+    <string name="accent_rose">ローズ</string>
+    <string name="accent_disabled_mono">モノクロームはすべてのアクセントを平坦化します</string>
+    <string name="section_background">背景</string>
+    <string name="background_ambient">アンビエント</string>
+    <string name="background_ember">熾火</string>
+    <string name="background_quiet">静かな</string>
+    <string name="section_traits">スタイル</string>
+    <string name="trait_monochrome">モノクローム</string>
+    <string name="trait_monochrome_sub">すべての色をニュートラルな色調に統一します</string>
+    <string name="trait_item_colors">項目の色</string>
+    <string name="trait_item_colors_sub">ルーチンが独自の色を保ちます</string>
+    <string name="trait_outlines">アウトライン</string>
+    <string name="trait_outlines_sub">カードに細い境界線を引きます</string>
+    <string name="trait_translucent">半透明バー</string>
+    <string name="trait_translucent_sub">フローティングバーの下の内容を表示します</string>
+    <string name="trait_ambient">背景の図形</string>
+    <string name="trait_ambient_sub">内容の背後に softly な図形を描画します</string>
+    <string name="section_density">密度</string>
+    <string name="density_comfortable">ゆったり</string>
+    <string name="density_compact">コンパクト</string>
+    <string name="pure_black">純黒</string>
+    <string name="pure_black_sub">OLED画面には真の黒を使用します</string>
+    <string name="background_none">なし</string>
 </resources>

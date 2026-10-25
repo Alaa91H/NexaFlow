@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">थीम</string>
+    <string name="themes_title">रूप</string>
     <string name="section_appearance">रूप-रंग</string>
     <string name="mode_system">सिस्टम डिफ़ॉल्ट</string>
     <string name="mode_system_sub">डिवाइस थीम का पालन करता है</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">हमेशा लाइट थीम उपयोग करें</string>
     <string name="mode_dark">डार्क</string>
     <string name="mode_dark_sub">हमेशा डार्क थीम उपयोग करें</string>
-    <string name="theme_follows_system">सिस्टम की उपस्थिति का स्वतः अनुसरण करता है</string>
-    <string name="theme_manual">मैन्युअल थीम ओवरराइड चुना गया</string>
     <string name="section_accent">एक्सेंट रंग</string>
     <string name="accent_selected">चयनित: %1$s</string>
-    <string name="accent_blue">नीला</string>
-    <string name="accent_green">हरा</string>
-    <string name="accent_red">लाल</string>
-    <string name="accent_purple">बैंगनी</string>
     <string name="accent_amber">अंबर</string>
     <string name="accent_teal">टील</string>
     <string name="section_preview">पूर्वावलोकन</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">डायनामिक रंग</string>
     <string name="dynamic_color_sub">वॉलपेपर रंगों का उपयोग करें (Material You)</string>
     <string name="accent_disabled_hint">डायनामिक रंग बंद होने पर उपलब्ध</string>
-    <string name="preview_dynamic">वॉलपेपर रंग (Material You)</string>
+    <string name="accent_indigo">नीला</string>
+    <string name="accent_violet">बैंगनी</string>
+    <string name="accent_emerald">पन्ना हरा</string>
+    <string name="accent_rose">गुलाबी</string>
+    <string name="accent_disabled_mono">मोनोक्रोम सभी रंगों को एक जैसा कर देता है</string>
+    <string name="section_background">पृष्ठभूमि</string>
+    <string name="background_ambient">परिवेश</string>
+    <string name="background_ember">अंगारा</string>
+    <string name="background_quiet">शांत</string>
+    <string name="background_none">कोई नहीं</string>
+    <string name="section_traits">शैली</string>
+    <string name="trait_monochrome">मोनोक्रोम</string>
+    <string name="trait_monochrome_sub">सभी रंगों को उदासीन टोन में बदलें</string>
+    <string name="trait_item_colors">आइटम रंग</string>
+    <string name="trait_item_colors_sub">रूटीन को अपना रंग रखने दें</string>
+    <string name="trait_outlines">रूपरेखा</string>
+    <string name="trait_outlines_sub">कार्ड के चारों ओर पतली रेखा खींचें</string>
+    <string name="trait_translucent">पारदर्शी पट्टियाँ</string>
+    <string name="trait_translucent_sub">तैरती पट्टी के नीचे का सामग्री दिखाएँ</string>
+    <string name="trait_ambient">परिवेश आकार</string>
+    <string name="trait_ambient_sub">सामग्री के पीछे मृदु आकार बनाएँ</string>
+    <string name="section_density">घनत्व</string>
+    <string name="density_comfortable">आरामदायक</string>
+    <string name="density_compact">सघन</string>
+    <string name="pure_black">शुद्ध काला</string>
+    <string name="pure_black_sub">OLED स्क्रीन के लिए वास्तविक काला</string>
 </resources>

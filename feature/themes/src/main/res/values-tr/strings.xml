@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">Temalar</string>
+    <string name="themes_title">Görünüm</string>
     <string name="section_appearance">Görünüm</string>
     <string name="mode_system">Sistem varsayılanı</string>
     <string name="mode_system_sub">Cihaz temasını takip eder</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">Her zaman açık temayı kullan</string>
     <string name="mode_dark">Koyu</string>
     <string name="mode_dark_sub">Her zaman koyu temayı kullan</string>
-    <string name="theme_follows_system">Sistem görünümünü otomatik olarak takip eder</string>
-    <string name="theme_manual">Manuel tema seçildi</string>
     <string name="section_accent">Vurgu rengi</string>
     <string name="accent_selected">Seçilen: %1$s</string>
-    <string name="accent_blue">Mavi</string>
-    <string name="accent_green">Yeşil</string>
-    <string name="accent_red">Kırmızı</string>
-    <string name="accent_purple">Mor</string>
     <string name="accent_amber">Kehribar</string>
     <string name="accent_teal">Turkuaz</string>
     <string name="section_preview">Önizleme</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">Dinamik renk</string>
     <string name="dynamic_color_sub">Duvar kâğıdı renklerini kullan (Material You)</string>
     <string name="accent_disabled_hint">Dinamik renk kapalıyken kullanılabilir</string>
-    <string name="preview_dynamic">Duvar kâğıdı renkleri (Material You)</string>
+    <string name="accent_indigo">Çivit</string>
+    <string name="accent_violet">Menekşe</string>
+    <string name="accent_emerald">Zümrüt</string>
+    <string name="accent_rose">Gül</string>
+    <string name="accent_disabled_mono">Monokrom mod tüm vurguları düzleştirir</string>
+    <string name="section_background">Arka plan</string>
+    <string name="background_ambient">Ortam</string>
+    <string name="background_ember">Kor</string>
+    <string name="background_quiet">Sakin</string>
+    <string name="background_none">Yok</string>
+    <string name="section_traits">Stil</string>
+    <string name="trait_monochrome">Monokrom</string>
+    <string name="trait_monochrome_sub">Tüm renkleri nötr tonlara indirger</string>
+    <string name="trait_item_colors">Öğe renkleri</string>
+    <string name="trait_item_colors_sub">Rutinlerin kendi renklerini korumasına izin ver</string>
+    <string name="trait_outlines">Kenarlıklar</string>
+    <string name="trait_outlines_sub">Kartların çevresine ince bir çizgi çiz</string>
+    <string name="trait_translucent">Saydam çubuklar</string>
+    <string name="trait_translucent_sub">Yüzen çubuğun altındaki içeriği göster</string>
+    <string name="trait_ambient">Ortam şekilleri</string>
+    <string name="trait_ambient_sub">İçeriğin arkasına yumuşak şekiller çiz</string>
+    <string name="section_density">Yoğunluk</string>
+    <string name="density_comfortable">Rahat</string>
+    <string name="density_compact">Sıkışık</string>
+    <string name="pure_black">Saf siyah</string>
+    <string name="pure_black_sub">OLED ekranlar için gerçek siyah</string>
 </resources>

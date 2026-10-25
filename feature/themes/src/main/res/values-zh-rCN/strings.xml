@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">主题</string>
+    <string name="themes_title">外观</string>
     <string name="section_appearance">外观</string>
     <string name="mode_system">系统默认</string>
     <string name="mode_system_sub">跟随设备主题</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">始终使用浅色主题</string>
     <string name="mode_dark">深色</string>
     <string name="mode_dark_sub">始终使用深色主题</string>
-    <string name="theme_follows_system">自动跟随系统外观</string>
-    <string name="theme_manual">已选择手动主题覆盖</string>
     <string name="section_accent">强调色</string>
     <string name="accent_selected">已选择：%1$s</string>
-    <string name="accent_blue">蓝色</string>
-    <string name="accent_green">绿色</string>
-    <string name="accent_red">红色</string>
-    <string name="accent_purple">紫色</string>
     <string name="accent_amber">琥珀色</string>
     <string name="accent_teal">青色</string>
     <string name="section_preview">预览</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">动态颜色</string>
     <string name="dynamic_color_sub">使用壁纸颜色（Material You）</string>
     <string name="accent_disabled_hint">关闭动态颜色时可用</string>
-    <string name="preview_dynamic">壁纸颜色（Material You）</string>
+    <string name="accent_indigo">靛蓝</string>
+    <string name="accent_violet">紫罗兰</string>
+    <string name="accent_emerald">祖母绿</string>
+    <string name="accent_rose">玫瑰</string>
+    <string name="accent_disabled_mono">单色模式会将所有强调色变为平色</string>
+    <string name="section_background">背景</string>
+    <string name="background_ambient">氛围</string>
+    <string name="background_ember">余烬</string>
+    <string name="background_quiet">宁静</string>
+    <string name="background_none">无</string>
+    <string name="section_traits">风格</string>
+    <string name="trait_monochrome">单色</string>
+    <string name="trait_monochrome_sub">将所有颜色变为中性色调</string>
+    <string name="trait_item_colors">项目颜色</string>
+    <string name="trait_item_colors_sub">让自动化保留各自的颜色</string>
+    <string name="trait_outlines">描边</string>
+    <string name="trait_outlines_sub">在卡片周围绘制细线</string>
+    <string name="trait_translucent">半透明栏</string>
+    <string name="trait_translucent_sub">显示浮动栏下方的内容</string>
+    <string name="trait_ambient">氛围形状</string>
+    <string name="trait_ambient_sub">在内容背后绘制柔和形状</string>
+    <string name="section_density">密度</string>
+    <string name="density_comfortable">宽松</string>
+    <string name="density_compact">紧凑</string>
+    <string name="pure_black">纯黑</string>
+    <string name="pure_black_sub">OLED 屏幕使用真正的黑色</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">Temas</string>
+    <string name="themes_title">Apariencia</string>
     <string name="section_appearance">Apariencia</string>
     <string name="mode_system">Predeterminado del sistema</string>
     <string name="mode_system_sub">Sigue el tema del dispositivo</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">Usar siempre el tema claro</string>
     <string name="mode_dark">Oscuro</string>
     <string name="mode_dark_sub">Usar siempre el tema oscuro</string>
-    <string name="theme_follows_system">Sigue la apariencia del sistema automáticamente</string>
-    <string name="theme_manual">Se ha seleccionado un tema manual</string>
     <string name="section_accent">Color de acento</string>
     <string name="accent_selected">Seleccionado: %1$s</string>
-    <string name="accent_blue">Azul</string>
-    <string name="accent_green">Verde</string>
-    <string name="accent_red">Rojo</string>
-    <string name="accent_purple">Púrpura</string>
     <string name="accent_amber">Ámbar</string>
     <string name="accent_teal">Verde azulado</string>
     <string name="section_preview">Vista previa</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">Color dinámico</string>
     <string name="dynamic_color_sub">Usar colores del fondo de pantalla (Material You)</string>
     <string name="accent_disabled_hint">Disponible cuando el color dinámico está desactivado</string>
-    <string name="preview_dynamic">Colores del fondo de pantalla (Material You)</string>
+    <string name="accent_indigo">Índigo</string>
+    <string name="accent_violet">Violeta</string>
+    <string name="accent_emerald">Esmeralda</string>
+    <string name="accent_rose">Rosa</string>
+    <string name="accent_disabled_mono">El modo monocromo aplana todos los acentos</string>
+    <string name="section_background">Fondo</string>
+    <string name="background_ambient">Ambiente</string>
+    <string name="background_ember">Brasa</string>
+    <string name="background_quiet">Sutil</string>
+    <string name="background_none">Ninguno</string>
+    <string name="section_traits">Estilo</string>
+    <string name="trait_monochrome">Monocromo</string>
+    <string name="trait_monochrome_sub">Aplanar todos los colores en tonos neutros</string>
+    <string name="trait_item_colors">Colores de elemento</string>
+    <string name="trait_item_colors_sub">Permitir que las rutinas conserven su propio color</string>
+    <string name="trait_outlines">Contornos</string>
+    <string name="trait_outlines_sub">Dibujar un borde fino alrededor de las tarjetas</string>
+    <string name="trait_translucent">Barras translúcidas</string>
+    <string name="trait_translucent_sub">Mostrar el contenido bajo la barra flotante</string>
+    <string name="trait_ambient">Formas ambientales</string>
+    <string name="trait_ambient_sub">Dibujar formas suaves detrás del contenido</string>
+    <string name="section_density">Densidad</string>
+    <string name="density_comfortable">Cómoda</string>
+    <string name="density_compact">Compacta</string>
+    <string name="pure_black">Negro puro</string>
+    <string name="pure_black_sub">Usar negro real en pantallas OLED</string>
 </resources>

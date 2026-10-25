@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="themes_title">Темы</string>
+    <string name="themes_title">Оформление</string>
     <string name="section_appearance">Внешний вид</string>
     <string name="mode_system">По умолчанию</string>
     <string name="mode_system_sub">Следует теме устройства</string>
@@ -8,14 +8,8 @@
     <string name="mode_light_sub">Всегда использовать светлую тему</string>
     <string name="mode_dark">Тёмная</string>
     <string name="mode_dark_sub">Всегда использовать тёмную тему</string>
-    <string name="theme_follows_system">Автоматически следует внешнему виду системы</string>
-    <string name="theme_manual">Выбрано ручное изменение темы</string>
     <string name="section_accent">Акцентный цвет</string>
     <string name="accent_selected">Выбрано: %1$s</string>
-    <string name="accent_blue">Синий</string>
-    <string name="accent_green">Зелёный</string>
-    <string name="accent_red">Красный</string>
-    <string name="accent_purple">Фиолетовый</string>
     <string name="accent_amber">Янтарный</string>
     <string name="accent_teal">Бирюзовый</string>
     <string name="section_preview">Предпросмотр</string>
@@ -27,5 +21,30 @@
     <string name="dynamic_color">Динамический цвет</string>
     <string name="dynamic_color_sub">Использовать цвета обоев (Material You)</string>
     <string name="accent_disabled_hint">Доступно, когда динамический цвет отключён</string>
-    <string name="preview_dynamic">Цвета обоев (Material You)</string>
+    <string name="accent_indigo">Индиго</string>
+    <string name="accent_violet">Фиолетовый</string>
+    <string name="accent_emerald">Изумрудный</string>
+    <string name="accent_rose">Розовый</string>
+    <string name="accent_disabled_mono">Монохромный режим делает все акценты плоскими</string>
+    <string name="section_background">Фон</string>
+    <string name="background_ambient">Окружение</string>
+    <string name="background_ember">Уголь</string>
+    <string name="background_quiet">Тихий</string>
+    <string name="background_none">Нет</string>
+    <string name="section_traits">Стиль</string>
+    <string name="trait_monochrome">Монохромный</string>
+    <string name="trait_monochrome_sub">Свести все цвета к нейтральным тонам</string>
+    <string name="trait_item_colors">Цвета элементов</string>
+    <string name="trait_item_colors_sub">Разрешить сценариям сохранять свои цвета</string>
+    <string name="trait_outlines">Контуры</string>
+    <string name="trait_outlines_sub">Рисовать тонкую рамку вокруг карточек</string>
+    <string name="trait_translucent">Полупрозрачные панели</string>
+    <string name="trait_translucent_sub">Показывать содержимое под плавающей панелью</string>
+    <string name="trait_ambient">Фоновые фигуры</string>
+    <string name="trait_ambient_sub">Рисовать мягкие фигуры за содержимым</string>
+    <string name="section_density">Плотность</string>
+    <string name="density_comfortable">Обычная</string>
+    <string name="density_compact">Компактная</string>
+    <string name="pure_black">Чёрный</string>
+    <string name="pure_black_sub">Настоящий чёрный для OLED-экранов</string>
 </resources>
