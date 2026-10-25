@@ -1,0 +1,63 @@
+# Pinned design-token violations.
+#
+# Each line is `path|literal`. Every entry is a color or radius literal
+# that still lives outside the theme packages; the gate fails on any
+# NEW one and on any entry that has gone stale (the literal was removed
+# or moved). Entries are removed as their file is migrated to the
+# token layer - the count should only go down.
+
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF006A6C
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF006D3C
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF0B57D0
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF387908
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF455A64
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF625B71
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF6750A4
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFF8F4C00
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt|color:0xFFC2185B
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderCardAccent.kt|color:0xFF1E2022
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderCardAccent.kt|color:0xFF2F3336
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderCardAccent.kt|color:0xFF3C4043
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderCardAccent.kt|color:0xFF5F6368
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderCardAccent.kt|color:0xFFF5F7F8
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt|radius:12.dp
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/PermissionExplainDialog.kt|color:0xFF006A6C
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/PermissionExplainDialog.kt|color:0xFF006D3C
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/PermissionExplainDialog.kt|color:0xFF0B57D0
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/PermissionExplainDialog.kt|color:0xFF6750A4
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/PermissionExplainDialog.kt|color:0xFF8F4C00
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/PermissionExplainDialog.kt|color:0xFFBA1A1A
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt|color:0xFF006A6C
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt|color:0xFF006D3C
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt|color:0xFF0B57D0
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt|color:0xFF455A64
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt|color:0xFF6750A4
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerCatalogPresentation.kt|color:0xFF8F4C00
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt|color:0xFF252525
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt|color:0xFF323232
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt|color:0xFF363636
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt|color:0xFFD3D3D3
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt|color:0xFFE7E7E7
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt|radius:24.dp
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/RoutineCardDetails.kt|radius:10.dp
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/RoutineCardDetails.kt|radius:14.dp
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/RoutineCardDetails.kt|radius:18.dp
+feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/RoutineCardDetails.kt|radius:999.dp
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFF007B83
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFF0B57D0
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFF12B5CB
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFF188038
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFF3949AB
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFF9334E6
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFFD01884
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFFD93025
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFFE37400
+feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt|color:0xFFF9AB00
+feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt|color:0xFF006D3C
+feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt|color:0xFF006A6C
+feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt|color:0xFF006D3C
+feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt|color:0xFF0B57D0
+feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt|color:0xFF6750A4
+feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt|color:0xFF8F4C00
+feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt|color:0xFF9C6ADE
+feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt|color:0xFFE8833A
