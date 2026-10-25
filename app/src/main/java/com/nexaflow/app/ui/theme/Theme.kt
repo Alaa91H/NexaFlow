@@ -3,10 +3,8 @@ package com.nexaflow.app.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -15,34 +13,47 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.ui.theme.DarkNexaFlowColors
 import com.nexaflow.core.ui.theme.LightNexaFlowColors
 import com.nexaflow.core.ui.theme.LocalNexaFlowColors
+import com.nexaflow.core.ui.theme.LocalNexaFlowTokens
+import com.nexaflow.core.ui.theme.LocalNexaFlowTraits
+import com.nexaflow.core.ui.theme.NexaFlowBackground
+import com.nexaflow.core.ui.theme.NexaFlowDensity
+import com.nexaflow.core.ui.theme.NexaFlowShapes
+import com.nexaflow.core.ui.theme.NexaFlowTokens
+import com.nexaflow.core.ui.theme.NexaFlowTraits
+import com.nexaflow.core.ui.theme.accentSeedFor
+import com.nexaflow.core.ui.theme.nexaFlowColorScheme
 
 /**
- * Material 3 Expressive shape system (Google's 2025-2026 design language):
- * 8 / 12 / 16 / 24 / 28 dp. Compared with the original M3 scale (4/8/12/16/28)
- * the radii step up across the board — pills on small controls, 24dp cards,
- * 28dp sheets — which is exactly how Google's current apps (Tasks, Calendar,
- * Clock) present surfaces. Every component consumes these tokens via
- * `MaterialTheme.shapes`, so one change re-skins the whole app.
+ * The app's theme.
+ *
+ * NexaFlow One: a near-black canvas, a brand gradient, a set of composable
+ * appearance traits and one shape scale that every screen reads through
+ * `MaterialTheme`.
+ *
+ * The traits are what make the appearance settings interact rather than
+ * sit next to each other. Monochrome flattens the accents, the outline
+ * switch removes the hairlines, the ambient switch removes the shapes, and
+ * the density switch tightens the layout — and all of them compose, so the
+ * screen a user lands on is the one they assembled.
  */
-private val GoogleShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(28.dp)
-)
-
 @Composable
 fun NexaFlowTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    accent: String = "blue",
-    dynamicColor: Boolean = true,
+    accent: String = "indigo",
+    dynamicColor: Boolean = false,
+    monochrome: Boolean = false,
+    colorAccents: Boolean = true,
+    outlines: Boolean = true,
+    blur: Boolean = true,
+    ambientBackground: Boolean = true,
+    density: String = "comfortable",
+    background: String = "ambient",
+    pureBlack: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -51,18 +62,45 @@ fun NexaFlowTheme(
         ThemeMode.DARK -> true
     }
     val context = LocalContext.current
-    val colorScheme = if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        // Material You — wallpaper-sourced palette, exactly like Google apps.
+
+    val baseScheme = if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        // Material You — wallpaper-sourced colors. The user opted into
+        // these; the app's own palette is the default.
         if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     } else {
-        googleColorScheme(accentSeeds[accent] ?: accentSeeds.getValue("blue"), darkTheme)
+        nexaFlowColorScheme(accentSeedFor(accent), darkTheme)
     }
+
+    val colorScheme = if (pureBlack && darkTheme) {
+        // Pure black for OLED panels: the canvas and the lowest surface tier
+        // go to true black so pixels stay off, while the elevated tiers keep
+        // their separation.
+        baseScheme.copy(
+            background = Color.Black,
+            surface = Color.Black,
+            surfaceContainerLowest = Color.Black,
+            surfaceContainerLow = Color(0xFF0A0A0A)
+        )
+    } else {
+        baseScheme
+    }
+
+    val traits = NexaFlowTraits(
+        monochrome = monochrome,
+        colorAccents = colorAccents,
+        outlines = outlines,
+        blur = blur,
+        ambientBackground = ambientBackground,
+        density = if (density == "compact") NexaFlowDensity.COMPACT else NexaFlowDensity.COMFORTABLE,
+        background = NexaFlowBackground.fromStored(background)
+    )
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Edge-to-edge is enabled in MainActivity, so the system bars are
-            // transparent and the app draws behind them. Only the icon
+            // Edge-to-edge is enabled in MainActivity, so the system bars
+            // are transparent and the app draws behind them. Only the icon
             // appearance (dark/light) needs to follow the theme here.
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = !darkTheme
@@ -71,21 +109,23 @@ fun NexaFlowTheme(
         }
     }
 
+    val semanticColors = if (darkTheme) DarkNexaFlowColors else LightNexaFlowColors
+
     CompositionLocalProvider(
-        LocalNexaFlowColors provides if (darkTheme) DarkNexaFlowColors else LightNexaFlowColors
+        LocalNexaFlowColors provides semanticColors,
+        LocalNexaFlowTraits provides traits,
+        LocalNexaFlowTokens provides NexaFlowTokens(colors = semanticColors, traits = traits)
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            // Google 2026: the expressive motion scheme (springs at
-            // ~0.6-0.8 damping / 200-800 stiffness — the slight overshoot
-            // that defines M3 Expressive). Every built-in component that
-            // animates from the scheme — bottom sheets, menus, dialogs,
-            // scrims, list items — follows it automatically, and the app's
-            // custom motion helpers (nexaFlowSpatialSpec etc.) read
-            // MaterialTheme.motionScheme so they stay in the same language.
+            // The expressive motion scheme (springs at ~0.6-0.8 damping /
+            // 200-800 stiffness). Every built-in component that animates
+            // from the scheme follows it automatically, and the app's
+            // custom motion helpers read MaterialTheme.motionScheme so they
+            // stay in the same language.
             motionScheme = MotionScheme.expressive(),
             typography = Typography,
-            shapes = GoogleShapes,
+            shapes = NexaFlowShapes,
             content = content
         )
     }
