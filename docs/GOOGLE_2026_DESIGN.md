@@ -1,4 +1,4 @@
-> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](README.md) for the supported project overview and current validation status.
+> **Historical / topic reference.** Replaced by the NexaFlow One design system ([NEXAFLOW_ONE_DESIGN.md](NEXAFLOW_ONE_DESIGN.md)). Retained for provenance; the Google Blue seed palette, the M3 Expressive shape scale and the dynamic-color-first default described below are no longer what the app ships. Version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](README.md) for the supported project overview and current validation status.
 
 # إعادة هيكلة التصميم — نمط جوجل 2026 (M3 Expressive)
 

@@ -21,6 +21,7 @@ Historical reports are preserved rather than rewritten as if their observations 
 | [GOOGLE_2026_DESIGN.md](GOOGLE_2026_DESIGN.md) | Historical / topic reference |
 | [IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md) | Historical / topic reference |
 | [NETWORK_MODE_RESEARCH_2026.md](NETWORK_MODE_RESEARCH_2026.md) | Historical / topic reference |
+| [NEXAFLOW_ONE_DESIGN.md](NEXAFLOW_ONE_DESIGN.md) | Current guide / evidence |
 | [PLUGIN_SDK.md](PLUGIN_SDK.md) | Historical / topic reference |
 | [PRODUCTION_AUDIT.md](PRODUCTION_AUDIT.md) | Historical / topic reference |
 | [RELEASING.md](RELEASING.md) | Current guide / evidence |
