@@ -7,10 +7,27 @@ The workflow is `.github/workflows/nexaflow-ci.yml`. Its `lint` job gates its `b
 ```text
 python scripts/auto_fix.py --check
 python scripts/check_strings_parity.py
+python scripts/check_design_tokens.py --self-test
+python scripts/check_design_tokens.py
 python scripts/audit_catalog_and_releases.py catalog
 python -m unittest discover -s scripts/tests -p test_exported_components.py
 ./gradlew detekt lintDebug testDebugUnitTest
 ```
+
+### Design-token gate
+
+`scripts/check_design_tokens.py` fails on any raw `Color(0x…)`, `Color(r, g, b)`
+or `RoundedCornerShape(n.dp)` in a shipped source outside the theme packages
+(`core/ui-components/.../ui/theme/` and `app/.../ui/theme/`). Pre-existing
+offenders are pinned in `scripts/design_token_baseline.txt`, one
+`path|literal` anchor each; the baseline must only ever shrink, and a
+drifted anchor fails the gate so the list cannot rot silently.
+
+The gate belongs in CI next to the hardcoded-text and vendor-neutrality
+gates, and its self-test in `scripts/tests/test_check_design_tokens.py`
+belongs beside theirs. It is not yet wired into
+`.github/workflows/nexaflow-ci.yml` — the branch that introduced it could
+not write files under `.github/workflows/` — so the wiring is still owed.
 
 CI also runs resource-gate self-tests and `check_resources.py`. Version tags must match the newest changelog heading. New data/sensor/header tests cover outcomes, malformed inputs and chained output behavior.
 
