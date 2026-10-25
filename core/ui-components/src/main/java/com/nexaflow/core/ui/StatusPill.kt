@@ -10,11 +10,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.Dimens.Space1
 import com.nexaflow.core.ui.Dimens.Space2
 import com.nexaflow.core.ui.Dimens.Space3
 
+/**
+ * A small rounded status label.
+ *
+ * Under the monochrome trait the status color is dropped and the label
+ * falls back to the neutral surface, so a monochrome screen carries no
+ * color signal it cannot explain.
+ */
 @Composable
 fun StatusPill(
     text: String,
@@ -22,14 +28,17 @@ fun StatusPill(
     contentColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val resolvedBackground = NexaFlowTraitsDefaults.surfaceColor(background)
+    val resolvedContent = NexaFlowTraitsDefaults.contentColor(contentColor, MaterialTheme.colorScheme.onSurface)
+
     Box(
         modifier = modifier
-            .background(color = background, shape = RoundedCornerShape(50))
+            .background(color = resolvedBackground, shape = RoundedCornerShape(50))
             .padding(horizontal = Space3, vertical = Space1)
     ) {
         Text(
             text = text,
-            color = contentColor,
+            color = resolvedContent,
             style = MaterialTheme.typography.labelMedium
         )
     }
@@ -44,8 +53,8 @@ private fun StatusPillPreview() {
     ) {
         StatusPill(
             text = "Active",
-            background = Color(0xFFE4F4E9),
-            contentColor = Color(0xFF006D3C)
+            background = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
         StatusPill(
             text = "Off",

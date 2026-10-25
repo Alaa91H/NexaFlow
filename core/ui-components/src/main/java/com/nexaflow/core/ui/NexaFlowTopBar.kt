@@ -22,12 +22,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * Stable holder for the Material 3 top-app-bar scroll behavior (the M3 API
- * itself is experimental). Lets screens wire the Google-style scroll tint
- * without opting in to experimental APIs at every call site.
+ * itself is experimental). Lets screens wire the scroll tint without opting
+ * in to experimental APIs at every call site.
  *
  * Wire [nestedScrollConnection] to your Scaffold via
  * `Modifier.nestedScroll(behavior.nestedScrollConnection)` so scroll events
@@ -40,7 +40,7 @@ class TopBarScrollBehavior internal constructor(
 
 /**
  * Pinned top bar that tints to the scrolled container color (surface
- * container) as content scrolls under it — the Google 2026 pattern.
+ * container) as content scrolls under it.
  */
 @Composable
 fun rememberPinnedTopBarScrollBehavior(): TopBarScrollBehavior {
@@ -50,13 +50,22 @@ fun rememberPinnedTopBarScrollBehavior(): TopBarScrollBehavior {
     }
 }
 
+/**
+ * The bar a screen shows when it was pushed onto the stack.
+ *
+ * The bar is transparent by default: the ambient canvas draws behind it, so
+ * the screen reads as one continuous surface rather than as a header band
+ * sitting on top of a different one. The title carries the weight — a
+ * bold headline rather than a title — so a screen's name is legible at a
+ * glance from a distance.
+ */
 @Composable
 fun NexaFlowTopBar(
     title: String,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     subtitle: String? = null,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
+    containerColor: Color = Color.Transparent,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     scrollBehavior: TopBarScrollBehavior? = null
 ) {
@@ -66,24 +75,25 @@ fun NexaFlowTopBar(
                 Text(
                     text = title,
                     color = contentColor,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Normal,
-                    maxLines = 1
+                    style = MaterialTheme.typography.headlineSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             } else {
                 Column {
                     Text(
                         text = title,
                         color = contentColor,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Normal,
-                        maxLines = 1
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = subtitle,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -103,9 +113,7 @@ fun NexaFlowTopBar(
         scrollBehavior = scrollBehavior?.behavior,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = containerColor,
-            // Google 2026: the bar tints to the surface container as content
-            // scrolls under it, instead of sitting on a fixed color band.
-            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             titleContentColor = contentColor,
             navigationIconContentColor = contentColor,
             actionIconContentColor = contentColor

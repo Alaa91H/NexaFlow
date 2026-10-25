@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="back">Geri</string>
+    <string name="brand_name">NexaFlow</string>
+    <string name="search_hint">Ara</string>
+    <string name="clear">Temizle</string>
 </resources>

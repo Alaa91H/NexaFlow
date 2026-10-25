@@ -13,11 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import com.nexaflow.core.ui.theme.NexaFlowGradients
+import com.nexaflow.core.ui.theme.NexaFlowTraitsDefaults
 
 /**
- * Google 2026 pill FAB — an extended floating action button with a fully
- * rounded (pill) shape, tonal container and label, exactly like the primary
- * action button in Google Tasks / Keep / Calendar.
+ * The app's primary action button.
+ *
+ * An extended floating action button in the brand gradient. It is the one
+ * control that is allowed to carry the full gradient, because it is the one
+ * control a user is meant to reach for.
  */
 @Composable
 fun NexaFlowFloatingActionButton(
@@ -44,6 +48,33 @@ fun NexaFlowFloatingActionButton(
     )
 }
 
+/**
+ * The app's primary action button, on the brand gradient.
+ */
+@Composable
+fun NexaFlowGradientFab(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    val gradient = NexaFlowGradients.brand
+    ExtendedFloatingActionButton(
+        onClick = onClick,
+        modifier = modifier.nexaFlowEntrance(),
+        shape = RoundedCornerShape(percent = 50),
+        containerColor = NexaFlowTraitsDefaults.accentColor(gradient.first()),
+        contentColor = Color.White,
+        icon = { Icon(imageVector = icon, contentDescription = null) },
+        text = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    )
+}
+
 @Preview(name = "FAB", showBackground = true)
 @Composable
 private fun FabPreview() {
@@ -60,7 +91,7 @@ private fun FabPreview() {
 @Composable
 private fun FabDarkPreview() {
     MaterialTheme {
-        NexaFlowFloatingActionButton(
+        NexaFlowGradientFab(
             onClick = {},
             icon = Icons.Filled.Add,
             label = "New"

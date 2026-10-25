@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="back">Atrás</string>
+    <string name="brand_name">NexaFlow</string>
+    <string name="search_hint">Buscar</string>
+    <string name="clear">Borrar</string>
 </resources>

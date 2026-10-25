@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="back">رجوع</string>
+    <string name="brand_name">NexaFlow</string>
+    <string name="search_hint">بحث</string>
+    <string name="clear">مسح</string>
 </resources>

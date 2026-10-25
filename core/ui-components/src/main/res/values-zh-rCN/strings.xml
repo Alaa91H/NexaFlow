@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="back">返回</string>
+    <string name="brand_name">NexaFlow</string>
+    <string name="search_hint">搜索</string>
+    <string name="clear">清除</string>
 </resources>

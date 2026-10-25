@@ -23,9 +23,16 @@ data class NavigationDestination(
 )
 
 /**
- * Google 2026 bottom navigation — M3 NavigationBar density (80dp, icon +
- * label) with the tonal pill indicator and quiet unselected items.
+ * The Material 3 navigation bar.
+ *
+ * Superseded by [NexaFlowNavPill], which floats above the content instead of
+ * being welded to the bottom edge. Kept for the Wear app and for any screen
+ * that still wants a docked bar.
  */
+@Deprecated(
+    message = "The app's bottom navigation floats as a pill. Use NexaFlowNavPill instead.",
+    replaceWith = ReplaceWith("NexaFlowNavPill")
+)
 @Composable
 fun NexaFlowNavigationBar(
     currentRoute: String?,
@@ -61,6 +68,7 @@ fun NexaFlowNavigationBar(
 
 @Preview(name = "NavigationBar", showBackground = true)
 @Composable
+@Suppress("DEPRECATION")
 private fun NavigationBarPreview() {
     MaterialTheme {
         NexaFlowNavigationBar(
@@ -76,6 +84,7 @@ private fun NavigationBarPreview() {
 
 @Preview(name = "NavigationBar – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
+@Suppress("DEPRECATION")
 private fun NavigationBarDarkPreview() {
     MaterialTheme {
         NexaFlowNavigationBar(

@@ -1,6 +1,7 @@
 package com.nexaflow.core.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,7 +28,16 @@ import com.nexaflow.core.ui.Dimens.RowIconSize
 import com.nexaflow.core.ui.Dimens.Space1
 import com.nexaflow.core.ui.Dimens.Space2
 import com.nexaflow.core.ui.Dimens.Space3
+import com.nexaflow.core.ui.theme.NexaFlowTraitsDefaults
 
+/**
+ * A row in a settings list.
+ *
+ * The row sits on the card's surface with a hairline edge of its own, so a
+ * list of rows reads as a stack of cards rather than as one long block with
+ * rules drawn through it. The leading icon wears the theme's accent, and
+ * under the monochrome trait it falls back to the neutral container.
+ */
 @Composable
 fun SettingRow(
     icon: ImageVector,
@@ -35,24 +46,28 @@ fun SettingRow(
     modifier: Modifier = Modifier,
     alternatingIndex: Int? = null,
     trailing: @Composable (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    iconTint: Color? = null
 ) {
     val rowSurface = alternatingIndex?.let { alternatingSurfaceColor(it) }
+        ?: MaterialTheme.colorScheme.surfaceContainerLow
     val iconSurface = alternatingIndex?.let { alternatingSurfaceColor(it + 1) }
+        ?: MaterialTheme.colorScheme.surfaceContainerHigh
+    val shape = MaterialTheme.shapes.small
+    val hairline = NexaFlowTraitsDefaults.outline(
+        color = NexaFlowTraitsDefaults.borderColor(MaterialTheme.colorScheme.outlineVariant),
+        width = 1.dp
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(rowSurface, shape)
             .then(
-                if (rowSurface != null) {
-                    Modifier
-                        .background(rowSurface, MaterialTheme.shapes.small)
-                        .padding(horizontal = Space2, vertical = Space1)
-                } else {
-                    Modifier
-                }
+                if (hairline != null) Modifier.border(hairline, shape) else Modifier
             )
             .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = Space3),
+            .padding(horizontal = Space3, vertical = Space3),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space3)
     ) {
@@ -60,7 +75,7 @@ fun SettingRow(
             modifier = Modifier
                 .size(RowIconSize.dp)
                 .background(
-                    color = iconSurface ?: MaterialTheme.colorScheme.surfaceContainerHighest,
+                    color = iconSurface,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -68,7 +83,9 @@ fun SettingRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = NexaFlowTraitsDefaults.accentColor(
+                    iconTint ?: MaterialTheme.colorScheme.primary
+                )
             )
         }
         Column(modifier = Modifier.weight(1f)) {

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="back">वापस</string>
+    <string name="brand_name">NexaFlow</string>
+    <string name="search_hint">खोजें</string>
+    <string name="clear">साफ़ करें</string>
 </resources>

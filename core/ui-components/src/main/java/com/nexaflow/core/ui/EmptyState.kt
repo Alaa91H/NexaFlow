@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material3.Icon
@@ -16,11 +15,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens.EmptyStateIconSize
 import com.nexaflow.core.ui.Dimens.Space12
 import com.nexaflow.core.ui.Dimens.Space6
-import com.nexaflow.core.ui.Dimens.EmptyStateIconSize
+import com.nexaflow.core.ui.theme.NexaFlowGradients
 
+/**
+ * The empty state of a list.
+ *
+ * The illustration is a gradient disc rather than a bare glyph, so the empty
+ * state still carries the app's identity instead of looking like a missing
+ * screen.
+ */
 @Composable
 fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
     Column(
@@ -29,16 +35,16 @@ fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
             .padding(vertical = Space12, horizontal = Space6),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(EmptyStateIconSize.dp),
-            tint = MaterialTheme.colorScheme.outline
+        NexaFlowGradientIcon(
+            icon = icon,
+            gradient = NexaFlowGradients.items.first(),
+            size = EmptyStateIconSize
         )
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(top = Dimens.Space3)
         )
         Text(
             text = subtitle,
