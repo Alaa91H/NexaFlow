@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The brand gradient, tuned for the dark canvas. -->
+    <color name="brand_start">#8AA0FF</color>
+    <color name="brand_violet">#B9A3FF</color>
+    <color name="brand_end">#4FE3C8</color>
+</resources>

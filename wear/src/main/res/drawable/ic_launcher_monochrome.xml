@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Monochrome launcher layer: checkmark as a single silhouette, tinted by
-    the system with the user's wallpaper palette (Material You). Matches the
-    foreground glyph exactly — no clock.
+    Monochrome launcher layer — the same flow glyph as the foreground, as a
+    single silhouette. The system tints it with the user's wallpaper palette
+    (Material You).
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -10,12 +10,25 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Bold checkmark. -->
     <path
         android:fillColor="#00000000"
+        android:pathData="M36.4,54 L71.6,54"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="12"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M33,54L46,67L75,38" />
+        android:strokeWidth="5" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,54 L54,41.9"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="5" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M36.4,54m-5.5,0a5.5,5.5 0,1 1,11 0a5.5,5.5 0,1 1,-11 0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M71.6,54m-5.5,0a5.5,5.5 0,1 1,11 0a5.5,5.5 0,1 1,-11 0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,41.9m-5.5,0a5.5,5.5 0,1 1,11 0a5.5,5.5 0,1 1,-11 0" />
 </vector>

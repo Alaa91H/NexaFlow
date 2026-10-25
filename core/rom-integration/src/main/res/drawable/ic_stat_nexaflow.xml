@@ -2,9 +2,9 @@
 <!--
   Notification small icon (white silhouette on transparent). Android renders
   notification small icons as an alpha mask tinted with the system accent, so
-  the glyph is a single-colour path — the bold checkmark from the launcher
-  identity (المهام المجدولة / Scheduled Tasks). A lone check reads clearly
-  at the standard 24dp status-bar size.
+  the glyph is a single-colour path — the flow glyph from the launcher
+  identity. A branching flow line reads clearly at the standard 24dp
+  status-bar size.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
@@ -13,9 +13,23 @@
     android:viewportHeight="24">
     <path
         android:fillColor="#00000000"
+        android:pathData="M4,12 L20,12"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="3.4"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M4.2,12.6L9.8,18.2L19.8,5.8" />
+        android:strokeWidth="2.4" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,12 L12,6.5"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.4" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M4,12m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M20,12m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,6.5m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0" />
 </vector>

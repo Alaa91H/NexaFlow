@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Launcher background — solid white, Google 2026 icon style: white
-    canvas with a single vivid glyph (Google Tasks / Gemini checkmark look).
-    Plain <shape> so every launcher/system icon loader renders it reliably.
+    Launcher background — the brand gradient.
+
+    A plain <shape> with a <gradient>, so every launcher and system icon
+    loader renders it reliably: the app's own brand colours, no vector
+    gradient support required. The three stops come from the shared palette
+    (core/ui-components/.../NexaFlowPalette.kt) through the colour
+    resources, so the icon and the app can never drift apart.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FFFFFFFF" />
+    <gradient
+        android:angle="315"
+        android:centerColor="@color/brand_violet"
+        android:endColor="@color/brand_end"
+        android:startColor="@color/brand_start"
+        android:type="linear" />
 </shape>

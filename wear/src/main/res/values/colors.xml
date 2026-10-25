@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The brand gradient, for the launcher icon. -->
+    <color name="brand_start">#3B5BFF</color>
+    <color name="brand_violet">#7A5AF8</color>
+    <color name="brand_end">#00D6B4</color>
+</resources>
