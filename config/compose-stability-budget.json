@@ -1,0 +1,9 @@
+{
+  "//": "Reviewed Compose stability budget (NFA-13). Values are the measured debug metrics on 2026-10-29; scripts/check_compose_stability.py fails when a module exceeds them. Lower them as composables become skippable and classes become stable — never raise them.",
+  "modules": {
+    "app": {
+      "maxUnstableClasses": 21,
+      "maxNonSkippableComposables": 20
+    }
+  }
+}
