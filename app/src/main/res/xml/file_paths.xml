@@ -8,4 +8,8 @@
     <cache-path
         name="updates"
         path="updates/" />
+    <!-- NFA-09: sanitized diagnostic bundles shared from the Diagnostics screen. -->
+    <cache-path
+        name="diagnostics"
+        path="diagnostics/" />
 </paths>

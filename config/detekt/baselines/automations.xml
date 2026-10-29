@@ -3,6 +3,7 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>EmptyCatchBlock:AutomationDetailsViewModel.kt:AutomationDetailsViewModel${}</ID>
+    <ID>LongMethod:AutomationDetailsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun AutomationDetailsScreen</ID>
     <ID>TooGenericExceptionCaught:AutomationDetailsViewModel.kt:AutomationDetailsViewModel$failure: Exception</ID>
   </CurrentIssues>
 </SmellBaseline>

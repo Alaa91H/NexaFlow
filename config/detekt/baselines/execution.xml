@@ -2,12 +2,16 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>EmptyCatchBlock:ExecutionEngine.kt:ExecutionEngine${}</ID>
+    <ID>LongMethod:ActionStateReader.kt:ActionStateReader$fun read: ActionCurrentState?</ID>
+    <ID>LongMethod:ExecutionEngine.kt:ExecutionEngine$suspend fun runAutomation: ExecutionRecord</ID>
+    <ID>LongMethod:SystemActionsHandler.kt:SystemActionsHandler$override suspend fun execute: SystemControlResult</ID>
+    <ID>LongMethod:TriggerStateEvaluator.kt:TriggerStateEvaluator$@SuppressLint("MissingPermission") fun triggerSatisfied: Boolean</ID>
     <ID>TooGenericExceptionCaught:CanonicalCompatibilityActionDispatcher.kt:CanonicalCompatibilityActionDispatcher$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:CapabilityRuntime.kt:CapabilityExecutionService$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:CapabilityRuntime.kt:CapabilityExecutionService$throwable: Throwable</ID>
     <ID>TooGenericExceptionCaught:CapabilityRuntime.kt:throwable: Throwable</ID>
     <ID>TooGenericExceptionCaught:CapabilityStateStore.kt:CapabilityStateStore$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ExecutionEngine.kt:ExecutionEngine$error: Exception</ID>
     <ID>TooGenericExceptionCaught:ExecutionEngine.kt:ExecutionEngine$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:ExecutionHistoryWriter.kt:ExecutionHistoryWriter$failure: Exception</ID>
     <ID>TooGenericExceptionCaught:PluginConditionClient.kt:PluginConditionClient$failure: Exception</ID>

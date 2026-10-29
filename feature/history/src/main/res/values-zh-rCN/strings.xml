@@ -105,4 +105,7 @@
     <string name="sms_activity_empty">暂无由 NexaFlow 处理的短信事件</string>
     <string name="sms_activity_incoming">接收短信触发器</string>
     <string name="sms_activity_outgoing">发送短信操作</string>
+    <string name="diagnostics_export_bundle">导出诊断包</string>
+    <string name="diagnostics_export_failed">无法创建诊断包</string>
+    <string name="diagnostics_export_share_title">NexaFlow 诊断包</string>
 </resources>

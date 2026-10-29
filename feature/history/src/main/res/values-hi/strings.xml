@@ -105,4 +105,7 @@
     <string name="sms_activity_empty">अभी तक NexaFlow द्वारा संसाधित SMS घटनाएँ नहीं हैं</string>
     <string name="sms_activity_incoming">आने वाला SMS ट्रिगर</string>
     <string name="sms_activity_outgoing">जाने वाला SMS कार्य</string>
+    <string name="diagnostics_export_bundle">डायग्नोस्टिक बंडल निर्यात करें</string>
+    <string name="diagnostics_export_failed">डायग्नोस्टिक बंडल बनाया नहीं जा सका</string>
+    <string name="diagnostics_export_share_title">NexaFlow डायग्नोस्टिक बंडल</string>
 </resources>

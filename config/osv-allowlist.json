@@ -1,0 +1,4 @@
+{
+  "$comment": "Temporary, time-boxed waivers for scripts/check_dependency_vulnerabilities.py. Every entry needs id, package ('*' or maven name such as org.apache.commons:commons-lang3), reason and an ISO expiry date. An expired waiver is a build failure.",
+  "allow": []
+}

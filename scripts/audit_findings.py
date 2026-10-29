@@ -122,7 +122,10 @@ def render_report(rows: list[dict[str, str]], baseline_sha: str) -> str:
     counts = Counter(row["classification"] for row in rows)
     lines = [
         "# T02 atomic finding register", "",
-        f"Audit evidence SHA(s): {baseline_sha}. This is a point-in-time source and evidence review; it does not certify device/OEM behavior.", "",
+        "Audit-Status: historical",
+        f"Audit-Baseline: {baseline_sha.split(',')[0].strip('`')}",
+        "",
+        f"Audit evidence SHA(s): {baseline_sha}. This is a point-in-time source and evidence review; it does not certify device/OEM behavior. It is kept as historical evidence and is not a claim about the current HEAD; see docs/audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md for the current review.", "",
         "## Status counts", "",
         "| Classification | Count |", "|---|---:|",
     ]

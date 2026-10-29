@@ -33,9 +33,12 @@ subprojects {
     tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
         // A deadlocked Robolectric/JVM test must never leave CI running
         // indefinitely. The timeout is per module Test task, not for the whole
-        // multi-module verification build, so healthy suites keep their normal
-        // runtime while one stuck module fails with actionable diagnostics.
-        timeout.set(java.time.Duration.ofMinutes(10))
+        // multi-module verification build. 30 minutes keeps a stuck module
+        // actionable without truncating a healthy but large module on a
+        // memory-constrained host (7 modules were cut at the old 10-minute
+        // limit while running the whole suite on 2 workers; :core:common alone
+        // needs ~4 minutes on the same machine).
+        timeout.set(java.time.Duration.ofMinutes(30))
         // Bytecode instrumentation used by JaCoCo/Robolectric appends to the
         // bootstrap class path. Disable class-data sharing for test JVMs so
         // OpenJDK does not emit the otherwise harmless CDS warning.
@@ -136,6 +139,13 @@ subprojects {
 // adapters remain report-only until connected/device coverage is part of the
 // policy. This avoids "passing" coverage by excluding production code or
 // writing meaningless JVM tests for behavior that only exists on Android.
+//
+// NFA-04 ratchet: the four largest runtime modules used to be report-only, so
+// an untested feature could hide inside them. Their floors are the coverage
+// measured on 2026-10-29 rounded down — any regression now fails — and are
+// raised toward the 60% target in the remediation plan once the next test
+// layer lands. New/changed lines are additionally held to 80% by
+// scripts/check_diff_coverage.py in CI, which is where the growth comes from.
 val strictJvmCoverageThresholds = mapOf(
     ":data" to 0.80,
     ":domain" to 0.80,
@@ -143,6 +153,14 @@ val strictJvmCoverageThresholds = mapOf(
     ":core:logging" to 0.80,
     ":core:security" to 0.80,
     ":core:wear-protocol" to 0.80,
+    // Measured 61.3% (1428/2328).
+    ":core:agent-api" to 0.60,
+    // Measured 68.8% (8575/12464).
+    ":core:execution" to 0.68,
+    // Measured 44.5% (3102/6967) — next ratchet step is 0.60.
+    ":core:automation-engine" to 0.43,
+    // Measured 24.7% (1000/4048) — large privileged surface, 0.30 is next.
+    ":core:rom-integration" to 0.22,
 )
 
 subprojects {

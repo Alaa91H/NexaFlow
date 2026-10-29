@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongMethod:AgentSettingsScreen.kt:@Composable fun AgentSettingsScreen</ID>
+    <ID>LongMethod:PermissionManagerScreen.kt:internal fun buildPermissionEntries: List&lt;PermissionEntry&gt;</ID>
+    <ID>LongMethod:SettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun SettingsScreen</ID>
+  </CurrentIssues>
+</SmellBaseline>

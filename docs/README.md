@@ -44,6 +44,13 @@ Historical reports are preserved rather than rewritten as if their observations 
 | [architecture/plugin-capability-expansion-baseline.md](architecture/plugin-capability-expansion-baseline.md) | Historical / topic reference |
 | [architecture/plugin-compatibility-contract.md](architecture/plugin-compatibility-contract.md) | Historical / topic reference |
 | [architecture/workflow-flow-control-status.md](architecture/workflow-flow-control-status.md) | Historical / topic reference |
+| [audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md](audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md) | Current audit / remediation plan |
+| [adr/0001-distribution-channel.md](adr/0001-distribution-channel.md) | Proposed decision — awaiting owner (OQ-02/OQ-05) |
+| [evidence/benchmarks/README.md](evidence/benchmarks/README.md) | Current policy / BLOCKED evidence |
+| [evidence/device/README.md](evidence/device/README.md) | Current policy / BLOCKED evidence |
+| [security/DATA_SAFETY.md](security/DATA_SAFETY.md) | Current guide / evidence |
+| [security/MASVS_REVIEW.md](security/MASVS_REVIEW.md) | Current review / evidence |
+| [security/PERMISSION_DISCLOSURES.md](security/PERMISSION_DISCLOSURES.md) | Current guide / evidence |
 | [audit/CURRENT_ARCHITECTURE_2026.md](audit/CURRENT_ARCHITECTURE_2026.md) | Historical / topic reference |
 | [audit/GAP_ANALYSIS_2026.md](audit/GAP_ANALYSIS_2026.md) | Historical / topic reference |
 | [audit/production-readiness-baseline-ar.md](audit/production-readiness-baseline-ar.md) | Historical / topic reference |

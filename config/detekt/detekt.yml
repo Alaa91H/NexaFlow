@@ -33,11 +33,18 @@ complexity:
     active: false
   CognitiveComplexMethod:
     active: false
+  # NFA-06: size/complexity is now measured instead of frozen off. The
+  # thresholds are deliberately lenient for the first cycle and every
+  # pre-existing offender is captured in the per-module baselines, so these
+  # rules fail on new debt only. Tighten the thresholds (and shrink the
+  # baselines) each cycle once the top files are decomposed.
   LongMethod:
-    active: false
-  LongParameterList:
-    active: false
+    active: true
+    allowedLines: 200
   NestedBlockDepth:
+    active: true
+    allowedDepth: 6
+  LongParameterList:
     active: false
   ComplexCondition:
     active: false

@@ -105,4 +105,7 @@
     <string name="sms_activity_empty">NexaFlowが処理したSMSイベントはまだありません</string>
     <string name="sms_activity_incoming">受信SMSトリガー</string>
     <string name="sms_activity_outgoing">送信SMSアクション</string>
+    <string name="diagnostics_export_bundle">診断バンドルをエクスポート</string>
+    <string name="diagnostics_export_failed">診断バンドルを作成できませんでした</string>
+    <string name="diagnostics_export_share_title">NexaFlow 診断バンドル</string>
 </resources>

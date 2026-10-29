@@ -2,7 +2,14 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>EmptyCatchBlock:AutomationBuilderViewModel.kt:AutomationBuilderViewModel${}</ID>
+    <ID>LongMethod:ActionConfigEditor.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun ActionConfigEditor</ID>
+    <ID>LongMethod:AppPickerDialog.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun AppPickerDialog</ID>
+    <ID>LongMethod:AutomationBuilderScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun AutomationBuilderScreen</ID>
+    <ID>LongMethod:CanonicalSchemaFieldEditor.kt:@Composable private fun CanonicalFieldControl</ID>
+    <ID>LongMethod:ConstraintEditorCard.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun ConstraintEditorCard</ID>
+    <ID>LongMethod:TriggerEditorCard.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun TriggerEditorCard</ID>
+    <ID>LongMethod:TriggerSummary.kt:@Composable internal fun triggerSummary: String</ID>
+    <ID>LongMethod:TriggerTimeEditor.kt:@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class) @Composable internal fun TimeRepeatSection</ID>
     <ID>TooGenericExceptionCaught:AutomationBuilderScreen.kt:t: Throwable</ID>
   </CurrentIssues>
 </SmellBaseline>

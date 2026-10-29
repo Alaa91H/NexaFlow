@@ -1,0 +1,23 @@
+{
+  "//": "Reviewed architecture debt for scripts/check_module_boundaries.py. Every entry needs a reason and an owner; new edges are rejected outright. Remove an entry once the dependency is gone so the gate keeps tightening.",
+  "allowed": [
+    {
+      "from": ":core:datastore",
+      "to": ":core:ai-runtime",
+      "reason": "AiProviderPreferences persists AiProviderKind/AiApiDialect enums that still live in :core:ai-runtime; moving the shared enums to :domain is the exit criterion.",
+      "owner": "architecture"
+    },
+    {
+      "from": ":feature:settings",
+      "to": ":core:database",
+      "reason": "Agent settings renders AgentAutomationApprovalEntity rows and the AgentPlatformDao approval list directly; a domain-level approval port replaces both.",
+      "owner": "architecture"
+    },
+    {
+      "from": ":feature:settings",
+      "to": ":data",
+      "reason": "Settings owns backup export/import (BackupManager/ImportLimits); the backup port moves to :domain with the export port.",
+      "owner": "architecture"
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 # Master execution plan status — 2026-10-05
 
+Audit-Status: historical
+Audit-Baseline: 66f0dbd1327365b770901b2fa7d8d528a531ae9b
+
+> **Historical status.** Describes v3.91.10 and is retained for provenance. Current status is tracked in `docs/audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md`.
+
+
 This status consolidates the v3.91.10 release evidence and the Master Execution Plan supplied on 2026-10-05. The original baseline snapshot was `f592fb2a68503dab22bf1599414e010c3fc9c6bf`; the subsequent security follow-up started from `7b600dff98e510255f93aa028409fd262f31d1ee`. Current-main evidence was refreshed on `66f0dbd1327365b770901b2fa7d8d528a531ae9b` and is recorded in [`p0-01-current-main-2026-10-05.md`](evidence/baseline/p0-01-current-main-2026-10-05.md). Source inspection and repository checks are not a substitute for a completed Android build, CI run, release, or physical-device validation. The attached plan's acceptance gates remain authoritative; this document does not mark a phase complete merely because code or a catalog entry exists.
 
 ### Security follow-up — full-history scan

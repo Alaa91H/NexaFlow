@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.lifecycle.viewmodel.ktx)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     debugImplementation(libs.androidx.compose.ui.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.ui.test.manifest)
     implementation(libs.com.google.dagger.hilt.android)
@@ -71,7 +72,7 @@ dependencies {
     // Compose UI tests via Robolectric (project pattern: see
     // SpecialPermissionStatusRowTest in :feature:automation-builder).
     testImplementation(libs.androidx.compose.ui.ui.test.junit4)
-    implementation(project(":core:database"))
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.robolectric.robolectric)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }

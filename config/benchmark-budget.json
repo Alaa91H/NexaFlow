@@ -1,0 +1,6 @@
+{
+  "//": "Provisional cold-start ceilings (NFA-12). The nightly macrobenchmark records 10+ runs in docs/evidence/benchmarks/; replace these with the measured p95 once that series exists. Lower them as startup improves — never raise them without an ADR.",
+  "metrics": {
+    "startupMs": 2000.0
+  }
+}

@@ -2,6 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>TooGenericExceptionCaught:CancellationPolicy.kt:exception: Exception</ID>
     <ID>TooGenericExceptionCaught:CancellationPolicy.kt:throwable: Throwable</ID>
   </CurrentIssues>
 </SmellBaseline>

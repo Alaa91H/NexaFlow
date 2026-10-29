@@ -43,4 +43,6 @@ dependencies {
     implementation(libs.dev.rikka.shizuku.api)
     implementation(libs.dev.rikka.shizuku.provider)
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }

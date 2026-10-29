@@ -1,5 +1,42 @@
 # Validation record
 
+## Remediation execution — 2026-10-29 (local, no device)
+
+Scope: phases 0–4 of `audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md`.
+All commands below were run in this checkout on JDK 21; results are the real
+exit statuses, not projections.
+
+| Command | Result |
+|---|---|
+| `./gradlew :core:agent-api:testDebugUnitTest --tests '*AgentApiControllerTest*'` | PASS — 40 tests |
+| `./gradlew testDebugUnitTest --continue` بعد حذف كل تقارير XML/التغطية القديمة | PASS — 3,004 اختبارًا، 0 فشل/خطأ/تخطٍّ، 33 وحدة (13m26s للتشغيل النظيف الكامل + 2m16s لإعادة تشغيل الوحدتين المعدّلتين) |
+| `./gradlew coverageGate --continue ...` | PASS — 1m17s; `:data` 84.2%, `:core:agent-api` 61.3%, `:core:automation-engine` 44.5%, `:core:execution` 68.8%, `:core:compatibility` 90.9%, `:core:logging` 89.3%, `:core:security` 82.9%, `:core:wear-protocol` 94.8%; `:core:rom-integration` later re-measured at 24.7% |
+| `./gradlew detekt --no-build-cache` | PASS — 1m28s actual analysis; `LongMethod`/`NestedBlockDepth` enabled with generated baselines |
+| `./gradlew lintDebug --no-build-cache` | PASS — 14m59s, 1,326 tasks after all source/resource/test changes |
+| `./gradlew detekt :feature:history:testDebugUnitTest :feature:dashboard:testDebugUnitTest :core:rom-integration:testDebugUnitTest :core:agent-api:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleRelease -PallowDebugSigning=true` | PASS — 28m07s; R8 mapping produced (106.5 MB) |
+| `./gradlew :feature:history:testDebugUnitTest :core:rom-integration:coverageGate` | PASS — rom-integration 24.7% (1,000/4,048) |
+| Python gate unit tests (supply chain, diff coverage, module boundaries, Compose stability, benchmark budget) | PASS — 34 tests |
+| `python3 scripts/check_module_boundaries.py` | PASS — 0 violations, 3 documented allowlisted edges |
+| `python3 scripts/check_compose_stability.py` | PASS — app unstable 21/21, non-skippable 20/20 |
+| `python3 scripts/check_diff_coverage.py --base 5464d21fc` | PASS — 100% (209/209) of changed executable lines in modules with JVM coverage; the `--diff-file` form is not used because it cannot see untracked new files |
+| Source gates (`auto_fix`, translation completeness, hardcoded text, vendor neutrality, catalog, suppression budget, persistence safety, node contracts, findings audit, README counts, strings parity, resources) | PASS — all 0 problems |
+| `python3 scripts/check_docs_freshness.py --max-commits 25` | PASS |
+| YAML parse of all `.github/workflows/*.yml` | PASS — 3 workflows |
+
+Aggregate unit results from the XML reports after these runs: **3,004 tests,
+0 failures, 0 errors** across 33 modules.
+
+Architecture decomposition (Phase 2.3) is **partially done**: `SystemController`
+dropped from 91,244 to 87,694 bytes (−3.9%) via `SystemInputController`; the
+thirteen frozen hotspots total 960,857 bytes versus 964,407 at HEAD (−0.37%),
+so the plan's ≥20% target is **not met**.
+
+Not run / not provable in this environment: instrumentation on a real device or
+emulator, OEM/Doze/boot/72-hour soak, live AI provider, Sentry, Shizuku/Root,
+TalkBack review, a signed production release, and the SLSA attestation (it is
+configured but only a tag run can produce it). Those remain `BLOCKED` with the
+reasons recorded in the plan (`18.1`) and `OPEN_QUESTIONS.md`.
+
 ## Trigger Expression v2 local validation — 2026-10-09
 
 Implementation candidate for issue [#133](https://github.com/Alaa91H/NexaFlow/issues/133), branch `audit/2026-10-09-t10-trigger-expressions`, based on `335c4953fa34c980a90d2e3ee0582c6e04577fa5` (merged #132). Focused local JVM/compile gates passed: `:domain:testDebugUnitTest --tests '*TriggerExpressionV2Test' --tests '*WorkflowValidatorTest'`, `:data:testDebugUnitTest --tests '*RepositoryImplTest'`, `:core:datastore:testDebugUnitTest --tests '*TriggerExpressionHistoryStoreTest'`, `:core:execution:testDebugUnitTest --tests '*TriggerExpressionRuntimeEvaluatorTest'`, `:core:database:testDebugUnitTest --tests '*MigrationTest'`, `:data:testDebugUnitTest --tests '*RoomAutomationMutationPersistenceTest'`, and `:feature:automation-builder:testDebugUnitTest --tests '*TriggerExpressionEditorTest'`; `:feature:automation-builder:compileDebugKotlin` also passed. The integrated changed-module test/build command also passed. `detekt lintDebug coverageGate --continue` passed (1,756 actionable tasks; 74 executed, 1,682 up-to-date); enforced module gates passed for data 84.2%, domain 89.8%, core:security 82.9%, and core:logging 89.3%. Other modules with lower coverage are report-only under current repository policy.
