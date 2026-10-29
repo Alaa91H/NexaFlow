@@ -16,7 +16,9 @@ import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -33,6 +35,15 @@ import org.robolectric.RobolectricTestRunner
 class BatteryMonitorExitReconcileTest {
 
     private lateinit var context: Context
+
+    /**
+     * Every monitor gets its own scope, and that scope is cancelled before the
+     * next test starts. Otherwise a reconciliation job from one test keeps
+     * running against the shared DataStore after its assertions finish and can
+     * clear the next test's active mark mid-flight (observed as an intermittent
+     * failure of "keeps the task active").
+     */
+    private val monitorScopes = mutableListOf<CoroutineScope>()
 
     @Before
     fun setUp() {
@@ -91,8 +102,14 @@ class BatteryMonitorExitReconcileTest {
             )),
             sources = CanonicalTriggerSourceRegistry(listOf(CanonicalBatteryTriggerDefinition.contract)),
         ),
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default).also { monitorScopes += it }
     )
+
+    @After
+    fun tearDownMonitors() {
+        monitorScopes.forEach { it.cancel() }
+        monitorScopes.clear()
+    }
 
     private suspend fun seedActiveOccurrence(
         runtimeStore: AutomationRuntimeStore,
