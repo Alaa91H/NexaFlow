@@ -251,7 +251,6 @@ class AgentApiServer(
         const val A2A_PATH = "/a2a"
         const val CARD_PATH = "/.well-known/agent-card.json"
         private const val LOOPBACK = "127.0.0.1"
-        private const val ALL_INTERFACES = "0.0.0.0"
         private const val SOCKET_BACKLOG = 8
         private const val SOCKET_TIMEOUT_MS = 5_000
         private const val MAX_CONCURRENT_CLIENTS = 8
