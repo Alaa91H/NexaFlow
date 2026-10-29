@@ -92,9 +92,12 @@ android {
             "SENTRY_DSN",
             "\"${providers.gradleProperty("NEXAFLOW_SENTRY_DSN").orElse("").get()}\""
         )
+    }
+
     buildFeatures {
         buildConfig = true
     }
+
     testOptions {
         unitTests {
             // Robolectric needs the merged manifest + resources on the test
@@ -130,10 +133,10 @@ android {
                     "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
                     "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
                     "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-                )            }
+                )
+            }
         }
     }
-}
 
     signingConfigs {
         create("release") {
@@ -306,4 +309,54 @@ dependencies {
     // await() bridging for Play Services Task APIs used by WearSyncManager.
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.play.services)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
+}
+
+// Supply-chain inventory (NFA-08): write the resolved release runtime
+// dependency set so scripts/generate_sbom.py can describe exactly what ships,
+// not every artifact the build is allowed to resolve (which includes Gradle
+// plugins, test-only libraries, and superseded transitive versions).
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        tasks.register("releaseDependencyInventory") {
+            group = "reporting"
+            description = "Writes the resolved release runtime dependency inventory as JSON."
+            // Resolution needs the variant-aware attributes AGP applies to its
+            // own runtime configuration; a plain configuration lookup cannot
+            // pick between AAR metadata and artifact variants.
+            notCompatibleWithConfigurationCache(
+                "Reads the variant runtime configuration at execution time."
+            )
+            val runtimeConfiguration = variant.runtimeConfiguration
+            val inventoryFile = layout.buildDirectory.file(
+                "reports/dependency-inventory/release-runtime.json"
+            )
+            outputs.file(inventoryFile)
+            doLast {
+                val components = runtimeConfiguration.incoming.resolutionResult
+                    .allComponents
+                    .mapNotNull { component ->
+                        if (component.id is org.gradle.api.artifacts.component.ProjectComponentIdentifier) {
+                            null
+                        } else {
+                            component.moduleVersion
+                        }
+                    }
+                    .map { listOf(it.group, it.name, it.version) }
+                    .distinct()
+                    .sortedWith(compareBy({ it[0] }, { it[1] }, { it[2] }))
+                val target = inventoryFile.get().asFile
+                target.parentFile.mkdirs()
+                val payload = buildString {
+                    append("{\n  \"variant\": \"releaseRuntimeClasspath\",\n  \"components\": [\n")
+                    components.forEachIndexed { index, (group, name, version) ->
+                        append("    {\"group\": \"$group\", \"name\": \"$name\", \"version\": \"$version\"}")
+                        append(if (index == components.lastIndex) "\n" else ",\n")
+                    }
+                    append("  ]\n}\n")
+                }
+                target.writeText(payload)
+                logger.lifecycle("Wrote ${components.size} resolved release runtime components to $target")
+            }
+        }
+    }
 }

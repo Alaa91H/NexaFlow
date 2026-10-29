@@ -37,7 +37,7 @@ jobs:
       contents: read
     runs-on: ubuntu-26.04
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -64,18 +64,18 @@ jobs:
     # Exercise the newest GitHub-hosted Ubuntu LTS image explicitly.
     runs-on: ubuntu-26.04
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         # T01 ranks review hotspots using a frozen-base Git churn window.
         fetch-depth: 0
     - name: set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
     - name: Set up JDK 21 for unit-test toolchain
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -329,9 +329,19 @@ jobs:
     - name: Unified resource gate (banned + orphans + lint UnusedResources)
       if: always()
       run: python3 scripts/check_resources.py
+    - name: Module boundaries
+      run: |
+        python3 -m unittest scripts.tests.test_module_boundaries
+        python3 scripts/check_module_boundaries.py
+    - name: Compose stability budget
+      run: |
+        python3 -m unittest scripts.tests.test_compose_stability
+        python3 scripts/check_compose_stability.py
+    - name: Docs freshness gate (stale active audits fail)
+      run: python3 scripts/check_docs_freshness.py --max-commits 25
     - name: Upload Lint Report
       if: failure()
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
       with:
         name: lint-report
         if-no-files-found: ignore
@@ -340,6 +350,56 @@ jobs:
           app/build/reports/lint-results-debug.xml
           **/build/reports/lint-results-debug.*
 
+  supply-chain:
+    name: Supply chain (SBOM + CVE)
+    needs: lint
+    if: github.event_name != 'pull_request_target'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: set up JDK 21
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    - name: Set up Android SDK command-line tools
+      uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Test supply-chain gates
+      run: python3 -m unittest scripts.tests.test_supply_chain
+    - name: Resolve the shipped release runtime inventory
+      run: >-
+        ./gradlew :app:releaseDependencyInventory --no-configuration-cache
+        --no-daemon --console=plain
+    - name: Generate CycloneDX SBOM for shipped components
+      run: >-
+        python3 scripts/generate_sbom.py
+        --inventory app/build/reports/dependency-inventory/release-runtime.json
+        --output build/reports/sbom/nexaflow-sbom.cdx.json
+    - name: Scan dependencies for known vulnerabilities
+      run: |
+        python3 scripts/check_dependency_vulnerabilities.py \
+          --sbom build/reports/sbom/nexaflow-sbom.cdx.json \
+          --allowlist config/osv-allowlist.json \
+          --fail-on HIGH,CRITICAL \
+          --report build/reports/sbom/vulnerabilities.json
+    - name: Upload SBOM and vulnerability report
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      with:
+        name: nexaflow-sbom
+        if-no-files-found: error
+        path: |
+          build/reports/sbom/nexaflow-sbom.cdx.json
+          build/reports/sbom/vulnerabilities.json
+
   coverage:
     needs: lint
     if: github.event_name != 'pull_request_target'
@@ -347,17 +407,17 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         fetch-depth: 0
         fetch-tags: true
     - name: set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
         java-version: '17'
         distribution: 'temurin'
     - name: Set up JDK 21 for unit-test toolchain
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -365,9 +425,18 @@ jobs:
       run: chmod +x gradlew
     - name: Enforce configured coverage policy
       run: ./gradlew coverageGate --continue --no-configuration-cache --no-parallel --max-workers=2 --no-daemon --stacktrace --console=plain
+    - name: Enforce diff coverage on changed production lines
+      if: always() && github.event_name == 'pull_request'
+      run: >-
+        python3 scripts/check_diff_coverage.py
+        --base "${{ github.event.pull_request.base.sha }}"
+        --threshold 0.80
+    - name: Test diff-coverage gate
+      if: always()
+      run: python3 -m unittest scripts.tests.test_diff_coverage
     - name: Upload coverage reports
       if: always()
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
       with:
         name: coverage-reports
         if-no-files-found: ignore
@@ -375,115 +444,87 @@ jobs:
           **/build/coverage/report.xml
           **/build/coverage/html/**
 
-  android-integration:
-    name: Android emulator integration
+  windows-compat:
+    name: Windows compatibility (datastore + database)
     needs: lint
-    # Connected Android tests are intentionally a scheduled/manual evidence
-    # lane first. They do not consume PR capacity until the emulator suite has
-    # demonstrated stable signal across repeated runs.
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-26.04
+    # NFA-14: the two storage modules failed on Windows before (CRLF/case
+    # sensitive paths); running them on the same commit keeps "works on my
+    # machine" from returning without a full second build matrix.
+    if: github.event_name != 'pull_request_target'
+    runs-on: windows-2025
     timeout-minutes: 45
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         fetch-depth: 0
         fetch-tags: true
     - name: Set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
-    - name: Set up Android SDK command-line tools
-      uses: android-actions/setup-android@v4.0.4
-    - name: Verify Android SDK tooling
-      shell: bash
-      run: |
-        set -euo pipefail
-        command -v sdkmanager
-        command -v avdmanager
-        command -v adb
-        sdkmanager --version
-    - name: Grant Gradle execute permission
-      run: chmod +x gradlew
-    - name: Provision Android 15 emulator
-      shell: bash
-      run: |
-        set -euo pipefail
-        sdkmanager_path="$(readlink -f "$(command -v sdkmanager)")"
-        sdk_root="$(dirname "$(dirname "$(dirname "$(dirname "$sdkmanager_path")")")")"
-        echo "Android SDK root resolved from sdkmanager: $sdk_root"
-        echo "$sdk_root/emulator" >> "$GITHUB_PATH"
-        export PATH="$sdk_root/emulator:$PATH"
-        sudo apt-get update
-        sudo apt-get install --yes libpulse0
-        if [ -e /dev/kvm ]; then
-          sudo chmod 666 /dev/kvm
-        fi
-        yes | sdkmanager --licenses >/dev/null || true
-        sdkmanager           "platform-tools"           "emulator"           "system-images;android-35;google_apis;x86_64"
-        echo "no" | avdmanager create avd           --force           --name nexaflow-ci-api35           --package "system-images;android-35;google_apis;x86_64"           --device "pixel_6"
-        command -v emulator
-        emulator -version
-    - name: Boot emulator
-      shell: bash
-      run: |
-        set -euo pipefail
-        nohup emulator           -avd nexaflow-ci-api35           -no-window           -noaudio           -no-boot-anim           -no-snapshot           -gpu swiftshader_indirect           -camera-back none           -camera-front none           > "$RUNNER_TEMP/nexaflow-emulator.log" 2>&1 &
-        deadline=$((SECONDS + 300))
-        until timeout 10s adb wait-for-device; do
-          if [ "$SECONDS" -ge "$deadline" ]; then
-            echo "::error::Android emulator did not connect to ADB within 5 minutes."
-            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
-            adb devices -l || true
-            exit 1
-          fi
-          sleep 2
-        done
-        until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
-          if [ "$SECONDS" -ge "$deadline" ]; then
-            echo "::error::Android emulator did not finish booting within 5 minutes."
-            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
-            exit 1
-          fi
-          sleep 2
-        done
-        adb shell input keyevent 82 || true
-        adb shell settings put global window_animation_scale 0
-        adb shell settings put global transition_animation_scale 0
-        adb shell settings put global animator_duration_scale 0
-        adb shell getprop ro.build.version.sdk
-    - name: Install app and grant system-setting permissions for instrumentation fixture
-      run: |
-        ./gradlew :app:installDebug --no-parallel --max-workers=2 --console=plain
-        adb shell appops set com.nexaflow.app WRITE_SETTINGS allow
-        adb shell pm grant com.nexaflow.app android.permission.WRITE_SECURE_SETTINGS
-    - name: Run connected app instrumentation tests
-      run: ./gradlew :app:connectedDebugAndroidTest --no-parallel --max-workers=2 --console=plain
-    - name: Capture emulator diagnostics
-      if: always()
-      shell: bash
-      run: |
-        timeout 15s adb logcat -d > android-integration-logcat.txt 2>/dev/null || \
-          echo "ADB logcat unavailable or timed out." >> android-integration-logcat.txt
-        timeout 15s adb shell getprop > android-integration-properties.txt 2>/dev/null || \
-          echo "ADB properties unavailable or timed out." >> android-integration-properties.txt
-        cp "$RUNNER_TEMP/nexaflow-emulator.log" android-emulator.log 2>/dev/null || true
-    - name: Upload Android integration evidence
-      if: always()
-      uses: actions/upload-artifact@v7
+    - name: Set up JDK 21 for unit-test toolchain
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
-        name: android-integration-evidence-api35
+        java-version: '21'
+        distribution: 'temurin'
+    - name: Run the critical storage suites on Windows
+      shell: bash
+      run: >-
+        ./gradlew :core:datastore:testDebugUnitTest :core:database:testDebugUnitTest
+        --no-configuration-cache --no-daemon --stacktrace --console=plain
+    - name: Upload Windows test reports
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      with:
+        name: windows-compat-reports
         if-no-files-found: ignore
         path: |
-          app/build/outputs/androidTest-results/**
-          app/build/reports/androidTests/**
-          android-integration-logcat.txt
-          android-integration-properties.txt
-          android-emulator.log
+          core/datastore/build/reports/tests/**
+          core/database/build/reports/tests/**
+
+  android-smoke:
+    name: Android smoke (API 37, PR gate)
+    needs: lint
+    # NFA-02: a PR cannot merge unless the @Smoke subset passes on a real
+    # emulator. The nightly matrix below runs the full suite on four API levels.
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/android-instrumentation.yml
+    with:
+      api-level: 37
+      system-image: system-images;android-37.0;google_apis;x86_64
+      test-filter: smoke
+
+  android-nightly:
+    name: Android nightly API ${{ matrix.api-level }}
+    needs: lint
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api-level: 26
+            system-image: system-images;android-26;google_apis;x86
+          - api-level: 33
+            system-image: system-images;android-33;google_apis;x86_64
+          - api-level: 36
+            system-image: system-images;android-36;google_apis;x86_64
+          - api-level: 37
+            system-image: system-images;android-37.0;google_apis;x86_64
+    uses: ./.github/workflows/android-instrumentation.yml
+    with:
+      api-level: ${{ matrix.api-level }}
+      system-image: ${{ matrix.system-image }}
+      test-filter: full
 
   build:
     needs: lint
@@ -493,7 +534,7 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         # GitVersion derives versionCode from the nearest v* tag; without the
         # tag history a main-branch build falls back to 0.0.1 (versionCode 1),
@@ -515,12 +556,12 @@ jobs:
         git fetch origin main --no-tags
         git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::Release tags must point to a commit contained in main."; exit 1; }
     - name: set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
         java-version: '17'
         distribution: 'temurin'
     - name: Set up JDK 21 for unit-test toolchain
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -590,6 +631,15 @@ jobs:
       env:
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleDebug assembleRelease
+    - name: Verify R8 mapping was produced
+      run: test -s app/build/outputs/mapping/release/mapping.txt
+    - name: Upload R8 mapping for the release (deobfuscates field crashes)
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      with:
+        name: nexaflow-release-mapping
+        if-no-files-found: error
+        path: app/build/outputs/mapping/release/mapping.txt
     - name: Verify packaged version matches release tag
       if: startsWith(github.ref, 'refs/tags/')
       shell: bash
@@ -710,21 +760,21 @@ jobs:
       run: python3 scripts/check_apk_libs.py app/build/outputs/apk/release/app-release.apk
     - name: Upload Release APK
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
       with:
         name: nexaflow-release-apk
         if-no-files-found: error
         path: app/build/outputs/apk/release/app-release.apk
     - name: Upload Watch Release APK
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
       with:
         name: nexaflow-wear-release-apk
         if-no-files-found: error
         path: wear/build/outputs/apk/release/wear-release.apk
   release:
     name: Publish tagged release
-    needs: [lint, coverage, build]
+    needs: [lint, coverage, build, supply-chain]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-26.04
     timeout-minutes: 15
@@ -733,9 +783,11 @@ jobs:
       cancel-in-progress: false
     permissions:
       actions: read
+      attestations: write
       contents: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
@@ -751,16 +803,28 @@ jobs:
           python3 scripts/audit_catalog_and_releases.py tag-changelog "$TAG"
 
       - name: Download phone APK
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: nexaflow-release-apk
           path: release-assets/phone
 
       - name: Download Wear OS APK
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: nexaflow-wear-release-apk
           path: release-assets/wear
+
+      - name: Download R8 mapping
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: nexaflow-release-mapping
+          path: release-assets/mapping
+
+      - name: Download SBOM
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: nexaflow-sbom
+          path: release-assets/sbom
 
       - name: Prepare versioned release assets
         shell: bash
@@ -769,11 +833,21 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
+          MAPPING="NexaFlow-$TAG-mapping.txt"
+          SBOM="NexaFlow-$TAG-sbom.cdx.json"
           cp release-assets/phone/app-release.apk "$PHONE"
           cp release-assets/wear/wear-release.apk "$WEAR"
+          cp release-assets/mapping/mapping.txt "$MAPPING"
+          cp release-assets/sbom/nexaflow-sbom.cdx.json "$SBOM"
+          # Unreadable release crashes are the cost of a missing mapping file;
+          # an empty SBOM defeats the CVE response plan. Neither may ship empty.
           test -s "$PHONE"
           test -s "$WEAR"
+          test -s "$MAPPING"
+          test -s "$SBOM"
           python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
+          # Publish verifiable fingerprints next to the binaries (NFA-08/4.4).
+          sha256sum "$PHONE" "$WEAR" "$MAPPING" "$SBOM" > "NexaFlow-$TAG-SHA256SUMS.txt"
 
       - name: Publish GitHub Release
         env:
@@ -784,14 +858,17 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
+          MAPPING="NexaFlow-$TAG-mapping.txt"
+          SBOM="NexaFlow-$TAG-sbom.cdx.json"
+          SUMS="NexaFlow-$TAG-SHA256SUMS.txt"
           PRERELEASE=()
           [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$PHONE" "$WEAR" --clobber
+            gh release upload "$TAG" "$PHONE" "$WEAR" "$MAPPING" "$SBOM" "$SUMS" --clobber
             gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
           else
-            gh release create "$TAG" "$PHONE" "$WEAR" \
+            gh release create "$TAG" "$PHONE" "$WEAR" "$MAPPING" "$SBOM" "$SUMS" \
               --verify-tag \
               --title "NexaFlow $TAG" \
               --notes-file release-notes.md \
@@ -799,14 +876,25 @@ jobs:
           fi
 
           # Keep reruns of an existing tag as clean as a newly created release:
-          # only the exact versioned phone and Wear APKs remain attached.
+          # only the versioned APKs, mapping file, and SBOM remain attached.
           RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq .id)"
-          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" \
-            --paginate --jq ".[] | select(.name != \"$PHONE\" and .name != \"$WEAR\") | .id" \
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" --paginate \
+            | jq -r --arg phone "$PHONE" --arg wear "$WEAR" \
+                --arg mapping "$MAPPING" --arg sbom "$SBOM" --arg sums "$SUMS" \
+                '.[] | select([$phone, $wear, $mapping, $sbom, $sums] | index(.name) | not) | .id' \
             | while read -r ASSET_ID; do
                 test -n "$ASSET_ID" && gh api --method DELETE \
                   "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
               done
+
+      - name: Attest release artifacts (SLSA provenance)
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: |
+            NexaFlow-${{ github.ref_name }}.apk
+            NexaFlow-Wear-${{ github.ref_name }}.apk
+            NexaFlow-${{ github.ref_name }}-mapping.txt
+            NexaFlow-${{ github.ref_name }}-sbom.cdx.json
 
       - name: Verify published release
         env:
@@ -817,27 +905,32 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
+          MAPPING="NexaFlow-$TAG-mapping.txt"
+          SBOM="NexaFlow-$TAG-sbom.cdx.json"
+          SUMS="NexaFlow-$TAG-SHA256SUMS.txt"
           RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
           test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
           test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
           MISSING="$(jq \
-            --arg phone "$PHONE" --arg wear "$WEAR" \
-            '[$phone, $wear] - [.assets[].name] | length' \
+            --arg phone "$PHONE" --arg wear "$WEAR" --arg mapping "$MAPPING" --arg sbom "$SBOM" --arg sums "$SUMS" \
+            '[$phone, $wear, $mapping, $sbom, $sums] - [.assets[].name] | length' \
             <<<"$RELEASE_JSON")"
-          test "$MISSING" = "0"
+          test "$MISSING" = "0" || {
+            echo "::error::Release is missing one of: APKs, R8 mapping, or SBOM."
+            exit 1
+          }
           EXTRA="$(jq \
-            --arg phone "$PHONE" --arg wear "$WEAR" \
-            '[.assets[].name | select(. != $phone and . != $wear)] | length' \
+            --arg phone "$PHONE" --arg wear "$WEAR" --arg mapping "$MAPPING" --arg sbom "$SBOM" --arg sums "$SUMS" \
+            '[.assets[].name | select(. != $phone and . != $wear and . != $mapping and . != $sbom and . != $sums)] | length' \
             <<<"$RELEASE_JSON")"
           test "$EXTRA" = "0" || { echo "::error::Release contains unexpected non-versioned assets."; exit 1; }
-          for ASSET in "$PHONE" "$WEAR"; do
-            [[ "$ASSET" == *.apk ]]
+          for ASSET in "$PHONE" "$WEAR" "$MAPPING" "$SBOM" "$SUMS"; do
             SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
             STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
             test -n "$SIZE" && test "$SIZE" -gt 0
             test "$STATE" = "uploaded"
           done
-          echo "Release $TAG published and verified."
+          echo "::notice::Release $TAG published and verified (APKs + R8 mapping + SBOM + SHA-256 sums)."
 
   # Branch integration is intentionally PR-only. The former consolidate job
   # merged every remote branch into main with incoming-branch conflict wins and
