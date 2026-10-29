@@ -2,6 +2,54 @@
 
 ## [Unreleased]
 
+## [v3.91.14] - 2026-10-29
+
+### Diagnostics export
+
+- Add **Export diagnostics** to the diagnostics screen: a single JSON bundle (`nexaflow.diagnostics/1`) containing build and device identity, the automation inventory, recent execution history, timeline entries, and recorded errors.
+- Write the bundle into the app cache and share it through the existing `FileProvider` and system chooser, so no new permission is requested and nothing leaves the device unless the user sends it.
+- Redact AI credentials, agent tokens, webhook URLs, bearer headers, and other free-text secrets before serialization, and read only the stores that already redact on write.
+- Translate the export action, share title, and failure message across all eleven shipped locales.
+
+### Privileged input hardening
+
+- Extract screenshot, text, key event, tap, and swipe injection from `SystemController` into `SystemInputController`, keeping every argument inside the shared safe-command builder and rejecting unsafe text before it reaches the shell.
+- Cover the extracted controller with tests for successful commands, rejected input, unknown key events, and invalid coordinates.
+
+### Quality gates
+
+- Add a diff-coverage gate that requires 80% coverage of the executable lines a pull request adds inside coverage-measured modules; this change set measures 100% (209/209).
+- Add a module-boundary gate that enforces the documented dependency direction and reports only three reviewed allowlisted edges.
+- Add Compose stability checks that fail when composables become unstable or non-skippable, plus a benchmark budget gate and a documentation-freshness gate for registered audit documents.
+- Generate a CycloneDX SBOM for the release runtime and audit it against OSV advisories, failing on unallowlisted HIGH or CRITICAL findings and requiring an owner and expiry for every exception.
+- Measure cyclomatic complexity with Detekt (`LongMethod`, `NestedBlockDepth`) against committed baselines, and ratchet the coverage floor of the four largest runtime modules from their measured baseline.
+
+### CI and delivery
+
+- Promote the API 37 `@Smoke` emulator subset to a required pull-request check, sharing one reusable instrumentation workflow with the nightly API 26, 33, 36, and 37 matrix.
+- Add a supply-chain job and a Windows compatibility job to the pipeline, and attest SLSA provenance for the release APKs, R8 mapping, and SBOM.
+- Keep publication tag-only: a version tag now ships the phone and Wear APKs, R8 mapping, SBOM, and SHA-256 sums, while ordinary `main` pushes stay non-release builds.
+
+### Wear OS
+
+- Declare explicit backup and data-extraction rules on the watch manifest, excluding app data from cloud backup and device transfer to match the phone policy.
+
+### Architecture and tests
+
+- Make the dashboard depend on the domain export contract instead of the data layer, and decouple its tests from the repository implementation.
+- Pin the agent HTTP controller contract with route-level tests covering authentication, host policy, payload validation, and error mapping.
+
+### Documentation
+
+- Record the remediation evidence, the device-test matrix and soak templates, and the proposed distribution-channel decision in `docs/adr/0001-distribution-channel.md`.
+- Add data-safety, MASVS review, and permission-disclosure documents that state the restricted capabilities and the channels able to grant them.
+
+### Validation
+
+- Run the full suite locally on JDK 21: 3,004 tests across 33 modules with 0 failures, 0 errors, and 0 skipped.
+- Verify the new required gates in GitHub Actions run [40856663816](https://github.com/Alaa91H/NexaFlow/actions/runs/40856663816): secret scan, lint, build, coverage, API 37 emulator smoke, supply chain, and Windows compatibility all passed.
+- Confirm the merged result on `main` in run [40863249562](https://github.com/Alaa91H/NexaFlow/actions/runs/40863249562). Physical-device, OEM, Doze, boot, and 72-hour soak evidence is still outstanding, and Play distribution remains undecided per ADR 0001.
+
 ## [v3.91.13] - 2026-10-09
 
 ### App and device triggers
