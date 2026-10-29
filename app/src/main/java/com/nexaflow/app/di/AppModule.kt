@@ -91,6 +91,7 @@ import com.nexaflow.core.security.OccurrenceIdentityHmac
 import com.nexaflow.core.security.SecretVault
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
+import com.nexaflow.domain.export.AutomationExporter
 import com.nexaflow.data.repository.AutomationRepositoryImpl
 import com.nexaflow.data.repository.HealthRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
@@ -403,6 +404,10 @@ object AppModule {
     ): BackupManager {
         return BackupManager(automationRepository, commandService)
     }
+
+    @Provides
+    @Singleton
+    fun provideAutomationExporter(backupManager: BackupManager): AutomationExporter = backupManager
 
     @Provides
     @Singleton

@@ -143,6 +143,7 @@ class ManualAdmissionPolicyTest {
             executionEngine = engine,
             historyRepository = history,
             healthRepository = FakeHealth(),
+            automationExporter = { "{}" },
             appContext = context
         )
     }

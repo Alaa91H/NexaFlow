@@ -12,8 +12,8 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.common.runCatchingCancellable
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
-import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.core.execution.ExecutionResultPresentation
+import com.nexaflow.domain.export.AutomationExporter
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthReport
 import com.nexaflow.domain.models.AutomationHealthStatus
@@ -43,6 +43,7 @@ class DashboardViewModel @Inject constructor(
     private val executionEngine: ExecutionEngine,
     historyRepository: HistoryRepository,
     healthRepository: HealthRepository,
+    private val automationExporter: AutomationExporter,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -86,7 +87,7 @@ class DashboardViewModel @Inject constructor(
     suspend fun exportTaskJson(automationId: String): String? {
         val automation = automationRepository.getAutomationById(automationId) ?: return null
         return runCatching {
-            BackupManager(automationRepository, commandService).exportSingle(automation)
+            automationExporter.exportSingle(automation)
         }.getOrNull()
     }
 

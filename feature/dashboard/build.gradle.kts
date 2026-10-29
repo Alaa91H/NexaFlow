@@ -97,7 +97,6 @@ dependencies {
     implementation(project(":core:automation-control"))
     implementation(project(":core:ui-components"))
     implementation(project(":feature:automations"))
-    implementation(project(":data"))
     testImplementation(libs.junit.junit)
     testImplementation(libs.androidx.compose.ui.ui.test.junit4)
     testImplementation(libs.androidx.test.core)

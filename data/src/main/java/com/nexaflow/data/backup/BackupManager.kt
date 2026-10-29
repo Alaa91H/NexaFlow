@@ -5,6 +5,7 @@ import com.nexaflow.core.automationcontrol.AutomationImportResult
 import com.nexaflow.core.automationcontrol.HumanAutomationMutations
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.export.AutomationExporter
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.workflow.AutomationDependencyValidator
@@ -102,7 +103,7 @@ object ImportLimits {
 class BackupManager(
     private val automationRepository: AutomationRepository,
     private val commandService: AutomationCommandService
-) {
+) : AutomationExporter {
 
     private val json: Json = Json {
         prettyPrint = true
@@ -198,7 +199,7 @@ class BackupManager(
      * validation, ID-collision re-keying and review-before-enable policy as
      * full backups — no second, weaker parsing path exists.
      */
-    fun exportSingle(automation: Automation): String {
+    override fun exportSingle(automation: Automation): String {
         val single = BackupFile(
             version = BACKUP_VERSION,
             exportedAt = System.currentTimeMillis(),

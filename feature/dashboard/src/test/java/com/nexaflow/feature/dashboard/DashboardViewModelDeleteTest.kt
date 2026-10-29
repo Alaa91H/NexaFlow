@@ -16,6 +16,7 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.dryrun.WorkflowDryRunReport
 import com.nexaflow.core.execution.handler.ActionRegistry
+import com.nexaflow.domain.export.AutomationExporter
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthAnalyzer
 import com.nexaflow.domain.models.AutomationHealthReport
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -136,7 +138,8 @@ class DashboardViewModelDeleteTest {
 
     private fun viewModel(
         repo: FakeRepository,
-        throwOnDelete: Boolean = false
+        throwOnDelete: Boolean = false,
+        exporter: AutomationExporter = AutomationExporter { "{}" }
     ): DashboardViewModel = DashboardViewModel(
         automationRepository = repo,
         commandService = AutomationCommandService(
@@ -167,6 +170,7 @@ class DashboardViewModelDeleteTest {
         executionEngine = engine,
         historyRepository = FakeHistory(),
         healthRepository = FakeHealth(),
+        automationExporter = exporter,
         appContext = context
     )
 
@@ -182,6 +186,18 @@ class DashboardViewModelDeleteTest {
 
     private fun freshExitMessage(id: String): String = runBlocking {
         newEngine().runExit(task(id)).message
+    }
+
+    @Test
+    fun exportTaskJsonDelegatesToTheInjectedExporter() = runBlocking {
+        val id = "vm-dash-export-a"
+        val repository = FakeRepository(listOf(task(id)))
+        val viewModel = viewModel(
+            repository,
+            exporter = AutomationExporter { automation -> "{\"id\":\"${automation.id}\"}" }
+        )
+        assertEquals("{\"id\":\"$id\"}", viewModel.exportTaskJson(id))
+        assertNull(viewModel.exportTaskJson("missing"))
     }
 
     @Test
