@@ -105,4 +105,7 @@
     <string name="sms_activity_empty">Henüz NexaFlow tarafından işlenen SMS etkinliği yok</string>
     <string name="sms_activity_incoming">Gelen SMS tetikleyicisi</string>
     <string name="sms_activity_outgoing">Giden SMS işlemi</string>
+    <string name="diagnostics_export_bundle">Tanılama paketini dışa aktar</string>
+    <string name="diagnostics_export_failed">Tanılama paketi oluşturulamadı</string>
+    <string name="diagnostics_export_share_title">NexaFlow tanılama paketi</string>
 </resources>

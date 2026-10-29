@@ -105,4 +105,7 @@
     <string name="sms_activity_empty">Пока нет SMS-событий, обработанных NexaFlow</string>
     <string name="sms_activity_incoming">Триггер входящего SMS</string>
     <string name="sms_activity_outgoing">Действие исходящего SMS</string>
+    <string name="diagnostics_export_bundle">Экспортировать пакет диагностики</string>
+    <string name="diagnostics_export_failed">Не удалось создать пакет диагностики</string>
+    <string name="diagnostics_export_share_title">Пакет диагностики NexaFlow</string>
 </resources>

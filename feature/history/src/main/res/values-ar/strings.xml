@@ -105,4 +105,7 @@
 
     <string name="why_run_configuration_blocked">إعداد المهمة غير مكتمل، لذلك تم منع التشغيل.</string>
     <string name="why_run_fix_review_task_configuration">راجع إعداد المهمة وأدخل القيم المطلوبة قبل المحاولة مرة أخرى.</string>
+    <string name="diagnostics_export_bundle">تصدير حزمة التشخيص</string>
+    <string name="diagnostics_export_failed">تعذّر إنشاء حزمة التشخيص</string>
+    <string name="diagnostics_export_share_title">حزمة تشخيص NexaFlow</string>
 </resources>

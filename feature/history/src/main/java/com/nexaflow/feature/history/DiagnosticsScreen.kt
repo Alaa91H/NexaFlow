@@ -1,5 +1,7 @@
 package com.nexaflow.feature.history
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,18 +21,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import java.io.File
+import kotlinx.coroutines.launch
 
 /**
  * Lists tasks whose actions failed at runtime because of invalid
@@ -42,8 +53,15 @@ import androidx.navigation.NavController
 @Composable
 fun DiagnosticsScreen(navController: NavController) {
     val viewModel: DiagnosticsViewModel = hiltViewModel()
+    val exportViewModel: DiagnosticExportViewModel = hiltViewModel()
     val findings by viewModel.findings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val exportFailedMessage = stringResource(R.string.diagnostics_export_failed)
+    val shareTitle = stringResource(R.string.diagnostics_export_share_title)
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(R.string.diagnostics_title)) },
@@ -71,6 +89,22 @@ fun DiagnosticsScreen(navController: NavController) {
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
+            // NFA-09: a user on a real device can attach this file to a report.
+            // The bundle is local, bounded and redacted before it is written.
+            Button(
+                onClick = {
+                    exportViewModel.export { file ->
+                        if (file == null) {
+                            scope.launch { snackbarHostState.showSnackbar(exportFailedMessage) }
+                        } else {
+                            shareDiagnosticBundle(context, file, shareTitle)
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.diagnostics_export_bundle))
+            }
             if (findings.isEmpty()) {
                 Row(
                     modifier = Modifier
@@ -165,4 +199,22 @@ fun DiagnosticsScreen(navController: NavController) {
             }
         }
     }
+}
+
+/**
+ * Shares the cached bundle through the system chooser. The FileProvider
+ * authority is the app's, so the receiving app gets a one-shot read grant and
+ * cannot traverse the cache directory.
+ */
+private fun shareDiagnosticBundle(context: Context, file: File, title: String) {
+    val uri = runCatching {
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }.getOrNull() ?: return
+    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "application/json"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_SUBJECT, title)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    runCatching { context.startActivity(Intent.createChooser(sendIntent, title)) }
 }

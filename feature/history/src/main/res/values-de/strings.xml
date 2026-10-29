@@ -105,4 +105,7 @@
     <string name="sms_activity_empty">Noch keine von NexaFlow verarbeiteten SMS-Ereignisse</string>
     <string name="sms_activity_incoming">Eingehender SMS-Auslöser</string>
     <string name="sms_activity_outgoing">Ausgehende SMS-Aktion</string>
+    <string name="diagnostics_export_bundle">Diagnosepaket exportieren</string>
+    <string name="diagnostics_export_failed">Diagnosepaket konnte nicht erstellt werden</string>
+    <string name="diagnostics_export_share_title">NexaFlow-Diagnosepaket</string>
 </resources>
