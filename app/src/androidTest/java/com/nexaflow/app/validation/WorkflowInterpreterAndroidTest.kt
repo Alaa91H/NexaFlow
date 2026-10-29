@@ -1,6 +1,7 @@
 package com.nexaflow.app.validation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.nexaflow.app.testing.Smoke
 import com.nexaflow.core.execution.workflow.ActionExecutor
 import com.nexaflow.core.execution.workflow.WorkflowInterpreter
 import com.nexaflow.core.execution.workflow.WorkflowNode
@@ -26,6 +27,7 @@ import org.junit.runner.RunWith
  * This deliberately exercises the production interpreter with a bounded, cooperative executor.
  * It does not represent verification of a privileged Android action or an external side effect.
  */
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class WorkflowInterpreterAndroidTest {
 

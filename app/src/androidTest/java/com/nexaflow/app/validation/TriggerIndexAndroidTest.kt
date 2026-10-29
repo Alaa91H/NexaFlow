@@ -1,6 +1,7 @@
 package com.nexaflow.app.validation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.nexaflow.app.testing.Smoke
 import com.nexaflow.core.engine.TriggerIndex
 import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.domain.models.Automation
@@ -26,6 +27,7 @@ import org.junit.runner.RunWith
  * The source is a deterministic MutableStateFlow because TriggerIndex accepts only a Flow; this
  * test proves index semantics, not Room observation or Android broadcast delivery.
  */
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class TriggerIndexAndroidTest {
 

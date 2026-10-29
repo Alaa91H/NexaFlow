@@ -1,0 +1,159 @@
+name: Android instrumentation
+
+# Single implementation of the emulator lane (NFA-02), shared by the
+# PR-blocking @Smoke job and the nightly API-level matrix so the two can never
+# drift apart. Callers decide which API level and which subset runs.
+on:
+  workflow_call:
+    inputs:
+      api-level:
+        description: API level of the system image and the report name.
+        required: true
+        type: number
+      system-image:
+        description: Full sdkmanager package for the emulator image.
+        required: true
+        type: string
+      test-filter:
+        description: "'smoke' runs only @Smoke tests, 'full' runs the whole suite."
+        required: false
+        type: string
+        default: full
+
+permissions:
+  contents: read
+
+jobs:
+  instrumented:
+    name: API ${{ inputs.api-level }} (${{ inputs.test-filter }})
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Set up JDK 17
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    - name: Set up Android SDK command-line tools
+      uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+    - name: Verify Android SDK tooling
+      shell: bash
+      run: |
+        set -euo pipefail
+        command -v sdkmanager
+        command -v avdmanager
+        command -v adb
+        sdkmanager --version
+    - name: Grant Gradle execute permission
+      run: chmod +x gradlew
+    - name: Provision Android ${{ inputs.api-level }} emulator
+      shell: bash
+      env:
+        SYSTEM_IMAGE: ${{ inputs.system-image }}
+        AVD_NAME: nexaflow-ci-api${{ inputs.api-level }}
+      run: |
+        set -euo pipefail
+        sdkmanager_path="$(readlink -f "$(command -v sdkmanager)")"
+        sdk_root="$(dirname "$(dirname "$(dirname "$(dirname "$sdkmanager_path")")")")"
+        echo "Android SDK root resolved from sdkmanager: $sdk_root"
+        echo "$sdk_root/emulator" >> "$GITHUB_PATH"
+        export PATH="$sdk_root/emulator:$PATH"
+        sudo apt-get update
+        sudo apt-get install --yes libpulse0
+        if [ -e /dev/kvm ]; then
+          sudo chmod 666 /dev/kvm
+        fi
+        yes | sdkmanager --licenses >/dev/null || true
+        sdkmanager "platform-tools" "emulator" "$SYSTEM_IMAGE"
+        echo "no" | avdmanager create avd \
+          --force \
+          --name "$AVD_NAME" \
+          --package "$SYSTEM_IMAGE" \
+          --device "pixel_6"
+        command -v emulator
+        emulator -version
+    - name: Boot emulator
+      shell: bash
+      env:
+        AVD_NAME: nexaflow-ci-api${{ inputs.api-level }}
+      run: |
+        set -euo pipefail
+        nohup emulator \
+          -avd "$AVD_NAME" \
+          -no-window \
+          -noaudio \
+          -no-boot-anim \
+          -no-snapshot \
+          -gpu swiftshader_indirect \
+          -camera-back none \
+          -camera-front none \
+          > "$RUNNER_TEMP/nexaflow-emulator.log" 2>&1 &
+        deadline=$((SECONDS + 300))
+        until timeout 10s adb wait-for-device; do
+          if [ "$SECONDS" -ge "$deadline" ]; then
+            echo "::error::Android emulator did not connect to ADB within 5 minutes."
+            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
+            adb devices -l || true
+            exit 1
+          fi
+          sleep 2
+        done
+        until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
+          if [ "$SECONDS" -ge "$deadline" ]; then
+            echo "::error::Android emulator did not finish booting within 5 minutes."
+            cat "$RUNNER_TEMP/nexaflow-emulator.log" || true
+            adb devices -l || true
+            exit 1
+          fi
+          sleep 2
+        done
+        adb shell input keyevent 82 || true
+        adb shell settings put global window_animation_scale 0
+        adb shell settings put global transition_animation_scale 0
+        adb shell settings put global animator_duration_scale 0
+        adb shell getprop ro.build.version.sdk
+    - name: Install app and grant system-setting permissions for instrumentation fixture
+      run: |
+        ./gradlew :app:installDebug --no-parallel --max-workers=2 --console=plain
+        adb shell appops set com.nexaflow.app WRITE_SETTINGS allow
+        adb shell pm grant com.nexaflow.app android.permission.WRITE_SECURE_SETTINGS
+    - name: Run connected app instrumentation tests
+      shell: bash
+      env:
+        TEST_FILTER: ${{ inputs.test-filter }}
+      run: |
+        set -euo pipefail
+        gradle_args=()
+        if [ "$TEST_FILTER" = "smoke" ]; then
+          gradle_args+=(
+            "-Pandroid.testInstrumentationRunnerArguments.annotation=com.nexaflow.app.testing.Smoke"
+          )
+        fi
+        ./gradlew :app:connectedDebugAndroidTest \
+          --no-parallel --max-workers=2 --console=plain "${gradle_args[@]}"
+    - name: Capture emulator diagnostics
+      if: always()
+      shell: bash
+      run: |
+        timeout 15s adb logcat -d > android-integration-logcat.txt 2>/dev/null || \
+          echo "ADB logcat unavailable or timed out." >> android-integration-logcat.txt
+        timeout 15s adb shell getprop > android-integration-properties.txt 2>/dev/null || \
+          echo "ADB properties unavailable or timed out." >> android-integration-properties.txt
+        cp "$RUNNER_TEMP/nexaflow-emulator.log" android-emulator.log 2>/dev/null || true
+    - name: Upload Android integration evidence
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      with:
+        name: android-integration-evidence-api${{ inputs.api-level }}-${{ inputs.test-filter }}
+        if-no-files-found: ignore
+        path: |
+          app/build/outputs/androidTest-results/**
+          app/build/reports/androidTests/**
+          android-integration-logcat.txt
+          android-integration-properties.txt
+          android-emulator.log

@@ -3,6 +3,7 @@ package com.nexaflow.app.validation
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.nexaflow.app.testing.Smoke
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.DurableExecutionCheckpoint
 import com.nexaflow.core.datastore.DurableExecutionStatus
@@ -24,6 +25,7 @@ import org.junit.runner.RunWith
  * exclusive ownership of the app's persistent store. A successful source compilation is not
  * evidence of Android execution; evidence exists only after this test is run on a connected target.
  */
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class ActiveExecutionStoreAndroidTest {
 
