@@ -188,6 +188,10 @@ object SystemAppStatusDetector {
      * it, so no grant dialog is triggered by mere detection.
      */
     fun isSuBinaryAvailable(): Boolean {
+        // An injected PATH resolution is authoritative: host test machines may
+        // legitimately ship /sbin/su (Fedora does), which would otherwise make
+        // "no su anywhere" unprovable and the ROOT tests host-dependent.
+        pathResolution?.let { return it() }
         if (suPaths.any { File(it).exists() }) return true
         return resolveSuFromPath()
     }
