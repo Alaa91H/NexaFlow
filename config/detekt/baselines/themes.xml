@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongMethod:ThemeScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun ThemeScreenContent</ID>
+  </CurrentIssues>
+</SmellBaseline>

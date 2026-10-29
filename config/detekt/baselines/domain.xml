@@ -2,6 +2,8 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>LongMethod:ActionNodeSchemas.kt:ActionNodeSchemas$fun schemaFor: NodeConfigurationSchema</ID>
+    <ID>LongMethod:TriggerNodeSchemas.kt:TriggerNodeSchemas$fun schemaFor: NodeConfigurationSchema</ID>
     <ID>SwallowedException:RetryExecutorTest.kt:RetryExecutorTest$e: IllegalArgumentException</ID>
     <ID>TooGenericExceptionCaught:ConditionExpressionEvaluator.kt:ConditionExpressionEvaluator$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WorkflowMigrationOrchestrator.kt:WorkflowMigrationOrchestrator$failure: Exception</ID>

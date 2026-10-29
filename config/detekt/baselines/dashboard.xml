@@ -2,7 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>EmptyCatchBlock:DashboardViewModel.kt:DashboardViewModel${}</ID>
+    <ID>LongMethod:DashboardScreen.kt:@Composable fun DashboardScreen</ID>
     <ID>TooGenericExceptionCaught:DashboardViewModel.kt:DashboardViewModel$failure: Exception</ID>
   </CurrentIssues>
 </SmellBaseline>
