@@ -49,6 +49,7 @@
 - Run the full suite locally on JDK 21: 3,004 tests across 33 modules with 0 failures, 0 errors, and 0 skipped.
 - Verify the new required gates in GitHub Actions run [40856663816](https://github.com/Alaa91H/NexaFlow/actions/runs/40856663816): secret scan, lint, build, coverage, API 37 emulator smoke, supply chain, and Windows compatibility all passed.
 - Confirm the merged result on `main` in run [40863249562](https://github.com/Alaa91H/NexaFlow/actions/runs/40863249562). Physical-device, OEM, Doze, boot, and 72-hour soak evidence is still outstanding, and Play distribution remains undecided per ADR 0001.
+- Cancel each battery monitor's coroutine scope between exit-reconcile tests, removing a cross-test race in which a previous monitor cleared the next test's durable active mark and intermittently failed the coverage job.
 
 ## [v3.91.13] - 2026-10-09
 
