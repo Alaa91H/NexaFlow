@@ -1,5 +1,11 @@
 # NexaFlow source audit — 2026-10-05
 
+Audit-Status: historical
+Audit-Baseline: 66f0dbd1327365b770901b2fa7d8d528a531ae9b
+
+> **Historical audit.** Per-action statuses below describe `66f0dbd` (v3.91.10) and are not revalidated for HEAD. Current findings live in `docs/audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md`; the gate `scripts/check_docs_freshness.py` prevents this file from being mistaken for a current audit.
+
+
 This is a checkout-specific audit for the Master Execution Plan. It separates source/test evidence from device and service-side evidence. The current clean checkout is `66f0dbd1327365b770901b2fa7d8d528a531ae9b` (`v3.91.10`, `main`, `origin/main`). The earlier v3.91.8 snapshot remains historical evidence below; see the 2026-10-05 revalidation for current host and CI results.
 
 ## Baseline and repository facts

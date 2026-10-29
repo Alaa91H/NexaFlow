@@ -1,6 +1,9 @@
 # T02 atomic finding register
 
-Audit evidence SHA(s): `a9cf4e634cf435caf425e709b152a3ee72892779`. This is a point-in-time source and evidence review; it does not certify device/OEM behavior.
+Audit-Status: historical
+Audit-Baseline: a9cf4e634cf435caf425e709b152a3ee72892779
+
+Audit evidence SHA(s): `a9cf4e634cf435caf425e709b152a3ee72892779`. This is a point-in-time source and evidence review; it does not certify device/OEM behavior. It is kept as historical evidence and is not a claim about the current HEAD; see docs/audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md for the current review.
 
 ## Status counts
 
@@ -8,8 +11,8 @@ Audit evidence SHA(s): `a9cf4e634cf435caf425e709b152a3ee72892779`. This is a poi
 |---|---:|
 | BLOCKED_EXTERNAL | 2 |
 | CONFIRMED | 1 |
-| DOCUMENTED_GAP | 5 |
-| IMPLEMENTED_UNVERIFIED | 3 |
+| DOCUMENTED_GAP | 4 |
+| IMPLEMENTED_UNVERIFIED | 4 |
 | INVESTIGATE | 3 |
 
 ## Findings
@@ -29,18 +32,18 @@ Audit evidence SHA(s): `a9cf4e634cf435caf425e709b152a3ee72892779`. This is a poi
 - External blocker: None recorded.
 - Historical clue (not treated as current proof): `Historical clue only: docs/evidence/baseline/p0-01-current-main-2026-10-05.md:20; the current exact-HEAD reproduction is separate.`.
 
-### T02-002 — Locked-boot delivery policy remains undecided
+### T02-002 — Locked-boot delivery policy decided: first unlock (stale manifest claim retired)
 
-- Classification / severity: **DOCUMENTED_GAP / P0**; area: `boot`; risk: `BOOT_AND_RECOVERY_POLICY`.
+- Classification / severity: **IMPLEMENTED_UNVERIFIED / P2**; area: `boot`; risk: `BOOT_AND_RECOVERY_POLICY`.
 - Evidence: `a9cf4e634cf435caf425e709b152a3ee72892779:app/src/main/AndroidManifest.xml:196;a9cf4e634cf435caf425e709b152a3ee72892779:core/automation-engine/src/main/java/com/nexaflow/core/engine/AutomationAlarmReceiver.kt:48`.
-- Observation: The manifest filter lists LOCKED_BOOT_COMPLETED
-- Impact: while the receiver is not directBootAware and its recovery dependencies use credential-protected application state; OQ-06 records that the desired behavior is undecided.
-- Prerequisite: A misleading source declaration or an unsafe direct-boot change can break scheduled automation or access unavailable state.
+- Observation: Superseded at HEAD 5464d21fc: the manifest no longer declares any LOCKED_BOOT_COMPLETED action and the receiver is not direct-boot aware. OQ-06 was resolved by issue #128 in favour of waiting for the first unlock, so the earlier a9cf4e6 claim describes a shape this tree no longer has.
+- Impact: Scheduled automations are intentionally not delivered before first unlock; the recovery path relies on credential-protected Room/DataStore state. Physical reboot-before-unlock behaviour on API 26+ hardware remains unverified.
+- Prerequisite: Physical API 26+ device rebooted and left locked, then unlocked after a due schedule.
 - Minimal reproducer / verification: `Maintainer must choose wait-until-first-unlock or a restricted device-protected subset.`
-- Expected: Inspect the merged manifest and simulate locked boot before first unlock on supported Android hardware.
-- Actual: No owner policy decision or physical locked-boot observation is recorded.
+- Expected: No automation runs before first unlock; schedules are rebuilt and fire after unlock without duplicate execution.
+- Actual: Source and Robolectric contracts assert the receiver ignores ACTION_LOCKED_BOOT_COMPLETED; no physical locked-boot observation is recorded.
 - Regression target: `AutomationAlarmReceiver boot-policy test; API 26+ physical locked-boot test`; proposed task: #128.
-- Test results: `NOT RUN; see external blocker and documented required verification.`
+- Test results: `Robolectric manifest/boot-contract tests assert the locked-boot action is not handled; API 26+ physical locked-boot validation remains NOT TESTED.`
 - External blocker: None recorded.
 - Historical clue (not treated as current proof): `#128`.
 
