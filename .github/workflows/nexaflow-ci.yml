@@ -881,7 +881,7 @@ jobs:
           gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" --paginate \
             | jq -r --arg phone "$PHONE" --arg wear "$WEAR" \
                 --arg mapping "$MAPPING" --arg sbom "$SBOM" --arg sums "$SUMS" \
-                '.[] | select([$phone, $wear, $mapping, $sbom, $sums] | index(.name) | not) | .id' \
+                '.[] | .name as $name | select([$phone, $wear, $mapping, $sbom, $sums] | index($name) | not) | .id' \
             | while read -r ASSET_ID; do
                 test -n "$ASSET_ID" && gh api --method DELETE \
                   "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
