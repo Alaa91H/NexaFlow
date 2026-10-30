@@ -18,8 +18,8 @@ CATALOG = Path("domain/src/main/java/com/nexaflow/domain/catalog/AutomationNodeC
 CONTRACT_GATE = Path("scripts/check_node_contracts.py")
 
 BASELINE_TRIGGERS = 57
-BASELINE_ACTIONS = 180
-BASELINE_TOTAL = 237
+BASELINE_ACTIONS = 181
+BASELINE_TOTAL = 238
 BASELINE_COMMIT = "4af72b54870c9938d0147d6daccc4f33eece8eb0"
 
 

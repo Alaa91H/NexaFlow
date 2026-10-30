@@ -587,4 +587,6 @@
     <string name="execution_diagnostic_outcome_unknown">نتيجة التنفيذ غير معروفة</string>
     <string name="trigger_wear_event">ساعة Wear OS</string>
     <string name="trigger_wear_event_sub">تشغيل المهمة عندما تكون ساعة NexaFlow متصلة أو غير متصلة</string>
+    <string name="action_agent_run">تشغيل وكيل ذكاء اصطناعي</string>
+    <string name="action_agent_run_sub">يشغّل وكيلًا محفوظًا بطلب نصي</string>
 </resources>

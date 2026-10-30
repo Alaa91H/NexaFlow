@@ -18,7 +18,7 @@ class FamilyPhase22CommunicationTest {
 
     @Test
     fun familyAdapterKeepsTheFullTable() {
-        assertEquals(237, familyAdapter.declaredRules)
+        assertEquals(238, familyAdapter.declaredRules)
     }
 
     @Test

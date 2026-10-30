@@ -1,7 +1,7 @@
 package com.nexaflow.domain.canonical
 
 /**
- * Generated from the reviewed inventory: 57 triggers and 180
+ * Generated from the reviewed inventory: 57 triggers and 181
  * actions. Regenerate with scripts/generate_legacy_mapping_table.py.
  * Legacy config is preserved verbatim for lossless migration.
  */
@@ -368,6 +368,12 @@ object LegacyMappingTable {
             observe = false,
             target = TargetId("core.advanced.command"),
             operation = OperationId("core.operation.execute"),
+            predicate = null,
+        ),
+        Pair(LegacyNodeKind.ACTION, "AGENT_RUN") to Entry(
+            observe = false,
+            target = TargetId("core.ai.agent"),
+            operation = OperationId("core.operation.run"),
             predicate = null,
         ),
         Pair(LegacyNodeKind.ACTION, "APPLICATION_CLOSE_APP") to Entry(
@@ -1416,7 +1422,7 @@ object LegacyMappingTable {
         ),
     ) + LegacyCommunicationMappingEntries.entries
 
-    /** All 237 rules in deterministic (kind, legacyType) order. */
+    /** All 238 rules in deterministic (kind, legacyType) order. */
     fun all(): List<LegacyMappingRule> = entries.map { (key, entry) ->
         GeneratedLegacyMappingRule(
             legacyType = key.second,

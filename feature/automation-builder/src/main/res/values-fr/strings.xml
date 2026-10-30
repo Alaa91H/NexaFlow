@@ -1247,4 +1247,15 @@
     <string name="network_metered">Réseau avec données limitées</string>
     <string name="network_ssid">Nom du Wi-Fi (SSID)</string>
     <string name="network_bssid">Point d’accès (BSSID)</string>
+    <string name="action_agent_run">Exécuter un agent IA</string>
+    <string name="action_agent_run_sub">Exécute un agent IA enregistré avec une consigne</string>
+    <string name="agent_run_agent_label">Agent IA</string>
+    <string name="agent_run_no_agents">Aucun agent activé. Activez-en un dans Paramètres → IA et agents.</string>
+    <string name="agent_run_prompt_label">Consigne</string>
+    <string name="agent_run_prompt_hint">Que doit faire l\'agent ? Les variables sont développées avant l\'exécution.</string>
+    <string name="agent_run_duration_label">Secondes maximales (1–3600)</string>
+    <string name="agent_run_approval_label">Si l\'agent demande l\'approbation d\'un outil</string>
+    <string name="agent_run_approval_fail">Arrêter l\'exécution</string>
+    <string name="agent_run_approval_skip">Ignorer l\'outil</string>
+    <string name="agent_run_result_label">Variable de résultat (facultatif)</string>
 </resources>

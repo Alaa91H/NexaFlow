@@ -1247,4 +1247,15 @@
     <string name="network_metered">按流量计费的网络</string>
     <string name="network_ssid">Wi-Fi 名称（SSID）</string>
     <string name="network_bssid">接入点（BSSID）</string>
+    <string name="action_agent_run">运行 AI 智能体</string>
+    <string name="action_agent_run_sub">使用提示词运行已保存的 AI 智能体</string>
+    <string name="agent_run_agent_label">智能体</string>
+    <string name="agent_run_no_agents">没有已启用的智能体。请在 设置 → AI 与智能体 中启用。</string>
+    <string name="agent_run_prompt_label">提示词</string>
+    <string name="agent_run_prompt_hint">智能体应该做什么？变量会在运行前展开。</string>
+    <string name="agent_run_duration_label">最长秒数（1–3600）</string>
+    <string name="agent_run_approval_label">当智能体需要工具审批时</string>
+    <string name="agent_run_approval_fail">停止运行</string>
+    <string name="agent_run_approval_skip">跳过该工具</string>
+    <string name="agent_run_result_label">结果变量（可选）</string>
 </resources>

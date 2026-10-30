@@ -403,7 +403,8 @@ object AutomationNodeCatalog {
             ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
             ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
             ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
-            ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS
+            ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
+            ActionType.AGENT_RUN
         )
     ) }
 

@@ -34,6 +34,7 @@ class ActionRegistry private constructor(
                 AdvancedActionsHandler(),
                 HttpRequestHandler(),
                 DataActionsHandler(),
+                AgentActionsHandler(),
                 PluginFireHandler()
             )
         )
@@ -44,7 +45,8 @@ class ActionRegistry private constructor(
          * exact legacy handler behavior, so construction is always safe.
          */
         fun withSemanticRouter(
-            router: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
+            router: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter,
+            agentRunGateway: AgentRunGateway? = null
         ): ActionRegistry = from(
             listOf(
                 DisplayActionsHandler().apply { semanticRouter = router },
@@ -59,6 +61,7 @@ class ActionRegistry private constructor(
                 AdvancedActionsHandler(),
                 HttpRequestHandler(),
                 DataActionsHandler(),
+                AgentActionsHandler().apply { gateway = agentRunGateway },
                 PluginFireHandler()
             )
         )

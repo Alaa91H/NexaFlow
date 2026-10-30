@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [v3.91.16] - 2026-10-30
+
+### Added
+
+- **Run a saved AI agent from a task** (`AGENT_RUN`, NFA-24). The action declares five bounded fields: `agentId` (required), `prompt` (required, ≤ 8,192 characters, `%variable` expansion allowed), `maxDurationSeconds` (1–3,600, default 60), `onApprovalRequired` (`FAIL` default, or `SKIP`) and an optional `resultVariable` that publishes the bounded summary as `$<variable>.summary`. A run over the budget, an unknown approval policy, a malformed variable name or a missing agent id fails before the agent runtime is called, so no task has to discover a configuration error at execution time.
+- The builder offers the action with an agent picker that lists **enabled agents only** and shows the selected agent's description or model. Disabled agents are filtered out of the picker as well as refused by the runtime (`agent_unavailable`), so a saved task cannot be silently unrunnable.
+- A canonical identity for the new node: target `core.ai.agent`, operation `core.operation.run`, `NON_IDEMPOTENT` and not blind-retryable. The reviewed inventory is now 57 triggers + 181 actions = 238 mappings, with the generated legacy table, atomic inventory, field/runtime parity and node lifecycle records regenerated from it.
+
+### Security
+
+- An automation has no approval dialog, so a gated tool is **always denied**. `FAIL` aborts the run with `approval_required`; `SKIP` hands the denial back to the model so it can continue with the tools it still owns. There is deliberately no "wait" option, so a background task cannot hang on a dialog that will never appear.
+- The executor reaches the agent runtime through the plain `AgentRunGateway` seam in `:core:execution`; the app binds `ManagedAgentRunGateway`, and a build with no gateway fails closed with `agent_runtime_unavailable` instead of doing nothing.
+- Agent runs requested by a task reuse the existing agent budget, provider-routing, approval and audit machinery; prompts and assistant text stay out of the durable run log, which records only the bounded summary and a stable failure code. The retry key is `executionId:nodeId:agentId`, so a retry of the same node does not run the agent twice.
+
+### Changed
+
+- `:feature:automation-builder` depends on `:core:agent-runtime` for the read-only `AgentChoiceSource` picker contract (a `feature` → `core` edge), and `RepositoryAgentChoiceSource` binds it in `:data` next to `AgentDefinitionRepository`. The editor's stateless body is separated from the Hilt-connected wrapper so it composes in JVM tests.
+- The architecture-fitness baseline is raised for `ActionConfigEditor.kt` and `LegacyMappingTable.kt` by the lines this action adds, so the growth is recorded rather than hidden.
+
+### Tests and verification
+
+- New coverage: `AgentActionsHandlerTest` (9 cases: required fields, prompt bound, duration bounds, policy parsing, result variable, gateway failure, cancellation and summary publishing), `ManagedAgentRunGatewayTest` (7 cases: delta aggregation, `FAIL`/`SKIP` approval denial, safe failure codes, idempotent replay, deadline and incomplete runs), `AgentRunEditorTest` (5 cases driving the real composables), `AgentRunChoiceViewModelTest`, `RepositoryAgentChoiceSourceTest` (disabled agents are never offered), `ActionRegistryAgentRunTest` (3 cases: both factories resolve the handler, the gateway is forwarded, a missing gateway fails closed), `ActionPresentationTest` and `AgentChoiceSourceTest`.
+- Diff coverage of the changed production lines is 93.4% (241 of 258). `:feature:automation-builder:coverageGate`, `:core:execution:coverageGate` (69.2%), `:domain:coverageGate` (89.9%) and `:data:coverageGate` (84.2%) pass; `detekt`, `lintDebug` and the full `testDebugUnitTest` suite (3,120 tests, 0 failures/errors/skips) pass.
+- Gates pass: `auto_fix.py --check`, string parity, translation completeness, hardcoded text, vendor neutrality, catalog parity, atomic inventory, node contracts, module boundaries, Compose stability, suppression budget, README counts, docs freshness and every canonical gate that does not require a clean release tag.
+- Not verified here: a physical-device run of the action, a live provider, and the tag-only publication job (it runs only for a pushed tag).
+
 ## [v3.91.15] - 2026-10-30
 
 ### Added

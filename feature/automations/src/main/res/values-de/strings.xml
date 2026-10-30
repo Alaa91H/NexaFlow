@@ -587,4 +587,6 @@
     <string name="action_sms_block_sub">Passende SMS unterdrücken (Standard-SMS-App erforderlich)</string>
     <string name="action_sms_reply">Auf eingehende SMS antworten</string>
     <string name="action_sms_reply_sub">Nachricht an den SMS-Absender senden, der den Ablauf ausgelöst hat</string>
+    <string name="action_agent_run">KI-Agent ausführen</string>
+    <string name="action_agent_run_sub">Führt einen gespeicherten KI-Agenten mit einer Eingabe aus</string>
 </resources>

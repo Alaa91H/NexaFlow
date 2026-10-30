@@ -1247,4 +1247,15 @@
     <string name="network_metered">従量制ネットワーク</string>
     <string name="network_ssid">Wi-Fi 名（SSID）</string>
     <string name="network_bssid">アクセスポイント（BSSID）</string>
+    <string name="action_agent_run">AIエージェントを実行</string>
+    <string name="action_agent_run_sub">保存済みのAIエージェントをプロンプトで実行します</string>
+    <string name="agent_run_agent_label">エージェント</string>
+    <string name="agent_run_no_agents">有効なエージェントがありません。設定 → AIとエージェントで有効にしてください。</string>
+    <string name="agent_run_prompt_label">プロンプト</string>
+    <string name="agent_run_prompt_hint">エージェントに何をさせますか？変数は実行前に展開されます。</string>
+    <string name="agent_run_duration_label">最大秒数（1〜3600）</string>
+    <string name="agent_run_approval_label">エージェントがツールの承認を求めた場合</string>
+    <string name="agent_run_approval_fail">実行を停止</string>
+    <string name="agent_run_approval_skip">ツールをスキップ</string>
+    <string name="agent_run_result_label">結果変数（任意）</string>
 </resources>

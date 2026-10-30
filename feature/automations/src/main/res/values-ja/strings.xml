@@ -587,4 +587,6 @@
     <string name="action_sms_block_sub">一致するSMSの配信を抑止（既定のSMSアプリへの設定が必要）</string>
     <string name="action_sms_reply">受信SMSに返信</string>
     <string name="action_sms_reply_sub">ワークフローを開始したSMS送信者にメッセージを送信</string>
+    <string name="action_agent_run">AIエージェントを実行</string>
+    <string name="action_agent_run_sub">保存済みのAIエージェントをプロンプトで実行します</string>
 </resources>

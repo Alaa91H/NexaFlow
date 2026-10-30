@@ -178,7 +178,7 @@
     <string name="action_plugin_sub">Exécuter un plugin externe</string>
     <string name="section_constraints">Conditions</string>
     <string name="no_constraints">"Aucune condition - s'exécute à chaque déclencheur"</string>
-    <string name="constraint_subtitle">"Doit être vrai avant l'exécution de la tâche"</string>
+    <string name="constraint_subtitle">"Doit être vrai avant l\'exécution de la tâche"</string>
     <string name="constraint_type_wifi">Wi-Fi connecté</string>
     <string name="constraint_type_battery">Niveau de batterie</string>
     <string name="constraint_type_screen_locked">Écran verrouillé</string>
@@ -587,4 +587,6 @@
     <string name="action_sms_block_sub">Bloquer la remise des SMS correspondants (rôle SMS par défaut requis)</string>
     <string name="action_sms_reply">Répondre au SMS reçu</string>
     <string name="action_sms_reply_sub">Envoyer un message à l’expéditeur du SMS à l’origine de ce flux</string>
+    <string name="action_agent_run">Exécuter un agent IA</string>
+    <string name="action_agent_run_sub">Exécute un agent IA enregistré avec une consigne</string>
 </resources>

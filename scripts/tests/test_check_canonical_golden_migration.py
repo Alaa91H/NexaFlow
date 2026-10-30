@@ -56,7 +56,7 @@ class CanonicalGoldenMigrationGateTest(unittest.TestCase):
         self.assertEqual(
             REQUIRED_TEST_CASES,
             (
-                "goldenContractExistsAndIsValidForEachOfThe237Mappings",
+                "goldenContractExistsAndIsValidForEachOfThe238Mappings",
                 "goldenOutputIsPinnedToTheReviewedIdentity",
                 "migrateIsIdempotentAcrossTheWholeTable",
                 "triggerAndActionGoldenSplitsMatchTheBaseline",

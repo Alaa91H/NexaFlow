@@ -18,7 +18,7 @@ class FamilyPhase23PowerSensorsTest {
 
     @Test
     fun familyAdapterKeepsTheFullTable() {
-        assertEquals(237, familyAdapter.declaredRules)
+        assertEquals(238, familyAdapter.declaredRules)
     }
 
     @Test

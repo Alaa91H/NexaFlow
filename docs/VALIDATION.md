@@ -1,5 +1,27 @@
 # Validation record
 
+## AGENT_RUN action (v3.91.16) — 2026-10-30 (local, no device)
+
+All results below are the actual exit statuses of this checkout; nothing was
+re-run from an older tree. The change adds `ActionType.AGENT_RUN` and its
+builder editor, canonical identity and tests.
+
+| Command | Result |
+|---|---|
+| `./gradlew :app:compileDebugKotlin` | PASS — 306 tasks, Hilt/KSP component generation included |
+| `./gradlew testDebugUnitTest --console=plain` | PASS — 3,120 tests, 0 failures, 0 errors, 0 skipped across 471 test classes |
+| `./gradlew detekt` | PASS |
+| `./gradlew lintDebug` | PASS — 1,323 tasks |
+| `./gradlew :feature:automation-builder:coverageGate :core:execution:coverageGate :domain:coverageGate :data:coverageGate :core:agent-runtime:coverageGate` | PASS — `:core:execution` 69.2% (8,679/12,547), `:domain` 89.9% (11,036/12,278), `:data` 84.2% (1,202/1,428); builder and agent-runtime are report-only |
+| `python3 scripts/check_diff_coverage.py --diff-file <HEAD→worktree> --threshold 0.80` | PASS — 93.4% (241/258) of changed executable lines; `AgentRunEditor.kt` 94.5%, `ManagedAgentRunGateway.kt` 89.5%, `AgentActionsHandler.kt` 87.3%, every other changed production file 100% |
+| Source gates (`auto_fix --check`, strings parity, translation completeness, hardcoded text, vendor neutrality, catalog, atomic inventory, findings audit, node contracts, module boundaries, Compose stability, suppression budget, README counts, docs freshness) | PASS — 0 problems each |
+| Canonical gates (T01–T44, families, baseline, inventory, legacy mappings, golden migration, runtime cutover, docs closure) | PASS — all exit 0 against the updated 57/181/238 inventory |
+
+The diff-coverage gate uses `--diff-file` because the change set was still
+uncommitted when it was measured; the CI form (`--base <sha>`) covers the same
+lines once the commit exists. CI on the pushed commit, the tag workflow,
+physical-device execution and publication are **NOT TESTED** here.
+
 ## Remediation execution — 2026-10-29 (local, no device)
 
 Scope: phases 0–4 of `audit/FULL_AUDIT_REMEDIATION_PLAN_2026-10-28_AR.md`.

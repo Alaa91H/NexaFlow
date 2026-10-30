@@ -274,4 +274,5 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.DATA_JSON -> Triple(R.string.action_data_json, R.string.action_data_json_sub, Icons.Filled.Tune)
     ActionType.DATA_ARRAY -> Triple(R.string.action_data_array, R.string.action_data_array_sub, Icons.Filled.Tune)
     ActionType.ROM_BATCH -> Triple(R.string.action_rom_setting_batch, R.string.action_rom_setting_batch_sub, Icons.Filled.Build)
+    ActionType.AGENT_RUN -> Triple(R.string.action_agent_run, R.string.action_agent_run_sub, Icons.AutoMirrored.Filled.Chat)
 }

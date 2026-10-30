@@ -1247,4 +1247,15 @@
     <string name="network_metered">Getaktetes Netzwerk</string>
     <string name="network_ssid">WLAN-Name (SSID)</string>
     <string name="network_bssid">Zugangspunkt (BSSID)</string>
+    <string name="action_agent_run">KI-Agent ausführen</string>
+    <string name="action_agent_run_sub">Führt einen gespeicherten KI-Agenten mit einer Eingabe aus</string>
+    <string name="agent_run_agent_label">KI-Agent</string>
+    <string name="agent_run_no_agents">Keine aktiven Agenten. Aktiviere einen unter Einstellungen → KI &amp; Agenten.</string>
+    <string name="agent_run_prompt_label">Eingabe</string>
+    <string name="agent_run_prompt_hint">Was soll der Agent tun? Variablen werden vor dem Lauf ersetzt.</string>
+    <string name="agent_run_duration_label">Maximale Sekunden (1–3600)</string>
+    <string name="agent_run_approval_label">Wenn der Agent eine Tool-Freigabe benötigt</string>
+    <string name="agent_run_approval_fail">Lauf abbrechen</string>
+    <string name="agent_run_approval_skip">Tool überspringen</string>
+    <string name="agent_run_result_label">Ergebnisvariable (optional)</string>
 </resources>

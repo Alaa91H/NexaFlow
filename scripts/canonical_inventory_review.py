@@ -383,6 +383,9 @@ def action_reviews() -> dict[str, Review]:
     _put(out, ["SYSTEM_TOAST"], target="core.notification.transient_message", operation="SHOW", side="EXTERNAL", idem="NON_IDEMPOTENT", retry="UNSAFE")
     _put(out, ["SYSTEM_ALERT"], target="core.notification.alert", operation="SHOW", side="EXTERNAL", idem="NON_IDEMPOTENT", retry="UNSAFE")
 
+    # In-app AI agents.
+    _put(out, ["AGENT_RUN"], target="core.ai.agent", operation="RUN", caps=("AGENT_RUNTIME",), **external)
+
     return out
 
 

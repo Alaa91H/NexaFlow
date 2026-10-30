@@ -190,10 +190,10 @@ def validate(rows: list[dict[str, object]]) -> list[str]:
     actions = [row for row in rows if row["kind"] == "ACTION"]
     if len(triggers) != 57:
         problems.append(f"expected 57 trigger rows, found {len(triggers)}")
-    if len(actions) != 180:
-        problems.append(f"expected 180 action rows, found {len(actions)}")
-    if len(rows) != 237:
-        problems.append(f"expected 237 total rows, found {len(rows)}")
+    if len(actions) != 181:
+        problems.append(f"expected 181 action rows, found {len(actions)}")
+    if len(rows) != 238:
+        problems.append(f"expected 238 total rows, found {len(rows)}")
 
     identities = [(row["kind"], row["legacyType"]) for row in rows]
     if len(set(identities)) != len(identities):
@@ -244,8 +244,8 @@ def main() -> int:
     reviewed = sum(row["reviewStatus"] == "REVIEWED" for row in rows)
     print(
         "CANONICAL_INVENTORY: REVIEW COVERAGE OK — "
-        f"{len(rows)} rows (57 triggers, 180 actions), "
-        f"{reviewed}/237 semantically reviewed"
+        f"{len(rows)} rows (57 triggers, 181 actions), "
+        f"{reviewed}/238 semantically reviewed"
     )
     if args.check:
         return 0

@@ -587,4 +587,6 @@
     <string name="action_sms_block_sub">Eşleşen SMS’lerin teslimini durdur (varsayılan SMS rolü gerekir)</string>
     <string name="action_sms_reply">Gelen SMS’i yanıtla</string>
     <string name="action_sms_reply_sub">İş akışını başlatan SMS göndericisine mesaj gönder</string>
+    <string name="action_agent_run">AI ajanını çalıştır</string>
+    <string name="action_agent_run_sub">Kayıtlı bir AI ajanını istemle çalıştırır</string>
 </resources>
