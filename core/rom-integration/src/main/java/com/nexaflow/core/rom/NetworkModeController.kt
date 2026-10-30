@@ -41,6 +41,15 @@ class NetworkModeController(
                 mode,
                 nrSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
             )
+        // A 5G-only restriction removes the anchor a non-standalone carrier
+        // needs, so the SIM leaves service and even the restore write is then
+        // rejected ("No valid subscription found" on a customized OEM ROM). Refuse before
+        // touching the radio instead of leaving the phone offline.
+        if (NetworkModePolicy.isNrOnly(request.bitmask)) {
+            return SystemControlResult.fail(
+                "5G alone is not a usable preferred network mode: it leaves no LTE/3G/2G fallback and the phone loses service. Reselect the 5G profile that keeps LTE"
+            )
+        }
         return try {
             val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
                 ?: return SystemControlResult.fail("Telephony service unavailable")
@@ -50,24 +59,18 @@ class NetworkModeController(
                 )
             }
             if (requestedMask != null) {
-                val selectedSubId = subscriptionId
-                    ?: return SystemControlResult.fail("Dynamic network mode requires a selected SIM subscription")
-                val capabilities = NetworkModeCapabilities(context).read()
-                val confirmed = capabilities.subscriptions.firstOrNull {
-                    it.subscriptionId == selectedSubId
-                }
-                if (capabilities.status != NetworkModeSnapshot.Status.AVAILABLE || confirmed == null) {
-                    return SystemControlResult.fail(
-                        "Network capabilities for the selected SIM are no longer readable"
+                // A dynamic profile must name its SIM because the write is
+                // subscription-scoped and an inferred subscription could
+                // change the wrong radio. The capability snapshot is
+                // deliberately NOT a precondition: on several OEM ROMs it is
+                // briefly unavailable — or answers "UNKNOWN" — while the radio
+                // re-registers, and failing there blocked the very write that
+                // restores a working mode. The ladder below proves the result
+                // with a read-back, which is the authoritative check.
+                subscriptionId
+                    ?: return SystemControlResult.fail(
+                        "Dynamic network mode requires a selected SIM subscription"
                     )
-                }
-                if ((request.bitmask and confirmed.selectableMask) != request.bitmask ||
-                    confirmed.options.none { it.allowedNetworkTypes == request.bitmask }
-                ) {
-                    return SystemControlResult.fail(
-                        "Saved network mode is no longer supported by the selected SIM"
-                    )
-                }
             }
             val activeSubIds = activeSubscriptionIds()
             if (activeSubIds.isEmpty()) {

@@ -25,10 +25,10 @@ DIRECT_SCOPE_ALLOWLIST = {
 # but they may never grow. Once a file falls below the generic ceiling it can
 # be removed from this map.
 BASELINE_HOTSPOTS = {
-    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt": 141_446,
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt": 54_348,
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt": 114_819,
-    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt": 101_260,
-    "core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt": 87_694,
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt": 54_710,
+    "core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt": 86_767,
     "core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt": 83_428,
     "feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt": 71_326,
     "domain/src/main/java/com/nexaflow/domain/canonical/LegacyMappingTable.kt": 63_167,

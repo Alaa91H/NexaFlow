@@ -162,6 +162,12 @@
     <string name="about_telegram_sub">@Alaa91h</string>
     <string name="about_support">Поддержать разработчика</string>
     <string name="about_support_sub">Угостите меня кофе на Ko-fi</string>
+    <string name="about_repository">Исходный код</string>
+    <string name="about_repository_sub">Alaa91H/NexaFlow</string>
+    <string name="about_channel">Канал в Telegram</string>
+    <string name="about_channel_sub">@NexaFlowApp</string>
+    <string name="about_community">Группа сообщества</string>
+    <string name="about_community_sub">@NexaFlowCommunity</string>
 
     <!-- Per-app language picker -->
     <string name="app_language">Язык приложения</string>

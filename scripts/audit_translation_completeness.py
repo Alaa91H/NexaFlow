@@ -79,6 +79,9 @@ IDENTICAL_OK = {
     # Contact handles and literal examples (never localized).
     "@Alaa91H",
     "@Alaa91h",
+    "@NexaFlowApp",
+    "@NexaFlowCommunity",
+    "Alaa91H/NexaFlow",
     "alahus2591@gmail.com",
     "https://example.com",
     '{"key": "value"}',

@@ -218,9 +218,37 @@ class NetworkModePolicyTest {
             (NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G) })
         // The complete NR/LTE mask is represented once by AUTO; its
         // narrower real profiles remain selectable independently.
-        assertTrue(nrLte.any { it.id == "NR" })
         assertTrue(nrLte.any { it.id == "LTE" })
         assertFalse(nrLte.any { it.label.contains("GSM") || it.label.contains("WCDMA") })
+    }
+
+    @Test
+    fun `5G-only is never offered as a preferred mode`() {
+        // A 5G restriction without the LTE anchor cannot register on an NSA
+        // carrier, and on the reporting device it dropped the SIM out of
+        // service. It is neither offered nor applied.
+        val options = NetworkModePolicy.optionsFor(
+            NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G or
+                NetworkModePolicy.BITMASK_2G or NetworkModePolicy.BITMASK_3G
+        )
+        assertFalse(options.any { NetworkModePolicy.isNrOnly(it.allowedNetworkTypes) })
+        // Every remaining 5G profile keeps at least one lower generation.
+        assertTrue(
+            options.any {
+                it.allowedNetworkTypes ==
+                    (NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G)
+            }
+        )
+        options.filter { (it.allowedNetworkTypes and NetworkModePolicy.BITMASK_5G) != 0L }
+            .forEach { option ->
+                assertFalse(
+                    "${option.id} must keep a fallback family",
+                    NetworkModePolicy.isNrOnly(option.allowedNetworkTypes)
+                )
+            }
+        assertTrue(NetworkModePolicy.isNrOnly(NetworkModePolicy.BITMASK_5G))
+        assertFalse(NetworkModePolicy.isNrOnly(NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G))
+        assertFalse(NetworkModePolicy.isNrOnly(NetworkModePolicy.BITMASK_4G))
     }
 
     @Test

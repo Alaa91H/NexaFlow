@@ -55,7 +55,6 @@
     <string name="package_name">Paket adı</string>
     <string name="choose_from_installed">Yüklü uygulamalardan seç</string>
     <string name="app_detection_hint">Uygulama algılama, erişilebilirlik hizmetini gerektirir</string>
-    <string name="enable">Etkinleştir</string>
     <string name="state">Durum</string>
 
     
@@ -162,18 +161,15 @@
     <string name="action_root_sub">Root ile shell komutu çalıştır</string>
     <string name="brightness_label">Parlaklık: %1$d</string>
     <string name="volume_label">Ses: %1$d</string>
-    <string name="turn_on">Aç</string>
     <string name="apps_comma">Uygulamalar (virgülle ayrılmış)</string>
     <string name="title">Başlık</string>
     <string name="text">Metin</string>
     <string name="auto_rotate">Otomatik döndürme</string>
     <string name="url">URL</string>
-    <string name="url_hint">https://ornek.com</string>
     <string name="alert_below">Altında uyar: %1$d%%</string>
     <string name="message_optional">Mesaj (isteğe bağlı)</string>
     <string name="shell_command">Shell komutu</string>
     <string name="shell_hint">örn. settings put global airplane_mode_on 1</string>
-    <string name="runs_immediately">Otomasyon tetiklendiğinde hemen çalışır.</string>
     <string name="write_settings_hint">Sistem ayarlarını değiştirme izni gerekir</string>
     <string name="dnd_hint">Rahatsız Etmeyin erişimi gerekir</string>
     <string name="flashlight_hint">El feneri için kamera erişimi gerekir</string>
@@ -228,8 +224,6 @@
     <string name="ringer_normal">Zil sesi</string>
     <string name="ringer_vibrate">Titreşim</string>
     <string name="ringer_silent">Sessiz</string>
-    <string name="hour">Saat</string>
-    <string name="minute">Dakika</string>
     <string name="elevated_hint">Root, Shizuku veya sistem uygulaması ayrıcalıkları gerekir</string>
     <string name="trigger_type_sms">SMS</string>
     <string name="repeat_custom">Özel</string>
@@ -262,7 +256,6 @@
     <string name="pick_date">Tarih seç</string>
     <string name="pick_on_map">Haritada seç</string>
     <string name="sms_from">Kimden (numara)</string>
-    <string name="sms_from_hint">örn. 05XXXXXXXX (boş = herhangi biri)</string>
     <string name="sms_contains">Mesaj şunu içeriyor</string>
     <string name="sms_contains_hint">Eşleşecek metin (boş = herhangi biri)</string>
     <string name="permission_denied_hint">Bu özelliği etkinleştirmek için izin gerekli</string>
@@ -288,9 +281,6 @@
     <string name="action_open_settings">Ayarları aç</string>
     <string name="action_open_settings_sub">Sistem ayarları sayfasını aç</string>
     <string name="ring_volume_label">Zil sesi: %1$d</string>
-    <string name="phone_number">Telefon numarası</string>
-    <string name="reminder_title">Hatırlatıcı başlığı</string>
-    <string name="reminder_text">Hatırlatıcı metni</string>
     <string name="settings_wifi">Wi-Fi</string>
     <string name="settings_bluetooth">Bluetooth</string>
     <string name="settings_location">Konum</string>
@@ -326,19 +316,17 @@
     <string name="trigger_app">Bir uygulama açıldığında</string>
     <string name="time_single">Tek zaman</string>
     <string name="time_range">Zaman aralığı</string>
+    <string name="time_zone_section">Saat dilimi</string>
+    <string name="time_zone_device">Cihaz saat dilimi</string>
+    <string name="time_zone_fixed">Belirli saat dilimi</string>
+    <string name="time_zone_id_label">IANA saat dilimi (ör. Europe/Berlin)</string>
+    <string name="time_zone_invalid">Bilinmeyen saat dilimi — geçerli olana kadar cihaz dilimi kullanılır</string>
     <string name="time_range_start">Başlangıç</string>
     <string name="time_range_end">Bitiş</string>
     <string name="range_same_day">Aynı gün</string>
     <string name="range_overnight">Gece boyunca — ertesi gün biter</string>
     <string name="trigger_type_bluetooth">Bluetooth cihazı</string>
     <string name="trigger_bluetooth">Bluetooth cihazı</string>
-    <string name="choose_bluetooth_device">Bluetooth cihazı seç</string>
-    <string name="no_bluetooth_device">Cihaz seçilmedi</string>
-    <string name="no_paired_devices">Eşleştirilmiş Bluetooth cihazı bulunamadı</string>
-    <string name="bluetooth_turned_off_title">Bluetooth kapalı</string>
-    <string name="bluetooth_turned_off_body">Eşleştirilmiş cihazlarınızı görmek ve bu görev için birini seçmek için Bluetooth özelliğini açın.</string>
-    <string name="bluetooth_permission_hint">"Eşleştirilmiş cihazları algılamak için Bluetooth\'u açın"</string>
-    <string name="stream_label">Ses kanalı</string>
     <string name="stream_volume_label">Ses %1$d</string>
     <string name="stream_music">Medya</string>
     <string name="stream_ring">Zil sesi</string>
@@ -355,9 +343,6 @@
     <string name="trigger_type_ringer">Ses modu</string>
     <string name="trigger_ringer">Ses modu</string>
     <string name="trigger_ringer_sub">Ses modu değiştiğinde</string>
-    <string name="ringer_mode_label">Ses modu</string>
-    <string name="ringer_mode_hint">Telefon seçilen ses moduna geçtiğinde görev çalışır</string>
-    <string name="change_now">Şimdi değiştir</string>
 
     <string name="next_needs_action">Önce en az bir yürütme adımı ekleyin</string>
     <string name="occurrence_first">1.</string>
@@ -381,16 +366,9 @@
     <string name="trigger_type_calendar">Takvim</string>
     <string name="trigger_calendar">Takvim etkinliği</string>
     <string name="any_calendar">Herhangi bir takvim</string>
-    <string name="choose_calendar">Takvim seçin</string>
-    <string name="no_calendars_found">Takvim bulunamadı</string>
-    <string name="calendar_contains">Etkinlik şunları içeriyor</string>
-    <string name="calendar_contains_hint">örn. toplantı, dişçi (boş = herhangi biri)</string>
     <string name="calendar_event_start">Başlar</string>
     <string name="calendar_event_end">Biter</string>
     <string name="calendar_event_created">Takvime eklendi</string>
-    <string name="calendar_before_none">Etkinlik başlangıcında</string>
-    <string name="calendar_before_minutes">Etkinlikten önce: %1$d dk</string>
-    <string name="calendar_permission_hint">Etkinlikleri okumak için takvim izni gerekir</string>
     <string name="charger_type_label">Şarj cihazı türü</string>
     <string name="charger_any">Herhangi biri</string>
     <string name="charger_ac">AC / Duvar</string>
@@ -511,7 +489,6 @@
     <string name="action_open_quick_settings">Hızlı ayarlar</string>
     <string name="action_open_quick_settings_sub">Hızlı ayarlar panelini aç</string>
     <string name="vibrate_duration">Titreşim süresi</string>
-    <string name="clipboard_text">Pano metni</string>
     <string name="trigger_type_rom_setting">ROM ayarı</string>
     <string name="use_current_location">Mevcut konumumu kullan</string>
     <string name="location_coordinates">Konum: %1$s, %2$s</string>
@@ -521,19 +498,12 @@
     <string name="location_inside">Konumun içinde</string>
     <string name="location_outside">Konumun dışında</string>
     <string name="location_fix_failed">Konumunuz alınamadı. Konumu açıp tekrar deneyin.</string><string name="charging_yes">Şarj oluyor</string>
-    <string name="ringtone_label">Varsayılan zil sesi</string>
     <string name="network_mode_sub">Seçilen SIM için gerçekten kullanılabilir modlardan birini seçin. Değişikliği uygulamak için yükseltilmiş erişim gerekir.</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">Otomatik</string>
     <string name="network_mode_5g">5G</string>
-    <string name="network_mode_current">Geçerli nesil</string>
-    <string name="network_mode_current_hint">Cihazın gerçek hücresel neslinin canlı okuması (gerçek 5G algılama)</string>
-    <string name="network_mode_fire_when">Şu durumda tetikle</string>
-    <string name="network_mode_unknown">Bilinmiyor</string>
-    <string name="network_mode_permission_hint">Telefon izni, canlı nesil ve 5G algılamasını iyileştirir</string>
     <string name="charging_any">Herhangi biri</string>
     <string name="network_mode_4g">4G</string>
-    <string name="choose_ringtone">Zil sesi seç</string>
     <string name="action_network_mode_sub">Seçilen SIM için gerçekten kullanılabilir modlardan birini seçin. Değişikliği uygulamak için yükseltilmiş erişim gerekir.</string>
     <string name="action_set_ringtone_sub">Varsayılan arama zil sesini seç</string>
     <string name="network_mode_3g">3G</string>
@@ -614,8 +584,6 @@
     <string name="setting_namespace">Ad alanı</string>
     <string name="setting_key">Ayar anahtarı</string>
     <string name="setting_value">Değer</string>
-    <string name="screenshot_filename">Dosya adı (isteğe bağlı)</string>
-    <string name="screenshot_hint">Pictures/NexaFlow klasörüne kaydedilir</string>
     <string name="input_text_label">Yazılacak metin</string>
     <string name="key_event_label">Tuş (ad veya kod)</string>
     <string name="key_event_hint">örn. POWER, HOME, VOLUME_UP veya KEYCODE numarası</string>
@@ -626,12 +594,6 @@
     <string name="swipe_to_x">Bitiş X</string>
     <string name="swipe_to_y">Bitiş Y</string>
     <string name="swipe_duration">Süre (ms)</string>
-    <string name="color_inversion">Renkleri ters çevir</string>
-    <string name="grayscale">Gri tonlama</string>
-    <string name="extra_dim">Ekstra kısma</string>
-    <string name="night_light">Gece ışığı</string>
-    <string name="haptic_feedback">Dokunsal geri bildirim</string>
-    <string name="sound_effects">Dokunma sesleri</string>
     <string name="action_location_mode">Konum modu</string>
     <string name="action_location_mode_sub">Konum modu</string>
     <string name="action_data_saver">Veri tasarrufu</string>
@@ -702,27 +664,13 @@
     <string name="action_open_play_store_app_sub">Play Store’u aç</string>
     <string name="action_reboot">Cihazı yeniden başlat</string>
     <string name="action_reboot_sub">Cihazı yeniden başlat</string>
+    <string name="reboot_mode">Yeniden başlatma hedefi</string>
     <string name="action_shutdown">Cihazı kapat</string>
     <string name="action_shutdown_sub">Cihazı kapat</string>
     <string name="action_restart_system_ui">Sistem arayüzünü yeniden başlat</string>
     <string name="action_restart_system_ui_sub">Sistem arayüzünü yeniden başlat</string>
-    <string name="location_mode">Konum modu</string>
-    <string name="data_saver">Veri tasarrufu</string>
     <string name="font_scale">Yazı boyutu</string>
     <string name="display_density">Ekran yoğunluğu</string>
-    <string name="screensaver">Ekran koruyucu</string>
-    <string name="battery_saver_threshold_label">%1$d%% de başlar</string>
-    <string name="always_on_display">Her zaman açık ekran</string>
-    <string name="show_taps">Dokunuşları göster</string>
-    <string name="pointer_location">İmleç konumu</string>
-    <string name="adaptive_battery">Uyarlanabilir pil</string>
-    <string name="wifi_sleep_policy">Wi-Fi uyku politikası</string>
-    <string name="bluetooth_discoverable_timeout">(saniye) keşfedilebilir</string>
-    <string name="auto_time">Otomatik tarih ve saat</string>
-    <string name="auto_timezone">Otomatik saat dilimi</string>
-    <string name="haptic_intensity_label">Dokunsal yoğunluk %1$d</string>
-    <string name="camera_shutter_sound">Kamera deklanşör sesi</string>
-    <string name="wifi_scanning">Sürekli Wi-Fi taraması</string>
     <string name="device_locked">Kilitli</string>
     <string name="device_unlocked">Kilitsiz</string>
     <string name="location_mode_off">Kapalı</string>
@@ -742,15 +690,9 @@
     <string name="wifi_sleep_never">Asla</string>
     <string name="storage_below">Altında</string>
     <string name="storage_above">Üstünde</string>
-    <string name="trigger_power_saver_state">Durum</string>
-    <string name="trigger_bluetooth_state_hint">Görevi tetikleyen durumu seçin</string>
     <string name="trigger_brightness_direction">Yön</string>
     <string name="trigger_brightness_threshold">Parlaklık Eşik</string>
     <string name="trigger_data_saver_state">Durum</string>
-    <string name="trigger_device_locked_state">Durum</string>
-    <string name="trigger_location_mode">Konum modu</string>
-    <string name="trigger_nfc_state_hint">Görevi tetikleyen durumu seçin</string>
-    <string name="trigger_rotation_state">Durum</string>
     <string name="trigger_storage_direction">Yön</string>
     <string name="trigger_storage_threshold">Eşik (MB)</string>
     <string name="trigger_type_auto_rotate">Otomatik döndürme</string>
@@ -764,8 +706,6 @@
     <string name="trigger_type_screen_rotation_state">Ekran döndürme</string>
     <string name="trigger_type_storage_low">Depolama</string>
     <string name="trigger_type_wifi_state">Wi-Fi</string>
-    <string name="trigger_wifi_state_hint">Görevi tetikleyen durumu seçin</string>
-    <string name="trigger_auto_rotate_state">Durum</string>
     <string name="action_alert">Uyarı göster</string>
     <string name="action_alert_sub">Uyarı iletişim kutusu göster</string>
     <string name="action_bluetooth_scan">Bluetooth tarama</string>
@@ -846,13 +786,9 @@
     <string name="action_wifi_forget_sub">Kayıtlı bir ağı kaldır</string>
     <string name="action_wifi_scan_now">Wi-Fi tara</string>
     <string name="action_wifi_scan_now_sub">Wi-Fi taraması başlat</string>
-    <string name="email_body">Mesaj</string>
-    <string name="email_subject">Konu</string>
-    <string name="email_to">Kime</string>
     <string name="install_apk_path">APK yolu</string>
     <string name="latitude">Enlem</string>
     <string name="longitude">Boylam</string>
-    <string name="notification_tone_label">Bildirim sesi</string>
     <string name="pointer_speed_label">İşaretçi hızı (-7 ile 7)</string>
     <string name="screensaver_timeout_label">Ekran koruyucu zaman aşımı (dakika)</string>
     <string name="settings_airplane">Uçak modu</string>
@@ -870,17 +806,11 @@
     <string name="settings_privacy">Gizlilik</string>
     <string name="settings_usage_access">Kullanım erişimi</string>
     <string name="settings_vpn">VPN</string>
-    <string name="timezone_label">Saat dilimi (örn. GMT)</string>
-    <string name="toast_text">Toast metni</string>
-    <string name="trigger_desc_alarm_set">Alarm kurulduğunda veya değiştiğinde tetiklenir</string>
-    <string name="trigger_desc_boot">Cihaz açılışını tamamladığında tetiklenir</string>
     <string name="trigger_desc_clipboard">Pano içeriği değiştiğinde tetiklenir</string>
     <string name="trigger_desc_nfc_tag">Bir NFC etiketi okunduğunda tetiklenir</string>
     <string name="trigger_desc_screen_timeout">Ekran zaman aşımı ayarı değiştiğinde tetiklenir</string>
-    <string name="trigger_desc_timezone">Saat dilimi değiştiğinde tetiklenir</string>
     <string name="trigger_events_on_change">Değişimde tetiklenir</string>
     <string name="trigger_signal_threshold">Sinyal eşiği</string>
-    <string name="trigger_state_label">Durum</string>
     <string name="trigger_temperature_threshold">Sıcaklık eşiği (°C)</string>
     <string name="trigger_type_alarm_set_changed">Alarm kuruldu</string>
     <string name="trigger_type_auto_brightness_state">Otomatik parlaklık</string>
@@ -899,7 +829,6 @@
     <string name="trigger_type_usb_connected">USB bağlı</string>
     <string name="trigger_type_vpn_connected">VPN bağlı</string>
     <string name="trigger_type_wifi_signal_strength">Wi-Fi sinyal gücü</string>
-    <string name="vibrate_pattern_label">Titreşim deseni</string>
     <string name="wifi_password">Şifre</string>
     <string name="wifi_ssid">Wi-Fi adı (SSID)</string>
     <string name="collapse_options">Seçenekleri daralt</string>
@@ -999,20 +928,13 @@
     <string name="action_private_dns_sub">Android özel DNS modunu veya sağlayıcısını ayarlayın</string>
     <string name="action_charging_limit">Şarj sınırı</string>
     <string name="action_charging_limit_sub">Desteklenen donanım şarj durdurma yüzdesini ayarlayın</string>
-    <string name="private_dns_mode">Özel DNS modu</string>
     <string name="private_dns_off">Kapalı</string>
     <string name="private_dns_automatic">Otomatik</string>
-    <string name="private_dns_hostname_mode">Sağlayıcı ana makine adı</string>
-    <string name="private_dns_hostname">Sağlayıcı ana makine adı</string>
-    <string name="private_dns_elevated_note">Root veya Shizuku gerekir. Bu yalnızca bir uygulamayı değil, cihazın özel DNS ayarını değiştirir.</string>
-    <string name="charging_limit_value">Şarj sınırı: %1$d%%</string>
-    <string name="charging_limit_root_note">Root ve standart bir donanım şarj denetim düğümü gerekir; desteklenmeyen cihazlar açık bir hata döndürür.</string>
 
     <string name="action_charging_feedback">Şarj sesi ve titreşimi</string>
     <string name="action_charging_feedback_sub">ROM destekliyorsa şarj geri bildirimini denetleyin</string>
     <string name="charging_sound">Şarj sesi</string>
     <string name="charging_vibration">Şarj titreşimi</string>
-    <string name="charging_feedback_elevated_note">Root veya Shizuku gerekir ve yazıldıktan sonra ayarları doğrular. Desteklenmeyen ROM’lar hata bildirir.</string>
     <string name="network_mode_phone_permission_hint">Etkin SIM kartları ve cihazınızın gerçekten desteklediği ağ modlarını okumak için telefon durumu erişimine izin verin. Ağ modunu değiştirmek için root, Shizuku veya sistem uygulaması erişimi de gerekir.</string>
 
 
@@ -1042,22 +964,14 @@
     <string name="action_rom_setting_theme">Tema ve Monet</string>
     <string name="action_rom_setting_theme_sub">Vurgu, Monet, simgeler, yazı tipleri</string>
     <string name="any_bluetooth_device">Herhangi bir Bluetooth cihazı</string>
-    <string name="any_bluetooth_device_hint">Herhangi bir Bluetooth cihazı bağlandığında veya bağlantısı kesildiğinde çalışır.</string>
     <string name="any_device">Herhangi bir cihaz</string>
-    <string name="sms_match_contains">İçerir</string>
     <string name="sms_match_exact">Tam eşleşme</string>
-    <string name="sms_match_any">Herhangi bir metin</string>
     <string name="trigger_type_incoming_call">Gelen arama</string>
     <string name="trigger_type_incoming_call_sub">Telefon çalmadan önce aramaları inceler</string>
-    <string name="call_from_hint">Numara veya bir kısmı (isteğe bağlı)</string>
-    <string name="call_category_any">Her arayan</string>
     <string name="call_category_unknown">Bilinmeyen numaralar</string>
     <string name="call_category_private">Gizli numaralar</string>
     <string name="call_category_contact">Kişiler</string>
     <string name="call_screening_hint">Çalmadan önce engellemek için sistem ayarlarında "Arayan kimliği ve spam filtresi" rolünü verin</string>
-    <string name="call_contacts_permission_hint">Kişiler erişimi yalnızca kayıtlı arayanları tanımak için kullanılır. Bu izin yoksa aramalar bilinmeyen olarak değerlendirilir.</string>
-    <string name="call_block_hint">Şu an çalan aramayı reddeder; filtreleme rolü veya bu izin gerekir</string>
-    <string name="call_silence_hint">Aramayı reddetmeden zil sesini kapatır</string>
     <string name="action_call_block">Aramayı engelle</string>
     <string name="action_call_block_sub">Şu anki gelen aramayı reddet</string>
     <string name="action_call_silence">Aramayı sessize al</string>
@@ -1073,9 +987,6 @@
     <string name="trigger_type_wifi_connected_sub">Cihaz Wi-Fi\'ye bağlandığında (veya koptuğunda) çalışır</string>
     <string name="trigger_type_mobile_data">Mobil veri bağlı</string>
     <string name="trigger_type_mobile_data_sub">Mobil veri etkin ağ olduğunda çalışır (veya olmazsa)</string>
-    <string name="call_match_any">Herhangi bir numara</string>
-    <string name="call_mode_hint">Arayan numarasıyla eşleşir, mesaj metniyle değil.</string>
-    <string name="call_number_filter">Arayan numarası</string>
     <string name="key_event_custom">Özel tuş (ad veya kod)</string>
     <string name="battery_temp_hint">Santigrat derece, örn. 40</string>
     <string name="map_picker_title">Konum seç</string>
@@ -1223,8 +1134,6 @@
     <string name="search_by_name">Ada göre ara</string>
     <string name="search_by_package">Pakete göre ara</string>
     <string name="recently_used_apps">Görevlerde son kullanılanlar</string>
-    <string name="bt_pick_ok">Bu cihazı kullan</string>
-    <string name="calendar_pick_ok">Bu takvimi kullan</string>
     <string name="diagnostics_title">Yapılandırma sorunları</string>
     <string name="diagnostics_empty">Yapılandırma sorunu bulunamadı</string>
     <string name="diagnostics_intro">Eylemleri geçersiz yapılandırma değerleri nedeniyle çalışma zamanında başarısız olan görevler</string>
@@ -1242,9 +1151,6 @@
     <string name="http_retry_cap_ms">Üst sınır: %1$d ms</string>
     <string name="pointer_speed_range">İşaretçi hızı -7 (en yavaş) ile 7 (en hızlı) arasındadır; 0 sistem varsayılanıdır.</string>
     <string name="screensaver_minutes_chip">%1$d dk</string>
-    <string name="density_range_hint">Ekran yoğunluğu: 120 ila 1000 dpi (motor bu aralığın dışındaki değerleri reddeder)</string>
-    <string name="bt_discoverable_range_hint">0 (asla) ile 3600 saniye; motor değerleri bu aralığa indirger</string>
-    <string name="screensaver_range_hint">1 ile 1440 dakika (24 saat); motor değerleri bu aralığa indirger</string>
     <string name="http_allow_private">Yerel/özel ağ hedeflerine izin ver</string>
     <string name="http_private_warning">Yalnızca HTTPS. Bunu yalnızca güvenilir hizmetler için etkinleştirin. Android 17 yerel ağ izni gerektirir.</string>
     <string name="action_data_text">Metin dönüşümü</string>
@@ -1312,18 +1218,11 @@
     <string name="action_call_reply_sms">Arayana SMS ile yanıt ver</string>
     <string name="action_call_reply_sms_sub">Bu iş akışını başlatan arayana mesaj gönder</string>
     <string name="action_sms_block">Gelen SMS’leri engelle</string>
-    <string name="action_sms_block_hint">Bu mesaj yalnızca NexaFlow varsayılan SMS uygulamasıysa durdurulur. Aksi durumda eylem gerekli rolü bildirir.</string>
     <string name="action_sms_block_sub">Eşleşen SMS’lerin teslimini durdur (varsayılan SMS rolü gerekir)</string>
     <string name="action_sms_reply">Gelen SMS’i yanıtla</string>
     <string name="action_sms_reply_sub">Bu iş akışını başlatan gönderene mesaj gönder</string>
-    <string name="call_block_silent_hint">Android destekliyorsa eşleşen aramayı engeller ve bildirimini gizler.</string>
-    <string name="reply_message">Yanıt mesajı</string>
 
     <string name="task_restore_failed">Görevin önceki ayarları geri yüklenemedi</string>
-    <string name="bluetooth_advanced">Gelişmiş seçenekler</string>
-    <string name="bluetooth_advanced_hide">Gelişmiş seçenekleri gizle</string>
-    <string name="bluetooth_device_name">Cihaz adı</string>
-    <string name="bluetooth_device_address">MAC adresi</string>
     <string name="trigger_temporal_filters_title">Zamansal filtreler</string>
 
     <string name="trigger_expression_title">Gelişmiş tetikleyici ifadesi</string>
@@ -1348,5 +1247,4 @@
     <string name="network_metered">Kotalı ağ</string>
     <string name="network_ssid">Wi-Fi adı (SSID)</string>
     <string name="network_bssid">Erişim noktası (BSSID)</string>
-    <string name="network_identity_permission_hint">Android, bağlı Wi-Fi adını ve erişim noktasını okumak için konum izni isteyebilir. NexaFlow bu değerleri yalnızca bu tetikleyiciyi eşleştirmek için okur.</string>
 </resources>

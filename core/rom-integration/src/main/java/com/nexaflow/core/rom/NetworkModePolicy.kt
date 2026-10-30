@@ -109,9 +109,23 @@ object NetworkModePolicy {
     }
 
     /**
+     * True when [mask] restricts the radio to 5G with no fallback family.
+     *
+     * Such a profile is a lab/standalone-5G mode, not a user preference: an
+     * NSA carrier cannot register without the LTE anchor, so writing it drops
+     * service entirely: on a customized OEM ROM the SIM left service and
+     * `cmd phone` then answered "No valid subscription found". It is therefore
+     * never offered and never applied.
+     */
+    fun isNrOnly(mask: Long): Boolean =
+        (mask and BITMASK_SELECTABLE_CELLULAR) == BITMASK_5G
+
+    /**
      * Generates only profiles that are complete subsets of [supportedMask].
      * This preserves real carrier/hardware limits instead of displaying a
-     * hard-coded list of 2G/3G/4G/5G choices on every phone.
+     * hard-coded list of 2G/3G/4G/5G choices on every phone. A 5G preference
+     * always keeps the lower generations it was derived from, so selecting
+     * "5G" cannot leave the device without a fallback radio.
      */
     fun optionsFor(supportedMask: Long): List<Option> {
         val supported = supportedMask and BITMASK_SELECTABLE_CELLULAR
@@ -126,7 +140,8 @@ object NetworkModePolicy {
         )
         standardProfiles.forEach { option ->
             if (option.allowedNetworkTypes != supported &&
-                (supported and option.allowedNetworkTypes) == option.allowedNetworkTypes
+                (supported and option.allowedNetworkTypes) == option.allowedNetworkTypes &&
+                !isNrOnly(option.allowedNetworkTypes)
             ) {
                 options += option
             }

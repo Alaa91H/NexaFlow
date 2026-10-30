@@ -121,16 +121,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** Trigger types that use ON/OFF state but with custom labels. */
-internal val ON_OFF_TRIGGER_LABELS = mapOf(
-    TriggerType.POWER_SAVER to R.string.trigger_power_saver_state,
-    TriggerType.BLUETOOTH_STATE to R.string.trigger_bluetooth_state_hint,
-    TriggerType.AUTO_ROTATE to R.string.trigger_auto_rotate_state,
-    TriggerType.DATA_SAVER_STATE to R.string.trigger_data_saver_state,
-    TriggerType.WIFI_STATE to R.string.trigger_wifi_state_hint,
-    TriggerType.NFC_STATE to R.string.trigger_nfc_state_hint
-)
-
 internal const val LOCATION_RADIUS_MIN_M = 50
 internal const val LOCATION_RADIUS_MAX_M = 2000
 // (max - min) / step - 1: 50 m granularity between the endpoints.

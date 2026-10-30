@@ -1,14 +1,5 @@
 package com.nexaflow.feature.builder
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.media.RingtoneManager
-import android.net.Uri
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,52 +8,27 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Reply
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
-import com.nexaflow.core.rom.DnsProviderCatalog
-import com.nexaflow.core.rom.NetworkModeCapabilities
-import com.nexaflow.core.rom.NetworkModePolicy
-import com.nexaflow.core.rom.NetworkModeSnapshot
-import com.nexaflow.core.rom.PrivilegedRunner
-import com.nexaflow.core.rom.RootPermissionGranter
-import com.nexaflow.core.rom.ShizukuShellBridge
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
-import com.nexaflow.domain.variables.VariableResolver
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /** Simple toggle actions that use "turn_on" as their label. */
 private val TURN_ON_TOGGLE_ACTIONS = setOf(
@@ -105,306 +71,8 @@ fun ActionConfigEditor(
     automations: List<Automation> = emptyList()
 ) {
     when (option.actionType) {
-        ActionType.SYSTEM_BRIGHTNESS -> {
-            val value = config["value"]?.toIntOrNull() ?: 128
-            SliderRow(
-                label = stringResource(R.string.brightness_label, value),
-                value = value.toFloat(),
-                onValueChange = { onConfigChange(mapOf("value" to it.toInt().toString())) },
-                valueRange = 0f..255f
-            )
-        }
-        ActionType.SYSTEM_VOLUME -> {
-            val value = config["value"]?.toIntOrNull() ?: 50
-            SliderRow(
-                label = stringResource(R.string.volume_label, value),
-                value = value.toFloat(),
-                onValueChange = { onConfigChange(mapOf("value" to it.toInt().toString())) },
-                valueRange = 0f..100f
-            )
-        }
-        ActionType.SYSTEM_RING_VOLUME -> {
-            val value = config["value"]?.toIntOrNull() ?: 50
-            SliderRow(
-                label = stringResource(R.string.ring_volume_label, value),
-                value = value.toFloat(),
-                onValueChange = { onConfigChange(mapOf("value" to it.toInt().toString())) },
-                valueRange = 0f..100f
-            )
-        }
-        ActionType.SYSTEM_STREAM_VOLUME -> {
-            val streams = STREAM_OPTIONS.map { (key, res) -> key to stringResource(res) }
-            val selectedStream = config["stream"] ?: "MUSIC"
-            val value = config["value"]?.toIntOrNull() ?: 50
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = stringResource(R.string.stream_label), style = MaterialTheme.typography.titleSmall)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    streams.forEach { (stream, label) ->
-                        SelectChip(
-                            selected = selectedStream == stream,
-                            onClick = { onConfigChange(config + ("stream" to stream)) },
-                            label = label
-                        )
-                    }
-                }
-                SliderRow(
-                    label = stringResource(R.string.stream_volume_label, value),
-                    value = value.toFloat(),
-                    onValueChange = { onConfigChange(config + ("value" to it.toInt().toString())) },
-                    valueRange = 0f..100f
-                )
-            }
-        }
         ActionType.SYSTEM_NETWORK_MODE -> {
             NetworkModeSelector(config = config, onConfigChange = onConfigChange)
-        }
-        ActionType.SYSTEM_SET_RINGTONE -> {
-            val context = LocalContext.current
-            // Ringtone picker returns the chosen URI in the result intent; the
-            // URI is stored so execution (and revert) can apply it later.
-            val ringtoneLauncher = rememberLauncherForActivityResult(
-                ActivityResultContracts.StartActivityForResult()
-            ) { result ->
-                val uri = result.data?.getStringExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
-                    ?: result.data?.let { data ->
-                        runCatching {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                data.getParcelableExtra(
-                                    RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
-                                    Uri::class.java
-                                )
-                            } else {
-                                @Suppress("DEPRECATION")
-                                data.getParcelableExtra<Uri>(
-                                    RingtoneManager.EXTRA_RINGTONE_PICKED_URI
-                                )
-                            }
-                        }.getOrNull()?.toString()
-                    }
-                if (!uri.isNullOrBlank()) {
-                    onConfigChange(config + ("uri" to uri))
-                }
-            }
-            val ringtoneTitle = stringResource(R.string.choose_ringtone)
-            val buildRingtoneIntent = {
-                Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_RINGTONE)
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, ringtoneTitle)
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                    config["uri"]?.let { putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(it)) }
-                }
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.ringtone_label),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                val currentUri = config["uri"]
-                val ringtoneName = currentUri?.let { uri ->
-                    runCatching {
-                        RingtoneManager.getRingtone(context, Uri.parse(uri))?.getTitle(context)
-                    }.getOrNull()
-                }
-                androidx.compose.material3.OutlinedButton(
-                    onClick = {
-                        val intent = buildRingtoneIntent()
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            ringtoneLauncher.launch(intent)
-                        } else {
-                            // No ringtone picker activity available: fall back to
-                            // the default ringtone silently rather than crashing.
-                            onConfigChange(
-                                config + ("uri" to RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE).toString())
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(imageVector = Icons.Filled.MusicNote, contentDescription = null)
-                    Text(
-                        text = if (!ringtoneName.isNullOrBlank()) {
-                            ringtoneName
-                        } else {
-                            stringResource(R.string.choose_ringtone)
-                        },
-                        modifier = Modifier.padding(start = 6.dp)
-                    )
-                }
-            }
-        }
-        ActionType.SYSTEM_LOCATION,
-        ActionType.SYSTEM_DND,
-        ActionType.SYSTEM_WIFI,
-        ActionType.SYSTEM_BLUETOOTH,
-        ActionType.SYSTEM_FLASHLIGHT,
-        ActionType.SYSTEM_AIRPLANE_MODE,
-        ActionType.SYSTEM_STAY_AWAKE,
-        ActionType.SYSTEM_AUTO_BRIGHTNESS,
-        ActionType.SYSTEM_MOBILE_DATA,
-        ActionType.SYSTEM_HOTSPOT,
-        ActionType.SYSTEM_NFC,
-        ActionType.SYSTEM_POWER_SAVER,
-        ActionType.SYSTEM_ANIMATIONS,
-        ActionType.SYSTEM_DARK_MODE -> {
-            val label = if (option.actionType in TURN_ON_TOGGLE_ACTIONS) {
-                R.string.turn_on
-            } else {
-                option.titleRes
-            }
-            ToggleConfigRow(
-                label = stringResource(label),
-                checked = config["enabled"]?.toBoolean() ?: true,
-                onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-            )
-        }
-        ActionType.SYSTEM_SEND_SMS -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["number"] ?: "",
-                    onValueChange = { onConfigChange(config + ("number" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.phone_number)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-                )
-                OutlinedTextField(
-                    value = config["text"] ?: "Automation executed",
-                    onValueChange = { onConfigChange(config + ("text" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.text)) },
-                    singleLine = true
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["text"] ?: "",
-                    onValueChange = { onConfigChange(config + ("text" to it)) }
-                )
-            }
-        }
-        ActionType.SMS_REPLY, ActionType.CALL_REPLY_WITH_SMS -> {
-            OutlinedTextField(
-                value = config["text"] ?: "",
-                onValueChange = { onConfigChange(config + ("text" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.reply_message)) },
-                singleLine = false
-            )
-            VariableInsertChips(
-                availableVariables = availableVariables,
-                currentValue = config["text"] ?: "",
-                onValueChange = { onConfigChange(config + ("text" to it)) }
-            )
-        }
-        ActionType.SMS_BLOCK_INCOMING -> {
-            Text(text = stringResource(R.string.action_sms_block_hint))
-        }
-        ActionType.CALL_BLOCK -> {
-            // No config: rejects the currently ringing call. The runtime
-            // permission request is surfaced by PermissionCatalog's hint row;
-            // here we only explain the behavior.
-            Text(text = stringResource(R.string.call_block_hint))
-        }
-        ActionType.CALL_BLOCK_SILENT -> {
-            Text(text = stringResource(R.string.call_block_silent_hint))
-        }
-        ActionType.CALL_SILENCE -> {
-            // No config: silences the ring without rejecting the call.
-            Text(text = stringResource(R.string.call_silence_hint))
-        }
-        ActionType.SYSTEM_SEND_REMINDER -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["title"] ?: "Reminder",
-                    onValueChange = { onConfigChange(config + ("title" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.reminder_title)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = config["text"] ?: "",
-                    onValueChange = { onConfigChange(config + ("text" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.reminder_text)) },
-                    singleLine = true
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["text"] ?: "",
-                    onValueChange = { onConfigChange(config + ("text" to it)) }
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    BoundedNumberField(
-                        value = config["hour"] ?: "9",
-                        onValueChange = { onConfigChange(config + ("hour" to it)) },
-                        min = 0,
-                        max = 23,
-                        label = stringResource(R.string.hour),
-                        modifier = Modifier.weight(1f)
-                    )
-                    BoundedNumberField(
-                        value = config["minute"] ?: "0",
-                        onValueChange = { onConfigChange(config + ("minute" to it)) },
-                        min = 0,
-                        max = 59,
-                        label = stringResource(R.string.minute),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-        ActionType.SYSTEM_OPEN_SETTINGS -> {
-            val pages = listOf(
-                "SETTINGS" to stringResource(R.string.action_open_settings),
-                "WIFI" to stringResource(R.string.settings_wifi),
-                "BLUETOOTH" to stringResource(R.string.settings_bluetooth),
-                "LOCATION" to stringResource(R.string.settings_location),
-                "NETWORK" to stringResource(R.string.settings_network),
-                "NFC" to stringResource(R.string.settings_nfc),
-                "AIRPLANE_MODE" to stringResource(R.string.settings_airplane),
-                "DATA_USAGE" to stringResource(R.string.settings_data_usage),
-                "DATA_SAVER" to stringResource(R.string.settings_data_saver),
-                "VPN" to stringResource(R.string.settings_vpn),
-                "DISPLAY" to stringResource(R.string.settings_display),
-                "SOUND" to stringResource(R.string.settings_sound),
-                "BATTERY" to stringResource(R.string.settings_battery),
-                "STORAGE" to stringResource(R.string.settings_storage),
-                "SECURITY" to stringResource(R.string.settings_security),
-                "PRIVACY" to stringResource(R.string.settings_privacy),
-                "ACCESSIBILITY" to stringResource(R.string.settings_accessibility),
-                "APP_SETTINGS_LIST" to stringResource(R.string.settings_apps),
-                "DEFAULT_APPS" to stringResource(R.string.settings_default_apps),
-                "ABOUT_PHONE" to stringResource(R.string.settings_about),
-                "DEVELOPER" to stringResource(R.string.settings_developer),
-                "DEVICE_ADMIN" to stringResource(R.string.settings_device_admin),
-                "USAGE_ACCESS" to stringResource(R.string.settings_usage_access),
-                "INPUT_METHOD" to stringResource(R.string.settings_input_method),
-                "DATE" to stringResource(R.string.settings_date),
-                "PRINT" to stringResource(R.string.settings_print),
-                "CAST" to stringResource(R.string.settings_cast),
-                "NOTIFICATION" to stringResource(R.string.settings_notifications),
-                "SYSTEM_UPDATE" to stringResource(R.string.action_system_update)
-            )
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                pages.forEach { (value, label) ->
-                    SelectChip(
-                        selected = (config["page"] ?: "WIFI") == value,
-                        onClick = { onConfigChange(mapOf("page" to value)) },
-                        label = label
-                    )
-                }
-            }
         }
         ActionType.SYSTEM_VIBRATE -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -428,22 +96,6 @@ fun ActionConfigEditor(
                 }
             }
         }
-        ActionType.SYSTEM_CLIPBOARD_SET -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["text"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("text" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.clipboard_text)) },
-                    singleLine = true
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["text"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("text" to it)) }
-                )
-            }
-        }
         ActionType.SYSTEM_SCREEN_TIMEOUT -> {
             val seconds = config["seconds"]?.toIntOrNull() ?: 60
             SliderRow(
@@ -452,44 +104,6 @@ fun ActionConfigEditor(
                 onValueChange = { onConfigChange(mapOf("seconds" to it.toInt().toString())) },
                 valueRange = 10f..1800f
             )
-        }
-        ActionType.SYSTEM_RINGER_MODE -> {
-            val modes = listOf(
-                "NORMAL" to stringResource(R.string.ringer_normal),
-                "VIBRATE" to stringResource(R.string.ringer_vibrate),
-                "SILENT" to stringResource(R.string.ringer_silent)
-            )
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                modes.forEach { (value, label) ->
-                    SelectChip(
-                        selected = (config["mode"] ?: "NORMAL") == value,
-                        onClick = { onConfigChange(mapOf("mode" to value)) },
-                        label = label
-                    )
-                }
-            }
-        }
-        ActionType.SYSTEM_SET_ALARM -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                BoundedNumberField(
-                    value = config["hour"] ?: "7",
-                    onValueChange = { onConfigChange(config + ("hour" to it)) },
-                    min = 0,
-                    max = 23,
-                    label = stringResource(R.string.hour)
-                )
-                BoundedNumberField(
-                    value = config["minute"] ?: "0",
-                    onValueChange = { onConfigChange(config + ("minute" to it)) },
-                    min = 0,
-                    max = 59,
-                    label = stringResource(R.string.minute)
-                )
-            }
         }
         ActionType.SYSTEM_SET_TIMER -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -644,30 +258,6 @@ fun ActionConfigEditor(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
-        }
-        ActionType.SYSTEM_SCREEN_ROTATION -> {
-            ToggleConfigRow(
-                label = stringResource(R.string.auto_rotate),
-                checked = config["autoRotate"]?.toBoolean() ?: true,
-                onCheckedChange = { onConfigChange(mapOf("autoRotate" to it.toString())) }
-            )
-        }
-        ActionType.SYSTEM_OPEN_URL -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["url"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("url" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.url)) },
-                    placeholder = { Text(text = stringResource(R.string.url_hint)) },
-                    singleLine = true
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["url"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("url" to it)) }
-                )
-            }
         }
         ActionType.DATA_TEXT, ActionType.DATA_ENCODING, ActionType.DATA_HASH, ActionType.DATA_RANDOM, ActionType.DATA_MATH, ActionType.DATA_DATE_TIME, ActionType.DATA_JSON, ActionType.DATA_ARRAY -> {
             val operations = com.nexaflow.domain.workflow.DataTransforms.operations.getValue(option.actionType)
@@ -834,87 +424,6 @@ fun ActionConfigEditor(
                 )
             }
         }
-        ActionType.BATTERY_ALERTS -> {
-            val below = config["below"]?.toIntOrNull() ?: 20
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SliderRow(
-                    label = stringResource(R.string.alert_below, below),
-                    value = below.toFloat(),
-                    onValueChange = { onConfigChange(config + ("below" to it.toInt().toString())) },
-                    valueRange = 5f..100f
-                )
-                OutlinedTextField(
-                    value = config["message"] ?: "Battery alert triggered",
-                    onValueChange = { onConfigChange(config + ("message" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.message_optional)) },
-                    singleLine = true
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["message"] ?: "Battery alert triggered",
-                    onValueChange = { onConfigChange(config + ("message" to it)) }
-                )
-                Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
-                val alertSounds = listOf(
-                    "DEFAULT" to stringResource(R.string.sound_default),
-                    "RINGTONE" to stringResource(R.string.sound_ringtone),
-                    "NOTIFICATION" to stringResource(R.string.sound_notification),
-                    "BEEP" to stringResource(R.string.sound_beep),
-                    "SILENT" to stringResource(R.string.sound_silent)
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    alertSounds.forEach { (value, label) ->
-                        SelectChip(
-                            selected = (config["sound"] ?: "DEFAULT") == value,
-                            onClick = { onConfigChange(config + ("sound" to value)) },
-                            label = label
-                        )
-                    }
-                }
-            }
-        }
-        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["message"] ?: "Battery alert triggered",
-                    onValueChange = { onConfigChange(config + ("message" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.message_optional)) },
-                    singleLine = true
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["message"] ?: "Battery alert triggered",
-                    onValueChange = { onConfigChange(config + ("message" to it)) }
-                )
-                Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
-                val chargingSounds = listOf(
-                    "DEFAULT" to stringResource(R.string.sound_default),
-                    "RINGTONE" to stringResource(R.string.sound_ringtone),
-                    "NOTIFICATION" to stringResource(R.string.sound_notification),
-                    "BEEP" to stringResource(R.string.sound_beep),
-                    "SILENT" to stringResource(R.string.sound_silent)
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    chargingSounds.forEach { (value, label) ->
-                        SelectChip(
-                            selected = (config["sound"] ?: "DEFAULT") == value,
-                            onClick = { onConfigChange(config + ("sound" to value)) },
-                            label = label
-                        )
-                    }
-                }
-            }
-        }
         ActionType.ADVANCED_SHIZUKU,
         ActionType.ADVANCED_ROOT -> {
             OutlinedTextField(
@@ -952,94 +461,21 @@ fun ActionConfigEditor(
                 }
             }
         }
-        ActionType.APPLICATION_CLOSE_APP -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                OutlinedTextField(
-                    value = config["package"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("package" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.package_name)) },
-                    singleLine = true
-                )
-                TextButton(onClick = onPickApp) {
-                    Text(text = stringResource(R.string.choose_from_installed))
-                }
-            }
-        }
-        ActionType.APPLICATION_LAUNCH_APP -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                OutlinedTextField(
-                    value = config["package"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("package" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.package_name)) },
-                    singleLine = true
-                )
-                TextButton(onClick = onPickApp) {
-                    Text(text = stringResource(R.string.choose_from_installed))
-                }
-            }
-        }
-        ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
-        ActionType.SYSTEM_MEDIA_NEXT,
-        ActionType.SYSTEM_MEDIA_PREVIOUS,
-        ActionType.SYSTEM_CLEAR_NOTIFICATIONS,
-        ActionType.SYSTEM_EXPAND_STATUS_BAR,
-        ActionType.SYSTEM_COLLAPSE_STATUS_BAR,
-        ActionType.SYSTEM_LOCK_SCREEN,
-        ActionType.SYSTEM_OPEN_RECENTS,
-        ActionType.SYSTEM_GO_HOME,
-        ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS,
-        ActionType.SYSTEM_OPEN_PLAY_UPDATES,
-        ActionType.SYSTEM_OPEN_DEVICE_STORE,
-        ActionType.SYSTEM_MEDIA_STOP,
-        ActionType.SYSTEM_OPEN_NOTIFICATIONS,
-        ActionType.SYSTEM_OPEN_QUICK_SETTINGS,
-        ActionType.SYSTEM_WAKE_SCREEN,
-        ActionType.SYSTEM_MEDIA_FAST_FORWARD,
-        ActionType.SYSTEM_MEDIA_REWIND,
-        ActionType.SYSTEM_OPEN_CAMERA,
-        ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
-        ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS,
-        ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
-        ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
-        ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,
-        ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS,
-        ActionType.SYSTEM_OPEN_BATTERY_SETTINGS,
-        ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS,
-        ActionType.SYSTEM_OPEN_SOUND_SETTINGS,
-        ActionType.SYSTEM_OPEN_STORAGE_SETTINGS,
-        ActionType.SYSTEM_OPEN_SECURITY_SETTINGS,
-        ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
-        ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST,
-        ActionType.SYSTEM_OPEN_ABOUT_PHONE,
-        ActionType.SYSTEM_REBOOT,
+        // Launch, close and the Play Store listing share one package contract.
+        ActionType.APPLICATION_CLOSE_APP,
+        ActionType.APPLICATION_LAUNCH_APP,
+        ActionType.SYSTEM_OPEN_PLAY_STORE_APP -> PackageFieldEditor(
+            config = config,
+            onConfigChange = onConfigChange,
+            onPickApp = onPickApp
+        )
+        // Reboot is the only one of these with a typed option; the rest take no
+        // configuration and previously shared the Settings namespace/key/value
+        // editor, which wrote fields the runtime never read.
+        ActionType.SYSTEM_REBOOT -> RebootTargetEditor(config = config, onConfigChange = onConfigChange)
         ActionType.SYSTEM_SHUTDOWN,
         ActionType.SYSTEM_RESTART_SYSTEM_UI,
-        ActionType.SYSTEM_PASTE,
-        ActionType.SYSTEM_OPEN_APP_DRAWER,
-        ActionType.SYSTEM_TOGGLE_PIP,
-        ActionType.SYSTEM_SOFT_RESTART,
-        ActionType.SYSTEM_OPEN_CONTACTS,
-        ActionType.SYSTEM_BLUETOOTH_SCAN,
-        ActionType.SYSTEM_WIFI_SCAN_NOW,
-        ActionType.SYSTEM_OPEN_NETWORK_SETTINGS,
-        ActionType.SYSTEM_OPEN_NFC_SETTINGS,
-        ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS,
-        ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS,
-        ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS,
-        ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS,
-        ActionType.SYSTEM_OPEN_CAST_SETTINGS,
-        ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
-        ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
-        ActionType.SYSTEM_OPEN_VPN_SETTINGS,
-        ActionType.SYSTEM_OPEN_DATE_SETTINGS,
-        ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
-        ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
-        ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
-        ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS -> {
-            RunsImmediatelyHint()
-        }
+        ActionType.SYSTEM_SOFT_RESTART -> Unit
         ActionType.SYSTEM_SET_SETTING -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text = stringResource(R.string.setting_namespace), style = MaterialTheme.typography.titleSmall)
@@ -1262,22 +698,6 @@ fun ActionConfigEditor(
                 OutlinedTextField(value = config["batch_json"] ?: "", onValueChange = { onConfigChange(config + ("batch_json" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.rom_batch_json)) }, placeholder = { Text("{\"sysui_qs_tiles\":\"wifi,bt,cell\"}") }, minLines = 2, maxLines = 4)
             }
         }
-        ActionType.SYSTEM_SCREENSHOT -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["filename"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("filename" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.screenshot_filename)) },
-                    singleLine = true
-                )
-                Text(
-                    text = stringResource(R.string.screenshot_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-        }
         ActionType.SYSTEM_INPUT_TEXT -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -1387,139 +807,9 @@ fun ActionConfigEditor(
                 )
             }
         }
-        ActionType.SYSTEM_COLOR_INVERSION,
-        ActionType.SYSTEM_GRAYSCALE,
-        ActionType.SYSTEM_EXTRA_DIM,
-        ActionType.SYSTEM_NIGHT_LIGHT,
-        ActionType.SYSTEM_HAPTIC_FEEDBACK,
-        ActionType.SYSTEM_SOUND_EFFECTS,
-        ActionType.SYSTEM_DATA_SAVER,
-        ActionType.SYSTEM_SCREENSAVER,
-        ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
-        ActionType.SYSTEM_SHOW_TAPS,
-        ActionType.SYSTEM_POINTER_LOCATION,
-        ActionType.SYSTEM_ADAPTIVE_BATTERY,
-        ActionType.SYSTEM_AUTO_TIME,
-        ActionType.SYSTEM_AUTO_TIMEZONE,
-        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
-        ActionType.SYSTEM_WIFI_SCANNING,
-        ActionType.SYSTEM_DATA_ROAMING,
-        ActionType.SYSTEM_CALL_VIBRATION,
-        ActionType.SYSTEM_STATUS_BAR_TOGGLE -> {
-            val label = when (option.actionType) {
-                ActionType.SYSTEM_COLOR_INVERSION -> R.string.color_inversion
-                ActionType.SYSTEM_GRAYSCALE -> R.string.grayscale
-                ActionType.SYSTEM_EXTRA_DIM -> R.string.extra_dim
-                ActionType.SYSTEM_NIGHT_LIGHT -> R.string.night_light
-                ActionType.SYSTEM_HAPTIC_FEEDBACK -> R.string.haptic_feedback
-                ActionType.SYSTEM_SOUND_EFFECTS -> R.string.sound_effects
-                ActionType.SYSTEM_DATA_SAVER -> R.string.data_saver
-                ActionType.SYSTEM_SCREENSAVER -> R.string.screensaver
-                ActionType.SYSTEM_ALWAYS_ON_DISPLAY -> R.string.always_on_display
-                ActionType.SYSTEM_SHOW_TAPS -> R.string.show_taps
-                ActionType.SYSTEM_POINTER_LOCATION -> R.string.pointer_location
-                ActionType.SYSTEM_ADAPTIVE_BATTERY -> R.string.adaptive_battery
-                ActionType.SYSTEM_AUTO_TIME -> R.string.auto_time
-                ActionType.SYSTEM_AUTO_TIMEZONE -> R.string.auto_timezone
-                ActionType.SYSTEM_CAMERA_SHUTTER_SOUND -> R.string.camera_shutter_sound
-                ActionType.SYSTEM_WIFI_SCANNING -> R.string.wifi_scanning
-                else -> option.titleRes
-            }
-            ToggleConfigRow(
-                label = stringResource(label),
-                checked = config["enabled"]?.toBoolean() ?: true,
-                onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-            )
-        }
         ActionType.SYSTEM_FORCE_STOP_APP,
         ActionType.SYSTEM_CLEAR_APP_DATA -> {
             PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
-        }
-        ActionType.SYSTEM_PRIVATE_DNS -> {
-            val mode = config["mode"] ?: "AUTOMATIC"
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = stringResource(R.string.private_dns_mode), style = MaterialTheme.typography.titleSmall)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    listOf("OFF", "AUTOMATIC", "HOSTNAME").forEach { value ->
-                        val label = when (value) {
-                            "OFF" -> stringResource(R.string.private_dns_off)
-                            "HOSTNAME" -> stringResource(R.string.private_dns_hostname_mode)
-                            else -> stringResource(R.string.private_dns_automatic)
-                        }
-                        SelectChip(
-                            selected = mode == value,
-                            onClick = {
-                                onConfigChange(
-                                    config + ("mode" to value) +
-                                        ("hostname" to if (value == "HOSTNAME") config["hostname"].orEmpty() else "")
-                                )
-                            },
-                            label = label
-                        )
-                    }
-                }
-                if (mode == "HOSTNAME") {
-                    Text(
-                        text = stringResource(R.string.private_dns_hostname),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        DnsProviderCatalog.all().forEach { provider ->
-                            SelectChip(
-                                selected = config["hostname"].equals(provider.hostname, ignoreCase = true),
-                                onClick = {
-                                    onConfigChange(config + ("hostname" to provider.hostname))
-                                },
-                                label = provider.displayName
-                            )
-                        }
-                    }
-                    OutlinedTextField(
-                        value = config["hostname"].orEmpty(),
-                        onValueChange = { onConfigChange(config + ("hostname" to it.trim())) },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(text = stringResource(R.string.private_dns_hostname)) },
-                        singleLine = true
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.private_dns_elevated_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        ActionType.SYSTEM_LOCATION_MODE -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = stringResource(R.string.location_mode), style = MaterialTheme.typography.titleSmall)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    listOf("OFF", "SENSORS", "BATTERY", "HIGH").forEach { mode ->
-                        val label = when (mode) {
-                            "OFF" -> stringResource(R.string.location_mode_off)
-                            "SENSORS" -> stringResource(R.string.location_mode_sensors)
-                            "BATTERY" -> stringResource(R.string.location_mode_battery)
-                            else -> stringResource(R.string.location_mode_high)
-                        }
-                        SelectChip(
-                            selected = (config["mode"] ?: "HIGH") == mode,
-                            onClick = { onConfigChange(config + ("mode" to mode)) },
-                            label = label
-                        )
-                    }
-                }
-            }
         }
         ActionType.SYSTEM_FONT_SCALE -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1539,160 +829,6 @@ fun ActionConfigEditor(
                 }
             }
         }
-        ActionType.SYSTEM_DISPLAY_DENSITY -> {
-            OutlinedTextField(
-                value = config["dpi"] ?: "440",
-                onValueChange = { v -> onConfigChange(mapOf("dpi" to v.filter { it.isDigit() })) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.display_density)) },
-                supportingText = { Text(text = stringResource(R.string.density_range_hint)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-            )
-        }
-        ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> {
-            val value = config["percent"]?.toIntOrNull() ?: 20
-            SliderRow(
-                label = stringResource(R.string.battery_saver_threshold_label, value),
-                value = value.toFloat(),
-                onValueChange = { onConfigChange(mapOf("percent" to it.toInt().toString())) },
-                valueRange = 0f..100f
-            )
-        }
-        ActionType.SYSTEM_CHARGING_LIMIT -> {
-            val value = (config["percent"]?.toIntOrNull() ?: 80).coerceIn(50, 100)
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SliderRow(
-                    label = stringResource(R.string.charging_limit_value, value),
-                    value = value.toFloat(),
-                    onValueChange = { onConfigChange(mapOf("percent" to it.toInt().toString())) },
-                    valueRange = 50f..100f
-                )
-                Text(
-                    text = stringResource(R.string.charging_limit_root_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        ActionType.SYSTEM_CHARGING_FEEDBACK -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                ToggleConfigRow(
-                    label = stringResource(R.string.charging_sound),
-                    checked = config["sound"]?.toBoolean() ?: true,
-                    onCheckedChange = { onConfigChange(config + ("sound" to it.toString())) }
-                )
-                ToggleConfigRow(
-                    label = stringResource(R.string.charging_vibration),
-                    checked = config["vibration"]?.toBoolean() ?: true,
-                    onCheckedChange = { onConfigChange(config + ("vibration" to it.toString())) }
-                )
-                Text(
-                    text = stringResource(R.string.charging_feedback_elevated_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        ActionType.SYSTEM_WIFI_SLEEP_POLICY -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = stringResource(R.string.wifi_sleep_policy), style = MaterialTheme.typography.titleSmall)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    listOf("ALWAYS", "PLUGGED", "NEVER").forEach { policy ->
-                        val label = when (policy) {
-                            "PLUGGED" -> stringResource(R.string.wifi_sleep_plugged)
-                            "NEVER" -> stringResource(R.string.wifi_sleep_never)
-                            else -> stringResource(R.string.wifi_sleep_always)
-                        }
-                        SelectChip(
-                            selected = (config["policy"] ?: "ALWAYS") == policy,
-                            onClick = { onConfigChange(config + ("policy" to policy)) },
-                            label = label
-                        )
-                    }
-                }
-            }
-        }
-        ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY -> {
-            OutlinedTextField(
-                value = config["timeoutSeconds"] ?: "300",
-                onValueChange = { v -> onConfigChange(mapOf("timeoutSeconds" to v.filter { it.isDigit() })) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.bluetooth_discoverable_timeout)) },
-                supportingText = { Text(text = stringResource(R.string.bt_discoverable_range_hint)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-            )
-        }
-        ActionType.SYSTEM_HAPTIC_INTENSITY -> {
-            val value = config["level"]?.toIntOrNull() ?: 255
-            SliderRow(
-                label = stringResource(R.string.haptic_intensity_label, value),
-                value = value.toFloat(),
-                onValueChange = { onConfigChange(mapOf("level" to it.toInt().toString())) },
-                valueRange = 0f..255f
-            )
-        }
-        ActionType.SYSTEM_DIAL_NUMBER -> {
-            OutlinedTextField(
-                value = config["number"] ?: "",
-                onValueChange = { onConfigChange(mapOf("number" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.phone_number)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
-            )
-        }
-        ActionType.SYSTEM_TOAST -> {
-            OutlinedTextField(
-                value = config["text"] ?: "",
-                onValueChange = { onConfigChange(config + ("text" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.toast_text)) },
-                singleLine = true
-            )
-            VariableInsertChips(
-                availableVariables = availableVariables,
-                currentValue = config["text"] ?: "",
-                onValueChange = { onConfigChange(config + ("text" to it)) }
-            )
-        }
-        ActionType.SYSTEM_ALERT -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["title"] ?: "",
-                    onValueChange = { onConfigChange(config + ("title" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.title)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = config["text"] ?: "",
-                    onValueChange = { onConfigChange(config + ("text" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.text)) },
-                    singleLine = true
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["text"] ?: "",
-                    onValueChange = { onConfigChange(config + ("text" to it)) }
-                )
-            }
-        }
-        ActionType.SYSTEM_VIBRATE_PATTERN -> {
-            OutlinedTextField(
-                value = config["pattern"] ?: "0,200,100,200",
-                onValueChange = { onConfigChange(config + ("pattern" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.vibrate_pattern_label)) },
-                singleLine = true
-            )
-        }
         ActionType.SYSTEM_WIFI_CONNECT -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -1710,40 +846,6 @@ fun ActionConfigEditor(
                     singleLine = true
                 )
             }
-        }
-        ActionType.SYSTEM_WIFI_FORGET -> {
-            OutlinedTextField(
-                value = config["ssid"] ?: "",
-                onValueChange = { onConfigChange(config + ("ssid" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.wifi_ssid)) },
-                singleLine = true
-            )
-        }
-        ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> {
-            OutlinedTextField(
-                value = config["minutes"] ?: "10",
-                onValueChange = { onConfigChange(config + ("minutes" to it.filter { it2 -> it2.isDigit() })) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.screensaver_timeout_label)) },
-                supportingText = { Text(text = stringResource(R.string.screensaver_range_hint)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-            )
-        }
-        ActionType.SYSTEM_POINTER_SPEED -> {
-            OutlinedTextField(
-                value = config["speed"] ?: "0",
-                onValueChange = { raw ->
-                    // Engine parses an int (default 0); filtering here keeps
-                    // the stored config consistent with what the engine reads.
-                    onConfigChange(config + ("speed" to raw.filter { it.isDigit() || it == '-' }))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.pointer_speed_label)) },
-                supportingText = { Text(text = stringResource(R.string.pointer_speed_range)) },
-                singleLine = true
-            )
         }
         ActionType.SYSTEM_INSTALL_APK -> {
             OutlinedTextField(
@@ -1765,15 +867,6 @@ fun ActionConfigEditor(
                 singleLine = true
             )
         }
-        ActionType.SYSTEM_SET_NOTIFICATION_TONE -> {
-            OutlinedTextField(
-                value = config["tone"] ?: "",
-                onValueChange = { onConfigChange(config + ("tone" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.notification_tone_label)) },
-                singleLine = true
-            )
-        }
         ActionType.SYSTEM_OPEN_MAPS -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -1792,40 +885,10 @@ fun ActionConfigEditor(
                 )
             }
         }
-        ActionType.SYSTEM_SEND_EMAIL -> {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["to"] ?: "",
-                    onValueChange = { onConfigChange(config + ("to" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.email_to)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = config["subject"] ?: "",
-                    onValueChange = { onConfigChange(config + ("subject" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.email_subject)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = config["body"] ?: "",
-                    onValueChange = { onConfigChange(config + ("body" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.email_body)) },
-                    singleLine = true
-                )
-            }
-        }
-        ActionType.SYSTEM_SET_TIMEZONE -> {
-            OutlinedTextField(
-                value = config["zone"] ?: "GMT",
-                onValueChange = { onConfigChange(config + ("zone" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.timezone_label)) },
-                singleLine = true
-            )
-        }
+        // Every other action is rendered by CanonicalSchemaFieldEditor above;
+        // TriggerEditorRoutingTest fails if an action loses its schema binding
+        // and would land here with no editor.
+        else -> Unit
     }
 }
 

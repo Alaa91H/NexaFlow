@@ -48,6 +48,7 @@ class SystemController(
     private val smsAutomationName: String? = null
 ) {
     private val statusBarController = StatusBarController(context, capabilityProvider)
+    private val powerController = SystemPowerController()
     private val applicationPackageController = ApplicationPackageController()
     private val inputController = SystemInputController()
     private val systemSettingsController = SystemSettingsController(context, capabilityProvider)
@@ -1554,41 +1555,22 @@ class SystemController(
         }
     }
 
-    /** Opens the Play Store app itself. */
-    fun openPlayStoreApp(): SystemControlResult {
-        return try {
-            val intent = context.packageManager.getLaunchIntentForPackage("com.android.vending")
-                ?: return SystemControlResult.fail("Play Store not installed")
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            SystemControlResult.ok("Play Store opened")
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Play Store failed: ${t.message}")
-        }
-    }
+    /**
+     * Opens the Play Store, on the listing of [packageName] when one is
+     * declared (see [AppStoreLauncher]).
+     */
+    fun openPlayStoreApp(packageName: String? = null): SystemControlResult =
+        AppStoreLauncher.open(context, packageName)
 
-    /** Reboots the device (requires root). */
-    fun rebootDevice(): SystemControlResult =
-        tryPrivileged(SafeCommandBuilder.build("reboot"), "Reboot requested")
+    /** Reboots into the declared [mode] (`NORMAL`, `RECOVERY` or `BOOTLOADER`). */
+    fun rebootDevice(mode: String = RebootMode.NORMAL): SystemControlResult =
+        powerController.reboot(mode)
 
     /** Shuts the device down (requires root). */
-    fun shutdownDevice(): SystemControlResult =
-        tryPrivileged(SafeCommandBuilder.build("reboot", "-p"), "Shutdown requested")
+    fun shutdownDevice(): SystemControlResult = powerController.shutdown()
 
     /** Restarts the System UI process (requires root; falls back to a soft refresh). */
-    fun restartSystemUi(): SystemControlResult {
-        val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pkill", "-f", "com.android.systemui"))
-        if (shell.success) return SystemControlResult.ok("System UI restarted")
-        // Some Roms expose the stopservice path through cmd; otherwise report the failure.
-        val fallback = PrivilegedRunner.runShell(
-            SafeCommandBuilder.build("am", "broadcast", "-a", "android.intent.action.CLOSE_SYSTEM_DIALOGS")
-        )
-        return if (fallback.success) {
-            SystemControlResult.ok("System UI refresh requested")
-        } else {
-            SystemControlResult.fail("System UI restart requires root: ${shell.message}")
-        }
-    }
+    fun restartSystemUi(): SystemControlResult = powerController.restartSystemUi()
 
 
     /** Shows a short toast message. */

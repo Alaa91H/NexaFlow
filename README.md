@@ -48,6 +48,20 @@ UI resources cover English plus 10 translated-locale directories. Newly added da
 
 Historical plans and audits remain in the repository for provenance. The [documentation index](docs/README.md) distinguishes the current guides from historical/reference material. Release changes are recorded in English in [CHANGELOG.md](CHANGELOG.md).
 
+## Community and support
+
+NexaFlow is developed and maintained by [Alaa91H](https://github.com/Alaa91H). The same links are available inside the app under **Settings → About**.
+
+| Channel | Where | Use it for |
+|---|---|---|
+| Telegram channel | [@NexaFlowApp](https://t.me/NexaFlowApp) | Release announcements, build notes and status updates |
+| Telegram community | [@NexaFlowCommunity](https://t.me/NexaFlowCommunity) | Questions and discussion with other users |
+| Source code | [Alaa91H/NexaFlow](https://github.com/Alaa91H/NexaFlow) | Issues, pull requests and the full history |
+| Developer | [@Alaa91h](https://t.me/Alaa91h) · [alahus2591@gmail.com](mailto:alahus2591@gmail.com) | Private matters, security reports and collaboration |
+| Support | [ko-fi.com/alaa91h](https://ko-fi.com/alaa91h) | Optional financial support, no feature is gated behind it |
+
+Report reproducible issues with Android version, device build, permissions and a minimal task; redact tokens and private payloads. Security-sensitive reports should go to the developer email rather than a public issue or group.
+
 ## Development
 
 See [architecture](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), [required checks](docs/REQUIRED_CHECKS.md), and [release procedure](docs/RELEASING.md). Report reproducible issues with Android version, device build, permissions and a minimal task; redact tokens and private payloads.

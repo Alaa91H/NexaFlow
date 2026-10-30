@@ -55,7 +55,6 @@
     <string name="package_name">パッケージ名</string>
     <string name="choose_from_installed">インストール済みアプリから選択</string>
     <string name="app_detection_hint">アプリ検出にはアクセシビリティサービスが必要です</string>
-    <string name="enable">有効にする</string>
     <string name="state">状態</string>
 
     
@@ -162,18 +161,15 @@
     <string name="action_root_sub">Root経由でシェルコマンドを実行</string>
     <string name="brightness_label">明るさ: %1$d</string>
     <string name="volume_label">音量: %1$d</string>
-    <string name="turn_on">オンにする</string>
     <string name="apps_comma">アプリ（カンマ区切り）</string>
     <string name="title">タイトル</string>
     <string name="text">テキスト</string>
     <string name="auto_rotate">自動回転</string>
     <string name="url">URL</string>
-    <string name="url_hint">https://example.com</string>
     <string name="alert_below">以下の場合に通知: %1$d%%</string>
     <string name="message_optional">メッセージ（任意）</string>
     <string name="shell_command">シェルコマンド</string>
     <string name="shell_hint">例：settings put global airplane_mode_on 1</string>
-    <string name="runs_immediately">自動化が発動したらすぐに実行されます。</string>
     <string name="write_settings_hint">システム設定の変更許可が必要です</string>
     <string name="dnd_hint">おやすみモードのアクセスが必要です</string>
     <string name="flashlight_hint">ライトにはカメラアクセスが必要です</string>
@@ -228,8 +224,6 @@
     <string name="ringer_normal">着信中</string>
     <string name="ringer_vibrate">バイブ</string>
     <string name="ringer_silent">サイレント</string>
-    <string name="hour">時</string>
-    <string name="minute">分</string>
     <string name="elevated_hint">root、Shizuku、またはシステムアプリ権限が必要です</string>
     <string name="trigger_type_sms">SMS</string>
     <string name="repeat_custom">カスタム</string>
@@ -262,7 +256,6 @@
     <string name="pick_date">日付を選択</string>
     <string name="pick_on_map">地図で選択</string>
     <string name="sms_from">送信元（番号）</string>
-    <string name="sms_from_hint">例 05XXXXXXXX（空 = すべて）</string>
     <string name="sms_contains">メッセージに含む</string>
     <string name="sms_contains_hint">一致テキスト（空 = すべて）</string>
     <string name="permission_denied_hint">この機能を有効にするには権限が必要です</string>
@@ -288,9 +281,6 @@
     <string name="action_open_settings">設定を開く</string>
     <string name="action_open_settings_sub">システム設定ページを開く</string>
     <string name="ring_volume_label">着信音量: %1$d</string>
-    <string name="phone_number">電話番号</string>
-    <string name="reminder_title">リマインダーのタイトル</string>
-    <string name="reminder_text">リマインダーのテキスト</string>
     <string name="settings_wifi">Wi-Fi</string>
     <string name="settings_bluetooth">Bluetooth</string>
     <string name="settings_location">位置情報</string>
@@ -326,19 +316,17 @@
     <string name="trigger_app">アプリが開かれたとき</string>
     <string name="time_single">単一時刻</string>
     <string name="time_range">時間帯</string>
+    <string name="time_zone_section">タイムゾーン</string>
+    <string name="time_zone_device">端末のタイムゾーン</string>
+    <string name="time_zone_fixed">指定のタイムゾーン</string>
+    <string name="time_zone_id_label">IANA タイムゾーン（例: Europe/Berlin）</string>
+    <string name="time_zone_invalid">不明なタイムゾーン — 有効になるまで端末のタイムゾーンを使用します</string>
     <string name="time_range_start">開始</string>
     <string name="time_range_end">終了</string>
     <string name="range_same_day">同日</string>
     <string name="range_overnight">夜間 — 翌日に終了</string>
     <string name="trigger_type_bluetooth">Bluetooth デバイス</string>
     <string name="trigger_bluetooth">Bluetooth デバイス</string>
-    <string name="choose_bluetooth_device">Bluetooth デバイスを選択</string>
-    <string name="no_bluetooth_device">デバイス未選択</string>
-    <string name="no_paired_devices">ペアリング済みの Bluetooth デバイスが見つかりません</string>
-    <string name="bluetooth_turned_off_title">Bluetooth がオフです</string>
-    <string name="bluetooth_turned_off_body">ペアリング済みデバイスを表示してタスクに選択するには、Bluetooth をオンにしてください。</string>
-    <string name="bluetooth_permission_hint">ペアリング済みデバイスを検出するには Bluetooth をオンにします</string>
-    <string name="stream_label">サウンドチャンネル</string>
     <string name="stream_volume_label">音量 %1$d</string>
     <string name="stream_music">メディア</string>
     <string name="stream_ring">着信音</string>
@@ -355,9 +343,6 @@
     <string name="trigger_type_ringer">サウンドモード</string>
     <string name="trigger_ringer">サウンドモード</string>
     <string name="trigger_ringer_sub">サウンドモードが変わったとき</string>
-    <string name="ringer_mode_label">サウンドモード</string>
-    <string name="ringer_mode_hint">スマホが選択したサウンドモードに切り替わるとタスクが実行されます</string>
-    <string name="change_now">今すぐ変更</string>
 
     <string name="next_needs_action">先に実行ステップを1つ以上追加してください</string>
     <string name="occurrence_first">第1</string>
@@ -381,16 +366,9 @@
     <string name="trigger_type_calendar">カレンダー</string>
     <string name="trigger_calendar">カレンダーの予定</string>
     <string name="any_calendar">すべてのカレンダー</string>
-    <string name="choose_calendar">カレンダーを選択</string>
-    <string name="no_calendars_found">カレンダーが見つかりません</string>
-    <string name="calendar_contains">予定に含まれる文字</string>
-    <string name="calendar_contains_hint">例: 会議、歯医者 (空欄 = すべて)</string>
     <string name="calendar_event_start">開始時</string>
     <string name="calendar_event_end">終了時</string>
     <string name="calendar_event_created">予定が追加された時</string>
-    <string name="calendar_before_none">予定開始時</string>
-    <string name="calendar_before_minutes">予定の%1$d分前</string>
-    <string name="calendar_permission_hint">予定を読むにはカレンダーの権限が必要です</string>
     <string name="charger_type_label">充電器の種類</string>
     <string name="charger_any">すべて</string>
     <string name="charger_ac">AC / 壁</string>
@@ -511,7 +489,6 @@
     <string name="action_open_quick_settings">クイック設定</string>
     <string name="action_open_quick_settings_sub">クイック設定を開く</string>
     <string name="vibrate_duration">振動時間</string>
-    <string name="clipboard_text">クリップボードのテキスト</string>
     <string name="trigger_type_rom_setting">ROM設定</string>
     <string name="use_current_location">現在地を使用</string>
     <string name="location_coordinates">場所: %1$s, %2$s</string>
@@ -521,19 +498,12 @@
     <string name="location_inside">場所の内側</string>
     <string name="location_outside">場所の外側</string>
     <string name="location_fix_failed">現在地を取得できませんでした。位置情報を有効にして再試行してください。</string><string name="charging_yes">充電中</string>
-    <string name="ringtone_label">デフォルトの着信音</string>
     <string name="network_mode_sub">選択した SIM で実際に利用できるモードから選択します。変更の適用には昇格権限が必要です。</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">自動</string>
     <string name="network_mode_5g">5G</string>
-    <string name="network_mode_current">現在の世代</string>
-    <string name="network_mode_current_hint">デバイスの実際のセルラー世代のライブ読み取り（実際の5G検出）</string>
-    <string name="network_mode_fire_when">トリガー条件</string>
-    <string name="network_mode_unknown">不明</string>
-    <string name="network_mode_permission_hint">電話権限によりライブ世代と5Gの検出精度が向上します</string>
     <string name="charging_any">すべて</string>
     <string name="network_mode_4g">4G</string>
-    <string name="choose_ringtone">着信音を選択</string>
     <string name="action_network_mode_sub">選択した SIM で実際に利用できるモードから選択します。変更の適用には昇格権限が必要です。</string>
     <string name="action_set_ringtone_sub">デフォルトの着信音を選択</string>
     <string name="network_mode_3g">3G</string>
@@ -614,8 +584,6 @@
     <string name="setting_namespace">ネームスペース</string>
     <string name="setting_key">設定キー</string>
     <string name="setting_value">値</string>
-    <string name="screenshot_filename">ファイル名（任意）</string>
-    <string name="screenshot_hint">Pictures/NexaFlow に保存</string>
     <string name="input_text_label">入力するテキスト</string>
     <string name="key_event_label">キー（名前またはコード）</string>
     <string name="key_event_hint">例: POWER, HOME, VOLUME_UP または KEYCODE 番号</string>
@@ -626,12 +594,6 @@
     <string name="swipe_to_x">終わり X</string>
     <string name="swipe_to_y">終わり Y</string>
     <string name="swipe_duration">所要時間 (ms)</string>
-    <string name="color_inversion">色を反転</string>
-    <string name="grayscale">グレースケール</string>
-    <string name="extra_dim">エクストラディム</string>
-    <string name="night_light">ナイトライト</string>
-    <string name="haptic_feedback">触覚フィードバック</string>
-    <string name="sound_effects">タッチ音</string>
     <string name="action_location_mode">位置情報モード</string>
     <string name="action_location_mode_sub">位置情報モード</string>
     <string name="action_data_saver">データセーバー</string>
@@ -702,27 +664,13 @@
     <string name="action_open_play_store_app_sub">Playストアを開く</string>
     <string name="action_reboot">端末を再起動</string>
     <string name="action_reboot_sub">端末を再起動</string>
+    <string name="reboot_mode">再起動先</string>
     <string name="action_shutdown">端末の電源を切る</string>
     <string name="action_shutdown_sub">端末の電源を切る</string>
     <string name="action_restart_system_ui">システムUIを再起動</string>
     <string name="action_restart_system_ui_sub">システムUIを再起動</string>
-    <string name="location_mode">位置情報モード</string>
-    <string name="data_saver">データセーバー</string>
     <string name="font_scale">フォントサイズ</string>
     <string name="display_density">画面密度</string>
-    <string name="screensaver">スクリーンセーバー</string>
-    <string name="battery_saver_threshold_label">%1$d%% で開始</string>
-    <string name="always_on_display">常時表示ディスプレイ</string>
-    <string name="show_taps">タップ位置を表示</string>
-    <string name="pointer_location">ポインター位置</string>
-    <string name="adaptive_battery">アダプティブバッテリー</string>
-    <string name="wifi_sleep_policy">Wi-Fiスリープポリシー</string>
-    <string name="bluetooth_discoverable_timeout">検出可能時間（秒）</string>
-    <string name="auto_time">自動日時</string>
-    <string name="auto_timezone">自動タイムゾーン</string>
-    <string name="haptic_intensity_label">触覚の強さ %1$d</string>
-    <string name="camera_shutter_sound">カメラシャッター音</string>
-    <string name="wifi_scanning">常時Wi-Fiスキャン</string>
     <string name="device_locked">ロック中</string>
     <string name="device_unlocked">ロック解除</string>
     <string name="location_mode_off">オフ</string>
@@ -742,15 +690,9 @@
     <string name="wifi_sleep_never">しない</string>
     <string name="storage_below">以下</string>
     <string name="storage_above">以上</string>
-    <string name="trigger_power_saver_state">状態</string>
-    <string name="trigger_bluetooth_state_hint">タスクをトリガーする状態を選択</string>
     <string name="trigger_brightness_direction">方向</string>
     <string name="trigger_brightness_threshold">明るさ しきい値</string>
     <string name="trigger_data_saver_state">状態</string>
-    <string name="trigger_device_locked_state">状態</string>
-    <string name="trigger_location_mode">位置情報モード</string>
-    <string name="trigger_nfc_state_hint">タスクをトリガーする状態を選択</string>
-    <string name="trigger_rotation_state">状態</string>
     <string name="trigger_storage_direction">方向</string>
     <string name="trigger_storage_threshold">しきい値 (MB)</string>
     <string name="trigger_type_auto_rotate">自動回転</string>
@@ -764,8 +706,6 @@
     <string name="trigger_type_screen_rotation_state">画面回転</string>
     <string name="trigger_type_storage_low">ストレージ</string>
     <string name="trigger_type_wifi_state">Wi-Fi</string>
-    <string name="trigger_wifi_state_hint">タスクをトリガーする状態を選択</string>
-    <string name="trigger_auto_rotate_state">状態</string>
     <string name="action_alert">アラートを表示</string>
     <string name="action_alert_sub">警告ダイアログを表示</string>
     <string name="action_bluetooth_scan">Bluetoothスキャン</string>
@@ -846,13 +786,9 @@
     <string name="action_wifi_forget_sub">保存済みネットワークを削除</string>
     <string name="action_wifi_scan_now">Wi-Fiをスキャン</string>
     <string name="action_wifi_scan_now_sub">Wi-Fiスキャンを開始</string>
-    <string name="email_body">本文</string>
-    <string name="email_subject">件名</string>
-    <string name="email_to">宛先</string>
     <string name="install_apk_path">APKのパス</string>
     <string name="latitude">緯度</string>
     <string name="longitude">経度</string>
-    <string name="notification_tone_label">通知音</string>
     <string name="pointer_speed_label">ポインター速度 (-7〜7)</string>
     <string name="screensaver_timeout_label">スクリーンセーバーのタイムアウト (分)</string>
     <string name="settings_airplane">機内モード</string>
@@ -870,17 +806,11 @@
     <string name="settings_privacy">プライバシー</string>
     <string name="settings_usage_access">使用状況へのアクセス</string>
     <string name="settings_vpn">VPN</string>
-    <string name="timezone_label">タイムゾーン (例: GMT)</string>
-    <string name="toast_text">トーストのテキスト</string>
-    <string name="trigger_desc_alarm_set">アラームの設定・変更時に発動</string>
-    <string name="trigger_desc_boot">端末の起動完了時に発動</string>
     <string name="trigger_desc_clipboard">クリップボードの内容が変わったときに発動</string>
     <string name="trigger_desc_nfc_tag">NFCタグを検出したときに発動</string>
     <string name="trigger_desc_screen_timeout">画面のタイムアウト設定が変わったときに発動</string>
-    <string name="trigger_desc_timezone">端末のタイムゾーンが変わったときに発動</string>
     <string name="trigger_events_on_change">変更時に発動</string>
     <string name="trigger_signal_threshold">信号しきい値</string>
-    <string name="trigger_state_label">状態</string>
     <string name="trigger_temperature_threshold">温度しきい値 (°C)</string>
     <string name="trigger_type_alarm_set_changed">アラーム設定</string>
     <string name="trigger_type_auto_brightness_state">自動明るさ</string>
@@ -899,7 +829,6 @@
     <string name="trigger_type_usb_connected">USB接続</string>
     <string name="trigger_type_vpn_connected">VPN接続</string>
     <string name="trigger_type_wifi_signal_strength">Wi-Fiの電波強度</string>
-    <string name="vibrate_pattern_label">バイブレーションパターン</string>
     <string name="wifi_password">パスワード</string>
     <string name="wifi_ssid">Wi-Fi名 (SSID)</string>
     <string name="collapse_options">オプションを折りたたむ</string>
@@ -999,20 +928,13 @@
     <string name="action_private_dns_sub">Android のプライベート DNS モードまたはプロバイダを設定</string>
     <string name="action_charging_limit">充電上限</string>
     <string name="action_charging_limit_sub">対応ハードウェアの充電停止率を設定</string>
-    <string name="private_dns_mode">プライベート DNS モード</string>
     <string name="private_dns_off">オフ</string>
     <string name="private_dns_automatic">自動</string>
-    <string name="private_dns_hostname_mode">プロバイダのホスト名</string>
-    <string name="private_dns_hostname">プロバイダのホスト名</string>
-    <string name="private_dns_elevated_note">root または Shizuku が必要です。これは 1 つのアプリだけでなく、端末全体のプライベート DNS を変更します。</string>
-    <string name="charging_limit_value">充電上限: %1$d%%</string>
-    <string name="charging_limit_root_note">root と標準の充電制御ハードウェアノードが必要です。非対応端末では明示的に失敗します。</string>
 
     <string name="action_charging_feedback">充電時の音と振動</string>
     <string name="action_charging_feedback_sub">ROM が対応している場合に充電フィードバックを制御</string>
     <string name="charging_sound">充電音</string>
     <string name="charging_vibration">充電時の振動</string>
-    <string name="charging_feedback_elevated_note">root または Shizuku が必要で、書き込み後に設定を検証します。非対応 ROM では失敗が報告されます。</string>
     <string name="network_mode_phone_permission_hint">有効な SIM と端末が実際に対応するネットワークモードを読み取るため、電話の状態へのアクセスを許可してください。ネットワークモードの変更には root、Shizuku、またはシステムアプリのアクセスも必要です。</string>
 
 
@@ -1042,22 +964,14 @@
     <string name="action_rom_setting_theme">テーマとMonet</string>
     <string name="action_rom_setting_theme_sub">アクセント、Monet、アイコン、フォント</string>
     <string name="any_bluetooth_device">任意のBluetoothデバイス</string>
-    <string name="any_bluetooth_device_hint">任意の Bluetooth デバイスが接続または切断したときに実行します。</string>
     <string name="any_device">任意のデバイス</string>
-    <string name="sms_match_contains">含む</string>
     <string name="sms_match_exact">完全一致</string>
-    <string name="sms_match_any">任意のテキスト</string>
     <string name="trigger_type_incoming_call">着信</string>
     <string name="trigger_type_incoming_call_sub">着信音が鳴る前に通話を確認します</string>
-    <string name="call_from_hint">番号またはその一部（任意）</string>
-    <string name="call_category_any">すべての発信者</string>
     <string name="call_category_unknown">未知の番号</string>
     <string name="call_category_private">非通知番号</string>
     <string name="call_category_contact">連絡先</string>
     <string name="call_screening_hint">着信前にブロックするにはシステム設定で「発信者 ID とスパム対策」の役割を許可してください</string>
-    <string name="call_contacts_permission_hint">連絡先へのアクセスは、保存済みの発信者を識別する場合にのみ使います。許可されていない場合、通話は不明として扱われます。</string>
-    <string name="call_block_hint">現在着信中の通話を拒否します。確認役割またはこの権限が必要です</string>
-    <string name="call_silence_hint">拒否せずに着信音をサイレントにします</string>
     <string name="action_call_block">通話をブロック</string>
     <string name="action_call_block_sub">現在の着信を拒否</string>
     <string name="action_call_silence">通話をサイレント</string>
@@ -1073,9 +987,6 @@
     <string name="trigger_type_wifi_connected_sub">デバイスが Wi-Fi に接続したとき（または切断したとき）に実行</string>
     <string name="trigger_type_mobile_data">モバイルデータ接続済み</string>
     <string name="trigger_type_mobile_data_sub">モバイルデータがアクティブなネットワークのときに実行（またはその逆）</string>
-    <string name="call_match_any">任意の番号</string>
-    <string name="call_mode_hint">メッセージ本文ではなく発信者番号に一致します。</string>
-    <string name="call_number_filter">発信者番号</string>
     <string name="key_event_custom">カスタムキー（名前またはコード）</string>
     <string name="battery_temp_hint">摂氏（例: 40）</string>
     <string name="map_picker_title">場所を選択</string>
@@ -1223,8 +1134,6 @@
     <string name="search_by_name">名前で検索</string>
     <string name="search_by_package">パッケージで検索</string>
     <string name="recently_used_apps">最近タスクで使用したアプリ</string>
-    <string name="bt_pick_ok">このデバイスを使用</string>
-    <string name="calendar_pick_ok">このカレンダーを使用</string>
     <string name="diagnostics_title">設定の問題</string>
     <string name="diagnostics_empty">設定の問題は見つかりませんでした</string>
     <string name="diagnostics_intro">無効な設定値により実行時にアクションが失敗したタスク</string>
@@ -1242,9 +1151,6 @@
     <string name="http_retry_cap_ms">上限: %1$d ms</string>
     <string name="pointer_speed_range">ポインター速度は -7（最も遅い）から 7（最も速い）です。0 はシステムのデフォルトです。</string>
     <string name="screensaver_minutes_chip">%1$d分</string>
-    <string name="density_range_hint">画面密度：120〜1000 dpi（範囲外の値はエンジンに拒否されます）</string>
-    <string name="bt_discoverable_range_hint">0（無効）〜3600秒。範囲外の値はエンジンが調整します</string>
-    <string name="screensaver_range_hint">1〜1440分（24時間）。範囲外の値はエンジンが調整します</string>
     <string name="http_allow_private">ローカル/プライベートネットワーク宛先を許可</string>
     <string name="http_private_warning">HTTPSのみ。信頼できるサービスのみ有効にしてください。Android 17ではローカルネットワーク権限が必要です。</string>
     <string name="action_data_text">テキスト変換</string>
@@ -1312,18 +1218,11 @@
     <string name="action_call_reply_sms">発信者にSMSで返信</string>
     <string name="action_call_reply_sms_sub">このワークフローを開始した発信者にメッセージを送信</string>
     <string name="action_sms_block">受信SMSをブロック</string>
-    <string name="action_sms_block_hint">NexaFlowが既定のSMSアプリの場合にのみ、このメッセージの配信を抑止します。それ以外では必要な役割を通知します。</string>
     <string name="action_sms_block_sub">一致するSMSの配信を抑止（既定のSMSアプリへの設定が必要）</string>
     <string name="action_sms_reply">受信SMSに返信</string>
     <string name="action_sms_reply_sub">このワークフローを開始した送信者にメッセージを送信</string>
-    <string name="call_block_silent_hint">Androidが対応する場合、一致した着信を拒否して通知を抑止します。</string>
-    <string name="reply_message">返信メッセージ</string>
 
     <string name="task_restore_failed">タスクの以前の設定を復元できませんでした</string>
-    <string name="bluetooth_advanced">詳細オプション</string>
-    <string name="bluetooth_advanced_hide">詳細オプションを非表示</string>
-    <string name="bluetooth_device_name">デバイス名</string>
-    <string name="bluetooth_device_address">MAC アドレス</string>
     <string name="trigger_temporal_filters_title">時間フィルター</string>
 
     <string name="trigger_expression_title">高度なトリガー式</string>
@@ -1348,5 +1247,4 @@
     <string name="network_metered">従量制ネットワーク</string>
     <string name="network_ssid">Wi-Fi 名（SSID）</string>
     <string name="network_bssid">アクセスポイント（BSSID）</string>
-    <string name="network_identity_permission_hint">接続中の Wi-Fi 名とアクセスポイントを読み取るには、Android で位置情報の権限が必要になる場合があります。NexaFlow はこのトリガーの照合にのみこれらの値を使用します。</string>
 </resources>

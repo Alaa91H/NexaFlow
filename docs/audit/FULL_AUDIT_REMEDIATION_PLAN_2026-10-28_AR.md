@@ -515,6 +515,67 @@ Audit-Baseline: 5464d21fcb7d82def377ee7973996b22ec69aedd
 | الإصلاح | إعادة المسافة البادئة/الأقواس إلى المستوى الصحيح. |
 | معيار القبول | `./gradlew help` و`lintDebug` يمران بلا تغيير سلوكي. |
 
+### NFA-19 — سطح عرض قديم غير قابل للوصول في `TriggerEditorCard`
+
+| الحقل | القيمة |
+|---|---|
+| الخطورة | **P2** |
+| التصنيف | `RESOLVED` (2026-10-30) |
+| الدليل | `TriggerEditorCard.kt` يرسم فرع `when (draft.type)` فقط عندما يعيد `CanonicalBuilderSchemaBridge.editingBindingForTrigger` القيمة `null`. القياس الفعلي (اختبار `TriggerEditorRoutingTest` المنفذ على HEAD): **37** محفزًا من 57 يمر عبر محرر المخطط الكنوني، و**20** فقط تصل إلى `when`. |
+| الأثر | مئات الأسطر من واجهة قديمة لا يمكن تنفيذها إطلاقًا (HEADPHONE, CHARGER, AIRPLANE_MODE, DARK_MODE, CALL_STATE, MEDIA_PLAYING, عائلة ON/OFF بأكملها, DEVICE_LOCKED, LOCATION_STATE, SCREEN_ROTATION_STATE, TIMEZONE_CHANGED, BOOT_COMPLETED, ALARM_SET_CHANGED, CONNECTIVITY, WIFI_CONNECTED, MOBILE_DATA_CONNECTED, HOTSPOT). تزيد حجم الملف والمراجعة، وتوهم بأن هناك مسار رسم ثانٍ فعّال. |
+| الإصلاح | (أ) حذف الفروع غير الوصولة وأي دوال/نصوص صارت يتيمة (مع تشغيل `check_resources.py` و`lintDebug` لكشف النصوص اليتيمة في 11 لغة)؛ (ب) تثبيت الخريطة الحالية باختبار العقد المذكور حتى لا يتحول محفز إلى لوحة فارغة بصمت. |
+| معيار القبول | `TriggerEditorRoutingTest` يبقى أخضر؛ لا فرع `when` لنوع موجود في قائمة العرض الكنوني؛ لا نصوص يتيمة في `values-*`. |
+| الإغلاق (2026-10-30) | حُذفت الفروع الـ25 غير الوصولة؛ والملفات `CalendarPickerDialog.kt` و`BluetoothDevicePickerDialog.kt` ومعها `onPickCalendar`/`onPickBluetooth`؛ و**46** مفتاح نصي من 33 ملف موارد (auto_fix.py)؛ و**68** استيرادًا. أُضيف فحص `cardHasNoArmForSchemaRenderedTypes` داخل `TriggerEditorRoutingTest` (ثبت فشله عند إدخال فرع ميت تجريبيًا)، وتُحقّق: compile + detekt + 115 اختبار وحدة + lint للوحدة + address parity/resources/hardcoded/boundaries/suppression/fitness. |
+
+### NFA-20 — سطح عرض قديم غير قابل للوصول في `ActionConfigEditor`
+
+| الحقل | القيمة |
+|---|---|
+| الخطورة | **P2** |
+| التصنيف | `RESOLVED` (2026-10-30) |
+| الدليل | نفس نمط NFA-19 على الإجراءات: `BuilderActionPresentation.kt:492` يستدعي `ActionConfigEditor` فقط عندما يعيد `CanonicalBuilderSchemaBridge.editingBindingForAction` القيمة `null`. القياس: **127** إجراءً من 180 يرسمه المخطط الكنوني، و**53** فقط تصل إلى المحرر اليدوي (44 فرعًا لبعضها عدة تسميات). |
+| الأثر | 126 فرعًا غير قابل للتنفيذ داخل ملف 1,831 سطرًا، مع استيرادات ومساعدات لا تُستعمل. |
+| الإغلاق (2026-10-30) | حُذفت الـ126 فرعًا وأُبقي 44؛ الملف 1,831 → 912 سطرًا و101,260 → 55,371 بايت (−45.3%)؛ حُذف `VariableTextField` و`RunsImmediatelyHint` و`BluetoothEnabledHint` و`ON_OFF_TRIGGER_LABELS` (لا مراجع)، و35 استيرادًا، و**62** مفتاحًا نصيًا إضافيًا عبر auto_fix؛ أُضيف فحص `cardHasNoActionArmForSchemaRenderedActions` (ثبت فشله عند إدخال فرع ميت)، والخريطة الجديدة مثبتة في `TriggerEditorRoutingTest`؛ إضافةً إلى `TriggerStateConfigEditorsTest` (5 اختبارات عرض Robolectric تنقر الشرائح وتتحقق من المسودة الناتجة). |
+| معيار القبول | لا فرع لمحرّر إجراء يملك ربط مخطط؛ لا مساعدات يتيمة؛ `lintDebug` والاختبارات والبوابات خضراء. |
+
+### NFA-21 — حقول إجراءات معلنة لا يقرأها المنفّذ (T02-005)
+
+| الحقل | القيمة |
+|---|---|
+| الخطورة | **P1** |
+| التصنيف | `RESOLVED` (2026-10-30) |
+| الدليل | سجل T02-005 في `docs/audit/findings.md` رصد أربعة حقول معلنة في `ActionNodeSchemas` لا يقرأها منفّذها: `BATTERY_ALERTS.below`، `APPLICATION_LAUNCH_APP.packages`، `SYSTEM_OPEN_PLAY_STORE_APP.package`، `SYSTEM_REBOOT.mode`. إعادة الفحص على HEAD أثبتت أن الأول يُقرأ فعلًا خارج معالج الإجراء: `BatteryMonitor` يستخدمه كعتبة (`alertAction.config["below"]`) لتفعيل التنبيه مرة واحدة عند الهبوط تحت العتبة، فالنتيجة كانت إيجابية كاذبة لتحليل «نفس الفرع». الثلاثة الأخرى كانت عيوبًا حقيقية. |
+| الأثر | اختيار «RECOVERY» في هدف إعادة التشغيل كان ينفّذ `reboot` عاديًا ويُسجّل النجاح؛ واختيار تطبيق في «فتح متجر Play» كان يفتح الصفحة الرئيسية للمتجر لا صفحة التطبيق؛ و`packages` القديم في «فتح تطبيق» كان يُحفظ ولا يُنفّذ؛ وكان محرر الإجراءات يطلب `namespace/key/value` لهذه الإجراءات لأنها لا تملك ربط مخطط. |
+| الإصلاح | (أ) عقد `RebootMode` مغلق (`NORMAL`/`RECOVERY`/`BOOTLOADER`) يبني argv الصحيح، وأي قيمة أخرى تُفشل الطلب قبل تنفيذ أي أمر مرتفع؛ (ب) `openPlayStoreApp(package)` يفتح `market://details?id=` ثم صفحة الويب عند غياب عميل المتجر، ويرفض ما ليس اسم حزمة صالحًا؛ (ج) `APPLICATION_LAUNCH_APP` يقرأ `packages` القديم عند غياب `package`؛ (د) محرر الإجراءات يعرض هدف إعادة التشغيل وحزمة المتجر بدل حقول الإعدادات. |
+| معيار القبول | لكل حقل اختبار يفشل قبل الإصلاح: `SystemRebootAndStoreIntentTest` (9 حالات، منها التقاط الأمر الفعلي `'reboot' 'recovery'`)، `DeclaredActionFieldParityTest` (3 حالات على المعالجات الحقيقية)، و`ActionConfigEditorDeclaredFieldsTest` (3 حالات عرض). ثبت عدم كونها شكلية بإرجاع السلوك القديم مؤقتًا (`launchApp(config["package"] ?: "")` وخريطة تتجاهل الهدف): فشلت 4 حالات إعادة تشغيل وحالة `packages` القديم، ثم عادت خضراء بعد الاسترجاع. |
+| الإغلاق (2026-10-30) | `RebootMode.kt` جديد في `:core:rom-integration`؛ `SystemController.rebootDevice(mode)` و`openPlayStoreApp(package)`؛ تمرير الحقلين من `SystemActionsHandler`؛ محرر الإجراءات يفصل النمط المعلن عن حقول `SYSTEM_SET_SETTING`؛ مفتاح نصي جديد `reboot_mode` مترجم في 11 لغة. |
+| المتبقي | إغلاق T02-005 في السجل التاريخي غير مطبّق: `findings.md` وثيقة تاريخية مثبتة على SHA، فالمرجع الحالي هو هذا القسم. `PLUGIN_FIRE.blurb` ما زال غير مقروء في وقت التشغيل (وصف واجهة فقط) ويحتاج قرارًا بشأن إبقائه. |
+
+### NFA-22 — المنطقة الزمنية للجدولة لا يمكن اختيارها ولا تُقرأ (T02-006)
+
+| الحقل | القيمة |
+|---|---|
+| الخطورة | **P1** |
+| التصنيف | `RESOLVED` (2026-10-30) |
+| الدليل | `TriggerNodeSchemas` يعرّف `zonePolicy`/`zoneId` و`TimeTriggerCalculator.resolveZone` يقرأهما، لكن محرر TIME المتخصص (`TriggerTimeEditor`) لم يحتوِ أي عنصر تحكم بهما، و`FamilyPhase24TimeLocation.scheduleSchema()` يكتب الحقل الكنوني `timezone`، و`TimeTriggerCalculator` لم يكن يقرأه إطلاقًا. النتيجة: اختيار منطقة IANA كان يُحفظ ولا يؤثر، أو لا يمكن اختياره أساسًا. |
+| الأثر | جدولة الساعة 08:00 كانت دائمًا بتوقيت الجهاز حتى لمن فعّل منطقة ثابتة من وكلاء/الكنوني، ومسارات «السفر/تغيير المنطقة» تنتج مواعيد غير متوقعة. |
+| الإصلاح | (أ) `resolveZone` يحترم `timezone` الكنوني عند غياب سياسة صريحة، والسياسة الصريحة تتقدم عليه، و`FIXED_IANA` يقبل المفتاحين ويفشل مغلقًا للمنطقة غير الصالحة؛ (ب) قسم «المنطقة الزمنية» في محرر TIME يقترح الجهاز/منطقة محددة، ويكتب `zonePolicy`+`zoneId`+`timezone` معًا، ولا يفعّل `FIXED_IANA` في التخزين حتى تُفسّر المنطقة، فلا يمكن حفظ منطقة تُعطّل التنفيذ بصمت. |
+| معيار القبول | 3 حالات جديدة في `TimeTriggerCalculatorTest`، و4 حالات عرض في `TimeZoneSectionTest` تنقر الشرائح وتتحقق من المسودة الناتجة، بما فيها حالة الكتابة غير المكتملة. |
+| الإغلاق (2026-10-30) | نُقل قسم TIME بالكامل من `TriggerEditorCard` إلى `TimeTriggerEditor` (`TimeTriggerConfig`) فانخفض الكارد 59,905 → 54,348 بايت؛ وأُضيفت 5 مفاتيح نصية في 11 لغة (`time_zone_*`)، وحُذفت 77 استيرادًا ميتًا من `TriggerTimeEditor`. |
+
+### NFA-23 — «5G فقط» يُخرج الشريحة من الخدمة، وبوابة قراءة القدرات تُفشل التبديل 5G/4G
+
+| الحقل | القيمة |
+|---|---|
+| الخطورة | **P1** |
+| التصنيف | `RESOLVED` (2026-10-30) |
+| الدليل | جهاز اختبار فعلي (واجهة ROM مخصّصة، SDK 37، KernelSU): مهمة «نقطة اتصال WiFi» تحفظ `network_mask=524288` (NR وحده) و`endBehavior` بـ`266240` (LTE). سجل التنفيذ: `Network capabilities for the selected SIM are no longer readable` ثم `Network mode not applied: sub1 via cmd phone (set-allowed-network-types-for-users failed)`. الفحص المباشر: بعد محاولة NR رجعت `cmd phone get-allowed-network-types-for-users` بـ`UNKNOWN` و`set` بـ`No valid subscription found`، بينما `allowed_network_types_for_reasons=user=266240,power=54151,enable_2g=621492` و`isNrAvailable=false` — أي أن NR وحده غير قابل للتطبيق على هذه الشبكة (NSA بلا شبكة SA، وسبب `power` لا يسمح بـNR). |
+| الأثر | اختيار «5G» في المنشئ (الملف NR وحده) يُخرج الشريحة من الخدمة، وبعدها تتعذّر قراءة القدرات فيفشل أيضًا إجراء النهاية الذي يُعيد LTE — أي يبقى الهاتف بلا خدمة حتى تصحيح يدوي. وبوابة ما قبل الكتابة كانت تُفشل التنفيذ عند أي تعذّر لحظي في قراءة القدرات أو عند اعتبار قناع المستخدم قدرة عتاد. |
+| الإصلاح | (أ) `NetworkModePolicy.isNrOnly` و`optionsFor` لم يعد يعرض ملف 5G بلا جيل احتياطي، فلا يمكن إنشاء هذا الوضع من المنشئ؛ (ب) `NetworkModeController.setNetworkMode` يرفض كتلة NR-only قبل لمس الراديو برسالة تشرح السبب وتطلب إعادة اختيار ملف 5G مع LTE؛ (ج) أُزيلت بوابة إعادة قراءة القدرات قبل الكتابة، ويبقى التحقق الحقيقي عبر سلم الكتابة المرتبط بالاشتراك والقراءة العكسية. |
+| معيار القبول | `NetworkModeControllerTest` (3 حالات: رفض NR وحده برسالة صريحة، قبول NR\|LTE، وعدم عودة رسالتي «no longer readable/supported») و`NetworkModePolicyTest` (لا خيار NR وحده، ودلالة `isNrOnly`). |
+| الإغلاق (2026-10-30) | الاختبارات + detekt للوحدتين خضراء؛ بوابات `auto_fix` والنصوص والحدود وميزانية الكتمان واللياقة المعمارية والتدقيق ونضارة الوثائق تمر؛ وأُعيد بناء APK التصحيح وتثبيته على الجهاز نفسه. |
+| المتبقي | المهمة المحفوظة على الجهاز ما زالت تحمل القناع القديم: يجب إعادة اختيار ملف «NR / LTE» في محرر «وضع الشبكة» لتعمل من جديد؛ لا تُرحَّل الكتلة القديمة تلقائيًا كي لا يُعاد كتابة إعداد راديو بتخمين. |
+
 ---
 
 ## 15. خطة الإصلاح
@@ -641,7 +702,7 @@ Audit-Baseline: 5464d21fcb7d82def377ee7973996b22ec69aedd
 |---|---|---|---|
 | 0 | ✅ مكتملة | mapping كأصل إصدار + التحقق منه في CI؛ تثبيت كل `uses` بـSHA؛ SBOM CycloneDX + فحص OSV مع allowlist؛ تحديث سجلات التدقيق ووسمها؛ إزالة الاعتماد غير المستخدم/المكرر والثابت الميت؛ إصلاح بنية DSL في `app/build.gradle.kts`؛ `dataExtractionRules` لساعة Wear | — |
 | 1 | ✅ مكتملة (عدا بند واحد) | `AgentApiControllerTest` (40 حالة)؛ وسم `@Smoke` + وظيفة PR على API 37؛ مصفوفة ليلية 26/33/36/37 عبر workflow قابل لإعادة الاستخدام؛ `coverageGate` للوحدات الأربع + `check_diff_coverage.py` بحد 80%؛ حزمة تشخيص محلية قابلة للمشاركة مع تنقيح الأسرار؛ عزل اختبارات ROOT عن مسارات المضيف ورفع المهلة إلى 30 دقيقة | تقرير XML جزئي عند إيقاف Gradle بالمهلة غير مضمون (سلوك Gradle)؛ الاختبارات العادية تُنتج XML حتى عند الفشل |
-| 2 | ⚠️ جزئية | بوابة حدود الوحدات + allowlist موثّق (3 ديون)؛ تفعيل `LongMethod` و`NestedBlockDepth` مع baselines؛ بوابة ميزانية استقرار Compose؛ فصل `SystemInputController` عن `SystemController` | **هدف تقليص 20% غير محقق**: القياس 0.37% فقط. الملفات الخمسة الأكبر تحتاج جلسات تقسيم مخصصة (انظر 18.2) |
+| 2 | ⚠️ جزئية | بوابة حدود الوحدات + allowlist موثّق (3 ديون)؛ تفعيل `LongMethod` و`NestedBlockDepth` مع baselines؛ بوابة ميزانية استقرار Compose؛ فصل `SystemInputController` عن `SystemController` | **هدف تقليص 20% غير محقق**: القياس 13.96% بعد ثلاث دورات في 2026-10-30 (كان 0.37%)؛ حُذف NFA-19 وNFA-20 وأُغلق NFA-21 مع تحويل إعادة التشغيل والمتجر إلى وحدتين مستخرجتين. أكبر أربعة ملفات ما زالت تحتاج جلسات تقسيم مخصصة (انظر 18.2) |
 | 3 | ⚠️ جزئية | وظيفة macrobenchmark ليلية + بوابة ميزانية بدء؛ CI على Windows للوحدات الحرجة؛ اختبار Robolectric عربي/RTL؛ قوالب مصفوفة الأجهزة وSoak | **BLOCKED**: لا جهاز/محاكي محلي ولا أجهزة OEM ولا سلسلة 10 قياسات؛ فحوص TalkBack اليدوية غير منفذة |
 | 4 | ⚠️ جزئية | ADR لقناة التوزيع (مقترح)؛ وثائق الصلاحيات وData Safety؛ مراجعة MASVS مبنية على الكود؛ SHA-256 لكل أصل + SLSA provenance وربط الصلاحيات | **BLOCKED**: قرار المالك (OQ-02/OQ-05) قبل flavors؛ إصدار موقّع فعلي لإنتاج أول attestation؛ اختبار اختراق خارجي |
 
@@ -649,16 +710,49 @@ Audit-Baseline: 5464d21fcb7d82def377ee7973996b22ec69aedd
 
 | الملف | HEAD (بايت) | الحالي (بايت) | الفرق |
 |---|---|---|---|
-| `SystemController.kt` | 91,244 | 87,694 | −3,550 (−3.9%) |
-| بقية الملفات الثلاثة عشر | — | — | دون تغيير |
-| **الإجمالي (13 ملفًا)** | **964,407** | **960,857** | **−0.37%** |
+| `SystemController.kt` | 91,244 | 86,767 | −4,477 (−4.9%) |
+| `TriggerEditorCard.kt` | 141,446 | 54,348 | −87,098 (−61.6%) |
+| `ActionConfigEditor.kt` | 101,260 | 54,710 | −46,550 (−46.0%) |
+| بقية الملفات الأحد عشر | — | — | دون تغيير |
+| **الإجمالي (13 ملفًا)** | **964,407** | **824,222** | **−14.54%** |
+| ملفات جديدة مقابلة | — | 27,879 (6 ملفات) | (خارج القائمة المجمّدة) |
+| **صافي البايتات المحذوفة فعليًا** | — | — | **−112,306 (−11.65%)** |
 
-الهدف في الخطة (≥20%) **لم يتحقق**. التقسيم الآمن يتطلب نقل وحدات مترابطة من
-`TriggerEditorCard`/`AutomationBuilderScreen`/`ActionConfigEditor`
-(Compose) و`ExecutionEngine` إلى ملفات مسؤولة، مع إعادة تشغيل اختبارات
-الوحدة والجهاز بعد كل خطوة؛ لم يُنفّذ في هذه الجلسة لتجنّب تغيير سلوكي غير
-مُتحقَّق منه. بوابات `check_atomic_architecture_fitness.py` تمنع أي زيادة
-وتُلزم بتقليص تدريجي.
+### 18.2.1 تقسيم `TriggerEditorCard` (دورة 2026-10-30)
+
+نُقلت أقسام المحفزات ذات العقد البسيط (حالة واحدة، حدث واحد، أو عتبة رقمية)
+من جسم الدالة 2,250 سطرًا إلى `TriggerStateConfigEditors.kt` (18,188 بايت، أي
+تحت سقف 45,000)، ثم حُذفت الفروع غير الوصولة (NFA-19)، فأصبح الكارد مُوزّعًا
+مبسّا يقوم فقط على 20 نوعًا تصل فعلًا إلى المسار القديم:
+
+| الخطوة | قبل | بعد |
+|---|---|---|
+| فروع `when (draft.type)` | 45 فرعًا لـ57 نوعًا | 20 فرعًا للنواع الـ20 الوصولة فقط |
+| `ActionConfigEditor` (بعد استخراج محرري الحزمة والهدف) | 55,371 | 54,710 |
+| أقسام مركّبة (HEADPHONE/CHARGER، AIRPLANE/DARK، WIFI/CELL، ON/OFF×14) | 18 جسمًا متطابقًا | 5 دوال مشتركة |
+| جسم الدالة | 2,388 سطرًا / 141,446 بايت | 1,025 سطرًا / 59,905 بايت |
+| `TriggerStateConfigEditors.kt` | — | 426 سطرًا / 18,188 بايت |
+| مُنتقيات تقويم/بلوتوث | `CalendarPickerDialog` + `BluetoothDevicePickerDialog` (554 سطرًا) | **حُذفت**: لا مدخل يمكن الوصول إليه |
+| نصوص مساعدة | — | **46 مفتاحًا** حُذفت من 33 ملف موارد (11 لغة) |
+| استيرادات | — | 68 استيرادًا غير مستخدم حُذف |
+
+**القياس النهائي بعد دورة 2026-10-30 الثالثة:** الكارد 141,446 → 54,348 بايت (−61.6%)
+بعد نقل قسم TIME وسلوكه إلى `TriggerTimeEditor`، ومحرر الإجراءات 101,260 → 54,710 (−46.0%)،
+والواجهة الجذرية للتحكم بالنظام 91,244 → 86,767 (−4.9%)، ومجموع الملفات المجمّدة
+964,407 → 824,222 (−14.54%). وبعد طرح حجم الملفات الستة الجديدة (27,879) يكون
+صافي المحذوف فعليًا **112,306 بايت (−11.65%)**، لا مجرد نقل كود. تم تحديث
+`BASELINE_HOTSPOTS` إلى 54,348 و54,710 و86,767 لتثبيت المكسب (ratchet).
+
+> ما زال الهدف ≥20% على مجموع الملفات المجمّدة **غير محقق** (القياس 13.58%)
+> والملفات التالية في الأولوية هي `AutomationBuilderScreen.kt`
+> (114,819) و`SystemController.kt` (87,694) و`ExecutionEngine.kt` (83,428)
+> و`AutomationDetailsScreen.kt` (71,326) و`LegacyMappingTable.kt` (63,167).
+
+الهدف في الخطة (≥20%) **لم يتحقق**. في دورة 2026-10-30 نُفّذ تقسيم
+`TriggerEditorCard` وحذف فروعه غير الوصولة (NFA-19)، ولم تُلمس
+`AutomationBuilderScreen` و`ActionConfigEditor` (Compose) و`ExecutionEngine`
+بعد؛ كل منها يحتاج جلسة مخصصة مع إعادة تشغيل اختبارات الوحدة بعد كل خطوة.
+بوابات `check_atomic_architecture_fitness.py` تمنع أي زيادة وتُلزم بتقليص تدريجي.
 
 ### 18.3 قياس التغطية بعد التوسيع
 
@@ -695,6 +789,13 @@ Audit-Baseline: 5464d21fcb7d82def377ee7973996b22ec69aedd
 | `:feature:history:testDebugUnitTest` | ✅ | يشمل `DiagnosticBundleTest` (3) و`HistoryRtlTest` (2) |
 | `:feature:dashboard:testDebugUnitTest` + `:core:rom-integration:testDebugUnitTest` | ✅ | بعد نقل منفذ التصدير وفصل وحدة الإدخال |
 | اختبارات Python الجديدة | ✅ 34 اختبارًا | supply-chain، diff-coverage، module-boundaries، compose-stability، benchmark-budget |
+| `SystemRebootAndStoreIntentTest` | ✅ 9 اختبارات | تثبت الأمر الفعلي لكل هدف (`'reboot'`، `'reboot' 'recovery'`، `'reboot' 'bootloader'`) ورفض الهدف غير المدعوم دون تنفيذ، ومسارَي المتجر (market ثم الويب) ورفض الاسم غير الصالح |
+| `DeclaredActionFieldParityTest` | ✅ 3 اختبارات | تمرير `package`/`packages` إلى `launchApp` و`package` إلى صفحة المتجر عبر المعالجات الحقيقية |
+| `ActionConfigEditorDeclaredFieldsTest` | ✅ 3 اختبارات | محرر إعادة التشغيل يعرض الهدف ويحفظه، ولا يعرض حقول الإعدادات؛ محرر المتجر يعرض الحزمة فقط |
+| `TimeTriggerCalculatorTest` (حالات جديدة) | ✅ 3 اختبارات | `timezone` الكنوني يُحترم، والسياسة الصريحة تتقدم عليه، والمنطقة التالفة ترجع لتوقيت الجهاز |
+| `TimeZoneSectionTest` | ✅ 4 اختبارات | الجهاز افتراضيًا، اختيار منطقة ثابتة يبدأ بمنطقة صالحة؛ الاختيار السريع «Europe/Berlin» يُحفظ ويُفسّر به؛ الكتابة غير المكتملة تبقى DEVICE_LOCAL مع رسالة خطأ |
+| مجموعات الوحدات المتأثرة | ✅ 1,029 اختبارًا، 0 فشل | `:feature:automation-builder` 128، `:core:rom-integration` 169، `:core:execution` 732، و`:domain` كاملة |
+| detekt + lintDebug للموحدتين المعدّلتين | ✅ | `:feature:automation-builder` (بناء + detekt + lint + كل اختباراته) و`:core:rom-integration`، و`:app:compileDebugKotlin` |
 | فحص YAML لكل workflows | ✅ 3 ملفات | تثبيت SHA + مهام قابلة لإعادة الاستخدام |
 | `scripts/check_module_boundaries.py` | ✅ 0 انتهاك (3 ديون مسموحة موثّقة) | يفشل على أي اعتماد جديد مخالف |
 | `scripts/check_compose_stability.py` | ✅ app: unstable 21/21، non-skippable 20/20 | يفشل عند تجاوز الميزانية |

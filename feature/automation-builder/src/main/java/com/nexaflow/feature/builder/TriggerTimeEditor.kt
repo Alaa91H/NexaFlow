@@ -1,6 +1,5 @@
 package com.nexaflow.feature.builder
 
-import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,81 +8,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.PhoneInTalk
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.AirplanemodeActive
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Sensors
-import androidx.compose.material.icons.filled.SignalCellularAlt
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.Web
-import androidx.compose.material.icons.filled.Watch
-import androidx.compose.material.icons.filled.BrightnessHigh
-import androidx.compose.material.icons.filled.DataUsage
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.ScreenRotation
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.Bedtime
-import androidx.compose.material.icons.filled.BrightnessAuto
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.DeviceThermostat
-import androidx.compose.material.icons.filled.DoNotDisturbOn
-import androidx.compose.material.icons.filled.Monitor
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.Usb
-import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,31 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.runtime.rememberCoroutineScope
-import com.nexaflow.core.engine.currentCellularGeneration
-import com.nexaflow.core.rom.CustomSettingsBridge
-import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.SelectChip
-import com.nexaflow.domain.catalog.AutomationNodeCatalog
-import com.nexaflow.domain.catalog.AutomationNodeFamily
-import com.nexaflow.domain.models.TriggerType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -585,6 +511,244 @@ internal fun repeatLabel(draft: TriggerDraft): String {
     }
 }
 
+/**
+ * The TIME trigger body: single time or overnight range, exact-alarm status,
+ * recurrence, and the explicit time zone the schedule is computed in.
+ *
+ * Extracted from `TriggerEditorCard` so the card stays a dispatcher and the
+ * zone contract lives next to the other schedule editing surfaces.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun TimeTriggerConfig(
+    draft: TriggerDraft,
+    onConfigChange: (TriggerDraft) -> Unit,
+    onPickTime: (String) -> Unit,
+    onPickDate: (String) -> Unit,
+    refreshKey: Int = 0,
+    onExplainSpecial: (SpecialPermission) -> Unit = {}
+) {
+    val context = LocalContext.current
+    val rangeMode = draft.config["timeMode"] == "RANGE"
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            SelectChip(
+                selected = !rangeMode,
+                onClick = {
+                    onConfigChange(draft.copy(config = draft.config + ("timeMode" to "SINGLE")))
+                },
+                label = stringResource(R.string.time_single)
+            )
+            SelectChip(
+                selected = rangeMode,
+                onClick = {
+                    onConfigChange(
+                        draft.copy(
+                            config = draft.config +
+                                ("timeMode" to "RANGE") +
+                                ("rangeStart" to (draft.config["rangeStart"] ?: "08:00")) +
+                                ("rangeEnd" to (draft.config["rangeEnd"] ?: "18:00"))
+                        )
+                    )
+                },
+                label = stringResource(R.string.time_range)
+            )
+        }
+        if (rangeMode) {
+            val start = draft.config["rangeStart"] ?: "08:00"
+            val end = draft.config["rangeEnd"] ?: "18:00"
+            TimeField(
+                label = stringResource(R.string.time_range_start),
+                value = start,
+                onClick = { onPickTime("rangeStart") }
+            )
+            TimeField(
+                label = stringResource(R.string.time_range_end),
+                value = end,
+                onClick = { onPickTime("rangeEnd") }
+            )
+            val overnight = parseTimeMinutes(end) < parseTimeMinutes(start)
+            Text(
+                text = if (overnight) stringResource(R.string.range_overnight) else stringResource(R.string.range_same_day),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (overnight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+            )
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onPickTime("time") }
+                    .padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Schedule,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.trigger_time),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Text(
+                        text = stringResource(R.string.repeat_daily),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                TextButton(onClick = { onPickTime("time") }) {
+                    Text(text = draft.config["time"] ?: "08:00")
+                }
+            }
+        }
+        SpecialPermissionStatusRow(
+            hintText = stringResource(R.string.special_exact_alarm_hint),
+            special = SpecialPermission.EXACT_ALARM,
+            context = context,
+            refreshKey = refreshKey,
+            onRequest = { onExplainSpecial(SpecialPermission.EXACT_ALARM) }
+        )
+        TimeRepeatSection(
+            draft = draft,
+            onConfigChange = onConfigChange,
+            onPickDate = onPickDate,
+            onPickExcludedDate = { onPickDate("excludedDate") }
+        )
+        TimeZoneSection(draft = draft, onConfigChange = onConfigChange)
+    }
+}
+
+/**
+ * Explicit time-zone control for the schedule.
+ *
+ * The schema and the calculator always supported a fixed IANA zone, but no
+ * builder surface wrote `zonePolicy`/`zoneId`, so every task scheduled in the
+ * device zone. A fixed zone is written together with its canonical `timezone`
+ * mirror and only when it parses: an invalid zone would make the calculator
+ * fail closed and the task would never fire.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun TimeZoneSection(
+    draft: TriggerDraft,
+    onConfigChange: (TriggerDraft) -> Unit
+) {
+    val storedZone = draft.config["zoneId"] ?: draft.config["timezone"] ?: ""
+    val storedFixed = (draft.config["zonePolicy"] ?: if (storedZone.isNotBlank()) {
+        TimeTriggerCalculator.ZONE_POLICY_FIXED_IANA
+    } else {
+        TimeTriggerCalculator.ZONE_POLICY_DEVICE_LOCAL
+    }) == TimeTriggerCalculator.ZONE_POLICY_FIXED_IANA
+    // Which editor is shown is local UI state: clearing the field to type a new
+    // zone must not collapse the row. The persisted policy stays device-local
+    // while the text does not parse, so an unfinished zone can never become a
+    // fixed zone that the scheduler fails closed on.
+    var fixed by remember { mutableStateOf(storedFixed) }
+    val valid = storedZone.isNotBlank() && runCatching { ZoneId.of(storedZone.trim()) }.isSuccess
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(text = stringResource(R.string.time_zone_section), style = MaterialTheme.typography.titleSmall)
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            SelectChip(
+                selected = !fixed,
+                onClick = {
+                    fixed = false
+                    onConfigChange(
+                        draft.copy(
+                            config = draft.config +
+                                (TimeTriggerCalculator.ZONE_POLICY_KEY to TimeTriggerCalculator.ZONE_POLICY_DEVICE_LOCAL) +
+                                (TimeTriggerCalculator.ZONE_ID_KEY to "") +
+                                (TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY to "")
+                        )
+                    )
+                },
+                label = stringResource(R.string.time_zone_device)
+            )
+            SelectChip(
+                selected = fixed,
+                onClick = {
+                    fixed = true
+                    val zone = storedZone.trim().takeIf { runCatching { ZoneId.of(it) }.isSuccess }
+                        ?: ZoneId.systemDefault().id
+                    onConfigChange(draft.copy(config = draft.config + fixedZoneConfig(zone)))
+                },
+                label = stringResource(R.string.time_zone_fixed)
+            )
+        }
+        if (fixed) {
+            OutlinedTextField(
+                value = storedZone,
+                onValueChange = { raw ->
+                    val zone = raw.trim()
+                    onConfigChange(
+                        draft.copy(
+                            config = if (runCatching { ZoneId.of(zone) }.isSuccess) {
+                                draft.config + fixedZoneConfig(zone)
+                            } else {
+                                draft.config +
+                                    (TimeTriggerCalculator.ZONE_POLICY_KEY to TimeTriggerCalculator.ZONE_POLICY_DEVICE_LOCAL) +
+                                    (TimeTriggerCalculator.ZONE_ID_KEY to raw) +
+                                    (TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY to raw)
+                            }
+                        )
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.time_zone_id_label)) },
+                singleLine = true,
+                isError = !valid
+            )
+            if (!valid) {
+                Text(
+                    text = stringResource(R.string.time_zone_invalid),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                COMMON_TIME_ZONES.forEach { zone ->
+                    SelectChip(
+                        selected = storedZone.trim() == zone,
+                        onClick = { onConfigChange(draft.copy(config = draft.config + fixedZoneConfig(zone))) },
+                        label = zone
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Writes the fixed-zone keys together so no reader sees a half-updated zone. */
+private fun fixedZoneConfig(zone: String): Map<String, String> = mapOf(
+    TimeTriggerCalculator.ZONE_POLICY_KEY to TimeTriggerCalculator.ZONE_POLICY_FIXED_IANA,
+    TimeTriggerCalculator.ZONE_ID_KEY to zone,
+    TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY to zone
+)
+
+/** Quick picks only; the field accepts every IANA zone id. */
+private val COMMON_TIME_ZONES = listOf(
+    "UTC",
+    "Europe/London",
+    "Europe/Berlin",
+    "America/New_York",
+    "Asia/Dubai",
+    "Asia/Tokyo"
+)
+
 /** Live "Selected: …" line that makes the current repeat choice unambiguous. */
 @Composable
 internal fun RepeatSummary(draft: TriggerDraft) {
@@ -596,3 +760,7 @@ internal fun RepeatSummary(draft: TriggerDraft) {
     )
 }
 
+private fun parseTimeMinutes(value: String): Int {
+    val parts = value.split(":")
+    return (parts.getOrNull(0)?.toIntOrNull() ?: 0) * 60 + (parts.getOrNull(1)?.toIntOrNull() ?: 0)
+}

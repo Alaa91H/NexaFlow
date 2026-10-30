@@ -323,8 +323,6 @@ fun AutomationBuilderScreen(
     // automation's iconColor column). Defaults to Google blue.
     var selectedIconColor by rememberSaveable { mutableStateOf(0xFF0B57D0L) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
-    var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
-    var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
     // Family-first discovery: opening a configurator shows the small family
     // surface only. Concrete legacy-compatible options are revealed only
     // after the user chooses a family (or types a search query).
@@ -1364,8 +1362,6 @@ fun AutomationBuilderScreen(
                         expandedTriggerIndex = if (expanded) index else null
                     },
                     onPickApp = { appPickerTarget = "trigger:$index" },
-                    onPickBluetooth = { bluetoothPickerTarget = index },
-                    onPickCalendar = { calendarPickerTarget = index },
                     onRequestPermission = { requestPermissions(it) },
                     onExplainSpecial = { explainSpecialPermission(it) },
                     refreshKey = permissionRefreshTick,
@@ -1800,49 +1796,6 @@ fun AutomationBuilderScreen(
                 }
             }
         )
-    }
-
-    bluetoothPickerTarget?.let { index ->
-        if (index in triggers.indices) {
-            BluetoothDevicePickerDialog(
-                onPick = { device ->
-                    triggers[index] = triggers[index].copy(
-                        config = mapOf(
-                            "deviceName" to device.name,
-                            "deviceAddress" to device.address,
-                            "event" to (triggers[index].config["event"] ?: "CONNECTED")
-                        )
-                    )
-                    bluetoothPickerTarget = null
-                },
-                onDismiss = { bluetoothPickerTarget = null },
-                preSelectedAddress = triggers[index].config["deviceAddress"]
-            )
-        } else {
-            bluetoothPickerTarget = null
-        }
-    }
-
-    calendarPickerTarget?.let { index ->
-        if (index in triggers.indices) {
-            CalendarPickerDialog(
-                onPick = { calendar ->
-                    triggers[index] = triggers[index].copy(
-                        config = mapOf(
-                            "calendar" to calendar.name,
-                            "contains" to (triggers[index].config["contains"] ?: ""),
-                            "event" to (triggers[index].config["event"] ?: "EVENT_START"),
-                            "beforeMinutes" to (triggers[index].config["beforeMinutes"] ?: "0")
-                        )
-                    )
-                    calendarPickerTarget = null
-                },
-                onDismiss = { calendarPickerTarget = null },
-                preSelectedName = triggers[index].config["calendar"]
-            )
-        } else {
-            calendarPickerTarget = null
-        }
     }
 
     appPickerTarget?.let { target ->

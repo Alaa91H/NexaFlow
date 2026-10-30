@@ -58,7 +58,6 @@
     <string name="package_name">اسم الحزمة</string>
     <string name="choose_from_installed">اختيار من التطبيقات المثبتة</string>
     <string name="app_detection_hint">يتطلب اكتشاف التطبيقات خدمة إمكانية الوصول</string>
-    <string name="enable">تفعيل</string>
     <string name="state">الحالة</string>
 
     
@@ -164,18 +163,15 @@
     <string name="action_root_sub">تشغيل أمر عبر الروت</string>
     <string name="brightness_label">السطوع: %1$d</string>
     <string name="volume_label">الصوت: %1$d</string>
-    <string name="turn_on">تشغيل</string>
     <string name="apps_comma">التطبيقات (مفصولة بفواصل)</string>
     <string name="title">العنوان</string>
     <string name="text">النص</string>
     <string name="auto_rotate">التدوير التلقائي</string>
     <string name="url">الرابط</string>
-    <string name="url_hint">https://example.com</string>
     <string name="alert_below">تنبيه عند أقل من: %1$d%%</string>
     <string name="message_optional">الرسالة (اختياري)</string>
     <string name="shell_command">أمر الأوامر</string>
     <string name="shell_hint">مثال: settings put global airplane_mode_on 1</string>
-    <string name="runs_immediately">يعمل فوراً عند تشغيل الأتمتة.</string>
     <string name="write_settings_hint">يتطلب إذن تعديل إعدادات النظام</string>
     <string name="dnd_hint">يتطلب إذن عدم الإزعاج</string>
     <string name="flashlight_hint">يتطلب إذن الكاميرا للفلاش</string>
@@ -230,8 +226,6 @@
     <string name="ringer_normal">رنين</string>
     <string name="ringer_vibrate">اهتزاز</string>
     <string name="ringer_silent">صامت</string>
-    <string name="hour">الساعة</string>
-    <string name="minute">الدقيقة</string>
     <string name="elevated_hint">يتطلب صلاحيات الروت أو Shizuku أو تطبيق النظام</string>
     <string name="trigger_type_sms">رسالة نصية</string>
     <string name="repeat_custom">مخصص</string>
@@ -264,7 +258,6 @@
     <string name="pick_date">اختر تاريخاً</string>
     <string name="pick_on_map">اختر من الخريطة</string>
     <string name="sms_from">من (الرقم)</string>
-    <string name="sms_from_hint">مثال 05XXXXXXXX (فارغ = أي رقم)</string>
     <string name="sms_contains">الرسالة تحتوي</string>
     <string name="sms_contains_hint">نص للمطابقة (فارغ = أي نص)</string>
     <string name="permission_denied_hint">مطلوب إذن لتفعيل هذه الميزة</string>
@@ -290,9 +283,6 @@
     <string name="action_open_settings">فتح الإعدادات</string>
     <string name="action_open_settings_sub">فتح صفحة إعدادات النظام</string>
     <string name="ring_volume_label">صوت الرنين: %1$d</string>
-    <string name="phone_number">رقم الهاتف</string>
-    <string name="reminder_title">عنوان التذكير</string>
-    <string name="reminder_text">نص التذكير</string>
     <string name="settings_wifi">واي فاي</string>
     <string name="settings_bluetooth">بلوتوث</string>
     <string name="settings_location">الموقع</string>
@@ -329,19 +319,17 @@
     <string name="trigger_app">عند فتح تطبيق</string>
     <string name="time_single">وقت واحد</string>
     <string name="time_range">نطاق زمني</string>
+    <string name="time_zone_section">المنطقة الزمنية</string>
+    <string name="time_zone_device">المنطقة الزمنية للجهاز</string>
+    <string name="time_zone_fixed">منطقة زمنية محددة</string>
+    <string name="time_zone_id_label">معرّف IANA للمنطقة الزمنية (مثال: Europe/Berlin)</string>
+    <string name="time_zone_invalid">منطقة زمنية غير معروفة — يُستخدم توقيت الجهاز حتى يصبح صالحًا</string>
     <string name="time_range_start">البداية</string>
     <string name="time_range_end">النهاية</string>
     <string name="range_same_day">نفس اليوم</string>
     <string name="range_overnight">طوال الليل — ينتهي في اليوم التالي</string>
     <string name="trigger_type_bluetooth">جهاز بلوتوث</string>
     <string name="trigger_bluetooth">جهاز بلوتوث</string>
-    <string name="choose_bluetooth_device">اختر جهاز بلوتوث</string>
-    <string name="no_bluetooth_device">لم يتم اختيار جهاز</string>
-    <string name="no_paired_devices">لا توجد أجهزة بلوتوث مقترنة</string>
-    <string name="bluetooth_turned_off_title">البلوتوث غير مُفعّل</string>
-    <string name="bluetooth_turned_off_body">فعّل البلوتوث لعرض الأجهزة المقترنة واختيار جهاز لهذه المهمة.</string>
-    <string name="bluetooth_permission_hint">فعّل البلوتوث لاكتشاف الأجهزة المقترنة</string>
-    <string name="stream_label">قناة الصوت</string>
     <string name="stream_volume_label">الصوت %1$d</string>
     <string name="stream_music">الوسائط</string>
     <string name="stream_ring">نغمة الرنين</string>
@@ -358,9 +346,6 @@
     <string name="trigger_type_ringer">وضع الصوت</string>
     <string name="trigger_ringer">وضع الصوت</string>
     <string name="trigger_ringer_sub">عند تغيّر وضع الصوت</string>
-    <string name="ringer_mode_label">وضع الصوت</string>
-    <string name="ringer_mode_hint">تُنفَّذ المهمة عندما يتحول الهاتف إلى وضع الصوت المختار</string>
-    <string name="change_now">غيّر الآن</string>
 
     <string name="next_needs_action">أضف خطوة تنفيذ واحدة على الأقل أولاً</string>
     <string name="occurrence_first">الأول</string>
@@ -384,16 +369,9 @@
     <string name="trigger_type_calendar">التقويم</string>
     <string name="trigger_calendar">حدث التقويم</string>
     <string name="any_calendar">أي تقويم</string>
-    <string name="choose_calendar">اختر تقويماً</string>
-    <string name="no_calendars_found">لا توجد تقاويم</string>
-    <string name="calendar_contains">الحدث يحتوي</string>
-    <string name="calendar_contains_hint">مثال: اجتماع، طبيب (فارغ = أي شيء)</string>
     <string name="calendar_event_start">عند البدء</string>
     <string name="calendar_event_end">عند الانتهاء</string>
     <string name="calendar_event_created">عند الإضافة للتقويم</string>
-    <string name="calendar_before_none">عند بداية الحدث</string>
-    <string name="calendar_before_minutes">قبل الحدث: %1$d دقيقة</string>
-    <string name="calendar_permission_hint">يتطلب إذن التقويم لقراءة الأحداث</string>
     <string name="charger_type_label">نوع الشاحن</string>
     <string name="charger_any">أي</string>
     <string name="charger_ac">حائط</string>
@@ -514,7 +492,6 @@
     <string name="action_open_quick_settings">الإعدادات السريعة</string>
     <string name="action_open_quick_settings_sub">توسيع لوحة الإعدادات السريعة</string>
     <string name="vibrate_duration">مدة الاهتزاز</string>
-    <string name="clipboard_text">نص الحافظة</string>
     <string name="trigger_type_rom_setting">إعداد ROM</string>
     <string name="use_current_location">استخدام موقعي الحالي</string>
     <string name="location_coordinates">الموقع: %1$s، %2$s</string>
@@ -524,19 +501,12 @@
     <string name="location_inside">داخل الموقع</string>
     <string name="location_outside">خارج الموقع</string>
     <string name="location_fix_failed">تعذّر تحديد موقعك الحالي. فعّل الموقع ثم أعد المحاولة.</string><string name="charging_yes">يشحن</string>
-    <string name="ringtone_label">نغمة الرنين الافتراضية</string>
     <string name="network_mode_sub">اختر من الأوضاع المتاحة فعلياً للشريحة المحددة. يتطلب تطبيق التغيير صلاحيات مرتفعة.</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">تلقائي</string>
     <string name="network_mode_5g">5G</string>
-    <string name="network_mode_current">الجيل الحالي</string>
-    <string name="network_mode_current_hint">قراءة مباشرة للجيل الخلوي الفعلي للجهاز (كشف 5G حقيقي)</string>
-    <string name="network_mode_fire_when">تنفيذ عند</string>
-    <string name="network_mode_unknown">غير معروف</string>
-    <string name="network_mode_permission_hint">يساعد إذن الهاتف على تحسين قراءة الجيل وكشف 5G مباشرةً</string>
     <string name="charging_any">أي</string>
     <string name="network_mode_4g">4G</string>
-    <string name="choose_ringtone">اختر النغمة</string>
     <string name="action_network_mode_sub">اختر من الأوضاع المتاحة فعلياً للشريحة المحددة. يتطلب تطبيق التغيير صلاحيات مرتفعة.</string>
     <string name="action_set_ringtone_sub">اختر نغمة الرنين الافتراضية للمكالمات</string>
     <string name="network_mode_3g">3G</string>
@@ -617,8 +587,6 @@
     <string name="setting_namespace">النطاق</string>
     <string name="setting_key">مفتاح الإعداد</string>
     <string name="setting_value">القيمة</string>
-    <string name="screenshot_filename">اسم الملف (اختياري)</string>
-    <string name="screenshot_hint">يُحفظ في Pictures/NexaFlow</string>
     <string name="input_text_label">النص المطلوب كتابته</string>
     <string name="key_event_label">المفتاح (اسم أو رمز)</string>
     <string name="key_event_hint">مثال: POWER أو HOME أو VOLUME_UP أو رقم KEYCODE</string>
@@ -629,12 +597,6 @@
     <string name="swipe_to_x">X النهاية</string>
     <string name="swipe_to_y">Y النهاية</string>
     <string name="swipe_duration">المدة (مللي ثانية)</string>
-    <string name="color_inversion">عكس الألوان</string>
-    <string name="grayscale">تدرج رمادي</string>
-    <string name="extra_dim">تعتيم إضافي</string>
-    <string name="night_light">ضوء ليلي</string>
-    <string name="haptic_feedback">اهتزاز لمسي</string>
-    <string name="sound_effects">أصوات اللمس</string>
     <string name="action_location_mode">وضع الموقع</string>
     <string name="action_location_mode_sub">وضع الموقع</string>
     <string name="action_data_saver">توفير البيانات</string>
@@ -705,27 +667,13 @@
     <string name="action_open_play_store_app_sub">فتح متجر بلاي</string>
     <string name="action_reboot">إعادة تشغيل الجهاز</string>
     <string name="action_reboot_sub">إعادة تشغيل الجهاز</string>
+    <string name="reboot_mode">هدف إعادة التشغيل</string>
     <string name="action_shutdown">إيقاف تشغيل الجهاز</string>
     <string name="action_shutdown_sub">إيقاف تشغيل الجهاز</string>
     <string name="action_restart_system_ui">إعادة تشغيل واجهة النظام</string>
     <string name="action_restart_system_ui_sub">إعادة تشغيل واجهة النظام</string>
-    <string name="location_mode">وضع الموقع</string>
-    <string name="data_saver">توفير البيانات</string>
     <string name="font_scale">حجم الخط</string>
     <string name="display_density">كثافة الشاشة</string>
-    <string name="screensaver">شاشة التوقف</string>
-    <string name="battery_saver_threshold_label">يبدأ عند %1$d%%</string>
-    <string name="always_on_display">الشاشة الدائمة</string>
-    <string name="show_taps">إظهار اللمسات</string>
-    <string name="pointer_location">موقع المؤشر</string>
-    <string name="adaptive_battery">البطارية التكيفية</string>
-    <string name="wifi_sleep_policy">سياسة نوم واي فاي</string>
-    <string name="bluetooth_discoverable_timeout">قابل للاكتشاف لمدة (ثوانٍ)</string>
-    <string name="auto_time">التاريخ والوقت التلقائي</string>
-    <string name="auto_timezone">المنطقة الزمنية التلقائية</string>
-    <string name="haptic_intensity_label">شدة الاهتزاز %1$d</string>
-    <string name="camera_shutter_sound">صوت الغالق</string>
-    <string name="wifi_scanning">مسح واي فاي الدائم</string>
     <string name="device_locked">مقفل</string>
     <string name="device_unlocked">مفتوح</string>
     <string name="location_mode_off">إيقاف</string>
@@ -745,15 +693,9 @@
     <string name="wifi_sleep_never">أبداً</string>
     <string name="storage_below">تحت</string>
     <string name="storage_above">فوق</string>
-    <string name="trigger_power_saver_state">الحالة</string>
-    <string name="trigger_bluetooth_state_hint">اختر الحالة التي تشغّل المهمة</string>
     <string name="trigger_brightness_direction">الاتجاه</string>
     <string name="trigger_brightness_threshold">السطوع الحد</string>
     <string name="trigger_data_saver_state">الحالة</string>
-    <string name="trigger_device_locked_state">الحالة</string>
-    <string name="trigger_location_mode">وضع الموقع</string>
-    <string name="trigger_nfc_state_hint">اختر الحالة التي تشغّل المهمة</string>
-    <string name="trigger_rotation_state">الحالة</string>
     <string name="trigger_storage_direction">الاتجاه</string>
     <string name="trigger_storage_threshold">الحد (MB)</string>
     <string name="trigger_type_auto_rotate">التدوير التلقائي</string>
@@ -767,8 +709,6 @@
     <string name="trigger_type_screen_rotation_state">تدوير الشاشة</string>
     <string name="trigger_type_storage_low">التخزين</string>
     <string name="trigger_type_wifi_state">واي فاي</string>
-    <string name="trigger_wifi_state_hint">اختر الحالة التي تشغّل المهمة</string>
-    <string name="trigger_auto_rotate_state">الحالة</string>
     <string name="action_alert">إظهار تنبيه</string>
     <string name="action_alert_sub">عرض نافذة تنبيه</string>
     <string name="action_bluetooth_scan">مسح بلوتوث</string>
@@ -849,13 +789,9 @@
     <string name="action_wifi_forget_sub">إزالة شبكة محفوظة</string>
     <string name="action_wifi_scan_now">مسح شبكات الواي فاي</string>
     <string name="action_wifi_scan_now_sub">بدء مسح شبكات الواي فاي</string>
-    <string name="email_body">الرسالة</string>
-    <string name="email_subject">الموضوع</string>
-    <string name="email_to">إلى</string>
     <string name="install_apk_path">مسار ملف APK</string>
     <string name="latitude">خط العرض</string>
     <string name="longitude">خط الطول</string>
-    <string name="notification_tone_label">نغمة الإشعارات</string>
     <string name="pointer_speed_label">سرعة المؤشر (من -7 إلى 7)</string>
     <string name="screensaver_timeout_label">مهلة شاشة التوقف (دقائق)</string>
     <string name="settings_airplane">وضع الطيران</string>
@@ -873,17 +809,11 @@
     <string name="settings_privacy">الخصوصية</string>
     <string name="settings_usage_access">الوصول إلى الاستخدام</string>
     <string name="settings_vpn">VPN</string>
-    <string name="timezone_label">المنطقة الزمنية (مثال: GMT)</string>
-    <string name="toast_text">نص الرسالة</string>
-    <string name="trigger_desc_alarm_set">يُطلق عند ضبط منبّه أو تغييره</string>
-    <string name="trigger_desc_boot">يُطلق عند اكتمال إقلاع الجهاز</string>
     <string name="trigger_desc_clipboard">يُطلق عند تغيّر محتوى الحافظة</string>
     <string name="trigger_desc_nfc_tag">يُطلق عند مسح بطاقة NFC</string>
     <string name="trigger_desc_screen_timeout">يُطلق عند تغيّر إعداد مهلة الشاشة</string>
-    <string name="trigger_desc_timezone">يُطلق عند تغيّر المنطقة الزمنية للجهاز</string>
     <string name="trigger_events_on_change">يُطلق عند التغيّر</string>
     <string name="trigger_signal_threshold">حد الإشارة</string>
-    <string name="trigger_state_label">الحالة</string>
     <string name="trigger_temperature_threshold">حد الحرارة (°C)</string>
     <string name="trigger_type_alarm_set_changed">ضبط منبّه</string>
     <string name="trigger_type_auto_brightness_state">السطوع التلقائي</string>
@@ -902,7 +832,6 @@
     <string name="trigger_type_usb_connected">اتصال USB</string>
     <string name="trigger_type_vpn_connected">اتصال VPN</string>
     <string name="trigger_type_wifi_signal_strength">قوة إشارة الواي فاي</string>
-    <string name="vibrate_pattern_label">نمط الاهتزاز</string>
     <string name="wifi_password">كلمة المرور</string>
     <string name="wifi_ssid">اسم الواي فاي (SSID)</string>
     <string name="collapse_options">طي الخيارات</string>
@@ -1002,20 +931,13 @@
     <string name="action_private_dns_sub">تعيين وضع أو موفّر DNS الخاص في Android</string>
     <string name="action_charging_limit">حد الشحن</string>
     <string name="action_charging_limit_sub">تعيين نسبة إيقاف الشحن التي يدعمها العتاد</string>
-    <string name="private_dns_mode">وضع DNS الخاص</string>
     <string name="private_dns_off">إيقاف</string>
     <string name="private_dns_automatic">تلقائي</string>
-    <string name="private_dns_hostname_mode">اسم مضيف الموفّر</string>
-    <string name="private_dns_hostname">اسم مضيف الموفّر</string>
-    <string name="private_dns_elevated_note">يتطلب root أو Shizuku. يغيّر هذا DNS الخاص للجهاز كله، وليس لتطبيق واحد فقط.</string>
-    <string name="charging_limit_value">حد الشحن: %1$d%%</string>
-    <string name="charging_limit_root_note">يتطلب root وعقدة عتاد قياسية للتحكم بالشحن؛ الأجهزة غير المدعومة تعيد فشلاً صريحاً.</string>
 
     <string name="action_charging_feedback">صوت واهتزاز الشحن</string>
     <string name="action_charging_feedback_sub">التحكم بتغذية الشحن الراجعة عندما يدعمها ROM</string>
     <string name="charging_sound">صوت الشحن</string>
     <string name="charging_vibration">اهتزاز الشحن</string>
-    <string name="charging_feedback_elevated_note">يتطلب root أو Shizuku ويتحقق من الإعدادات بعد الكتابة. تعيد ROM غير المدعومة فشلاً صريحاً.</string>
     <string name="network_mode_phone_permission_hint">اسمح بالوصول إلى حالة الهاتف لقراءة الشرائح النشطة وأوضاع الشبكة التي يدعمها جهازك فعلياً. يتطلب تغيير وضع الشبكة أيضاً روت أو Shizuku أو صلاحية تطبيق نظام.</string>
 
 
@@ -1045,23 +967,14 @@
     <string name="action_rom_setting_theme">السمة والألوان</string>
     <string name="action_rom_setting_theme_sub">التمييز والألوان والأيقونات والخطوط</string>
     <string name="any_bluetooth_device">أي جهاز بلوتوث</string>
-    <string name="any_bluetooth_device_hint">يعمل عند اتصال أي جهاز بلوتوث أو انقطاعه.</string>
     <string name="any_device">أي جهاز</string>
-    <string name="sms_match_contains">يحتوي على</string>
     <string name="sms_match_exact">مطابقة تامة</string>
-    <string name="sms_match_any">أي نص</string>
     <string name="trigger_type_incoming_call">مكالمة واردة</string>
     <string name="trigger_type_incoming_call_sub">فحص المكالمات قبل رنين الهاتف</string>
-    <string name="call_from_hint">الرقم أو جزء منه (اختياري)</string>
-    <string name="call_category_any">أي متصل</string>
     <string name="call_category_unknown">أرقام غير معروفة</string>
     <string name="call_category_private">أرقام مخفية</string>
     <string name="call_category_contact">جهات الاتصال</string>
     <string name="call_screening_hint">امنح دور "معرّف المتصل وفحص المكالمات" من إعدادات النظام لتمكين الحظر قبل الرنين</string>
-    <string name="call_contacts_permission_hint">يُستخدم الوصول إلى جهات الاتصال فقط للتعرّف على المتصلين المحفوظين لديك. من دونه تُعامل المكالمات على أنها من أرقام غير معروفة.</string>
-    <string name="call_block_hint">يرفض المكالمة الواردة الحالية؛ يحتاج دور الفحص أو هذا الإذن</string>
-    <string name="call_block_silent_hint">يمنع المكالمة المطابقة ويخفي إشعارها حيثما يدعم أندرويد ذلك</string>
-    <string name="call_silence_hint">يكتم الرنين دون رفض المكالمة</string>
     <string name="action_call_block">حظر المكالمة</string>
     <string name="action_call_block_sub">رفض المكالمة الواردة الحالية</string>
     <string name="action_call_block_silent">حظر المكالمة بصمت</string>
@@ -1070,10 +983,8 @@
     <string name="action_call_reply_sms_sub">إرسال رسالة إلى المتصل الذي شغّل هذا التنفيذ</string>
     <string name="action_sms_reply">الرد على الرسالة الواردة</string>
     <string name="action_sms_reply_sub">إرسال رسالة إلى مرسل الرسالة التي شغّلت التنفيذ</string>
-    <string name="reply_message">نص الرد</string>
     <string name="action_sms_block">حظر الرسائل الواردة</string>
     <string name="action_sms_block_sub">منع تسليم الرسائل المطابقة (يتطلب دور تطبيق SMS الافتراضي)</string>
-    <string name="action_sms_block_hint">يُمنع حفظ الرسالة المطابقة فقط عند تعيين NexaFlow كتطبيق SMS الافتراضي. وإلا سيُظهر التنفيذ أن الدور مطلوب.</string>
     <string name="action_call_silence">كتم المكالمة</string>
     <string name="action_call_silence_sub">كتم الرنين الحالي</string>
     <string name="constraint_type_schedule">نافذة زمنية</string>
@@ -1087,9 +998,6 @@
     <string name="trigger_type_wifi_connected_sub">يعمل عند اتصال الجهاز بشبكة الواي فاي أو فصله عنها</string>
     <string name="trigger_type_mobile_data">اتصال بيانات الجوال</string>
     <string name="trigger_type_mobile_data_sub">يعمل عندما تكون بيانات الجوال هي الشبكة النشطة أو العكس</string>
-    <string name="call_match_any">أي رقم</string>
-    <string name="call_mode_hint">يطابق رقم المتصل وليس نص الرسالة.</string>
-    <string name="call_number_filter">رقم المتصل</string>
     <string name="key_event_custom">مفتاح مخصص (اسم أو رمز)</string>
     <string name="battery_temp_hint">بالدرجات المئوية، مثال: 40</string>
     <string name="map_picker_title">اختيار الموقع</string>
@@ -1237,8 +1145,6 @@
     <string name="search_by_name">بحث بالاسم</string>
     <string name="search_by_package">بحث بالحزمة</string>
     <string name="recently_used_apps">المستخدمة حديثًا في المهام</string>
-    <string name="bt_pick_ok">استخدام هذا الجهاز</string>
-    <string name="calendar_pick_ok">استخدام هذا التقويم</string>
     <string name="diagnostics_title">مشاكل الإعداد</string>
     <string name="diagnostics_empty">لا توجد مشاكل إعداد</string>
     <string name="diagnostics_intro">مهام فشلت إجراءاتها وقت التنفيذ بسبب قيم إعداد غير صالحة</string>
@@ -1256,9 +1162,6 @@
     <string name="http_retry_cap_ms">الحد الأقصى: %1$d مللي ثانية</string>
     <string name="pointer_speed_range">تمتد سرعة المؤشر من -7 (الأبطأ) إلى 7 (الأسرع)؛ 0 هو الافتراضي للنظام.</string>
     <string name="screensaver_minutes_chip">%1$d دقيقة</string>
-    <string name="density_range_hint">كثافة الشاشة: من 120 إلى 1000 نقطة/بوصة (يرفض المحرك القيم خارج هذا النطاق)</string>
-    <string name="bt_discoverable_range_hint">من 0 (أبدًا) إلى 3600 ثانية؛ يقيد المحرك القيم لهذا النطاق</string>
-    <string name="screensaver_range_hint">من 1 إلى 1440 دقيقة (24 ساعة)؛ يقيد المحرك القيم لهذا النطاق</string>
     <string name="http_allow_private">السماح بالاتصال بالشبكة المحلية والخاصة</string>
     <string name="http_private_warning">يُسمح باتصالات HTTPS فقط. فعّل الخيار للخدمات الموثوقة فقط. يتطلب Android 17 إذن الشبكة المحلية.</string>
     <string name="action_data_text">تحويل النص</string>
@@ -1318,10 +1221,6 @@
     <string name="option_tier_expanded">موسّع</string>
     <string name="option_tier_collapsed">مطوي</string>
     <string name="option_tier_all">كل الخيارات</string>
-    <string name="bluetooth_advanced">خيارات متقدمة</string>
-    <string name="bluetooth_advanced_hide">إخفاء الخيارات المتقدمة</string>
-    <string name="bluetooth_device_name">اسم الجهاز</string>
-    <string name="bluetooth_device_address">عنوان MAC</string>
     <string name="trigger_temporal_filters_title">فلاتر التوقيت</string>
 
     <string name="trigger_expression_title">تعبير محفزات متقدم</string>
@@ -1346,5 +1245,4 @@
     <string name="network_metered">شبكة باستهلاك محسوب</string>
     <string name="network_ssid">اسم شبكة Wi-Fi (SSID)</string>
     <string name="network_bssid">نقطة الوصول (BSSID)</string>
-    <string name="network_identity_permission_hint">قد يتطلب Android إذن الموقع لقراءة اسم شبكة Wi-Fi المتصل بها ونقطة الوصول. يقرأ NexaFlow هذه القيم لمطابقة هذا المحفز فقط.</string>
 </resources>

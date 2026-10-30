@@ -2,7 +2,6 @@ package com.nexaflow.feature.settings
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -34,9 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -46,11 +43,9 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.core.content.FileProvider
 import java.io.File
 import androidx.compose.material.icons.filled.Upload
@@ -588,68 +583,12 @@ fun SettingsScreen(navController: NavController) {
         )
     }
 
-    if (showAbout) {
-        AlertDialog(
-            onDismissRequest = { showAbout = false },
-            // The settings module cannot reference the app module's resources,
-            // so the brand name stays a literal (it is not translated anyway).
-            title = { Text("NexaFlow") },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(stringResource(R.string.version, appVersion(context)))
-                    Text(
-                        text = stringResource(R.string.about_description),
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.about_license),
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                    // Developer contact & support links.
-                    HorizontalDivider(
-                        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Person,
-                        title = stringResource(R.string.about_developer),
-                        subtitle = DEVELOPER_HANDLE
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Code,
-                        title = stringResource(R.string.about_github),
-                        subtitle = stringResource(R.string.about_github_sub),
-                        onClick = { openUrl(context, DEV_GITHUB_URL) }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Email,
-                        title = stringResource(R.string.about_email),
-                        subtitle = stringResource(R.string.about_email_sub),
-                        onClick = { openEmail(context, DEV_EMAIL) }
-                    )
-                    SettingRow(
-                        icon = Icons.AutoMirrored.Filled.Send,
-                        title = stringResource(R.string.about_telegram),
-                        subtitle = stringResource(R.string.about_telegram_sub),
-                        onClick = { openUrl(context, DEV_TELEGRAM_URL) }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Favorite,
-                        title = stringResource(R.string.about_support),
-                        subtitle = stringResource(R.string.about_support_sub),
-                        onClick = { openUrl(context, DEV_KOFI_URL) }
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showAbout = false }) { Text(stringResource(R.string.ok)) }
-            }
-        )
-    }
+    AboutDialog(
+        visible = showAbout,
+        appVersion = appVersion(context),
+        onDismiss = { showAbout = false }
+    )
+
 }
 
 private object SettingsGroupId {
@@ -771,28 +710,6 @@ private fun AppLanguagePickerDialog(
         },
         confirmButton = {}
     )
-}
-
-// ── Developer info (About dialog) ────────────────────────────────
-
-private const val DEVELOPER_HANDLE = "Alaa91H"
-private const val DEV_GITHUB_URL = "https://github.com/Alaa91H"
-private const val DEV_EMAIL = "alahus2591@gmail.com"
-private const val DEV_TELEGRAM_URL = "https://t.me/Alaa91h"
-private const val DEV_KOFI_URL = "https://ko-fi.com/alaa91h"
-
-/** Opens [url] in the system browser (best-effort, no crash on missing handler). */
-private fun openUrl(context: Context, url: String) {
-    runCatching {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-    }
-}
-
-/** Opens the default mail app addressed to [address] (best-effort). */
-private fun openEmail(context: Context, address: String) {
-    runCatching {
-        context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$address")))
-    }
 }
 
 /**

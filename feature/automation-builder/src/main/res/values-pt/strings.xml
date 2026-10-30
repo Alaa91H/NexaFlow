@@ -55,7 +55,6 @@
     <string name="package_name">Nome do pacote</string>
     <string name="choose_from_installed">Escolher entre os apps instalados</string>
     <string name="app_detection_hint">A detecção de apps precisa do serviço de acessibilidade</string>
-    <string name="enable">Ativar</string>
     <string name="state">Estado</string>
 
     
@@ -162,18 +161,15 @@
     <string name="action_root_sub">Executar um comando via root</string>
     <string name="brightness_label">Brilho: %1$d</string>
     <string name="volume_label">Volume: %1$d</string>
-    <string name="turn_on">Ligar</string>
     <string name="apps_comma">Apps (separados por vírgula)</string>
     <string name="title">Título</string>
     <string name="text">Texto</string>
     <string name="auto_rotate">Rotação automática</string>
     <string name="url">URL</string>
-    <string name="url_hint">https://exemplo.com</string>
     <string name="alert_below">Alertar abaixo de: %1$d%%</string>
     <string name="message_optional">Mensagem (opcional)</string>
     <string name="shell_command">Comando shell</string>
     <string name="shell_hint">ex.: settings put global airplane_mode_on 1</string>
-    <string name="runs_immediately">É executado imediatamente quando a automação é acionada.</string>
     <string name="write_settings_hint">Requer permissão para modificar as configurações do sistema</string>
     <string name="dnd_hint">Requer acesso ao Não perturbar</string>
     <string name="flashlight_hint">Requer acesso à câmera para a lanterna</string>
@@ -228,8 +224,6 @@
     <string name="ringer_normal">Tocando</string>
     <string name="ringer_vibrate">Vibrar</string>
     <string name="ringer_silent">Silencioso</string>
-    <string name="hour">Hora</string>
-    <string name="minute">Minuto</string>
     <string name="elevated_hint">Exige root, Shizuku ou privilégios de app do sistema</string>
     <string name="trigger_type_sms">SMS</string>
     <string name="repeat_custom">Personalizado</string>
@@ -262,7 +256,6 @@
     <string name="pick_date">Escolher data</string>
     <string name="pick_on_map">Escolher no mapa</string>
     <string name="sms_from">De (número)</string>
-    <string name="sms_from_hint">ex.: 05XXXXXXXX (vazio = qualquer)</string>
     <string name="sms_contains">A mensagem contém</string>
     <string name="sms_contains_hint">Texto para corresponder (vazio = qualquer)</string>
     <string name="permission_denied_hint">Permissão necessária para ativar este recurso</string>
@@ -288,9 +281,6 @@
     <string name="action_open_settings">Abrir configurações</string>
     <string name="action_open_settings_sub">Abrir uma página de configurações do sistema</string>
     <string name="ring_volume_label">Volume do toque: %1$d</string>
-    <string name="phone_number">Número de telefone</string>
-    <string name="reminder_title">Título do lembrete</string>
-    <string name="reminder_text">Texto do lembrete</string>
     <string name="settings_wifi">Wi-Fi</string>
     <string name="settings_bluetooth">Bluetooth</string>
     <string name="settings_location">Localização</string>
@@ -326,19 +316,17 @@
     <string name="trigger_app">Quando um app é aberto</string>
     <string name="time_single">Horário único</string>
     <string name="time_range">Intervalo de horário</string>
+    <string name="time_zone_section">Fuso horário</string>
+    <string name="time_zone_device">Fuso horário do dispositivo</string>
+    <string name="time_zone_fixed">Fuso horário específico</string>
+    <string name="time_zone_id_label">Fuso horário IANA (ex.: Europe/Berlin)</string>
+    <string name="time_zone_invalid">Fuso horário desconhecido — o do dispositivo é usado até ser válido</string>
     <string name="time_range_start">Início</string>
     <string name="time_range_end">Fim</string>
     <string name="range_same_day">Mesmo dia</string>
     <string name="range_overnight">Durante a noite — termina no dia seguinte</string>
     <string name="trigger_type_bluetooth">Dispositivo Bluetooth</string>
     <string name="trigger_bluetooth">Dispositivo Bluetooth</string>
-    <string name="choose_bluetooth_device">Escolher dispositivo Bluetooth</string>
-    <string name="no_bluetooth_device">Nenhum dispositivo selecionado</string>
-    <string name="no_paired_devices">Nenhum dispositivo Bluetooth pareado encontrado</string>
-    <string name="bluetooth_turned_off_title">O Bluetooth está desativado</string>
-    <string name="bluetooth_turned_off_body">Ative o Bluetooth para ver seus dispositivos pareados e escolher um para esta tarefa.</string>
-    <string name="bluetooth_permission_hint">Ative o Bluetooth para detectar dispositivos pareados</string>
-    <string name="stream_label">Canal de som</string>
     <string name="stream_volume_label">Volume %1$d</string>
     <string name="stream_music">Mídia</string>
     <string name="stream_ring">Toque</string>
@@ -355,9 +343,6 @@
     <string name="trigger_type_ringer">Modo de som</string>
     <string name="trigger_ringer">Modo de som</string>
     <string name="trigger_ringer_sub">Quando o modo de som muda</string>
-    <string name="ringer_mode_label">Modo de som</string>
-    <string name="ringer_mode_hint">A tarefa é executada quando o telefone muda para o modo de som escolhido</string>
-    <string name="change_now">Alterar agora</string>
 
     <string name="next_needs_action">Adicione pelo menos uma etapa de execução primeiro</string>
     <string name="occurrence_first">1.º</string>
@@ -381,16 +366,9 @@
     <string name="trigger_type_calendar">Calendário</string>
     <string name="trigger_calendar">Evento do calendário</string>
     <string name="any_calendar">Qualquer calendário</string>
-    <string name="choose_calendar">Escolher um calendário</string>
-    <string name="no_calendars_found">Nenhum calendário encontrado</string>
-    <string name="calendar_contains">O evento contém</string>
-    <string name="calendar_contains_hint">ex. reunião, dentista (vazio = qualquer)</string>
     <string name="calendar_event_start">Começa</string>
     <string name="calendar_event_end">Termina</string>
     <string name="calendar_event_created">Adicionado ao calendário</string>
-    <string name="calendar_before_none">No início do evento</string>
-    <string name="calendar_before_minutes">Antes do evento: %1$d min</string>
-    <string name="calendar_permission_hint">Requer permissão de calendário para ler eventos</string>
     <string name="charger_type_label">Tipo de carregador</string>
     <string name="charger_any">Qualquer</string>
     <string name="charger_ac">CA / Parede</string>
@@ -511,7 +489,6 @@
     <string name="action_open_quick_settings">Configurações rápidas</string>
     <string name="action_open_quick_settings_sub">Abrir o painel de configurações rápidas</string>
     <string name="vibrate_duration">Duração da vibração</string>
-    <string name="clipboard_text">Texto da área de transferência</string>
     <string name="trigger_type_rom_setting">Configuração da ROM</string>
     <string name="use_current_location">Usar minha localização atual</string>
     <string name="location_coordinates">Localização: %1$s, %2$s</string>
@@ -521,19 +498,12 @@
     <string name="location_inside">Dentro da localização</string>
     <string name="location_outside">Fora da localização</string>
     <string name="location_fix_failed">Não foi possível obter sua localização. Ative a localização e tente novamente.</string><string name="charging_yes">A carregar</string>
-    <string name="ringtone_label">Toque padrão</string>
     <string name="network_mode_sub">Escolha entre os modos realmente disponíveis para o SIM selecionado. Aplicar uma alteração requer acesso elevado.</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">Automático</string>
     <string name="network_mode_5g">5G</string>
-    <string name="network_mode_current">Geração atual</string>
-    <string name="network_mode_current_hint">Leitura ao vivo da geração celular real (detecção 5G real)</string>
-    <string name="network_mode_fire_when">Disparar quando</string>
-    <string name="network_mode_unknown">Desconhecido</string>
-    <string name="network_mode_permission_hint">A permissão de telefone melhora a geração ao vivo e a detecção de 5G</string>
     <string name="charging_any">Qualquer</string>
     <string name="network_mode_4g">4G</string>
-    <string name="choose_ringtone">Escolher toque</string>
     <string name="action_network_mode_sub">Escolha entre os modos realmente disponíveis para o SIM selecionado. Aplicar uma alteração requer acesso elevado.</string>
     <string name="action_set_ringtone_sub">Escolher o toque de chamada padrão</string>
     <string name="network_mode_3g">3G</string>
@@ -614,8 +584,6 @@
     <string name="setting_namespace">Namespace</string>
     <string name="setting_key">Chave da configuração</string>
     <string name="setting_value">Valor</string>
-    <string name="screenshot_filename">Nome do arquivo (opcional)</string>
-    <string name="screenshot_hint">Salva em Pictures/NexaFlow</string>
     <string name="input_text_label">Texto para digitar</string>
     <string name="key_event_label">Tecla (nome ou código)</string>
     <string name="key_event_hint">ex.: POWER, HOME, VOLUME_UP ou número KEYCODE</string>
@@ -626,12 +594,6 @@
     <string name="swipe_to_x">X final</string>
     <string name="swipe_to_y">Y final</string>
     <string name="swipe_duration">Duração (ms)</string>
-    <string name="color_inversion">Inverter cores</string>
-    <string name="grayscale">Escala de cinza</string>
-    <string name="extra_dim">Escurecimento extra</string>
-    <string name="night_light">Luz noturna</string>
-    <string name="haptic_feedback">Feedback tátil</string>
-    <string name="sound_effects">Sons de toque</string>
     <string name="action_location_mode">Modo de localização</string>
     <string name="action_location_mode_sub">Modo de localização</string>
     <string name="action_data_saver">Economia de dados</string>
@@ -702,27 +664,13 @@
     <string name="action_open_play_store_app_sub">Abrir Play Store</string>
     <string name="action_reboot">Reiniciar dispositivo</string>
     <string name="action_reboot_sub">Reiniciar dispositivo</string>
+    <string name="reboot_mode">Destino da reinicialização</string>
     <string name="action_shutdown">Desligar dispositivo</string>
     <string name="action_shutdown_sub">Desligar dispositivo</string>
     <string name="action_restart_system_ui">Reiniciar interface do sistema</string>
     <string name="action_restart_system_ui_sub">Reiniciar interface do sistema</string>
-    <string name="location_mode">Modo de localização</string>
-    <string name="data_saver">Economia de dados</string>
     <string name="font_scale">Tamanho da fonte</string>
     <string name="display_density">Densidade da tela</string>
-    <string name="screensaver">Protetor de tela</string>
-    <string name="battery_saver_threshold_label">Começa em %1$d%%</string>
-    <string name="always_on_display">Tela sempre ativa</string>
-    <string name="show_taps">Mostrar toques</string>
-    <string name="pointer_location">Localização do ponteiro</string>
-    <string name="adaptive_battery">Bateria adaptativa</string>
-    <string name="wifi_sleep_policy">Política de suspensão de Wi-Fi</string>
-    <string name="bluetooth_discoverable_timeout">Detectável por (segundos)</string>
-    <string name="auto_time">Data e hora automáticas</string>
-    <string name="auto_timezone">Fuso horário automático</string>
-    <string name="haptic_intensity_label">Intensidade tátil %1$d</string>
-    <string name="camera_shutter_sound">Som do obturador</string>
-    <string name="wifi_scanning">Digitalização de Wi-Fi constante</string>
     <string name="device_locked">Bloqueado</string>
     <string name="device_unlocked">Desbloqueado</string>
     <string name="location_mode_off">Desativado</string>
@@ -742,15 +690,9 @@
     <string name="wifi_sleep_never">Nunca</string>
     <string name="storage_below">Abaixo</string>
     <string name="storage_above">Acima</string>
-    <string name="trigger_power_saver_state">Estado</string>
-    <string name="trigger_bluetooth_state_hint">Escolha o estado que aciona a tarefa</string>
     <string name="trigger_brightness_direction">Direção</string>
     <string name="trigger_brightness_threshold">Brilho Limite</string>
     <string name="trigger_data_saver_state">Estado</string>
-    <string name="trigger_device_locked_state">Estado</string>
-    <string name="trigger_location_mode">Modo de localização</string>
-    <string name="trigger_nfc_state_hint">Escolha o estado que aciona a tarefa</string>
-    <string name="trigger_rotation_state">Estado</string>
     <string name="trigger_storage_direction">Direção</string>
     <string name="trigger_storage_threshold">Limite (MB)</string>
     <string name="trigger_type_auto_rotate">Rotação automática</string>
@@ -764,8 +706,6 @@
     <string name="trigger_type_screen_rotation_state">Rotação de tela</string>
     <string name="trigger_type_storage_low">Armazenamento</string>
     <string name="trigger_type_wifi_state">Wi-Fi</string>
-    <string name="trigger_wifi_state_hint">Escolha o estado que aciona a tarefa</string>
-    <string name="trigger_auto_rotate_state">Estado</string>
     <string name="action_alert">Mostrar alerta</string>
     <string name="action_alert_sub">Mostrar um diálogo de alerta</string>
     <string name="action_bluetooth_scan">Escanear Bluetooth</string>
@@ -846,13 +786,9 @@
     <string name="action_wifi_forget_sub">Remover uma rede salva</string>
     <string name="action_wifi_scan_now">Escanear Wi-Fi</string>
     <string name="action_wifi_scan_now_sub">Iniciar um escaneamento Wi-Fi</string>
-    <string name="email_body">Mensagem</string>
-    <string name="email_subject">Assunto</string>
-    <string name="email_to">Para</string>
     <string name="install_apk_path">Caminho do APK</string>
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
-    <string name="notification_tone_label">Tom de notificação</string>
     <string name="pointer_speed_label">Velocidade do ponteiro (-7 a 7)</string>
     <string name="screensaver_timeout_label">Tempo do protetor (minutos)</string>
     <string name="settings_airplane">Modo avião</string>
@@ -870,17 +806,11 @@
     <string name="settings_privacy">Privacidade</string>
     <string name="settings_usage_access">Acesso ao uso</string>
     <string name="settings_vpn">VPN</string>
-    <string name="timezone_label">Fuso horário (ex.: GMT)</string>
-    <string name="toast_text">Texto do aviso</string>
-    <string name="trigger_desc_alarm_set">Dispara quando um alarme é definido ou alterado</string>
-    <string name="trigger_desc_boot">Dispara quando o dispositivo termina de iniciar</string>
     <string name="trigger_desc_clipboard">Dispara quando o conteúdo da área de transferência muda</string>
     <string name="trigger_desc_nfc_tag">Dispara quando uma etiqueta NFC é lida</string>
     <string name="trigger_desc_screen_timeout">Dispara quando o tempo limite da tela muda</string>
-    <string name="trigger_desc_timezone">Dispara quando o fuso horário muda</string>
     <string name="trigger_events_on_change">Dispara ao alterar</string>
     <string name="trigger_signal_threshold">Limite de sinal</string>
-    <string name="trigger_state_label">Estado</string>
     <string name="trigger_temperature_threshold">Limite de temperatura (°C)</string>
     <string name="trigger_type_alarm_set_changed">Alarme definido</string>
     <string name="trigger_type_auto_brightness_state">Brilho automático</string>
@@ -899,7 +829,6 @@
     <string name="trigger_type_usb_connected">USB conectado</string>
     <string name="trigger_type_vpn_connected">VPN conectado</string>
     <string name="trigger_type_wifi_signal_strength">Intensidade do sinal Wi-Fi</string>
-    <string name="vibrate_pattern_label">Padrão de vibração</string>
     <string name="wifi_password">Senha</string>
     <string name="wifi_ssid">Nome do Wi-Fi (SSID)</string>
     <string name="collapse_options">Recolher opções</string>
@@ -999,20 +928,13 @@
     <string name="action_private_dns_sub">Defina o modo ou provedor de DNS privado do Android</string>
     <string name="action_charging_limit">Limite de carga</string>
     <string name="action_charging_limit_sub">Defina a porcentagem de parada de carga suportada</string>
-    <string name="private_dns_mode">Modo DNS privado</string>
     <string name="private_dns_off">Desativado</string>
     <string name="private_dns_automatic">Automático</string>
-    <string name="private_dns_hostname_mode">Nome do host do provedor</string>
-    <string name="private_dns_hostname">Nome do host do provedor</string>
-    <string name="private_dns_elevated_note">Requer root ou Shizuku. Isto altera o DNS privado do dispositivo, não apenas de um app.</string>
-    <string name="charging_limit_value">Limite de carga: %1$d%%</string>
-    <string name="charging_limit_root_note">Requer root e um nó padrão de controle de carga; dispositivos não suportados retornam falha explícita.</string>
 
     <string name="action_charging_feedback">Som e vibração de carregamento</string>
     <string name="action_charging_feedback_sub">Controle o retorno de carga quando suportado pela ROM</string>
     <string name="charging_sound">Som de carregamento</string>
     <string name="charging_vibration">Vibração de carregamento</string>
-    <string name="charging_feedback_elevated_note">Requer root ou Shizuku e verifica as configurações após gravar. ROMs não suportadas informam falha.</string>
     <string name="network_mode_phone_permission_hint">Permita o acesso ao estado do telefone para ler os SIMs ativos e os modos de rede realmente compatíveis com o seu dispositivo. Alterar um modo de rede também requer acesso root, Shizuku ou de app do sistema.</string>
 
 
@@ -1042,22 +964,14 @@
     <string name="action_rom_setting_theme">Tema e Monet</string>
     <string name="action_rom_setting_theme_sub">Destaque, Monet, ícones, fontes</string>
     <string name="any_bluetooth_device">Qualquer dispositivo Bluetooth</string>
-    <string name="any_bluetooth_device_hint">Executa quando qualquer dispositivo Bluetooth se conecta ou desconecta.</string>
     <string name="any_device">Qualquer dispositivo</string>
-    <string name="sms_match_contains">Contém</string>
     <string name="sms_match_exact">Correspondência exata</string>
-    <string name="sms_match_any">Qualquer texto</string>
     <string name="trigger_type_incoming_call">Chamada recebida</string>
     <string name="trigger_type_incoming_call_sub">Examina chamadas antes do telefone tocar</string>
-    <string name="call_from_hint">Número ou parte dele (opcional)</string>
-    <string name="call_category_any">Qualquer chamador</string>
     <string name="call_category_unknown">Números desconhecidos</string>
     <string name="call_category_private">Números ocultos</string>
     <string name="call_category_contact">Contatos</string>
     <string name="call_screening_hint">Conceda a função de identificação e triagem de chamadas nas configurações do sistema para bloquear antes de tocar</string>
-    <string name="call_contacts_permission_hint">O acesso aos contatos serve apenas para identificar chamadas de pessoas salvas. Sem ele, as chamadas são tratadas como desconhecidas.</string>
-    <string name="call_block_hint">Rejeita a chamada atual; precisa da função de triagem ou desta permissão</string>
-    <string name="call_silence_hint">Silencia o toque sem rejeitar a chamada</string>
     <string name="action_call_block">Bloquear chamada</string>
     <string name="action_call_block_sub">Rejeitar a chamada recebida atual</string>
     <string name="action_call_silence">Silenciar chamada</string>
@@ -1073,9 +987,6 @@
     <string name="trigger_type_wifi_connected_sub">É executado quando o dispositivo conecta ao Wi-Fi (ou desconecta)</string>
     <string name="trigger_type_mobile_data">Dados móveis conectados</string>
     <string name="trigger_type_mobile_data_sub">É executado quando os dados móveis são a rede ativa (ou não)</string>
-    <string name="call_match_any">Qualquer número</string>
-    <string name="call_mode_hint">Corresponde ao número do chamador, não ao texto de uma mensagem.</string>
-    <string name="call_number_filter">Número do chamador</string>
     <string name="key_event_custom">Tecla personalizada (nome ou código)</string>
     <string name="battery_temp_hint">Graus Celsius, ex. 40</string>
     <string name="map_picker_title">Escolher local</string>
@@ -1223,8 +1134,6 @@
     <string name="search_by_name">Pesquisar por nome</string>
     <string name="search_by_package">Pesquisar por pacote</string>
     <string name="recently_used_apps">Usados recentemente em tarefas</string>
-    <string name="bt_pick_ok">Usar este dispositivo</string>
-    <string name="calendar_pick_ok">Usar este calendário</string>
     <string name="diagnostics_title">Problemas de configuração</string>
     <string name="diagnostics_empty">Nenhum problema de configuração encontrado</string>
     <string name="diagnostics_intro">Tarefas cujas ações falharam em tempo de execução por valores de configuração inválidos</string>
@@ -1242,9 +1151,6 @@
     <string name="http_retry_cap_ms">Limite: %1$d ms</string>
     <string name="pointer_speed_range">A velocidade do ponteiro vai de -7 (mais lenta) a 7 (mais rápida); 0 é o padrão do sistema.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
-    <string name="density_range_hint">Densidade da tela: 120 a 1000 dpi (o motor rejeita valores fora dessa faixa)</string>
-    <string name="bt_discoverable_range_hint">0 (nunca) a 3600 segundos; o motor ajusta os valores a essa faixa</string>
-    <string name="screensaver_range_hint">1 a 1440 minutos (24 horas); o motor ajusta os valores a essa faixa</string>
     <string name="http_allow_private">Permitir destinos de rede locais/privados</string>
     <string name="http_private_warning">Somente HTTPS. Ative apenas para serviços confiáveis. O Android 17 exige permissão de rede local.</string>
     <string name="action_data_text">Transformação de texto</string>
@@ -1312,18 +1218,11 @@
     <string name="action_call_reply_sms">Responder ao chamador por SMS</string>
     <string name="action_call_reply_sms_sub">Enviar uma mensagem para quem iniciou este fluxo</string>
     <string name="action_sms_block">Bloquear SMS recebidos</string>
-    <string name="action_sms_block_hint">Esta mensagem só é impedida quando o NexaFlow é o app de SMS padrão. Caso contrário, a ação informa que esse papel é necessário.</string>
     <string name="action_sms_block_sub">Impedir a entrega dos SMS correspondentes (requer o papel de SMS padrão)</string>
     <string name="action_sms_reply">Responder ao SMS recebido</string>
     <string name="action_sms_reply_sub">Enviar uma mensagem para quem iniciou este fluxo</string>
-    <string name="call_block_silent_hint">Impede uma chamada correspondente e oculta sua notificação quando o Android oferece suporte.</string>
-    <string name="reply_message">Mensagem de resposta</string>
 
     <string name="task_restore_failed">Não foi possível restaurar as configurações anteriores da tarefa</string>
-    <string name="bluetooth_advanced">Opções avançadas</string>
-    <string name="bluetooth_advanced_hide">Ocultar opções avançadas</string>
-    <string name="bluetooth_device_name">Nome do dispositivo</string>
-    <string name="bluetooth_device_address">Endereço MAC</string>
     <string name="trigger_temporal_filters_title">Filtros temporais</string>
 
     <string name="trigger_expression_title">Expressão avançada de gatilhos</string>
@@ -1348,5 +1247,4 @@
     <string name="network_metered">Rede limitada por dados</string>
     <string name="network_ssid">Nome do Wi-Fi (SSID)</string>
     <string name="network_bssid">Ponto de acesso (BSSID)</string>
-    <string name="network_identity_permission_hint">O Android pode exigir permissão de localização para ler o nome da rede Wi-Fi conectada e o ponto de acesso. O NexaFlow lê esses valores somente para corresponder a este gatilho.</string>
 </resources>
