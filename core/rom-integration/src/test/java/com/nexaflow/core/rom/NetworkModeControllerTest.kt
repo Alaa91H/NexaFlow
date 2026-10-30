@@ -1,5 +1,6 @@
 package com.nexaflow.core.rom
 
+import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertFalse
@@ -7,6 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -49,6 +51,23 @@ class NetworkModeControllerTest {
         // is that the profile is not refused by the policy guard.
         assertFalse(result.success)
         assertFalse(result.message.contains("5G alone"))
+    }
+
+    @Test
+    fun `a dynamic profile without a selected subscription is refused`() {
+        // The dynamic write is subscription-scoped, so the profile must name
+        // the SIM it applies to instead of changing an inferred radio.
+        shadowOf(context as Application)
+            .grantPermissions(android.Manifest.permission.READ_PHONE_STATE)
+
+        val result = NetworkModeController(context).setNetworkMode(
+            mode = "DYNAMIC",
+            requestedMask = NetworkModePolicy.BITMASK_4G,
+            subscriptionId = null
+        )
+
+        assertFalse(result.success)
+        assertTrue(result.message.contains("selected SIM subscription"))
     }
 
     @Test

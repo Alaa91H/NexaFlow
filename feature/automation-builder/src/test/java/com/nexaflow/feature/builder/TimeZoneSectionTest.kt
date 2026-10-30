@@ -45,9 +45,12 @@ class TimeZoneSectionTest {
 
     private fun string(resId: Int): String = context.getString(resId)
 
-    private fun host(onDraft: (TriggerDraft) -> Unit = {}) {
+    private fun host(
+        initial: Map<String, String> = emptyMap(),
+        onDraft: (TriggerDraft) -> Unit = {},
+    ) {
         composeRule.setContent {
-            var draft by remember { mutableStateOf(TriggerDraft(TriggerType.TIME)) }
+            var draft by remember { mutableStateOf(TriggerDraft(TriggerType.TIME, initial)) }
             TimeZoneSection(
                 draft = draft,
                 onConfigChange = { updated ->
@@ -108,6 +111,33 @@ class TimeZoneSectionTest {
         assertEquals("", config[TimeTriggerCalculator.ZONE_ID_KEY])
         assertEquals("", config[TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY])
         assertNull(TimeTriggerCalculator.resolveZone(config, java.time.ZoneId.of("UTC"))?.id?.takeIf { it == "Europe/Berlin" })
+    }
+
+    @Test
+    fun aStoredZoneWithoutAPolicyOpensTheFixedEditor() {
+        // Automations saved before `zonePolicy` existed carry only the zone
+        // id; the editor must treat that as a fixed zone instead of silently
+        // showing the device-zone choice.
+        host(initial = mapOf("zoneId" to "Europe/Berlin", "timezone" to "Europe/Berlin"))
+
+        composeRule.onNode(hasSetTextAction()).assertIsDisplayed()
+        composeRule.onAllNodesWithText("Europe/Berlin").onFirst().assertExists()
+    }
+
+    @Test
+    fun typingAParseableZoneWritesTheFixedPolicyImmediately() {
+        var latest: TriggerDraft? = null
+        host { latest = it }
+
+        composeRule.onNodeWithText(string(R.string.time_zone_fixed)).performClick()
+        composeRule.onNode(hasSetTextAction()).performTextClearance()
+        composeRule.onNode(hasSetTextAction()).performTextInput("UTC")
+
+        val config = latest!!.config
+        assertEquals(TimeTriggerCalculator.ZONE_POLICY_FIXED_IANA, config[TimeTriggerCalculator.ZONE_POLICY_KEY])
+        assertEquals("UTC", config[TimeTriggerCalculator.ZONE_ID_KEY])
+        assertEquals("UTC", config[TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY])
+        composeRule.onNodeWithText(string(R.string.time_zone_invalid)).assertDoesNotExist()
     }
 
     @Test

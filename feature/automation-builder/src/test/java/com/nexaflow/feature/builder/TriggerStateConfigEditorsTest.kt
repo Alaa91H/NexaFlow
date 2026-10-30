@@ -4,12 +4,22 @@ import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.domain.models.TriggerType
@@ -41,7 +51,8 @@ class TriggerStateConfigEditorsTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
-    private fun string(resId: Int): String = context.getString(resId)
+    private fun string(resId: Int, vararg formatArgs: Any): String =
+        context.getString(resId, *formatArgs)
 
     private fun host(content: @Composable () -> Unit) {
         composeRule.setContent {
@@ -114,6 +125,152 @@ class TriggerStateConfigEditorsTest {
 
         composeRule.onNodeWithText(string(R.string.app_installed)).assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.choose_app)).assertExists()
+    }
+
+    @Test
+    fun batteryBelowDirectionSwitchesTheSubtitleAndLevelLabel() {
+        composeRule.setContent {
+            var draft by remember { mutableStateOf(TriggerDraft(TriggerType.BATTERY, mapOf("above" to "40"))) }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                BatteryTriggerConfig(draft, { draft = it })
+            }
+        }
+
+        composeRule.onNodeWithText("Below").performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithText(string(R.string.battery_below_sub)).onFirst().assertExists()
+        composeRule.onAllNodesWithText(string(R.string.maximum_battery, 40)).onFirst().assertExists()
+    }
+
+    @Test
+    fun batteryAboveChipAndLevelSliderWriteTheirValues() {
+        composeRule.setContent {
+            var draft by remember { mutableStateOf(TriggerDraft(TriggerType.BATTERY, mapOf("direction" to "BELOW"))) }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                BatteryTriggerConfig(draft, { draft = it })
+            }
+        }
+
+        composeRule.onNodeWithText(string(R.string.battery_above)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onAllNodesWithText(string(R.string.battery_above_sub)).onFirst().assertExists()
+
+        composeRule
+            .onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress))
+            .performSemanticsAction(SemanticsActions.SetProgress) { set -> set(35f) }
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithText(string(R.string.minimum_battery, 35)).onFirst().assertExists()
+    }
+
+    @Test
+    fun batteryChargingAndChargerFiltersWriteTheirKeys() {
+        var latest: TriggerDraft? = null
+        host {
+            BatteryTriggerConfig(
+                draft = TriggerDraft(TriggerType.BATTERY),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNodeWithText(string(R.string.charging_yes)).performClick()
+        composeRule.waitForIdle()
+        assertEquals("CHARGING", latest?.config?.get("chargingState"))
+
+        composeRule.onNodeWithText(string(R.string.charger_wireless)).performClick()
+        composeRule.waitForIdle()
+        assertEquals("WIRELESS", latest?.config?.get("chargerType"))
+    }
+
+    @Test
+    fun volumeThresholdFieldKeepsOnlyDigits() {
+        var latest: TriggerDraft? = null
+        host {
+            VolumeChangedConfig(
+                draft = TriggerDraft(TriggerType.VOLUME_CHANGED),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNode(hasSetTextAction()).performTextReplacement("6a5")
+
+        assertEquals("65", latest?.config?.get("threshold"))
+    }
+
+    @Test
+    fun brightnessThresholdFieldKeepsOnlyDigits() {
+        var latest: TriggerDraft? = null
+        host {
+            BrightnessLevelConfig(
+                draft = TriggerDraft(TriggerType.BRIGHTNESS_LEVEL),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNode(hasSetTextAction()).performTextReplacement("2x1")
+
+        assertEquals("21", latest?.config?.get("threshold"))
+    }
+
+    @Test
+    fun storageThresholdFieldKeepsOnlyDigits() {
+        var latest: TriggerDraft? = null
+        host {
+            StorageLowConfig(
+                draft = TriggerDraft(TriggerType.STORAGE_LOW),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNode(hasSetTextAction()).performTextReplacement("4k8")
+
+        assertEquals("48", latest?.config?.get("threshold"))
+    }
+
+    @Test
+    fun batteryTemperatureKeepsOneLeadingSignAndOneDecimalSeparator() {
+        var latest: TriggerDraft? = null
+        host {
+            BatteryTemperatureConfig(
+                draft = TriggerDraft(TriggerType.BATTERY_TEMPERATURE),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNode(hasSetTextAction()).performTextReplacement("-1.2.3x")
+
+        assertEquals("-1.23", latest?.config?.get("threshold"))
+    }
+
+    @Test
+    fun screenTimeoutFieldKeepsOnlyDigits() {
+        var latest: TriggerDraft? = null
+        host {
+            ScreenTimeoutChangedConfig(
+                draft = TriggerDraft(TriggerType.SCREEN_TIMEOUT_CHANGED),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNode(hasSetTextAction()).performTextReplacement("30s")
+
+        assertEquals("30", latest?.config?.get("seconds"))
+    }
+
+    @Test
+    fun wearEventFieldTrimsTheWatchIdentity() {
+        var latest: TriggerDraft? = null
+        host {
+            WearEventConfig(
+                draft = TriggerDraft(TriggerType.WEAR_EVENT),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNode(hasSetTextAction()).performTextInput(" watch-1 ")
+
+        assertEquals("watch-1", latest?.config?.get("watchInstallId"))
     }
 
     @Test

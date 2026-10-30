@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -74,6 +75,15 @@ import kotlinx.serialization.json.Json
 import kotlinx.coroutines.launch
 
 /**
+ * Where `SECRET_REFERENCE` values are stored. The builder screen provides the
+ * vault-backed implementation; the default no-op keeps this renderer free of
+ * Hilt, so every other control can be composed in JVM tests.
+ */
+internal val LocalWorkflowSecretStore = staticCompositionLocalOf<suspend (String, String) -> Unit> {
+    { _, _ -> }
+}
+
+/**
  * T12 schema-driven field renderer. The canonical schema decides which fields
  * exist, their typed values, enum choices, bounds, defaults, visibility and
  * validation. V1/V2 config keys are translated only at the boundary.
@@ -86,7 +96,7 @@ internal fun CanonicalSchemaFieldEditor(
     modifier: Modifier = Modifier,
 ) {
     val schema = binding.schema
-    val builderViewModel: AutomationBuilderViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+    val storeSecret = LocalWorkflowSecretStore.current
     val parseErrors = remember(schema.schemaId, config, binding.legacyKeys) {
         canonicalFieldParseErrors(schema, binding.legacyKeys, config)
     }
@@ -128,7 +138,7 @@ internal fun CanonicalSchemaFieldEditor(
                 field = field,
                 rawValue = current,
                 hasParseError = field.id.value in parseErrors,
-                onStoreSecret = { referenceId, secret -> builderViewModel.storeWorkflowSecret(referenceId, secret) },
+                onStoreSecret = storeSecret,
                 onValueChange = { updated ->
                     onConfigChange(config + (legacyKey to updated))
                 },

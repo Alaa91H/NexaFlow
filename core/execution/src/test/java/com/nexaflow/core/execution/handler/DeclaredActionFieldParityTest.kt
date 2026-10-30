@@ -12,6 +12,7 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -96,5 +97,24 @@ class DeclaredActionFieldParityTest {
             "https://play.google.com/store/apps/details?id=com.example.target",
             started?.data.toString()
         )
+    }
+
+    @Test
+    fun rebootActionPassesTheDeclaredModeToThePowerController() = runBlocking {
+        // This device has no elevated runtime, so the declared target cannot be
+        // executed; the handler still has to route the request through the
+        // mode-aware reboot path and report the missing privilege instead of
+        // claiming a plain reboot. The command mapping for each mode is pinned
+        // in `SystemRebootAndStoreIntentTest`.
+        val result = SystemActionsHandler().execute(
+            Action(
+                type = ActionType.SYSTEM_REBOOT,
+                config = mapOf("mode" to "RECOVERY")
+            ),
+            ctx()
+        )
+
+        assertFalse(result.success)
+        assertTrue(result.message.contains("elevated runtime"))
     }
 }

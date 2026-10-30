@@ -1,9 +1,15 @@
 package com.nexaflow.feature.settings
 
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -34,6 +40,47 @@ class AboutDialogTest {
         composeRule.setContent {
             AboutDialog(visible = visible, appVersion = "3.91.15", onDismiss = {})
         }
+    }
+
+    /** Records the target each row launches instead of opening a real app. */
+    private class RecordingContext(context: Context) : ContextWrapper(context) {
+        val started = mutableListOf<Intent>()
+
+        override fun startActivity(intent: Intent) {
+            started += intent
+        }
+    }
+
+    private fun renderWithIntentRecorder(recorder: RecordingContext) {
+        composeRule.setContent {
+            CompositionLocalProvider(LocalContext provides recorder) {
+                AboutDialog(visible = true, appVersion = "3.91.15", onDismiss = {})
+            }
+        }
+    }
+
+    @Test
+    fun theRepositoryRowOpensTheRepositoryUrl() {
+        val recorder = RecordingContext(context)
+        renderWithIntentRecorder(recorder)
+
+        composeRule.onNodeWithText("Alaa91H/NexaFlow").performClick()
+
+        val started = recorder.started.single()
+        assertEquals(Intent.ACTION_VIEW, started.action)
+        assertEquals("https://github.com/Alaa91H/NexaFlow", started.data.toString())
+    }
+
+    @Test
+    fun theEmailRowAddressesTheDeveloper() {
+        val recorder = RecordingContext(context)
+        renderWithIntentRecorder(recorder)
+
+        composeRule.onNodeWithText(string(R.string.about_email)).performClick()
+
+        val started = recorder.started.single()
+        assertEquals(Intent.ACTION_SENDTO, started.action)
+        assertEquals("mailto:alahus2591@gmail.com", started.data.toString())
     }
 
     @Test

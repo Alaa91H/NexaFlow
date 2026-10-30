@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.ResolveInfo
+import android.content.IntentFilter
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.rom.model.IntegrationLevel
 import com.nexaflow.core.rom.model.RomFamily
@@ -13,6 +14,7 @@ import com.nexaflow.core.rom.model.SystemControlResult
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -101,6 +103,64 @@ class SystemRebootAndStoreIntentTest {
     }
 
     @Test
+    fun shutdownRunsThePowerOffCommand() {
+        grantRootShell()
+
+        val result = controller().shutdownDevice()
+
+        assertTrue(result.message, result.success)
+        assertEquals(listOf("'reboot' '-p'"), commands)
+        assertEquals("Shutdown requested", result.message)
+    }
+
+    @Test
+    fun systemUiRestartKillsTheUiProcess() {
+        grantRootShell()
+
+        val result = controller().restartSystemUi()
+
+        assertTrue(result.message, result.success)
+        assertEquals(listOf("'pkill' '-f' 'com.android.systemui'"), commands)
+        assertEquals("System UI restarted", result.message)
+    }
+
+    @Test
+    fun systemUiRestartFallsBackToTheSoftRefresh() {
+        // Killing the process is denied on this ROM; the broadcast is allowed.
+        PrivilegedRunner.rootProbeOverride = { true }
+        PrivilegedRunner.shellRouteProbe = { command ->
+            commands += command
+            "root" to command
+        }
+        PrivilegedRunner.suRunnerProbe = { cmd ->
+            if (cmd.last().contains("CLOSE_SYSTEM_DIALOGS")) SystemControlResult.ok("ok")
+            else SystemControlResult.fail("Permission denied")
+        }
+
+        val result = controller().restartSystemUi()
+
+        assertTrue(result.message, result.success)
+        assertEquals("System UI refresh requested", result.message)
+        assertEquals(2, commands.size)
+        assertTrue(commands.last().contains("CLOSE_SYSTEM_DIALOGS"))
+    }
+
+    @Test
+    fun systemUiRestartReportsTheFailureWhenNoRouteWorks() {
+        PrivilegedRunner.rootProbeOverride = { true }
+        PrivilegedRunner.shellRouteProbe = { command ->
+            commands += command
+            "root" to command
+        }
+        PrivilegedRunner.suRunnerProbe = { SystemControlResult.fail("Permission denied") }
+
+        val result = controller().restartSystemUi()
+
+        assertFalse(result.success)
+        assertTrue(result.message.contains("System UI restart requires root"))
+    }
+
+    @Test
     fun rebootModeMappingIsClosed() {
         assertEquals(emptyList<String>(), RebootMode.argumentsFor(null))
         assertEquals(emptyList<String>(), RebootMode.argumentsFor("  "))
@@ -165,5 +225,72 @@ class SystemRebootAndStoreIntentTest {
         assertFalse(result.success)
         assertTrue(result.message.contains("Play Store not installed"))
         assertNull(shadowOf(context as Application).nextStartedActivity)
+    }
+
+    @Test
+    @Suppress("DEPRECATION") // addActivityIfNotPresent/addIntentFilterForActivity are Robolectric seams
+    fun playStoreHomeOpensTheInstalledStoreClient() {
+        val pm = context.packageManager
+        val component = android.content.ComponentName(
+            "com.android.vending",
+            "com.android.vending.AssetBrowserActivity"
+        )
+        shadowOf(pm).addActivityIfNotPresent(component)
+        shadowOf(pm).addIntentFilterForActivity(
+            component,
+            IntentFilter(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
+        )
+
+        val result = controller().openPlayStoreApp()
+
+        assertTrue(result.message, result.success)
+        assertEquals("Play Store opened", result.message)
+        assertNotNull(shadowOf(context as Application).nextStartedActivity)
+    }
+
+    @Test
+    fun playStoreWebListingReportsALaunchFailureInsteadOfCrashing() {
+        // No store client, and the browser launch is blocked: the fallback must
+        // report the failure rather than crash the automation.
+        val blocked = object : android.content.ContextWrapper(context) {
+            override fun startActivity(intent: Intent) {
+                throw IllegalStateException("background launch blocked")
+            }
+        }
+
+        val result = AppStoreLauncher.open(blocked, "com.example.target")
+
+        assertFalse(result.success)
+        assertTrue(result.message.contains("Play Store listing failed"))
+        assertTrue(result.message.contains("background launch blocked"))
+    }
+
+    @Test
+    @Suppress("DEPRECATION") // addResolveInfoForIntent is the documented Robolectric seam
+    fun playStoreListingReportsALaunchFailureInsteadOfCrashing() {
+        val pm = context.packageManager
+        shadowOf(pm).addResolveInfoForIntent(
+            Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=com.example.target")),
+            ResolveInfo().apply {
+                activityInfo = ActivityInfo().apply {
+                    packageName = "com.android.vending"
+                    name = "com.android.vending.AssetBrowserActivity"
+                    applicationInfo = ApplicationInfo().apply {
+                        packageName = "com.android.vending"
+                    }
+                }
+            }
+        )
+        val blocked = object : android.content.ContextWrapper(context) {
+            override fun startActivity(intent: Intent) {
+                throw IllegalStateException("background launch blocked")
+            }
+        }
+
+        val result = AppStoreLauncher.open(blocked, "com.example.target")
+
+        assertFalse(result.success)
+        assertTrue(result.message.contains("Play Store listing failed"))
+        assertTrue(result.message.contains("background launch blocked"))
     }
 }
