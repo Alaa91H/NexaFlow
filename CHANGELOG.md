@@ -41,6 +41,22 @@
 - Write the bundle into the app cache and share it through the existing `FileProvider` and system chooser, so no new permission is requested and nothing leaves the device unless the user sends it.
 - Redact AI credentials, agent tokens, webhook URLs, bearer headers, and other free-text secrets before serialization, and read only the stores that already redact on write.
 - Translate the export action, share title, and failure message across all eleven shipped locales.
+- Bound the bundle to 50 executions, 200 timeline rows, 50 errors and 2,000 characters per message, and keep bundle assembly off the main thread with explicit failure reporting.
+
+
+### Sensor calibration and sampling
+
+- Add a per-sensor calibration offset applied to the normalized reading before threshold and range evaluation, bounded per family (pressure ±100 hPa, temperature and humidity ±50, magnetic field ±1,000 µT, acceleration/gyroscope/gravity ±20 m/s² or rad/s, hinge ±180°); blank values are ignored while malformed, non-finite or out-of-range offsets fail closed.
+- Add a sampling-rate selector with 20 ms, 60 ms and 200 ms periods (50, 16 and 5 Hz), re-registering a sensor listener only when the period actually changes while existing automations keep the 200 ms default.
+- Reset event, thresholds, sensitivity and calibration when the sensor kind changes, so one sensor's configuration can never be evaluated against another sensor's reading.
+- Localize the new calibration and sampling controls across all eleven shipped locales.
+
+### Notification, SMS and call filters
+
+- Extract notification package and content matching into a pure, unit-tested matcher and accept the legacy singular `package` key when `packages` is blank, preserving existing notification automations.
+- Restrict SMS and call filters to `EXACT`, `ANY` and `CONTAINS`; an absent `matchMode` keeps the legacy `CONTAINS` behavior, while an unrecognized non-empty mode now fails closed instead of falling through to substring matching.
+- Model call screening as the Android `CALL_SCREENING` role: detect and request it through `RoleManager` on Android 10+ with the default-apps screen as fallback, and expose the result in the shared privilege snapshot.
+- Request `READ_CONTACTS` only for call triggers that use the `CONTACT` category, and stop requiring `READ_PHONE_STATE` for every incoming-call trigger.
 
 ### Privileged input hardening
 
@@ -74,6 +90,12 @@
 
 - Record the remediation evidence, the device-test matrix and soak templates, and the proposed distribution-channel decision in `docs/adr/0001-distribution-channel.md`.
 - Add data-safety, MASVS review, and permission-disclosure documents that state the restricted capabilities and the channels able to grant them.
+
+### Compatibility
+
+- No database schema migration is introduced by this release.
+- Existing automations remain readable: sensor triggers keep the 200 ms sampling default, and notification filters still accept the legacy `package` key.
+- Unknown SMS or call filter modes now fail closed; review any automation whose stored mode is not `EXACT`, `ANY` or `CONTAINS`.
 
 ### Validation
 
