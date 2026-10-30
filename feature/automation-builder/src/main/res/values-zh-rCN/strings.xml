@@ -55,7 +55,6 @@
     <string name="package_name">包名</string>
     <string name="choose_from_installed">从已安装的应用中选择</string>
     <string name="app_detection_hint">应用检测需要无障碍服务</string>
-    <string name="enable">启用</string>
     <string name="state">状态</string>
 
     
@@ -162,18 +161,15 @@
     <string name="action_root_sub">通过 Root 运行 shell 命令</string>
     <string name="brightness_label">亮度：%1$d</string>
     <string name="volume_label">音量：%1$d</string>
-    <string name="turn_on">开启</string>
     <string name="apps_comma">应用（逗号分隔）</string>
     <string name="title">标题</string>
     <string name="text">文本</string>
     <string name="auto_rotate">自动旋转</string>
     <string name="url">URL</string>
-    <string name="url_hint">https://example.com</string>
     <string name="alert_below">低于以下值提醒：%1$d%%</string>
     <string name="message_optional">消息（可选）</string>
     <string name="shell_command">Shell 命令</string>
     <string name="shell_hint">例如：settings put global airplane_mode_on 1</string>
-    <string name="runs_immediately">自动化触发时立即运行。</string>
     <string name="write_settings_hint">需要修改系统设置的权限</string>
     <string name="dnd_hint">需要勿扰模式访问权限</string>
     <string name="flashlight_hint">手电筒需要相机访问权限</string>
@@ -228,8 +224,6 @@
     <string name="ringer_normal">响铃</string>
     <string name="ringer_vibrate">振动</string>
     <string name="ringer_silent">静音</string>
-    <string name="hour">小时</string>
-    <string name="minute">分钟</string>
     <string name="elevated_hint">需要 root、Shizuku 或系统应用权限</string>
     <string name="trigger_type_sms">短信</string>
     <string name="repeat_custom">自定义</string>
@@ -262,7 +256,6 @@
     <string name="pick_date">选择日期</string>
     <string name="pick_on_map">在地图上选择</string>
     <string name="sms_from">发件人（号码）</string>
-    <string name="sms_from_hint">例如 05XXXXXXXX（留空 = 任意）</string>
     <string name="sms_contains">消息包含</string>
     <string name="sms_contains_hint">要匹配的文本（留空 = 任意）</string>
     <string name="permission_denied_hint">需要权限才能启用此功能</string>
@@ -288,9 +281,6 @@
     <string name="action_open_settings">打开设置</string>
     <string name="action_open_settings_sub">打开系统设置页面</string>
     <string name="ring_volume_label">铃声音量：%1$d</string>
-    <string name="phone_number">电话号码</string>
-    <string name="reminder_title">提醒标题</string>
-    <string name="reminder_text">提醒内容</string>
     <string name="settings_wifi">Wi-Fi</string>
     <string name="settings_bluetooth">蓝牙</string>
     <string name="settings_location">定位</string>
@@ -326,19 +316,17 @@
     <string name="trigger_app">当应用被打开时</string>
     <string name="time_single">单个时间</string>
     <string name="time_range">时间段</string>
+    <string name="time_zone_section">时区</string>
+    <string name="time_zone_device">设备时区</string>
+    <string name="time_zone_fixed">指定时区</string>
+    <string name="time_zone_id_label">IANA 时区（例如 Europe/Berlin）</string>
+    <string name="time_zone_invalid">未知时区——在有效之前使用设备时区</string>
     <string name="time_range_start">开始</string>
     <string name="time_range_end">结束</string>
     <string name="range_same_day">同一天</string>
     <string name="range_overnight">整夜 — 次日结束</string>
     <string name="trigger_type_bluetooth">蓝牙设备</string>
     <string name="trigger_bluetooth">蓝牙设备</string>
-    <string name="choose_bluetooth_device">选择蓝牙设备</string>
-    <string name="no_bluetooth_device">未选择设备</string>
-    <string name="no_paired_devices">未找到已配对的蓝牙设备</string>
-    <string name="bluetooth_turned_off_title">蓝牙已关闭</string>
-    <string name="bluetooth_turned_off_body">开启蓝牙以查看已配对的设备并为该任务选择一个设备。</string>
-    <string name="bluetooth_permission_hint">开启蓝牙以检测已配对的设备</string>
-    <string name="stream_label">声音通道</string>
     <string name="stream_volume_label">音量 %1$d</string>
     <string name="stream_music">媒体</string>
     <string name="stream_ring">铃声</string>
@@ -355,9 +343,6 @@
     <string name="trigger_type_ringer">声音模式</string>
     <string name="trigger_ringer">声音模式</string>
     <string name="trigger_ringer_sub">当声音模式改变时</string>
-    <string name="ringer_mode_label">声音模式</string>
-    <string name="ringer_mode_hint">当手机切换到所选声音模式时执行任务</string>
-    <string name="change_now">立即更改</string>
 
     <string name="next_needs_action">请先添加至少一个执行步骤</string>
     <string name="occurrence_first">第1周</string>
@@ -381,16 +366,9 @@
     <string name="trigger_type_calendar">日历</string>
     <string name="trigger_calendar">日历事件</string>
     <string name="any_calendar">任意日历</string>
-    <string name="choose_calendar">选择日历</string>
-    <string name="no_calendars_found">未找到日历</string>
-    <string name="calendar_contains">事件包含</string>
-    <string name="calendar_contains_hint">例如：会议、牙医（留空 = 任意）</string>
     <string name="calendar_event_start">开始时</string>
     <string name="calendar_event_end">结束时</string>
     <string name="calendar_event_created">添加到日历时</string>
-    <string name="calendar_before_none">事件开始时</string>
-    <string name="calendar_before_minutes">事件前：%1$d 分钟</string>
-    <string name="calendar_permission_hint">需要日历权限才能读取事件</string>
     <string name="charger_type_label">充电器类型</string>
     <string name="charger_any">任意</string>
     <string name="charger_ac">交流电 / 墙插</string>
@@ -511,7 +489,6 @@
     <string name="action_open_quick_settings">快捷设置</string>
     <string name="action_open_quick_settings_sub">展开快捷设置面板</string>
     <string name="vibrate_duration">振动时长</string>
-    <string name="clipboard_text">剪贴板文本</string>
     <string name="trigger_type_rom_setting">ROM 设置</string>
     <string name="use_current_location">使用我的当前位置</string>
     <string name="location_coordinates">位置: %1$s, %2$s</string>
@@ -521,19 +498,12 @@
     <string name="location_inside">位置内部</string>
     <string name="location_outside">位置外部</string>
     <string name="location_fix_failed">无法获取您的位置。请开启位置信息后重试。</string><string name="charging_yes">充电中</string>
-    <string name="ringtone_label">默认铃声</string>
     <string name="network_mode_sub">从所选 SIM 卡实际可用的模式中选择。应用更改需要提升权限。</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">自动</string>
     <string name="network_mode_5g">5G</string>
-    <string name="network_mode_current">当前代际</string>
-    <string name="network_mode_current_hint">实时读取设备实际的蜂窝代际（真实5G检测）</string>
-    <string name="network_mode_fire_when">触发条件</string>
-    <string name="network_mode_unknown">未知</string>
-    <string name="network_mode_permission_hint">电话权限可改善实时制式和 5G 检测</string>
     <string name="charging_any">任意</string>
     <string name="network_mode_4g">4G</string>
-    <string name="choose_ringtone">选择铃声</string>
     <string name="action_network_mode_sub">从所选 SIM 卡实际可用的模式中选择。应用更改需要提升权限。</string>
     <string name="action_set_ringtone_sub">选择默认来电铃声</string>
     <string name="network_mode_3g">3G</string>
@@ -614,8 +584,6 @@
     <string name="setting_namespace">命名空间</string>
     <string name="setting_key">设置项键</string>
     <string name="setting_value">值</string>
-    <string name="screenshot_filename">文件名（可选）</string>
-    <string name="screenshot_hint">保存至 Pictures/NexaFlow</string>
     <string name="input_text_label">要输入的文本</string>
     <string name="key_event_label">键（名称或代码）</string>
     <string name="key_event_hint">例如 POWER、HOME、VOLUME_UP 或 KEYCODE 编号</string>
@@ -626,12 +594,6 @@
     <string name="swipe_to_x">结束 X</string>
     <string name="swipe_to_y">结束 Y</string>
     <string name="swipe_duration">持续时间（毫秒）</string>
-    <string name="color_inversion">反转颜色</string>
-    <string name="grayscale">灰度</string>
-    <string name="extra_dim">额外暗度</string>
-    <string name="night_light">夜间灯</string>
-    <string name="haptic_feedback">触觉反馈</string>
-    <string name="sound_effects">触摸声音</string>
     <string name="action_location_mode">定位模式</string>
     <string name="action_location_mode_sub">定位模式</string>
     <string name="action_data_saver">数据节省程序</string>
@@ -702,27 +664,13 @@
     <string name="action_open_play_store_app_sub">打开 Play 商店</string>
     <string name="action_reboot">重启设备</string>
     <string name="action_reboot_sub">重启设备</string>
+    <string name="reboot_mode">重启目标</string>
     <string name="action_shutdown">关闭设备</string>
     <string name="action_shutdown_sub">关闭设备</string>
     <string name="action_restart_system_ui">重启系统界面</string>
     <string name="action_restart_system_ui_sub">重启系统界面</string>
-    <string name="location_mode">定位模式</string>
-    <string name="data_saver">数据节省程序</string>
     <string name="font_scale">字体大小</string>
     <string name="display_density">显示密度</string>
-    <string name="screensaver">屏幕保护程序</string>
-    <string name="battery_saver_threshold_label">%1$d%% 时开始</string>
-    <string name="always_on_display">始终显示屏幕</string>
-    <string name="show_taps">显示触摸位置</string>
-    <string name="pointer_location">指针位置</string>
-    <string name="adaptive_battery">自适应电池</string>
-    <string name="wifi_sleep_policy">Wi-Fi 休眠策略</string>
-    <string name="bluetooth_discoverable_timeout">可被发现（秒）</string>
-    <string name="auto_time">自动日期和时间</string>
-    <string name="auto_timezone">自动时区</string>
-    <string name="haptic_intensity_label">触觉强度 %1$d</string>
-    <string name="camera_shutter_sound">相机快门声</string>
-    <string name="wifi_scanning">始终扫描 Wi-Fi</string>
     <string name="device_locked">已锁定</string>
     <string name="device_unlocked">已解锁</string>
     <string name="location_mode_off">关闭</string>
@@ -742,15 +690,9 @@
     <string name="wifi_sleep_never">从不</string>
     <string name="storage_below">低于</string>
     <string name="storage_above">高于</string>
-    <string name="trigger_power_saver_state">状态</string>
-    <string name="trigger_bluetooth_state_hint">选择触发任务的状态</string>
     <string name="trigger_brightness_direction">方向</string>
     <string name="trigger_brightness_threshold">亮度 阈值</string>
     <string name="trigger_data_saver_state">状态</string>
-    <string name="trigger_device_locked_state">状态</string>
-    <string name="trigger_location_mode">定位模式</string>
-    <string name="trigger_nfc_state_hint">选择触发任务的状态</string>
-    <string name="trigger_rotation_state">状态</string>
     <string name="trigger_storage_direction">方向</string>
     <string name="trigger_storage_threshold">阈值 (MB)</string>
     <string name="trigger_type_auto_rotate">自动旋转</string>
@@ -764,8 +706,6 @@
     <string name="trigger_type_screen_rotation_state">屏幕旋转</string>
     <string name="trigger_type_storage_low">存储</string>
     <string name="trigger_type_wifi_state">Wi-Fi</string>
-    <string name="trigger_wifi_state_hint">选择触发任务的状态</string>
-    <string name="trigger_auto_rotate_state">状态</string>
     <string name="action_alert">显示警告</string>
     <string name="action_alert_sub">显示警告对话框</string>
     <string name="action_bluetooth_scan">蓝牙扫描</string>
@@ -846,13 +786,9 @@
     <string name="action_wifi_forget_sub">移除已保存网络</string>
     <string name="action_wifi_scan_now">扫描 Wi-Fi</string>
     <string name="action_wifi_scan_now_sub">开始 Wi-Fi 扫描</string>
-    <string name="email_body">正文</string>
-    <string name="email_subject">主题</string>
-    <string name="email_to">收件人</string>
     <string name="install_apk_path">APK 路径</string>
     <string name="latitude">纬度</string>
     <string name="longitude">经度</string>
-    <string name="notification_tone_label">通知音调</string>
     <string name="pointer_speed_label">指针速度（-7 到 7）</string>
     <string name="screensaver_timeout_label">屏保超时（分钟）</string>
     <string name="settings_airplane">飞行模式</string>
@@ -870,17 +806,11 @@
     <string name="settings_privacy">隐私</string>
     <string name="settings_usage_access">使用情况访问权限</string>
     <string name="settings_vpn">VPN</string>
-    <string name="timezone_label">时区（例如 GMT）</string>
-    <string name="toast_text">提示文本</string>
-    <string name="trigger_desc_alarm_set">设置或更改闹钟时触发</string>
-    <string name="trigger_desc_boot">设备完成启动时触发</string>
     <string name="trigger_desc_clipboard">剪贴板内容更改时触发</string>
     <string name="trigger_desc_nfc_tag">扫描 NFC 标签时触发</string>
     <string name="trigger_desc_screen_timeout">屏幕超时设置更改时触发</string>
-    <string name="trigger_desc_timezone">设备时区更改时触发</string>
     <string name="trigger_events_on_change">更改时触发</string>
     <string name="trigger_signal_threshold">信号阈值</string>
-    <string name="trigger_state_label">状态</string>
     <string name="trigger_temperature_threshold">温度阈值 (°C)</string>
     <string name="trigger_type_alarm_set_changed">闹钟已设置</string>
     <string name="trigger_type_auto_brightness_state">自动亮度</string>
@@ -899,7 +829,6 @@
     <string name="trigger_type_usb_connected">USB 已连接</string>
     <string name="trigger_type_vpn_connected">VPN 已连接</string>
     <string name="trigger_type_wifi_signal_strength">Wi-Fi 信号强度</string>
-    <string name="vibrate_pattern_label">振动模式</string>
     <string name="wifi_password">密码</string>
     <string name="wifi_ssid">Wi-Fi 名称 (SSID)</string>
     <string name="collapse_options">收起选项</string>
@@ -999,20 +928,13 @@
     <string name="action_private_dns_sub">设置 Android 私人 DNS 模式或提供商</string>
     <string name="action_charging_limit">充电上限</string>
     <string name="action_charging_limit_sub">设置受支持硬件的停止充电百分比</string>
-    <string name="private_dns_mode">私人 DNS 模式</string>
     <string name="private_dns_off">关闭</string>
     <string name="private_dns_automatic">自动</string>
-    <string name="private_dns_hostname_mode">提供商主机名</string>
-    <string name="private_dns_hostname">提供商主机名</string>
-    <string name="private_dns_elevated_note">需要 root 或 Shizuku。这会更改整个设备的私人 DNS，而不仅是一个应用。</string>
-    <string name="charging_limit_value">充电上限：%1$d%%</string>
-    <string name="charging_limit_root_note">需要 root 和标准硬件充电控制节点；不支持的设备会返回明确失败。</string>
 
     <string name="action_charging_feedback">充电声音和振动</string>
     <string name="action_charging_feedback_sub">在 ROM 支持时控制充电反馈</string>
     <string name="charging_sound">充电声音</string>
     <string name="charging_vibration">充电振动</string>
-    <string name="charging_feedback_elevated_note">需要 root 或 Shizuku，并在写入后验证设置。不支持的 ROM 会报告失败。</string>
     <string name="network_mode_phone_permission_hint">请允许访问手机状态，以读取活跃 SIM 卡和设备实际支持的网络模式。更改网络模式还需要 root、Shizuku 或系统应用访问权限。</string>
 
 
@@ -1042,22 +964,14 @@
     <string name="action_rom_setting_theme">主题和 Monet</string>
     <string name="action_rom_setting_theme_sub">强调色、Monet、图标、字体</string>
     <string name="any_bluetooth_device">任意蓝牙设备</string>
-    <string name="any_bluetooth_device_hint">任意蓝牙设备连接或断开时运行。</string>
     <string name="any_device">任意设备</string>
-    <string name="sms_match_contains">包含</string>
     <string name="sms_match_exact">完全匹配</string>
-    <string name="sms_match_any">任意文本</string>
     <string name="trigger_type_incoming_call">来电</string>
     <string name="trigger_type_incoming_call_sub">在手机响铃前筛查来电</string>
-    <string name="call_from_hint">号码或其一部分（可选）</string>
-    <string name="call_category_any">任何来电</string>
     <string name="call_category_unknown">未知号码</string>
     <string name="call_category_private">隐藏号码</string>
     <string name="call_category_contact">联系人</string>
     <string name="call_screening_hint">在系统设置中授予“来电识别与骚扰拦截”角色，以便在响铃前拦截</string>
-    <string name="call_contacts_permission_hint">联系人权限仅用于识别已保存的来电号码。未授予时，来电会被视为未知号码。</string>
-    <string name="call_block_hint">拒绝当前正在响铃的来电；需要筛查角色或此权限</string>
-    <string name="call_silence_hint">静音响铃而不拒接来电</string>
     <string name="action_call_block">拦截来电</string>
     <string name="action_call_block_sub">拒接当前来电</string>
     <string name="action_call_silence">静音来电</string>
@@ -1073,9 +987,6 @@
     <string name="trigger_type_wifi_connected_sub">设备连接到 Wi-Fi 时运行（或断开时）</string>
     <string name="trigger_type_mobile_data">移动数据已连接</string>
     <string name="trigger_type_mobile_data_sub">移动数据为活动网络时运行（或相反）</string>
-    <string name="call_match_any">任意号码</string>
-    <string name="call_mode_hint">匹配来电号码，而非消息文本。</string>
-    <string name="call_number_filter">来电号码</string>
     <string name="key_event_custom">自定义按键（名称或代码）</string>
     <string name="battery_temp_hint">摄氏度，例如 40</string>
     <string name="map_picker_title">选择位置</string>
@@ -1223,8 +1134,6 @@
     <string name="search_by_name">按名称搜索</string>
     <string name="search_by_package">按软件包搜索</string>
     <string name="recently_used_apps">最近在任务中使用</string>
-    <string name="bt_pick_ok">使用此设备</string>
-    <string name="calendar_pick_ok">使用此日历</string>
     <string name="diagnostics_title">配置问题</string>
     <string name="diagnostics_empty">未发现配置问题</string>
     <string name="diagnostics_intro">因配置值无效导致操作在运行时失败的任务</string>
@@ -1242,9 +1151,6 @@
     <string name="http_retry_cap_ms">上限：%1$d 毫秒</string>
     <string name="pointer_speed_range">指针速度范围为 -7（最慢）到 7（最快）；0 为系统默认值。</string>
     <string name="screensaver_minutes_chip">%1$d 分钟</string>
-    <string name="density_range_hint">屏幕密度：120 到 1000 dpi（引擎会拒绝超出此范围的值）</string>
-    <string name="bt_discoverable_range_hint">0（从不）到 3600 秒；引擎会将值限制在此范围内</string>
-    <string name="screensaver_range_hint">1 到 1440 分钟（24 小时）；引擎会将值限制在此范围内</string>
     <string name="http_allow_private">允许本地/专用网络目标</string>
     <string name="http_private_warning">仅限 HTTPS。仅对可信服务启用。Android 17 需要本地网络权限。</string>
     <string name="action_data_text">文本变换</string>
@@ -1312,18 +1218,11 @@
     <string name="action_call_reply_sms">通过短信回复来电者</string>
     <string name="action_call_reply_sms_sub">向触发此工作流的来电号码发送消息</string>
     <string name="action_sms_block">拦截收到的短信</string>
-    <string name="action_sms_block_hint">只有 NexaFlow 是默认短信应用时才会拦截此消息；否则该操作会提示需要此角色。</string>
     <string name="action_sms_block_sub">拦截匹配短信的送达（需要默认短信角色）</string>
     <string name="action_sms_reply">回复收到的短信</string>
     <string name="action_sms_reply_sub">向触发此工作流的发件人发送消息</string>
-    <string name="call_block_silent_hint">在 Android 支持时拦截匹配来电并隐藏其通知。</string>
-    <string name="reply_message">回复内容</string>
 
     <string name="task_restore_failed">无法恢复任务的先前设置</string>
-    <string name="bluetooth_advanced">高级选项</string>
-    <string name="bluetooth_advanced_hide">隐藏高级选项</string>
-    <string name="bluetooth_device_name">设备名称</string>
-    <string name="bluetooth_device_address">MAC 地址</string>
     <string name="trigger_temporal_filters_title">时间筛选器</string>
 
     <string name="trigger_expression_title">高级触发器表达式</string>
@@ -1348,5 +1247,4 @@
     <string name="network_metered">按流量计费的网络</string>
     <string name="network_ssid">Wi-Fi 名称（SSID）</string>
     <string name="network_bssid">接入点（BSSID）</string>
-    <string name="network_identity_permission_hint">Android 可能需要位置权限才能读取当前连接的 Wi-Fi 名称和接入点。NexaFlow 仅为匹配此触发器读取这些值。</string>
 </resources>

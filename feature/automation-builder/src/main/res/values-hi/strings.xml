@@ -55,7 +55,6 @@
     <string name="package_name">पैकेज नाम</string>
     <string name="choose_from_installed">इंस्टॉल किए गए ऐप्स से चुनें</string>
     <string name="app_detection_hint">ऐप पहचान के लिए एक्सेसिबिलिटी सेवा आवश्यक है</string>
-    <string name="enable">सक्षम करें</string>
     <string name="state">स्थिति</string>
 
     
@@ -162,18 +161,15 @@
     <string name="action_root_sub">रूट के माध्यम से शेल कमांड चलाएँ</string>
     <string name="brightness_label">चमक: %1$d</string>
     <string name="volume_label">वॉल्यूम: %1$d</string>
-    <string name="turn_on">चालू करें</string>
     <string name="apps_comma">ऐप्स (अल्पविराम से अलग)</string>
     <string name="title">शीर्षक</string>
     <string name="text">पाठ</string>
     <string name="auto_rotate">ऑटो-रोटेट</string>
     <string name="url">URL</string>
-    <string name="url_hint">https://example.com</string>
     <string name="alert_below">इससे कम पर अलर्ट: %1$d%%</string>
     <string name="message_optional">संदेश (वैकल्पिक)</string>
     <string name="shell_command">शेल कमांड</string>
     <string name="shell_hint">जैसे: settings put global airplane_mode_on 1</string>
-    <string name="runs_immediately">ऑटोमेशन ट्रिगर होते ही तुरंत चलता है।</string>
     <string name="write_settings_hint">सिस्टम सेटिंग्स बदलने की अनुमति आवश्यक है</string>
     <string name="dnd_hint">डू नॉट डिस्टर्ब पहुँच आवश्यक है</string>
     <string name="flashlight_hint">फ़्लैशलाइट के लिए कैमरा पहुँच आवश्यक है</string>
@@ -228,8 +224,6 @@
     <string name="ringer_normal">रिंगिंग</string>
     <string name="ringer_vibrate">वाइब्रेट</string>
     <string name="ringer_silent">साइलेंट</string>
-    <string name="hour">घंटा</string>
-    <string name="minute">मिनट</string>
     <string name="elevated_hint">रूट, Shizuku या सिस्टम ऐप विशेषाधिकार चाहिए</string>
     <string name="trigger_type_sms">SMS</string>
     <string name="repeat_custom">कस्टम</string>
@@ -262,7 +256,6 @@
     <string name="pick_date">तिथि चुनें</string>
     <string name="pick_on_map">नक्शे से चुनें</string>
     <string name="sms_from">से (नंबर)</string>
-    <string name="sms_from_hint">जैसे 05XXXXXXXX (खाली = कोई भी)</string>
     <string name="sms_contains">संदेश में है</string>
     <string name="sms_contains_hint">मिलान हेतु टेक्स्ट (खाली = कोई भी)</string>
     <string name="permission_denied_hint">इस सुविधा को सक्षम करने के लिए अनुमति आवश्यक है</string>
@@ -288,9 +281,6 @@
     <string name="action_open_settings">सेटिंग्स खोलें</string>
     <string name="action_open_settings_sub">सिस्टम सेटिंग्स पेज खोलें</string>
     <string name="ring_volume_label">रिंग वॉल्यूम: %1$d</string>
-    <string name="phone_number">फ़ोन नंबर</string>
-    <string name="reminder_title">रिमाइंडर शीर्षक</string>
-    <string name="reminder_text">रिमाइंडर टेक्स्ट</string>
     <string name="settings_wifi">वाई-फ़ाई</string>
     <string name="settings_bluetooth">ब्लूटूथ</string>
     <string name="settings_location">लोकेशन</string>
@@ -326,19 +316,17 @@
     <string name="trigger_app">जब कोई ऐप खोला जाता है</string>
     <string name="time_single">एकल समय</string>
     <string name="time_range">समय सीमा</string>
+    <string name="time_zone_section">समय क्षेत्र</string>
+    <string name="time_zone_device">डिवाइस का समय क्षेत्र</string>
+    <string name="time_zone_fixed">विशिष्ट समय क्षेत्र</string>
+    <string name="time_zone_id_label">IANA समय क्षेत्र (जैसे Europe/Berlin)</string>
+    <string name="time_zone_invalid">अज्ञात समय क्षेत्र — मान्य होने तक डिवाइस का समय क्षेत्र लागू रहेगा</string>
     <string name="time_range_start">आरंभ</string>
     <string name="time_range_end">समाप्ति</string>
     <string name="range_same_day">उसी दिन</string>
     <string name="range_overnight">रात भर — अगले दिन समाप्त</string>
     <string name="trigger_type_bluetooth">ब्लूटूथ डिवाइस</string>
     <string name="trigger_bluetooth">ब्लूटूथ डिवाइस</string>
-    <string name="choose_bluetooth_device">ब्लूटूथ डिवाइस चुनें</string>
-    <string name="no_bluetooth_device">कोई डिवाइस चयनित नहीं</string>
-    <string name="no_paired_devices">कोई पेयर किया हुआ ब्लूटूथ डिवाइस नहीं मिला</string>
-    <string name="bluetooth_turned_off_title">ब्लूटूथ बंद है</string>
-    <string name="bluetooth_turned_off_body">अपने पेयर किए गए डिवाइस देखने और इस कार्य के लिए एक चुनने के लिए ब्लूटूथ चालू करें।</string>
-    <string name="bluetooth_permission_hint">पेयर किए गए डिवाइस का पता लगाने के लिए ब्लूटूथ चालू करें</string>
-    <string name="stream_label">ध्वनि चैनल</string>
     <string name="stream_volume_label">वॉल्यूम %1$d</string>
     <string name="stream_music">मीडिया</string>
     <string name="stream_ring">रिंगटोन</string>
@@ -355,9 +343,6 @@
     <string name="trigger_type_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer_sub">जब ध्वनि मोड बदलता है</string>
-    <string name="ringer_mode_label">ध्वनि मोड</string>
-    <string name="ringer_mode_hint">जब फ़ोन चुने हुए ध्वनि मोड में जाता है तो कार्य चलता है</string>
-    <string name="change_now">अभी बदलें</string>
 
     <string name="next_needs_action">पहले कम से कम एक निष्पादन चरण जोड़ें</string>
     <string name="occurrence_first">पहला</string>
@@ -381,16 +366,9 @@
     <string name="trigger_type_calendar">कैलेंडर</string>
     <string name="trigger_calendar">कैलेंडर इवेंट</string>
     <string name="any_calendar">कोई भी कैलेंडर</string>
-    <string name="choose_calendar">कैलेंडर चुनें</string>
-    <string name="no_calendars_found">कोई कैलेंडर नहीं मिला</string>
-    <string name="calendar_contains">इवेंट में शामिल है</string>
-    <string name="calendar_contains_hint">जैसे मीटिंग, डेंटिस्ट (खाली = कोई भी)</string>
     <string name="calendar_event_start">शुरू होता है</string>
     <string name="calendar_event_end">समाप्त होता है</string>
     <string name="calendar_event_created">कैलेंडर में जोड़ा गया</string>
-    <string name="calendar_before_none">इवेंट शुरू होने पर</string>
-    <string name="calendar_before_minutes">इवेंट से पहले: %1$d मिनट</string>
-    <string name="calendar_permission_hint">इवेंट पढ़ने के लिए कैलेंडर अनुमति चाहिए</string>
     <string name="charger_type_label">चार्जर प्रकार</string>
     <string name="charger_any">कोई भी</string>
     <string name="charger_ac">AC / दीवार</string>
@@ -511,7 +489,6 @@
     <string name="action_open_quick_settings">त्वरित सेटिंग्स</string>
     <string name="action_open_quick_settings_sub">त्वरित सेटिंग्स पैनल खोलें</string>
     <string name="vibrate_duration">कंपन अवधि</string>
-    <string name="clipboard_text">क्लिपबोर्ड टेक्स्ट</string>
     <string name="trigger_type_rom_setting">ROM सेटिंग</string>
     <string name="use_current_location">मेरा वर्तमान स्थान उपयोग करें</string>
     <string name="location_coordinates">स्थान: %1$s, %2$s</string>
@@ -521,19 +498,12 @@
     <string name="location_inside">स्थान के अंदर</string>
     <string name="location_outside">स्थान के बाहर</string>
     <string name="location_fix_failed">आपका स्थान प्राप्त नहीं हो सका। स्थान सक्षम करके पुनः प्रयास करें।</string><string name="charging_yes">चार्ज हो रहा है</string>
-    <string name="ringtone_label">डिफ़ॉल्ट रिंगटोन</string>
     <string name="network_mode_sub">चुनी गई SIM के लिए वास्तव में उपलब्ध मोड में से चुनें। परिवर्तन लागू करने के लिए उन्नत अनुमति चाहिए।</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">ऑटो</string>
     <string name="network_mode_5g">5G</string>
-    <string name="network_mode_current">वर्तमान पीढ़ी</string>
-    <string name="network_mode_current_hint">डिवाइस की वास्तविक सेलुलर पीढ़ी का लाइव रीड (वास्तविक 5G पहचान)</string>
-    <string name="network_mode_fire_when">इस पर ट्रिगर करें</string>
-    <string name="network_mode_unknown">अज्ञात</string>
-    <string name="network_mode_permission_hint">फ़ोन अनुमति लाइव पीढ़ी और 5G पहचान को बेहतर बनाती है</string>
     <string name="charging_any">कोई भी</string>
     <string name="network_mode_4g">4G</string>
-    <string name="choose_ringtone">रिंगटोन चुनें</string>
     <string name="action_network_mode_sub">चुनी गई SIM के लिए वास्तव में उपलब्ध मोड में से चुनें। परिवर्तन लागू करने के लिए उन्नत अनुमति चाहिए।</string>
     <string name="action_set_ringtone_sub">डिफ़ॉल्ट कॉल रिंगटोन चुनें</string>
     <string name="network_mode_3g">3G</string>
@@ -614,8 +584,6 @@
     <string name="setting_namespace">नेमस्पेस</string>
     <string name="setting_key">सेटिंग की</string>
     <string name="setting_value">मूल्य</string>
-    <string name="screenshot_filename">फ़ाइल नाम (वैकल्पिक)</string>
-    <string name="screenshot_hint">Pictures/NexaFlow में सहेज किया गया</string>
     <string name="input_text_label">टाइप करने का टेक्स्ट</string>
     <string name="key_event_label">की (नाम या कोड)</string>
     <string name="key_event_hint">जैसे POWER, HOME, VOLUME_UP या KEYCODE नंबर</string>
@@ -626,12 +594,6 @@
     <string name="swipe_to_x">अंत X</string>
     <string name="swipe_to_y">अंत Y</string>
     <string name="swipe_duration">अवधि (मिलीसेकंड)</string>
-    <string name="color_inversion">रंग उलटें</string>
-    <string name="grayscale">ग्रेस्केल</string>
-    <string name="extra_dim">अतिरिक्त मध्यम</string>
-    <string name="night_light">नाइट लाइट</string>
-    <string name="haptic_feedback">हैप्टिक फीडबैक</string>
-    <string name="sound_effects">टच साउंड</string>
     <string name="action_location_mode">लोकेशन मोड</string>
     <string name="action_location_mode_sub">लोकेशन मोड</string>
     <string name="action_data_saver">डेटा सेवर</string>
@@ -702,27 +664,13 @@
     <string name="action_open_play_store_app_sub">प्ले स्टोर खोलें</string>
     <string name="action_reboot">डिवाइस रिबूट करें</string>
     <string name="action_reboot_sub">डिवाइस रिबूट करें</string>
+    <string name="reboot_mode">पुनः आरंभ लक्ष्य</string>
     <string name="action_shutdown">डिवाइस बंद करें</string>
     <string name="action_shutdown_sub">डिवाइस बंद करें</string>
     <string name="action_restart_system_ui">सिस्टम UI पुनः आरंभ करें</string>
     <string name="action_restart_system_ui_sub">सिस्टम UI पुनः आरंभ करें</string>
-    <string name="location_mode">लोकेशन मोड</string>
-    <string name="data_saver">डेटा सेवर</string>
     <string name="font_scale">फ़ॉन्ट साइज़</string>
     <string name="display_density">डिस्प्ले घनत्व</string>
-    <string name="screensaver">स्क्रीनसेवर</string>
-    <string name="battery_saver_threshold_label">%1$d%% से शुरू</string>
-    <string name="always_on_display">हमेशा-चालू डिस्प्ले</string>
-    <string name="show_taps">टैप दिखाएँ</string>
-    <string name="pointer_location">पॉइंटर स्थान</string>
-    <string name="adaptive_battery">एडेप्टिव बैटरी</string>
-    <string name="wifi_sleep_policy">वाई-फ़ाई स्लीप नीति</string>
-    <string name="bluetooth_discoverable_timeout">(सेकंड) के लिए खोजने योग्य</string>
-    <string name="auto_time">स्वचालित दिनांक और समय</string>
-    <string name="auto_timezone">स्वचालित समय क्षेत्र</string>
-    <string name="haptic_intensity_label">हैप्टिक तीव्रता %1$d</string>
-    <string name="camera_shutter_sound">कैमरा शटर ध्वनि</string>
-    <string name="wifi_scanning">हमेशा वाई-फ़ाई स्कैनिंग</string>
     <string name="device_locked">लॉक</string>
     <string name="device_unlocked">अनलॉक</string>
     <string name="location_mode_off">बंद</string>
@@ -742,15 +690,9 @@
     <string name="wifi_sleep_never">कभी नहीं</string>
     <string name="storage_below">नीचे</string>
     <string name="storage_above">ऊपर</string>
-    <string name="trigger_power_saver_state">स्थिति</string>
-    <string name="trigger_bluetooth_state_hint">वह स्थिति चुनें जो कार्य ट्रिगर करे</string>
     <string name="trigger_brightness_direction">दिशा</string>
     <string name="trigger_brightness_threshold">चमक सीमा</string>
     <string name="trigger_data_saver_state">स्थिति</string>
-    <string name="trigger_device_locked_state">स्थिति</string>
-    <string name="trigger_location_mode">लोकेशन मोड</string>
-    <string name="trigger_nfc_state_hint">वह स्थिति चुनें जो कार्य ट्रिगर करे</string>
-    <string name="trigger_rotation_state">स्थिति</string>
     <string name="trigger_storage_direction">दिशा</string>
     <string name="trigger_storage_threshold">सीमा (MB)</string>
     <string name="trigger_type_auto_rotate">ऑटो-रोटेट</string>
@@ -764,8 +706,6 @@
     <string name="trigger_type_screen_rotation_state">स्क्रीन रोटेशन</string>
     <string name="trigger_type_storage_low">स्टोरेज</string>
     <string name="trigger_type_wifi_state">वाई-फ़ाई</string>
-    <string name="trigger_wifi_state_hint">वह स्थिति चुनें जो कार्य ट्रिगर करे</string>
-    <string name="trigger_auto_rotate_state">स्थिति</string>
     <string name="action_alert">अलर्ट दिखाएँ</string>
     <string name="action_alert_sub">अलर्ट डायलॉग दिखाएँ</string>
     <string name="action_bluetooth_scan">ब्लूटूथ स्कैन</string>
@@ -846,13 +786,9 @@
     <string name="action_wifi_forget_sub">सेव्ड नेटवर्क हटाएँ</string>
     <string name="action_wifi_scan_now">वाई-फ़ाई स्कैन करें</string>
     <string name="action_wifi_scan_now_sub">वाई-फ़ाई स्कैन शुरू करें</string>
-    <string name="email_body">संदेश</string>
-    <string name="email_subject">विषय</string>
-    <string name="email_to">को</string>
     <string name="install_apk_path">APK पथ</string>
     <string name="latitude">अक्षांश</string>
     <string name="longitude">देशांतर</string>
-    <string name="notification_tone_label">नोटिफिकेशन टोन</string>
     <string name="pointer_speed_label">पॉइंटर गति (-7 से 7)</string>
     <string name="screensaver_timeout_label">स्क्रीनसेवर टाइमआउट (मिनट)</string>
     <string name="settings_airplane">एयरप्लेन मोड</string>
@@ -870,17 +806,11 @@
     <string name="settings_privacy">गोपनीयता</string>
     <string name="settings_usage_access">उपयोग पहुंच</string>
     <string name="settings_vpn">VPN</string>
-    <string name="timezone_label">टाइमज़ोन (जैसे GMT)</string>
-    <string name="toast_text">टोस्ट टेक्स्ट</string>
-    <string name="trigger_desc_alarm_set">अलार्म सेट या बदलने पर ट्रिगर होता है</string>
-    <string name="trigger_desc_boot">डिवाइस बूट पूरा होने पर ट्रिगर होता है</string>
     <string name="trigger_desc_clipboard">क्लिपबोर्ड सामग्री बदलने पर ट्रिगर होता है</string>
     <string name="trigger_desc_nfc_tag">NFC टैग स्कैन होने पर ट्रिगर होता है</string>
     <string name="trigger_desc_screen_timeout">स्क्रीन टाइमआउट सेटिंग बदलने पर ट्रिगर होता है</string>
-    <string name="trigger_desc_timezone">डिवाइस टाइमज़ोन बदलने पर ट्रिगर होता है</string>
     <string name="trigger_events_on_change">बदलने पर ट्रिगर होता है</string>
     <string name="trigger_signal_threshold">सिग्नल सीमा</string>
-    <string name="trigger_state_label">स्थिति</string>
     <string name="trigger_temperature_threshold">तापमान सीमा (°C)</string>
     <string name="trigger_type_alarm_set_changed">अलार्म सेट</string>
     <string name="trigger_type_auto_brightness_state">ऑटो ब्राइटनेस</string>
@@ -899,7 +829,6 @@
     <string name="trigger_type_usb_connected">USB कनेक्टेड</string>
     <string name="trigger_type_vpn_connected">VPN कनेक्टेड</string>
     <string name="trigger_type_wifi_signal_strength">वाई-फ़ाई सिग्नल शक्ति</string>
-    <string name="vibrate_pattern_label">वाइब्रेशन पैटर्न</string>
     <string name="wifi_password">पासवर्ड</string>
     <string name="wifi_ssid">वाई-फ़ाई नाम (SSID)</string>
     <string name="collapse_options">विकल्प बंद करें</string>
@@ -999,20 +928,13 @@
     <string name="action_private_dns_sub">Android निजी DNS मोड या प्रदाता सेट करें</string>
     <string name="action_charging_limit">चार्जिंग सीमा</string>
     <string name="action_charging_limit_sub">समर्थित हार्डवेयर चार्ज-स्टॉप प्रतिशत सेट करें</string>
-    <string name="private_dns_mode">निजी DNS मोड</string>
     <string name="private_dns_off">बंद</string>
     <string name="private_dns_automatic">स्वचालित</string>
-    <string name="private_dns_hostname_mode">प्रदाता होस्टनाम</string>
-    <string name="private_dns_hostname">प्रदाता होस्टनाम</string>
-    <string name="private_dns_elevated_note">root या Shizuku आवश्यक है। यह केवल एक ऐप के लिए नहीं, पूरे डिवाइस का निजी DNS बदलता है।</string>
-    <string name="charging_limit_value">चार्जिंग सीमा: %1$d%%</string>
-    <string name="charging_limit_root_note">root और मानक हार्डवेयर चार्ज-नियंत्रण नोड आवश्यक है; असमर्थित डिवाइस स्पष्ट विफलता देते हैं।</string>
 
     <string name="action_charging_feedback">चार्जिंग ध्वनि और कंपन</string>
     <string name="action_charging_feedback_sub">ROM द्वारा समर्थित होने पर चार्जिंग फीडबैक नियंत्रित करें</string>
     <string name="charging_sound">चार्जिंग ध्वनि</string>
     <string name="charging_vibration">चार्जिंग कंपन</string>
-    <string name="charging_feedback_elevated_note">root या Shizuku आवश्यक है और लिखने के बाद सेटिंग की जांच करता है। असमर्थित ROM विफलता बताती हैं।</string>
     <string name="network_mode_phone_permission_hint">सक्रिय SIM और आपके डिवाइस द्वारा वास्तव में समर्थित नेटवर्क मोड पढ़ने के लिए फ़ोन स्थिति एक्सेस की अनुमति दें। नेटवर्क मोड बदलने के लिए root, Shizuku या सिस्टम-ऐप एक्सेस भी आवश्यक है।</string>
 
 
@@ -1042,22 +964,14 @@
     <string name="action_rom_setting_theme">थीम और Monet</string>
     <string name="action_rom_setting_theme_sub">एक्सेंट, Monet, आइकन, फ़ॉन्ट</string>
     <string name="any_bluetooth_device">कोई भी ब्लूटूथ डिवाइस</string>
-    <string name="any_bluetooth_device_hint">किसी भी Bluetooth डिवाइस के कनेक्ट या डिस्कनेक्ट होने पर चलता है।</string>
     <string name="any_device">कोई भी डिवाइस</string>
-    <string name="sms_match_contains">शामिल है</string>
     <string name="sms_match_exact">सटीक मेल</string>
-    <string name="sms_match_any">कोई भी पाठ</string>
     <string name="trigger_type_incoming_call">आने वाला कॉल</string>
     <string name="trigger_type_incoming_call_sub">फोन बजने से पहले कॉल की जाँच करता है</string>
-    <string name="call_from_hint">नंबर या उसका भाग (वैकल्पिक)</string>
-    <string name="call_category_any">कोई भी कॉलर</string>
     <string name="call_category_unknown">अज्ञात नंबर</string>
     <string name="call_category_private">छिपे नंबर</string>
     <string name="call_category_contact">संपर्क</string>
     <string name="call_screening_hint">रिंग से पहले ब्लॉक करने के लिए सिस्टम सेटिंग में कॉलर आईडी और स्क्रीनिंग भूमिका दें</string>
-    <string name="call_contacts_permission_hint">Contacts की अनुमति केवल सहेजे गए कॉलर की पहचान के लिए उपयोग होती है। इसके बिना कॉल अज्ञात मानी जाती हैं।</string>
-    <string name="call_block_hint">वर्तमान रिंग हो रहे कॉल को अस्वीकार करता है; स्क्रीनिंग भूमिका या यह अनुमति आवश्यक है</string>
-    <string name="call_silence_hint">कॉल अस्वीकार किए बिना रिंग को मौन करता है</string>
     <string name="action_call_block">कॉल ब्लॉक करें</string>
     <string name="action_call_block_sub">वर्तमान आने वाले कॉल को अस्वीकार करें</string>
     <string name="action_call_silence">कॉल मौन करें</string>
@@ -1073,9 +987,6 @@
     <string name="trigger_type_wifi_connected_sub">तब चलता है जब डिवाइस Wi-Fi से कनेक्ट हो (या डिस्कनेक्ट हो)</string>
     <string name="trigger_type_mobile_data">मोबाइल डेटा कनेक्टेड</string>
     <string name="trigger_type_mobile_data_sub">तब चलता है जब मोबाइल डेटा सक्रिय नेटवर्क हो (या न हो)</string>
-    <string name="call_match_any">कोई भी नंबर</string>
-    <string name="call_mode_hint">कॉलर नंबर से मेल खाता है, संदेश पाठ से नहीं।</string>
-    <string name="call_number_filter">कॉलर नंबर</string>
     <string name="key_event_custom">कस्टम कुंजी (नाम या कोड)</string>
     <string name="battery_temp_hint">डिग्री सेल्सियस, जैसे 40</string>
     <string name="map_picker_title">स्थान चुनें</string>
@@ -1223,8 +1134,6 @@
     <string name="search_by_name">नाम से खोजें</string>
     <string name="search_by_package">पैकेज से खोजें</string>
     <string name="recently_used_apps">हाल में कार्यों में उपयोग किए गए</string>
-    <string name="bt_pick_ok">यह डिवाइस उपयोग करें</string>
-    <string name="calendar_pick_ok">यह कैलेंडर उपयोग करें</string>
     <string name="diagnostics_title">कॉन्फ़िगरेशन समस्याएँ</string>
     <string name="diagnostics_empty">कोई कॉन्फ़िगरेशन समस्या नहीं मिली</string>
     <string name="diagnostics_intro">ऐसे कार्य जिनकी क्रियाएँ अमान्य कॉन्फ़िगरेशन मानों से चलने में विफल रहीं</string>
@@ -1242,9 +1151,6 @@
     <string name="http_retry_cap_ms">सीमा: %1$d ms</string>
     <string name="pointer_speed_range">पॉइंटर गति -7 (सबसे धीमी) से 7 (सबसे तेज़) तक है; 0 सिस्टम डिफ़ॉल्ट है।</string>
     <string name="screensaver_minutes_chip">%1$d मिनट</string>
-    <string name="density_range_hint">डिस्प्ले घनत्व: 120 से 1000 dpi (इंजन इस सीमा से बाहर के मान अस्वीकार करता है)</string>
-    <string name="bt_discoverable_range_hint">0 (कभी नहीं) से 3600 सेकंड; इंजन मानों को इस सीमा में रखता है</string>
-    <string name="screensaver_range_hint">1 से 1440 मिनट (24 घंटे); इंजन मानों को इस सीमा में रखता है</string>
     <string name="http_allow_private">स्थानीय/निजी नेटवर्क गंतव्यों की अनुमति दें</string>
     <string name="http_private_warning">केवल HTTPS। इसे केवल भरोसेमंद सेवाओं के लिए सक्षम करें। Android 17 को स्थानीय नेटवर्क अनुमति चाहिए।</string>
     <string name="action_data_text">टेक्स्ट ट्रांसफ़ॉर्म</string>
@@ -1312,18 +1218,11 @@
     <string name="action_call_reply_sms">कॉलर को SMS से जवाब दें</string>
     <string name="action_call_reply_sms_sub">इस वर्कफ़्लो को शुरू करने वाले कॉलर को संदेश भेजें</string>
     <string name="action_sms_block">आने वाले SMS ब्लॉक करें</string>
-    <string name="action_sms_block_hint">यह संदेश तभी रोका जाएगा जब NexaFlow डिफ़ॉल्ट SMS ऐप हो। अन्यथा कार्रवाई बताएगी कि यह भूमिका आवश्यक है।</string>
     <string name="action_sms_block_sub">मिलते-जुलते SMS रोकें (डिफ़ॉल्ट SMS भूमिका आवश्यक)</string>
     <string name="action_sms_reply">आने वाले SMS का जवाब दें</string>
     <string name="action_sms_reply_sub">इस वर्कफ़्लो को शुरू करने वाले प्रेषक को संदेश भेजें</string>
-    <string name="call_block_silent_hint">Android के समर्थन पर मिलती-जुलती कॉल रोकें और उसकी सूचना छिपाएँ।</string>
-    <string name="reply_message">जवाबी संदेश</string>
 
     <string name="task_restore_failed">कार्य की पिछली सेटिंग बहाल नहीं की जा सकीं</string>
-    <string name="bluetooth_advanced">उन्नत विकल्प</string>
-    <string name="bluetooth_advanced_hide">उन्नत विकल्प छिपाएँ</string>
-    <string name="bluetooth_device_name">डिवाइस का नाम</string>
-    <string name="bluetooth_device_address">MAC पता</string>
     <string name="trigger_temporal_filters_title">समय-आधारित फ़िल्टर</string>
 
     <string name="trigger_expression_title">उन्नत ट्रिगर अभिव्यक्ति</string>
@@ -1348,5 +1247,4 @@
     <string name="network_metered">मापी गई नेटवर्क</string>
     <string name="network_ssid">Wi-Fi नाम (SSID)</string>
     <string name="network_bssid">एक्सेस पॉइंट (BSSID)</string>
-    <string name="network_identity_permission_hint">कनेक्ट किए गए Wi-Fi का नाम और एक्सेस पॉइंट पढ़ने के लिए Android को स्थान अनुमति की आवश्यकता हो सकती है। NexaFlow इन मानों को केवल इस ट्रिगर से मिलान करने के लिए पढ़ता है।</string>
 </resources>

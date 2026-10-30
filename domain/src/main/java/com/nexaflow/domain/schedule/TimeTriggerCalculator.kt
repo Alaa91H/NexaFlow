@@ -50,23 +50,35 @@ object TimeTriggerCalculator {
     const val ZONE_ID_KEY = "zoneId"
 
     /**
+     * Explicit-zone key written by the canonical schedule contract and the
+     * builder's timezone field. Configs from that surface carry no zonePolicy,
+     * so without this alias a selected IANA zone never reached scheduling.
+     */
+    const val CANONICAL_ZONE_ID_KEY = "timezone"
+
+    /**
      * Resolves the zone used by both preview and production scheduling.
      *
      * Existing tasks omit zonePolicy and therefore preserve historical
-     * device-local wall-clock semantics. A malformed FIXED_IANA zone fails
+     * device-local wall-clock semantics, except when they carry the canonical
+     * `timezone` value: that is an explicit user choice and it wins. An explicit
+     * policy always wins over the alias, and a malformed FIXED_IANA zone fails
      * closed by returning null rather than silently falling back to the device.
      */
     fun resolveZone(
         config: Map<String, String>,
         deviceZone: ZoneId = ZoneId.systemDefault()
-    ): ZoneId? = when (config[ZONE_POLICY_KEY] ?: ZONE_POLICY_DEVICE_LOCAL) {
+    ): ZoneId? = when (val policy = config[ZONE_POLICY_KEY]) {
+        null -> parseZone(config[CANONICAL_ZONE_ID_KEY]) ?: deviceZone
         ZONE_POLICY_DEVICE_LOCAL -> deviceZone
-        ZONE_POLICY_FIXED_IANA -> config[ZONE_ID_KEY]
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-            ?.let { id -> runCatching { ZoneId.of(id) }.getOrNull() }
+        ZONE_POLICY_FIXED_IANA -> parseZone(config[ZONE_ID_KEY] ?: config[CANONICAL_ZONE_ID_KEY])
         else -> null
     }
+
+    private fun parseZone(id: String?): ZoneId? = id
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?.let { zone -> runCatching { ZoneId.of(zone) }.getOrNull() }
 
     // A daily scan is intentionally bounded. The UI limits custom intervals to
     // 99 units, and this horizon still covers yearly schedules for up to 100 years.

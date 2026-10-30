@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+## [v3.91.15] - 2026-10-30
+
+### Added
+
+- **About** now names every project surface instead of a single contact list: the source repository (`Alaa91H/NexaFlow`), the release and announcement channel (`@NexaFlowApp`), the community group (`@NexaFlowCommunity`) and optional support, alongside the developer's own GitHub, email and Telegram rows. Each row states its target, and the dialog moved to `AboutDialog.kt` so the developer and project facts live in one place. The README gained a matching "Community and support" section that documents where to report issues and where security-sensitive reports belong.
+- A configurable time zone for scheduled triggers (T02-006): the TIME editor offers the device zone or an explicit IANA zone, writes `zonePolicy`/`zoneId`/`timezone` together, and only persists `FIXED_IANA` once the zone parses, so an unfinished entry can never leave an automation that never fires. `TimeTriggerCalculator.resolveZone` honours the canonical `timezone` key, with an explicit policy still taking precedence and a malformed zone falling back to the device zone.
+
+### Fixed
+
+- **Network mode ("5G"/"4G") failed or dropped the SIM out of service** (NFA-23). A 5G-only restriction (the NR bitmask alone) leaves no LTE anchor for a non-standalone carrier, so the radio left service and the closing "restore LTE" write was then rejected with `No valid subscription found`. `NetworkModePolicy.isNrOnly` now keeps that profile out of the editor's options, so a 5G choice always retains the lower generations it was derived from, and `NetworkModeController` refuses a previously saved NR-only mask before the radio is touched, with a message that names the fix (reselect the 5G profile that keeps LTE).
+- **The same action also failed on a transient capability read.** `NetworkModeController.setNetworkMode` no longer treats a capability snapshot as a precondition: a snapshot that was momentarily unavailable — or that answered `UNKNOWN` while the radio re-registered — failed the whole action with "network capabilities … no longer readable", and a user-mask fallback read as hardware support produced "no longer supported by the selected SIM" for a mask that was in fact applicable. Both blocked the very write that restores a working mode; the subscription-scoped write ladder and its read-back stay the authority on success.
+- Honour the reboot target: `SYSTEM_REBOOT.mode` reaches the elevated command (`NORMAL` → `reboot`, `RECOVERY` → `reboot recovery`, `BOOTLOADER` → `reboot bootloader`), and any other value fails before a command is issued instead of silently rebooting normally. The closed mapping lives in `RebootMode`, shared by the executor, the builder chips and the tests.
+- Open the configured Play Store listing: `SYSTEM_OPEN_PLAY_STORE_APP.package` opens `market://details?id=<package>` and falls back to the web listing when no store client handles the market scheme; non-package input is rejected, and an empty package keeps the previous store-home behaviour.
+- Read the legacy packages list for launch: `APPLICATION_LAUNCH_APP` falls back to the first entry of the pre-canonical `packages` field when `package` is empty, so automations saved before the canonical field launch again.
+- Fix the editors for these actions: reboot shows its three targets instead of Settings namespace/key/value fields, and the Play Store action shows the package field with the installed-app picker. Launch, close and Play Store now share one `PackageFieldEditor`.
+
+### Changed
+
+- `TriggerEditorCard` is a dispatcher: the trigger sections it genuinely renders moved to `TriggerStateConfigEditors.kt` (battery level and charger filters, signal strength, battery temperature, clipboard, NFC tag, Wear event, volume, brightness, storage, app-installed and screen-timeout), and the whole TIME trigger body moved to `TriggerTimeEditor.TimeTriggerConfig`. With the dead-arm deletion below, the card goes from 141,446 to 54,348 bytes.
+- Delete the 25 unreachable trigger arms (NFA-19) and the 126 unreachable action arms (NFA-20). Their entry points were the only callers of `CalendarPickerDialog` and `BluetoothDevicePickerDialog`, so both dialogs go with them; `ActionConfigEditor` drops from 1,831 to 912 lines and 108 string keys leave the resource files across all eleven locales.
+- Extract the elevated power operations into `SystemPowerController` and the store launch into `AppStoreLauncher`, so `SystemController` stays a façade (91,244 → 86,767 bytes) while the new behaviour is tested through the shell-route seam.
+- The architecture-fitness baseline is lowered to the new sizes, and the atomic inventory is regenerated, so the reduction cannot be handed back silently.
+
+### Tests and verification
+
+- `NetworkModeControllerTest` (3 cases: an NR-only request is refused with an actionable message, an NR+LTE request is not refused by the policy guard, and neither "no longer readable" nor "no longer supported" can return from the removed gate) and `NetworkModePolicyTest` (5G-only is never offered; `isNrOnly` semantics).
+- `AboutDialogTest` renders the dialog and asserts every project surface and developer contact is present, plus that a hidden dialog renders nothing.
+- `TriggerEditorRoutingTest` pins which trigger types are schema-rendered (37 of 57) and which reach the hand-written card (20); `TriggerStateConfigEditorsTest` hosts the extracted sections and drives real chips; `SystemRebootAndStoreIntentTest`, `DeclaredActionFieldParityTest` and `ActionConfigEditorDeclaredFieldsTest` cover the reboot, store, launch-alias and editor fields.
+- Both routing guards and the field-parity guards were proved non-vacuous by reintroducing the defect and watching the expected cases fail.
+- `LegacyTriggerCardRenderTest` (20 states) and `TriggerTimeEditorTest` render the hand-written trigger card and the TIME body; `TriggerStateConfigEditorsTest`, `TimeZoneSectionTest` and `AboutDialogTest` tap the real chips and rows, asserting the launched Intents; `SystemRebootAndStoreIntentTest`, `NetworkModeControllerTest` and the declared-field parity tests cover the shell and store routes. `CanonicalSchemaFieldEditor` takes the workflow secret store from the screen instead of resolving it through Hilt inside the field, so a secret field renders and persists without an injected graph.
+- Diff coverage of the production lines this release changes is 99.6% (795 of 798); the three unmeasured lines are a store-launch catch for a missing handler, the generated default-argument line of `reboot`, and an unreachable `else` branch in the action editor.
+- Unit tests and detekt pass for `:core:rom-integration`, `:feature:automation-builder` and `:feature:settings`; `:app` compiles; the release APK installs and launches on the reporting device. Gates pass: `auto_fix.py --check`, string parity, translation completeness, hardcoded text, vendor neutrality, catalog parity, atomic inventory, module boundaries, suppression budget, architecture fitness, findings audit and docs freshness.
+
 ## [v3.91.14] - 2026-10-29
 
 ### Diagnostics export

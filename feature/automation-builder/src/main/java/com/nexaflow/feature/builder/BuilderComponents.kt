@@ -182,39 +182,6 @@ fun RuntimePermissionHint(
 }
 
 /**
- * Advisory row shown only when the BLUETOOTH_CONNECT permission is already
- * granted but the adapter itself is OFF. It never blocks saving — a task can
- * be created while Bluetooth is off and will fire once the chosen device
- * connects. Tapping opens the Bluetooth settings screen (via the explain
- * flow owned by the caller).
- *
- * The row hides itself when the permission is missing (the [RuntimePermissionHint]
- * above owns that case) or when the adapter is already ON, so a healthy
- * device like the reporter's (BT ON + permission granted) shows no prompt at all.
- */
-@Composable
-fun BluetoothEnabledHint(
-    context: Context,
-    hintText: String,
-    buttonLabel: String,
-    refreshKey: Int = 0,
-    onRequest: () -> Unit
-) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-        context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) !=
-        android.content.pm.PackageManager.PERMISSION_GRANTED
-    ) {
-        return
-    }
-    var enabled by remember { mutableStateOf<Boolean?>(null) }
-    LaunchedEffect(refreshKey) {
-        enabled = withContext(Dispatchers.IO) { PermissionShortcuts.isBluetoothEnabled(context) }
-    }
-    if (enabled == null || enabled == true) return
-    PermissionHint(text = hintText, buttonLabel = buttonLabel, onClick = onRequest)
-}
-
-/**
  * Live state of a special permission shown in an action card.
  *
  * - [GRANTED]: the permission is currently granted (green pill).

@@ -19,6 +19,18 @@ EDITOR_FILE = ROOT / (
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
     "ActionConfigEditor.kt"
 )
+# The Open Settings page picker is rendered from the declared action schema,
+# not from a hand-written arm in ActionConfigEditor, so the page tokens are
+# pinned where the editor reads them from.
+OPEN_SETTINGS_SCHEMA_FILE = ROOT / (
+    "domain/src/main/java/com/nexaflow/domain/catalog/ActionNodeSchemas.kt"
+)
+# ...and the editor must actually route that action through the canonical
+# schema, otherwise the declared page tokens would be unreachable in the UI.
+EDITOR_BRIDGE_FILE = ROOT / (
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/"
+    "CanonicalBuilderSchemaBridge.kt"
+)
 CONTROLLER_FILE = ROOT / (
     "core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt"
 )
@@ -82,19 +94,33 @@ def main() -> int:
                 problems.append(f"PilotOpenFamilyTest.kt missing required test {case!r}")
 
     # T17 is not closed by a domain adapter alone. New-workflow discovery
-    # must expose one Open Settings action, its editor must expose canonical
-    # page tokens, and runtime must accept the same tokens.
+    # must expose one Open Settings action, the schema its editor renders must
+    # declare the canonical page tokens, and runtime must accept the same
+    # tokens.
     if DISCOVERY_FILE.is_file():
         discovery = DISCOVERY_FILE.read_text(encoding="utf-8")
         if discovery.count("ActionType.SYSTEM_OPEN_") < 28:
             problems.append("T17 discovery policy does not retire the dedicated settings aliases")
         if "ActionType.SYSTEM_OPEN_SETTINGS" in discovery:
             problems.append("the unified SYSTEM_OPEN_SETTINGS action must remain discoverable")
-    if EDITOR_FILE.is_file():
-        editor = EDITOR_FILE.read_text(encoding="utf-8")
+    if OPEN_SETTINGS_SCHEMA_FILE.is_file():
+        schema = OPEN_SETTINGS_SCHEMA_FILE.read_text(encoding="utf-8")
         for token in ("ABOUT_PHONE", "SYSTEM_UPDATE", "APP_SETTINGS_LIST", "USAGE_ACCESS"):
-            if token not in editor:
-                problems.append(f"Open Settings editor missing canonical page token {token}")
+            if f'"{token}"' not in schema:
+                problems.append(
+                    f"SYSTEM_OPEN_SETTINGS schema missing canonical page token {token}"
+                )
+    else:
+        problems.append(f"missing {OPEN_SETTINGS_SCHEMA_FILE.relative_to(ROOT)}")
+    if EDITOR_BRIDGE_FILE.is_file():
+        bridge = EDITOR_BRIDGE_FILE.read_text(encoding="utf-8")
+        if "ActionType.SYSTEM_OPEN_SETTINGS" not in bridge:
+            problems.append(
+                "CanonicalBuilderSchemaBridge does not route SYSTEM_OPEN_SETTINGS "
+                "through the declared schema"
+            )
+    else:
+        problems.append(f"missing {EDITOR_BRIDGE_FILE.relative_to(ROOT)}")
     if CONTROLLER_FILE.is_file():
         controller = CONTROLLER_FILE.read_text(encoding="utf-8")
         for token in ('"ABOUT_PHONE"', '"SYSTEM_UPDATE"', '"APP_SETTINGS_LIST"'):

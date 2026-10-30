@@ -323,8 +323,6 @@ fun AutomationBuilderScreen(
     // automation's iconColor column). Defaults to Google blue.
     var selectedIconColor by rememberSaveable { mutableStateOf(0xFF0B57D0L) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
-    var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
-    var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
     // Family-first discovery: opening a configurator shows the small family
     // surface only. Concrete legacy-compatible options are revealed only
     // after the user chooses a family (or types a search query).
@@ -1336,42 +1334,44 @@ fun AutomationBuilderScreen(
                         }
                     triggers.forEachIndexed { index, draft ->
                 val triggerDragging = triggerDrag.draggedIndex == index
-                TriggerEditorCard(
-                    draft = draft,
-                    index = index,
-                    total = triggers.size,
-                    modifier = Modifier.taskDragOffset(triggerDrag, draft, triggerDragging),
-                    isDragging = triggerDragging,
-                    onMoveUp = { moveTrigger(index, index - 1) },
-                    onMoveDown = { moveTrigger(index, index + 1) },
-                    onDragStart = { startDrag(triggerDrag, index) },
-                    onDragDelta = { dragBy(triggerDrag, triggers, it) { f, t -> moveTrigger(f, t) } },
-                    onDragEnd = { endDrag(triggerDrag) },
-                    onConfigChange = { updated ->
-                        triggers[index] = updated
-                    },
-                    onRemove = {
-                        triggerExpressionV2 = triggerExpressionV2?.removeTriggerReference(index)
-                        triggers.removeAt(index)
-                        expandedTriggerIndex = when {
-                            expandedTriggerIndex == index -> null
-                            expandedTriggerIndex != null && expandedTriggerIndex!! > index -> expandedTriggerIndex!! - 1
-                            else -> expandedTriggerIndex
-                        }
-                    },
-                    expanded = expandedTriggerIndex == index,
-                    onExpandedChange = { expanded ->
-                        expandedTriggerIndex = if (expanded) index else null
-                    },
-                    onPickApp = { appPickerTarget = "trigger:$index" },
-                    onPickBluetooth = { bluetoothPickerTarget = index },
-                    onPickCalendar = { calendarPickerTarget = index },
-                    onRequestPermission = { requestPermissions(it) },
-                    onExplainSpecial = { explainSpecialPermission(it) },
-                    refreshKey = permissionRefreshTick,
-                    onPickFromMap = { launchMapPicker(index) },
-                    onUseCurrentLocation = { locateAndFill(index) }
-                )
+                CompositionLocalProvider(
+                    LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
+                ) {
+                    TriggerEditorCard(
+                        draft = draft,
+                        index = index,
+                        total = triggers.size,
+                        modifier = Modifier.taskDragOffset(triggerDrag, draft, triggerDragging),
+                        isDragging = triggerDragging,
+                        onMoveUp = { moveTrigger(index, index - 1) },
+                        onMoveDown = { moveTrigger(index, index + 1) },
+                        onDragStart = { startDrag(triggerDrag, index) },
+                        onDragDelta = { dragBy(triggerDrag, triggers, it) { f, t -> moveTrigger(f, t) } },
+                        onDragEnd = { endDrag(triggerDrag) },
+                        onConfigChange = { updated ->
+                            triggers[index] = updated
+                        },
+                        onRemove = {
+                            triggerExpressionV2 = triggerExpressionV2?.removeTriggerReference(index)
+                            triggers.removeAt(index)
+                            expandedTriggerIndex = when {
+                                expandedTriggerIndex == index -> null
+                                expandedTriggerIndex != null && expandedTriggerIndex!! > index -> expandedTriggerIndex!! - 1
+                                else -> expandedTriggerIndex
+                            }
+                        },
+                        expanded = expandedTriggerIndex == index,
+                        onExpandedChange = { expanded ->
+                            expandedTriggerIndex = if (expanded) index else null
+                        },
+                        onPickApp = { appPickerTarget = "trigger:$index" },
+                        onRequestPermission = { requestPermissions(it) },
+                        onExplainSpecial = { explainSpecialPermission(it) },
+                        refreshKey = permissionRefreshTick,
+                        onPickFromMap = { launchMapPicker(index) },
+                        onUseCurrentLocation = { locateAndFill(index) }
+                    )
+                }
             }
 
                 // Combine rule: visible only when two or more triggers exist —
@@ -1563,52 +1563,56 @@ fun AutomationBuilderScreen(
                         actionDrafts.forEachIndexed { index, draft ->
                             key(draft.id) {
                                 val actionDragging = actionDrag.draggedIndex == index
-                                SelectedActionCard(
-                                modifier = Modifier.taskDragOffset(actionDrag, draft, actionDragging),
-                                isDragging = actionDragging,
-                                onDragStart = { startDrag(actionDrag, index) },
-                                onDragDelta = { dragBy(actionDrag, actionDrafts, it) { from, to -> moveAction(from, to) } },
-                                onDragEnd = { endDrag(actionDrag) },
-                                option = draft.option,
-                                index = index,
-                                total = actionDrafts.size,
-                                config = draft.config,
-                                onConfigChange = { config ->
-                                    val current = actionDrafts.indexOfFirst { it.id == draft.id }
-                                    if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(config = config)
-                                },
-                                onMoveUp = { moveAction(index, index - 1) },
-                                onMoveDown = { moveAction(index, index + 1) },
-                                onRemove = {
-                                    val current = actionDrafts.indexOfFirst { it.id == draft.id }
-                                    if (current >= 0) actionDrafts.removeAt(current)
-                                    if (expandedActionCardId == draft.id) expandedActionCardId = null
-                                },
-                                onPickApp = { appPickerTarget = "action:${draft.id}" },
-                                onRequestPermission = { requestPermissions(it) },
-                                onExplainSpecial = { explainSpecialPermission(it) },
-                                refreshKey = permissionRefreshTick,
-                                context = context,
-                                availableVariables = availableVariables,
-                                automations = automations,
-                                onPluginConfigure = {
-                                    if (draft.config["package"].isNullOrBlank() || draft.config["receiver"].isNullOrBlank()) {
-                                        pluginPickerTarget = draft.id
-                                    } else {
-                                        configurePlugin(
-                                            actionId = draft.id,
-                                            packageName = draft.config["package"],
-                                            receiver = draft.config["receiver"],
-                                            editActivityClass = draft.config["editActivity"],
-                                            config = draft.config
-                                        )
-                                    }
-                                },
-                                expanded = expandedActionCardId == draft.id,
-                                onExpandedChange = { expanded ->
-                                    expandedActionCardId = if (expanded) draft.id else null
+                                CompositionLocalProvider(
+                                    LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
+                                ) {
+                                    SelectedActionCard(
+                                        modifier = Modifier.taskDragOffset(actionDrag, draft, actionDragging),
+                                        isDragging = actionDragging,
+                                        onDragStart = { startDrag(actionDrag, index) },
+                                        onDragDelta = { dragBy(actionDrag, actionDrafts, it) { from, to -> moveAction(from, to) } },
+                                        onDragEnd = { endDrag(actionDrag) },
+                                        option = draft.option,
+                                        index = index,
+                                        total = actionDrafts.size,
+                                        config = draft.config,
+                                        onConfigChange = { config ->
+                                            val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                            if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(config = config)
+                                        },
+                                        onMoveUp = { moveAction(index, index - 1) },
+                                        onMoveDown = { moveAction(index, index + 1) },
+                                        onRemove = {
+                                            val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                            if (current >= 0) actionDrafts.removeAt(current)
+                                            if (expandedActionCardId == draft.id) expandedActionCardId = null
+                                        },
+                                        onPickApp = { appPickerTarget = "action:${draft.id}" },
+                                        onRequestPermission = { requestPermissions(it) },
+                                        onExplainSpecial = { explainSpecialPermission(it) },
+                                        refreshKey = permissionRefreshTick,
+                                        context = context,
+                                        availableVariables = availableVariables,
+                                        automations = automations,
+                                        onPluginConfigure = {
+                                            if (draft.config["package"].isNullOrBlank() || draft.config["receiver"].isNullOrBlank()) {
+                                                pluginPickerTarget = draft.id
+                                            } else {
+                                                configurePlugin(
+                                                    actionId = draft.id,
+                                                    packageName = draft.config["package"],
+                                                    receiver = draft.config["receiver"],
+                                                    editActivityClass = draft.config["editActivity"],
+                                                    config = draft.config
+                                                )
+                                            }
+                                        },
+                                        expanded = expandedActionCardId == draft.id,
+                                        onExpandedChange = { expanded ->
+                                            expandedActionCardId = if (expanded) draft.id else null
+                                        }
+                                    )
                                 }
-                                )
                             }
                         }
                     }
@@ -1800,49 +1804,6 @@ fun AutomationBuilderScreen(
                 }
             }
         )
-    }
-
-    bluetoothPickerTarget?.let { index ->
-        if (index in triggers.indices) {
-            BluetoothDevicePickerDialog(
-                onPick = { device ->
-                    triggers[index] = triggers[index].copy(
-                        config = mapOf(
-                            "deviceName" to device.name,
-                            "deviceAddress" to device.address,
-                            "event" to (triggers[index].config["event"] ?: "CONNECTED")
-                        )
-                    )
-                    bluetoothPickerTarget = null
-                },
-                onDismiss = { bluetoothPickerTarget = null },
-                preSelectedAddress = triggers[index].config["deviceAddress"]
-            )
-        } else {
-            bluetoothPickerTarget = null
-        }
-    }
-
-    calendarPickerTarget?.let { index ->
-        if (index in triggers.indices) {
-            CalendarPickerDialog(
-                onPick = { calendar ->
-                    triggers[index] = triggers[index].copy(
-                        config = mapOf(
-                            "calendar" to calendar.name,
-                            "contains" to (triggers[index].config["contains"] ?: ""),
-                            "event" to (triggers[index].config["event"] ?: "EVENT_START"),
-                            "beforeMinutes" to (triggers[index].config["beforeMinutes"] ?: "0")
-                        )
-                    )
-                    calendarPickerTarget = null
-                },
-                onDismiss = { calendarPickerTarget = null },
-                preSelectedName = triggers[index].config["calendar"]
-            )
-        } else {
-            calendarPickerTarget = null
-        }
     }
 
     appPickerTarget?.let { target ->

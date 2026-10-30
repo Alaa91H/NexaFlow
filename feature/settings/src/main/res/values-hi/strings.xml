@@ -162,6 +162,12 @@
     <string name="about_telegram_sub">@Alaa91h</string>
     <string name="about_support">डेवलपर का समर्थन करें</string>
     <string name="about_support_sub">Ko-fi पर मुझे कॉफ़ी पिलाएँ</string>
+    <string name="about_repository">सोर्स कोड</string>
+    <string name="about_repository_sub">Alaa91H/NexaFlow</string>
+    <string name="about_channel">टेलीग्राम चैनल</string>
+    <string name="about_channel_sub">@NexaFlowApp</string>
+    <string name="about_community">कम्युनिटी समूह</string>
+    <string name="about_community_sub">@NexaFlowCommunity</string>
 
     <!-- Per-app language picker -->
     <string name="app_language">ऐप की भाषा</string>

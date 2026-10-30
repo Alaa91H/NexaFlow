@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution.handler
 
 import com.nexaflow.core.execution.capability.toSystemControlResult
+import com.nexaflow.core.rom.RebootMode
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -372,7 +373,7 @@ class SystemActionsHandler : ActionHandler {
             ActionType.SYSTEM_OPEN_CAMERA ->
                 ctx.controller.openCamera()
             ActionType.SYSTEM_OPEN_PLAY_STORE_APP ->
-                ctx.controller.openPlayStoreApp()
+                ctx.controller.openPlayStoreApp(action.config["package"])
             ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS ->
                 ctx.controller.openSystemUpdateSettings()
             ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH ->
@@ -381,7 +382,7 @@ class SystemActionsHandler : ActionHandler {
                     packageName = action.config["package"]
                 )
             ActionType.SYSTEM_REBOOT ->
-                ctx.controller.rebootDevice()
+                ctx.controller.rebootDevice(action.config["mode"] ?: RebootMode.NORMAL)
             ActionType.SYSTEM_SHUTDOWN ->
                 ctx.controller.shutdownDevice()
             ActionType.SYSTEM_RESTART_SYSTEM_UI ->

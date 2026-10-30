@@ -743,5 +743,44 @@ class TimeTriggerCalculatorTest {
         )
     }
 
+    @Test
+    fun `timezone resolver honors the canonical timezone a schedule was saved with`() {
+        // The builder's schedule schema stores an explicit zone as `timezone`
+        // and writes no policy; ignoring it scheduled the task device-local.
+        val resolved = TimeTriggerCalculator.resolveZone(
+            config = mapOf(
+                "time" to "08:00",
+                TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY to "Europe/Berlin"
+            ),
+            deviceZone = ZoneId.of("UTC")
+        )
+
+        assertEquals(ZoneId.of("Europe/Berlin"), resolved)
+    }
+
+    @Test
+    fun `explicit device-local policy wins over a stale canonical timezone`() {
+        val resolved = TimeTriggerCalculator.resolveZone(
+            config = mapOf(
+                TimeTriggerCalculator.ZONE_POLICY_KEY to
+                    TimeTriggerCalculator.ZONE_POLICY_DEVICE_LOCAL,
+                TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY to "Europe/Berlin"
+            ),
+            deviceZone = ZoneId.of("UTC")
+        )
+
+        assertEquals(ZoneId.of("UTC"), resolved)
+    }
+
+    @Test
+    fun `malformed canonical timezone falls back to the device zone`() {
+        val resolved = TimeTriggerCalculator.resolveZone(
+            config = mapOf(TimeTriggerCalculator.CANONICAL_ZONE_ID_KEY to "Mars/Olympus"),
+            deviceZone = ZoneId.of("UTC")
+        )
+
+        assertEquals(ZoneId.of("UTC"), resolved)
+    }
+
 
 }

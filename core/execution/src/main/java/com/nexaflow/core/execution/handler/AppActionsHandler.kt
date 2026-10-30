@@ -43,7 +43,17 @@ class AppActionsHandler : ActionHandler {
                 }
             }
             ActionType.APPLICATION_LAUNCH_APP ->
-                ctx.controller.launchApp(action.config["package"] ?: "")
+                ctx.controller.launchApp(
+                    // Configs saved before the canonical `package` field used
+                    // the legacy comma-separated `packages` list; the first
+                    // entry is the one the action always launched.
+                    action.config["package"]?.takeIf { it.isNotBlank() }
+                        ?: action.config["packages"].orEmpty()
+                            .split(',')
+                            .firstOrNull { it.isNotBlank() }
+                            ?.trim()
+                            .orEmpty()
+                )
             ActionType.APPLICATION_CLOSE_APP ->
                 ctx.controller.forceStopPackage(action.config["package"] ?: "")
             ActionType.APPLICATION_OPEN_APP_SETTINGS ->

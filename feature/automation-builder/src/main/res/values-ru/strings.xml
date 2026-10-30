@@ -55,7 +55,6 @@
     <string name="package_name">Имя пакета</string>
     <string name="choose_from_installed">Выбрать из установленных приложений</string>
     <string name="app_detection_hint">Для обнаружения приложений нужна служба специальных возможностей</string>
-    <string name="enable">Включить</string>
     <string name="state">Состояние</string>
 
     
@@ -162,18 +161,15 @@
     <string name="action_root_sub">Выполнить команду через root</string>
     <string name="brightness_label">Яркость: %1$d</string>
     <string name="volume_label">Громкость: %1$d</string>
-    <string name="turn_on">Включить</string>
     <string name="apps_comma">Приложения (через запятую)</string>
     <string name="title">Заголовок</string>
     <string name="text">Текст</string>
     <string name="auto_rotate">Автоповорот</string>
     <string name="url">URL</string>
-    <string name="url_hint">https://example.com</string>
     <string name="alert_below">Предупреждать ниже: %1$d%%</string>
     <string name="message_optional">Сообщение (необязательно)</string>
     <string name="shell_command">Команда оболочки</string>
     <string name="shell_hint">напр.: settings put global airplane_mode_on 1</string>
-    <string name="runs_immediately">Выполняется сразу при срабатывании автоматизации.</string>
     <string name="write_settings_hint">Требуется разрешение на изменение системных настроек</string>
     <string name="dnd_hint">Требуется доступ «Не беспокоить»</string>
     <string name="flashlight_hint">Требуется доступ к камере для фонарика</string>
@@ -228,8 +224,6 @@
     <string name="ringer_normal">Звонок</string>
     <string name="ringer_vibrate">Вибрация</string>
     <string name="ringer_silent">Беззвучный</string>
-    <string name="hour">Час</string>
-    <string name="minute">Минута</string>
     <string name="elevated_hint">Требуется root, Shizuku или права системного приложения</string>
     <string name="trigger_type_sms">СМС</string>
     <string name="repeat_custom">Настроить</string>
@@ -262,7 +256,6 @@
     <string name="pick_date">Выбрать дату</string>
     <string name="pick_on_map">Выбрать на карте</string>
     <string name="sms_from">От (номер)</string>
-    <string name="sms_from_hint">напр. 05XXXXXXXX (пусто = любой)</string>
     <string name="sms_contains">Сообщение содержит</string>
     <string name="sms_contains_hint">Текст для поиска (пусто = любой)</string>
     <string name="permission_denied_hint">Требуется разрешение для включения этой функции</string>
@@ -288,9 +281,6 @@
     <string name="action_open_settings">Открыть настройки</string>
     <string name="action_open_settings_sub">Открыть страницу настроек системы</string>
     <string name="ring_volume_label">Громкость звонка: %1$d</string>
-    <string name="phone_number">Номер телефона</string>
-    <string name="reminder_title">Заголовок напоминания</string>
-    <string name="reminder_text">Текст напоминания</string>
     <string name="settings_wifi">Wi-Fi</string>
     <string name="settings_bluetooth">Bluetooth</string>
     <string name="settings_location">Геолокация</string>
@@ -326,19 +316,17 @@
     <string name="trigger_app">Когда открывается приложение</string>
     <string name="time_single">Одно время</string>
     <string name="time_range">Диапазон времени</string>
+    <string name="time_zone_section">Часовой пояс</string>
+    <string name="time_zone_device">Часовой пояс устройства</string>
+    <string name="time_zone_fixed">Указанный часовой пояс</string>
+    <string name="time_zone_id_label">Часовой пояс IANA (например, Europe/Berlin)</string>
+    <string name="time_zone_invalid">Неизвестный часовой пояс — до исправления используется пояс устройства</string>
     <string name="time_range_start">Начало</string>
     <string name="time_range_end">Конец</string>
     <string name="range_same_day">Тот же день</string>
     <string name="range_overnight">Ночью — заканчивается на следующий день</string>
     <string name="trigger_type_bluetooth">Устройство Bluetooth</string>
     <string name="trigger_bluetooth">Устройство Bluetooth</string>
-    <string name="choose_bluetooth_device">Выбрать устройство Bluetooth</string>
-    <string name="no_bluetooth_device">Устройство не выбрано</string>
-    <string name="no_paired_devices">Сопряжённые устройства Bluetooth не найдены</string>
-    <string name="bluetooth_turned_off_title">Bluetooth выключен</string>
-    <string name="bluetooth_turned_off_body">Включите Bluetooth, чтобы увидеть сопряжённые устройства и выбрать одно из них для этой задачи.</string>
-    <string name="bluetooth_permission_hint">Включите Bluetooth для обнаружения сопряжённых устройств</string>
-    <string name="stream_label">Звуковой канал</string>
     <string name="stream_volume_label">Громкость %1$d</string>
     <string name="stream_music">Медиа</string>
     <string name="stream_ring">Звонок</string>
@@ -355,9 +343,6 @@
     <string name="trigger_type_ringer">Режим звука</string>
     <string name="trigger_ringer">Режим звука</string>
     <string name="trigger_ringer_sub">Когда меняется режим звука</string>
-    <string name="ringer_mode_label">Режим звука</string>
-    <string name="ringer_mode_hint">Задача выполняется, когда телефон переключается в выбранный режим звука</string>
-    <string name="change_now">Изменить сейчас</string>
 
     <string name="next_needs_action">Сначала добавьте хотя бы один шаг выполнения</string>
     <string name="occurrence_first">1-я</string>
@@ -381,16 +366,9 @@
     <string name="trigger_type_calendar">Календарь</string>
     <string name="trigger_calendar">Событие календаря</string>
     <string name="any_calendar">Любой календарь</string>
-    <string name="choose_calendar">Выберите календарь</string>
-    <string name="no_calendars_found">Календари не найдены</string>
-    <string name="calendar_contains">Событие содержит</string>
-    <string name="calendar_contains_hint">напр. встреча, стоматолог (пусто = любое)</string>
     <string name="calendar_event_start">Начало</string>
     <string name="calendar_event_end">Окончание</string>
     <string name="calendar_event_created">Добавлено в календарь</string>
-    <string name="calendar_before_none">В начале события</string>
-    <string name="calendar_before_minutes">До события: %1$d мин</string>
-    <string name="calendar_permission_hint">Требуется разрешение календаря для чтения событий</string>
     <string name="charger_type_label">Тип зарядного устройства</string>
     <string name="charger_any">Любой</string>
     <string name="charger_ac">Сеть / Розетка</string>
@@ -511,7 +489,6 @@
     <string name="action_open_quick_settings">Быстрые настройки</string>
     <string name="action_open_quick_settings_sub">Открыть панель быстрых настроек</string>
     <string name="vibrate_duration">Длительность вибрации</string>
-    <string name="clipboard_text">Текст буфера обмена</string>
     <string name="trigger_type_rom_setting">Настройка ROM</string>
     <string name="use_current_location">Использовать моё текущее местоположение</string>
     <string name="location_coordinates">Местоположение: %1$s, %2$s</string>
@@ -521,19 +498,12 @@
     <string name="location_inside">Внутри зоны</string>
     <string name="location_outside">Вне зоны</string>
     <string name="location_fix_failed">Не удалось получить местоположение. Включите его и попробуйте снова.</string><string name="charging_yes">Заряжается</string>
-    <string name="ringtone_label">Рингтон по умолчанию</string>
     <string name="network_mode_sub">Выберите режим из действительно доступных для выбранной SIM. Для применения изменения требуются повышенные права.</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">Авто</string>
     <string name="network_mode_5g">5G</string>
-    <string name="network_mode_current">Текущее поколение</string>
-    <string name="network_mode_current_hint">Прямое чтение фактического поколения сети (настоящее определение 5G)</string>
-    <string name="network_mode_fire_when">Сработать при</string>
-    <string name="network_mode_unknown">Неизвестно</string>
-    <string name="network_mode_permission_hint">Разрешение телефона улучшает определение поколения и 5G в реальном времени</string>
     <string name="charging_any">Любое</string>
     <string name="network_mode_4g">4G</string>
-    <string name="choose_ringtone">Выбрать рингтон</string>
     <string name="action_network_mode_sub">Выберите режим из действительно доступных для выбранной SIM. Для применения изменения требуются повышенные права.</string>
     <string name="action_set_ringtone_sub">Выбрать рингтон звонков по умолчанию</string>
     <string name="network_mode_3g">3G</string>
@@ -614,8 +584,6 @@
     <string name="setting_namespace">Пространство имен</string>
     <string name="setting_key">Ключ параметра</string>
     <string name="setting_value">Значение</string>
-    <string name="screenshot_filename">Имя файла (необязательно)</string>
-    <string name="screenshot_hint">Сохраняется в Pictures/NexaFlow</string>
     <string name="input_text_label">Текст для ввода</string>
     <string name="key_event_label">Клавиша (имя или код)</string>
     <string name="key_event_hint">напр. POWER, HOME, VOLUME_UP или номер KEYCODE</string>
@@ -626,12 +594,6 @@
     <string name="swipe_to_x">Конечная X</string>
     <string name="swipe_to_y">Конечная Y</string>
     <string name="swipe_duration">Длительность (мс)</string>
-    <string name="color_inversion">Инвертировать цвета</string>
-    <string name="grayscale">Оттенки серого</string>
-    <string name="extra_dim">Экстра тускло</string>
-    <string name="night_light">Ночной свет</string>
-    <string name="haptic_feedback">Виброотклик</string>
-    <string name="sound_effects">Звуки при касании</string>
     <string name="action_location_mode">Режим местоположения</string>
     <string name="action_location_mode_sub">Режим местоположения</string>
     <string name="action_data_saver">Экономия трафика</string>
@@ -702,27 +664,13 @@
     <string name="action_open_play_store_app_sub">Открыть Play Маркет</string>
     <string name="action_reboot">Перезагрузить устройство</string>
     <string name="action_reboot_sub">Перезагрузить устройство</string>
+    <string name="reboot_mode">Цель перезагрузки</string>
     <string name="action_shutdown">Выключить устройство</string>
     <string name="action_shutdown_sub">Выключить устройство</string>
     <string name="action_restart_system_ui">Перезапустить системный интерфейс</string>
     <string name="action_restart_system_ui_sub">Перезапустить системный интерфейс</string>
-    <string name="location_mode">Режим местоположения</string>
-    <string name="data_saver">Экономия трафика</string>
     <string name="font_scale">Размер шрифта</string>
     <string name="display_density">Плотность экрана</string>
-    <string name="screensaver">Хранитель экрана</string>
-    <string name="battery_saver_threshold_label">Начинается при %1$d%%</string>
-    <string name="always_on_display">Дисплей всегда включён</string>
-    <string name="show_taps">Показывать касания</string>
-    <string name="pointer_location">Расположение указателя</string>
-    <string name="adaptive_battery">Адаптивная батарея</string>
-    <string name="wifi_sleep_policy">Политика сна Wi-Fi</string>
-    <string name="bluetooth_discoverable_timeout">Обнаружим в течение (секунд)</string>
-    <string name="auto_time">Автоматические дата и время</string>
-    <string name="auto_timezone">Автоматический часовой пояс</string>
-    <string name="haptic_intensity_label">Интенсивность тактильных %1$d</string>
-    <string name="camera_shutter_sound">Звук затвора камеры</string>
-    <string name="wifi_scanning">Постоянное сканирование Wi-Fi</string>
     <string name="device_locked">Заблокировано</string>
     <string name="device_unlocked">Разблокировано</string>
     <string name="location_mode_off">Выкл</string>
@@ -742,15 +690,9 @@
     <string name="wifi_sleep_never">Никогда</string>
     <string name="storage_below">Ниже</string>
     <string name="storage_above">Выше</string>
-    <string name="trigger_power_saver_state">Состояние</string>
-    <string name="trigger_bluetooth_state_hint">Выберите состояние, запускающее задачу</string>
     <string name="trigger_brightness_direction">Направление</string>
     <string name="trigger_brightness_threshold">Яркость Порог</string>
     <string name="trigger_data_saver_state">Состояние</string>
-    <string name="trigger_device_locked_state">Состояние</string>
-    <string name="trigger_location_mode">Режим местоположения</string>
-    <string name="trigger_nfc_state_hint">Выберите состояние, запускающее задачу</string>
-    <string name="trigger_rotation_state">Состояние</string>
     <string name="trigger_storage_direction">Направление</string>
     <string name="trigger_storage_threshold">Порог (MB)</string>
     <string name="trigger_type_auto_rotate">Автоповорот</string>
@@ -764,8 +706,6 @@
     <string name="trigger_type_screen_rotation_state">Поворот экрана</string>
     <string name="trigger_type_storage_low">Хранилище</string>
     <string name="trigger_type_wifi_state">Wi-Fi</string>
-    <string name="trigger_wifi_state_hint">Выберите состояние, запускающее задачу</string>
-    <string name="trigger_auto_rotate_state">Состояние</string>
     <string name="action_alert">Показать предупреждение</string>
     <string name="action_alert_sub">Показать диалог предупреждения</string>
     <string name="action_bluetooth_scan">Сканирование Bluetooth</string>
@@ -846,13 +786,9 @@
     <string name="action_wifi_forget_sub">Удалить сохранённую сеть</string>
     <string name="action_wifi_scan_now">Сканировать Wi-Fi</string>
     <string name="action_wifi_scan_now_sub">Запустить сканирование Wi-Fi</string>
-    <string name="email_body">Сообщение</string>
-    <string name="email_subject">Тема</string>
-    <string name="email_to">Кому</string>
     <string name="install_apk_path">Путь к APK</string>
     <string name="latitude">Широта</string>
     <string name="longitude">Долгота</string>
-    <string name="notification_tone_label">Звук уведомлений</string>
     <string name="pointer_speed_label">Скорость указателя (-7 до 7)</string>
     <string name="screensaver_timeout_label">Тайм-аут заставки (минуты)</string>
     <string name="settings_airplane">Режим полёта</string>
@@ -870,17 +806,11 @@
     <string name="settings_privacy">Конфиденциальность</string>
     <string name="settings_usage_access">Доступ к использованию</string>
     <string name="settings_vpn">VPN</string>
-    <string name="timezone_label">Часовой пояс (напр. GMT)</string>
-    <string name="toast_text">Текст уведомления</string>
-    <string name="trigger_desc_alarm_set">Срабатывает при установке или изменении будильника</string>
-    <string name="trigger_desc_boot">Срабатывает после завершения загрузки устройства</string>
     <string name="trigger_desc_clipboard">Срабатывает при изменении буфера обмена</string>
     <string name="trigger_desc_nfc_tag">Срабатывает при считывании NFC-метки</string>
     <string name="trigger_desc_screen_timeout">Срабатывает при изменении тайм-аута экрана</string>
-    <string name="trigger_desc_timezone">Срабатывает при изменении часового пояса</string>
     <string name="trigger_events_on_change">Срабатывает при изменении</string>
     <string name="trigger_signal_threshold">Порог сигнала</string>
-    <string name="trigger_state_label">Состояние</string>
     <string name="trigger_temperature_threshold">Порог температуры (°C)</string>
     <string name="trigger_type_alarm_set_changed">Будильник установлен</string>
     <string name="trigger_type_auto_brightness_state">Автояркость</string>
@@ -899,7 +829,6 @@
     <string name="trigger_type_usb_connected">USB подключён</string>
     <string name="trigger_type_vpn_connected">VPN подключён</string>
     <string name="trigger_type_wifi_signal_strength">Уровень сигнала Wi-Fi</string>
-    <string name="vibrate_pattern_label">Паттерн вибрации</string>
     <string name="wifi_password">Пароль</string>
     <string name="wifi_ssid">Имя сети Wi-Fi (SSID)</string>
     <string name="collapse_options">Свернуть параметры</string>
@@ -999,20 +928,13 @@
     <string name="action_private_dns_sub">Настроить режим или провайдера частного DNS Android</string>
     <string name="action_charging_limit">Предел зарядки</string>
     <string name="action_charging_limit_sub">Установить поддерживаемый процент остановки зарядки</string>
-    <string name="private_dns_mode">Режим частного DNS</string>
     <string name="private_dns_off">Отключено</string>
     <string name="private_dns_automatic">Автоматически</string>
-    <string name="private_dns_hostname_mode">Имя хоста провайдера</string>
-    <string name="private_dns_hostname">Имя хоста провайдера</string>
-    <string name="private_dns_elevated_note">Требуется root или Shizuku. Это меняет частный DNS для устройства, а не только для одного приложения.</string>
-    <string name="charging_limit_value">Предел зарядки: %1$d%%</string>
-    <string name="charging_limit_root_note">Требуются root и стандартный аппаратный узел управления зарядкой; неподдерживаемые устройства вернут явную ошибку.</string>
 
     <string name="action_charging_feedback">Звук и вибрация зарядки</string>
     <string name="action_charging_feedback_sub">Управляйте откликом зарядки, если ROM его поддерживает</string>
     <string name="charging_sound">Звук зарядки</string>
     <string name="charging_vibration">Вибрация при зарядке</string>
-    <string name="charging_feedback_elevated_note">Требуется root или Shizuku с проверкой настроек после записи. Неподдерживаемые ROM сообщают об ошибке.</string>
     <string name="network_mode_phone_permission_hint">Разрешите доступ к состоянию телефона, чтобы читать активные SIM-карты и режимы сети, действительно поддерживаемые устройством. Для изменения режима сети также нужны root, Shizuku или доступ системного приложения.</string>
 
 
@@ -1042,22 +964,14 @@
     <string name="action_rom_setting_theme">Тема и Monet</string>
     <string name="action_rom_setting_theme_sub">Акцент, Monet, значки, шрифты</string>
     <string name="any_bluetooth_device">Любое Bluetooth-устройство</string>
-    <string name="any_bluetooth_device_hint">Запускается при подключении или отключении любого Bluetooth-устройства.</string>
     <string name="any_device">Любое устройство</string>
-    <string name="sms_match_contains">Содержит</string>
     <string name="sms_match_exact">Точное совпадение</string>
-    <string name="sms_match_any">Любой текст</string>
     <string name="trigger_type_incoming_call">Входящий звонок</string>
     <string name="trigger_type_incoming_call_sub">Проверяет звонки до того, как телефон зазвонит</string>
-    <string name="call_from_hint">Номер или его часть (необязательно)</string>
-    <string name="call_category_any">Любой звонящий</string>
     <string name="call_category_unknown">Неизвестные номера</string>
     <string name="call_category_private">Скрытые номера</string>
     <string name="call_category_contact">Контакты</string>
     <string name="call_screening_hint">Предоставьте роль «Определитель номера и защита от спама» в настройках системы, чтобы блокировать до звонка</string>
-    <string name="call_contacts_permission_hint">Доступ к контактам нужен только для распознавания сохранённых абонентов. Без него вызовы считаются неизвестными.</string>
-    <string name="call_block_hint">Отклоняет текущий входящий звонок; нужна роль проверки или это разрешение</string>
-    <string name="call_silence_hint">Заглушает звонок, не отклоняя вызов</string>
     <string name="action_call_block">Заблокировать звонок</string>
     <string name="action_call_block_sub">Отклонить текущий входящий звонок</string>
     <string name="action_call_silence">Заглушить звонок</string>
@@ -1073,9 +987,6 @@
     <string name="trigger_type_wifi_connected_sub">Срабатывает при подключении устройства к Wi-Fi (или отключении)</string>
     <string name="trigger_type_mobile_data">Мобильные данные подключены</string>
     <string name="trigger_type_mobile_data_sub">Срабатывает, когда мобильные данные — активная сеть (или нет)</string>
-    <string name="call_match_any">Любой номер</string>
-    <string name="call_mode_hint">Совпадает с номером звонящего, а не с текстом сообщения.</string>
-    <string name="call_number_filter">Номер звонящего</string>
     <string name="key_event_custom">Своя клавиша (имя или код)</string>
     <string name="battery_temp_hint">Градусы Цельсия, напр. 40</string>
     <string name="map_picker_title">Выбрать место</string>
@@ -1223,8 +1134,6 @@
     <string name="search_by_name">Поиск по названию</string>
     <string name="search_by_package">Поиск по пакету</string>
     <string name="recently_used_apps">Недавно использованные в задачах</string>
-    <string name="bt_pick_ok">Использовать это устройство</string>
-    <string name="calendar_pick_ok">Использовать этот календарь</string>
     <string name="diagnostics_title">Проблемы конфигурации</string>
     <string name="diagnostics_empty">Проблем конфигурации не найдено</string>
     <string name="diagnostics_intro">Задачи, чьи действия завершились ошибкой из-за недопустимых значений конфигурации</string>
@@ -1242,9 +1151,6 @@
     <string name="http_retry_cap_ms">Потолок: %1$d мс</string>
     <string name="pointer_speed_range">Скорость указателя от -7 (самая медленная) до 7 (самая быстрая); 0 — системное значение по умолчанию.</string>
     <string name="screensaver_minutes_chip">%1$d мин</string>
-    <string name="density_range_hint">Плотность экрана: от 120 до 1000 dpi (движок отклоняет значения вне диапазона)</string>
-    <string name="bt_discoverable_range_hint">0 (никогда) до 3600 секунд; движок ограничивает значения этим диапазоном</string>
-    <string name="screensaver_range_hint">От 1 до 1440 минут (24 часа); движок ограничивает значения этим диапазоном</string>
     <string name="http_allow_private">Разрешить локальные/частные адреса</string>
     <string name="http_private_warning">Только HTTPS. Включайте только для доверенных сервисов. Android 17 требует разрешения локальной сети.</string>
     <string name="action_data_text">Преобразование текста</string>
@@ -1312,18 +1218,11 @@
     <string name="action_call_reply_sms">Ответить звонящему по SMS</string>
     <string name="action_call_reply_sms_sub">Отправить сообщение абоненту, запустившему сценарий</string>
     <string name="action_sms_block">Блокировать входящие SMS</string>
-    <string name="action_sms_block_hint">Сообщение не доставляется, только если NexaFlow назначен SMS-приложением по умолчанию. Иначе действие сообщит, что требуется эта роль.</string>
     <string name="action_sms_block_sub">Не доставлять подходящие SMS (требуется роль SMS-приложения по умолчанию)</string>
     <string name="action_sms_reply">Ответить на входящее SMS</string>
     <string name="action_sms_reply_sub">Отправить сообщение отправителю, запустившему сценарий</string>
-    <string name="call_block_silent_hint">Блокирует подходящий вызов и скрывает уведомление, если это поддерживается Android.</string>
-    <string name="reply_message">Текст ответа</string>
 
     <string name="task_restore_failed">Не удалось восстановить прежние настройки задачи</string>
-    <string name="bluetooth_advanced">Расширенные настройки</string>
-    <string name="bluetooth_advanced_hide">Скрыть расширенные настройки</string>
-    <string name="bluetooth_device_name">Имя устройства</string>
-    <string name="bluetooth_device_address">MAC-адрес</string>
     <string name="trigger_temporal_filters_title">Временные фильтры</string>
 
     <string name="trigger_expression_title">Расширенное выражение триггеров</string>
@@ -1348,5 +1247,4 @@
     <string name="network_metered">Сеть с тарификацией трафика</string>
     <string name="network_ssid">Имя Wi-Fi (SSID)</string>
     <string name="network_bssid">Точка доступа (BSSID)</string>
-    <string name="network_identity_permission_hint">Android может запросить разрешение на геолокацию для чтения имени подключённой сети Wi-Fi и точки доступа. NexaFlow использует эти данные только для сопоставления с этим триггером.</string>
 </resources>
