@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">Agenteneinstellungen</string>
+    <string name="ai_chat_error_auth">Der API-Schlüssel wurde abgelehnt. Prüfe den Anbieterschlüssel in den Einstellungen.</string>
+    <string name="ai_chat_error_rate_limited">Der Anbieter begrenzt Anfragen oder das Kontingent ist erschöpft. Versuche es später erneut.</string>
+    <string name="ai_chat_error_network">Der Modellanbieter ist nicht erreichbar. Prüfe Netzwerk und Endpunkt.</string>
+    <string name="ai_chat_error_model">Das gewählte Modell oder der Endpunkt wurde nicht gefunden. Prüfe die Anbietereinstellungen.</string>
 </resources>

@@ -396,6 +396,9 @@
     <string name="managed_agent_run_cost_unknown">Kosten sind nicht überprüfbar; Lauf mit Kostenlimit blockiert.</string>
     <string name="managed_agent_run_deadline">Zeitlimit überschritten.</string>
     <string name="managed_agent_run_approval_invalid">Genehmigung abgelaufen oder Agent-/Geräterichtlinie geändert.</string>
+    <string name="managed_agent_run_details_title">Laufdetails</string>
+    <string name="managed_agent_run_details_empty">Für diesen Lauf sind keine Ereignisse aufgezeichnet.</string>
+    <string name="managed_agent_run_details_close">Schließen</string>
     <string name="managed_agent_cost_unknown_hint">Kosten fehlen; Läufe mit Kostenlimit werden blockiert.</string>
     <string name="managed_agent_memory_export">Private Notizen exportieren</string>
     <string name="managed_agent_memory_export_title">Agentenspeicher exportieren?</string>
@@ -442,4 +445,7 @@
     <string name="agent_automation_approval_review_title">Aufgabe mit Risiko %1$s prüfen</string>
     <string name="agent_automation_approval_summary_unavailable">Aufgabendetails sind nicht verfügbar. Genehmigen Sie diese Anfrage nicht.</string>
     <string name="agent_automation_approval_reject">Ablehnen</string>
+    <string name="ai_provider_test_model_missing">Das gewählte Modell wurde nicht gefunden. Wähle ein verfügbares Modell.</string>
+    <string name="ai_provider_test_timeout">Der Anbieter hat nicht rechtzeitig geantwortet. Versuche es erneut.</string>
+    <string name="ai_provider_test_network">Der Anbieter ist nicht erreichbar. Prüfe Netzwerk, Endpunkt und TLS-Einstellungen.</string>
 </resources>

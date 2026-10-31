@@ -626,7 +626,12 @@ fun AgentSettingsScreen(
                             }
                         )
                         AiProviderProbeState.FAILED -> Text(
-                            stringResource(providerProbeFailureMessageRes(state.providerProbeStatusCode))
+                            stringResource(
+                                providerProbeFailureMessageRes(
+                                    state.providerProbeStatusCode,
+                                    state.providerProbeFailure
+                                )
+                            )
                         )
                         AiProviderProbeState.IDLE -> Unit
                     }

@@ -115,7 +115,7 @@ class AgentRunRepository private constructor(
 
     suspend fun markRunning(runId: String): Boolean {
         val run = dao.findById(runId)?.toRun() ?: return false
-        if (run.status != AgentRunStatus.QUEUED) return false
+        if (!run.status.canTransitionTo(AgentRunStatus.RUNNING)) return false
         val now = nowMillis()
         return dao.transitionAndAppendEvent(
             runId, run.status.name, AgentRunStatus.RUNNING.name, run.revision,
@@ -127,6 +127,9 @@ class AgentRunRepository private constructor(
         require(status.isTerminal)
         require(SAFE_CODE.matches(safeOutcomeCode))
         val run = dao.findById(runId)?.toRun() ?: return false
+        // Reject illegal edges (for example QUEUED -> COMPLETED) before touching
+        // the row; the database additionally guarantees terminal-once writes.
+        if (!run.status.canTransitionTo(status)) return false
         val now = nowMillis()
         return dao.finishExactlyOnce(
             run = run.toEntity(),

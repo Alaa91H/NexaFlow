@@ -1,5 +1,6 @@
 package com.nexaflow.app.ai
 
+import com.nexaflow.core.airuntime.AiRetryAfter
 import com.nexaflow.core.airuntime.AnthropicEndpointPolicy
 import com.nexaflow.core.airuntime.AnthropicMessagesProviderConfig
 import com.nexaflow.core.airuntime.AnthropicMessagesTransport
@@ -74,8 +75,13 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
                 connection.outputStream.use { it.write(payload) }
             }
             val status = connection.responseCode
+            val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
             if (status in 300..399) {
-                return AnthropicMessagesTransportResponse(status, "{\"error\":\"redirect_rejected\"}")
+                return AnthropicMessagesTransportResponse(
+                    status,
+                    "{\"error\":{\"code\":\"redirect_rejected\"}}",
+                    retryAfterMs
+                )
             }
             val stream = if (status in 200..299) connection.inputStream
                 else connection.errorStream ?: connection.inputStream
@@ -95,7 +101,11 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
                 }
                 output.toByteArray()
             }
-            return AnthropicMessagesTransportResponse(status, bytes.toString(Charsets.UTF_8))
+            return AnthropicMessagesTransportResponse(
+                status,
+                bytes.toString(Charsets.UTF_8),
+                retryAfterMs
+            )
         } finally {
             connection.disconnect()
         }

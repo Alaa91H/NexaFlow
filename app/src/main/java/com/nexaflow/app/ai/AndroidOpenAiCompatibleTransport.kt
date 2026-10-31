@@ -1,5 +1,6 @@
 package com.nexaflow.app.ai
 
+import com.nexaflow.core.airuntime.AiRetryAfter
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiCompatibleTransport
 import com.nexaflow.core.airuntime.OpenAiCompatibleTransportResponse
@@ -109,10 +110,12 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             }
 
             val status = connection.responseCode
+            val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
             if (status in 300..399) {
                 return OpenAiCompatibleTransportResponse(
                     statusCode = status,
-                    body = """{"error":"redirect_rejected"}"""
+                    body = """{"error":{"code":"redirect_rejected"}}""",
+                    retryAfterMs = retryAfterMs
                 )
             }
             val stream = if (status in 200..299) {
@@ -130,7 +133,8 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
                 statusCode = status,
                 body = stream.use {
                     readBounded(it, MAX_RESPONSE_BYTES)
-                }.toString(Charsets.UTF_8)
+                }.toString(Charsets.UTF_8),
+                retryAfterMs = retryAfterMs
             )
         } finally {
             connection.disconnect()
@@ -195,10 +199,12 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             connection.outputStream.use { it.write(payload) }
 
             val status = connection.responseCode
+            val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
             if (status in 300..399) {
                 return OpenAiCompatibleTransportResponse(
                     statusCode = status,
-                    body = """{"error":"redirect_rejected"}"""
+                    body = """{"error":{"code":"redirect_rejected"}}""",
+                    retryAfterMs = retryAfterMs
                 )
             }
             val stream = if (status in 200..299) {
@@ -213,7 +219,8 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             val bytes = stream.use { readBounded(it, MAX_RESPONSE_BYTES) }
             return OpenAiCompatibleTransportResponse(
                 statusCode = status,
-                body = bytes.toString(Charsets.UTF_8)
+                body = bytes.toString(Charsets.UTF_8),
+                retryAfterMs = retryAfterMs
             )
         } finally {
             connection.disconnect()
@@ -282,10 +289,12 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             headers[name] = value
         }
 
+        val retryAfterMs = AiRetryAfter.parse(headers["retry-after"])
         if (status in 300..399) {
             return OpenAiCompatibleTransportResponse(
                 statusCode = status,
-                body = """{"error":"redirect_rejected"}"""
+                body = """{"error":{"code":"redirect_rejected"}}""",
+                retryAfterMs = retryAfterMs
             )
         }
 
@@ -307,7 +316,8 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
 
         return OpenAiCompatibleTransportResponse(
             statusCode = status,
-            body = bytes.toString(Charsets.UTF_8)
+            body = bytes.toString(Charsets.UTF_8),
+            retryAfterMs = retryAfterMs
         )
     }
 

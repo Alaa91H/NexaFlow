@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">Configurações do agente</string>
+    <string name="ai_chat_error_auth">A chave de API foi recusada. Verifique a chave do provedor nas configurações.</string>
+    <string name="ai_chat_error_rate_limited">O provedor está limitando solicitações ou a cota acabou. Tente novamente mais tarde.</string>
+    <string name="ai_chat_error_network">Não foi possível alcançar o provedor do modelo. Verifique a rede e o endpoint.</string>
+    <string name="ai_chat_error_model">O modelo ou endpoint selecionado não foi encontrado. Verifique as configurações do provedor.</string>
 </resources>

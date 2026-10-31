@@ -1,5 +1,94 @@
 # Validation record
 
+## Explicit run lifecycle, budget terminality and run details (P1/P2, Unreleased) — 2026-10-31 (local, no device)
+
+This change makes the existing `AgentRun` lifecycle explicit and testable rather
+than implicit in repository code. No new runtime, engine, run store or policy
+system was added.
+
+| Command | Result |
+|---|---|
+| `./gradlew :core:agent-runtime:testDebugUnitTest :data:testDebugUnitTest` | PASS — includes the new `AgentRunStateMachineTest` and the illegal-edge repository test |
+| `./gradlew :app:testDebugUnitTest --tests "com.nexaflow.app.agent.*"` | PASS — includes new output-overrun and cancellation coordinator tests |
+| `./gradlew :feature:settings:testDebugUnitTest` | PASS — 60 tests after the run-details screen/ViewModel change |
+| `./gradlew detekt` | PASS |
+| `python3 scripts/check_hardcoded_text.py` | PASS — 719 sources clean |
+| `python3 scripts/check_strings_parity.py` | PASS — `PARITY_PROBLEMS: 0` |
+| `python3 scripts/audit_translation_completeness.py` | PASS — `TRANSLATION_PROBLEMS: 0` |
+
+Covered by tests: every allowed and rejected lifecycle edge, frozen terminal
+states, repository rejection of `QUEUED -> COMPLETED` (with no event written),
+`QUEUED -> FAILED` acceptance, terminal-once behaviour, output-budget overrun
+ending `FAILED/output_limit` instead of `COMPLETED`, and collector cancellation
+persisting `CANCELLED/cancelled`.
+
+**NOT TESTED:** a live provider run, a physical-device run, and any MCP/A2A path
+(unchanged in this change).
+
+## Provider failure diagnostics and Gemini wire correctness (P0, Unreleased) — 2026-10-31 (local, no device)
+
+This change implements P0 of the AI agent audit: provider errors are typed and
+explained, Gemini answers parallel tool calls correctly, model discovery is
+paginated, and blocked/empty Gemini responses fail instead of completing.
+
+| Command | Result |
+|---|---|
+| `./gradlew :core:ai-runtime:testDebugUnitTest --rerun-tasks` | PASS — 97 tests, 0 failures (includes 2 new integration tests that drive the real engine through the Gemini adapter) |
+| `./gradlew :feature:ai:testDebugUnitTest :feature:settings:testDebugUnitTest` | PASS — 4 and 60 tests, 0 failures |
+| `./gradlew :app:testDebugUnitTest` | PASS |
+| `./gradlew detekt` | PASS |
+| `./gradlew :feature:ai:lintDebug :feature:settings:lintDebug` | PASS — 7m51s, no missing-translation or resource errors |
+| `python3 scripts/check_strings_parity.py` | PASS — `PARITY_PROBLEMS: 0` after adding 7 strings in 10 locales across two modules |
+| `python3 scripts/audit_translation_completeness.py` | PASS — `TRANSLATION_PROBLEMS: 0` |
+| `python3 scripts/check_hardcoded_text.py` | PASS — 719 sources clean |
+
+Covered by tests: OpenAI/Gemini/Anthropic error envelopes, invalid-key-in-400
+classification, model-not-found-in-404 classification, quota vs rate limit,
+`Retry-After` seconds and HTTP-date parsing, secret redaction in provider
+messages, Gemini parallel function-response batching, `toolConfig`, paginated
+discovery, blocked prompt and blocked finish reason, engine failure reasons, and
+the chat surface exposing the reason.
+
+**NOT TESTED:** a live Gemini/OpenAI/Anthropic request with a real key (no key was
+provided, and none was written to the repository), a physical-device run, and the
+real multi-page catalogue beyond the fake transport (the fake returns two pages).
+
+## Live Gemini key check (opt-in harness, real network) — 2026-10-31
+
+`core/ai-runtime` now carries `GeminiLiveProviderTest`, which talks to the real
+`generativelanguage.googleapis.com` over a JVM `HttpURLConnection` transport and
+is skipped unless `GEMINI_API_KEY` (environment) or `-Dgemini.apiKey` is set.
+
+| Command | Result |
+|---|---|
+| `GEMINI_API_KEY=… GEMINI_MODEL=gemini-3.6-flash ./gradlew --no-daemon :core:ai-runtime:testDebugUnitTest --tests '*GeminiLiveProviderTest' --rerun-tasks` | PASS — 3 tests, 0 failures, 24.9 s |
+| `./gradlew :core:ai-runtime:testDebugUnitTest --tests '*GeminiLiveProviderTest'` (no key) | PASS — 3 skipped, so CI is unaffected |
+| Same suite with an earlier key whose project has no free tier | 3 failures — HTTP 403 `PERMISSION_DENIED`, “free tier is not available for this project… set up billing” |
+
+Observed against the live API with `gemini-3.6-flash`:
+
+- Model discovery: HTTP 200, 60 models, pagination intact.
+- `verifyConnection()`: success, HTTP 200, 12.5 s on the first call (2–3 s warm),
+  and `listModels()` agreeing with the configured model.
+- Text generation: the answer `NEXAFLOW_LIVE_OK` arrived as **one** `TextDelta`
+  (16 chars) followed by `Finished(STOP)` in 2.1 s. This confirms live that the
+  Gemini native path is single-shot (`streaming = false`): it is not token streamed
+  like the OpenAI/Anthropic adapters, so the chat surface shows the answer at once.
+- Tool calling: with two declared tools the model called both in the same turn,
+  both results were executed, the run completed, and only **2** HTTP requests were
+  needed (tool turn + answer turn). The assertion that both `functionResponse`
+  parts share one `contents` entry passed, so the parallel-call fix and the
+  echoed `thoughtSignature` parts work on the wire, not just against fakes.
+- Operational note: at the time of the run `gemini-3.8-flash` answered 503
+  `UNAVAILABLE` ("experiencing high demand") or queued past 60 s, while
+  `gemini-3.6-flash` served every call; `gemini-2.5-*` is retired for new users
+  (HTTP 404). The harness probes candidate models and keeps long read timeouts
+  for this reason.
+
+**NOT TESTED:** a physical-device run, and live OpenAI/Anthropic requests. The
+Gemini key, TLS, endpoint policy, generation, tool loop and parallel tool batching
+are now certified against the real service.
+
 ## Release surface, Telegram announcements and About rows (Unreleased) — 2026-10-31 (local, no device)
 
 This change limits every GitHub release to the two signed APKs, adds the

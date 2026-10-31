@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">エージェント設定</string>
+    <string name="ai_chat_error_auth">APIキーが拒否されました。設定でプロバイダーのキーを確認してください。</string>
+    <string name="ai_chat_error_rate_limited">プロバイダーのレート制限またはクォータに達しました。後で再試行してください。</string>
+    <string name="ai_chat_error_network">モデルプロバイダーに接続できませんでした。ネットワークとエンドポイントを確認してください。</string>
+    <string name="ai_chat_error_model">選択したモデルまたはエンドポイントが見つかりません。プロバイダー設定を確認してください。</string>
 </resources>

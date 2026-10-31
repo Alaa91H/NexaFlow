@@ -84,5 +84,16 @@ sealed interface AiConversationEvent {
         val messages: List<AiConversationMessage>
     ) : AiConversationEvent
     data class Unavailable(val reason: String) : AiConversationEvent
-    data class Failed(val code: String) : AiConversationEvent
+
+    /**
+     * Terminal failure. [code] stays a stable, payload-free machine code; the
+     * optional typed [reason] lets the UI explain what actually happened
+     * (bad key, rate limit, missing model) instead of a generic message.
+     */
+    data class Failed(
+        val code: String,
+        val reason: AiConnectionFailure? = null,
+        val httpStatus: Int? = null,
+        val retryAfterMs: Long? = null
+    ) : AiConversationEvent
 }

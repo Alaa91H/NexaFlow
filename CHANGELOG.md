@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [v3.91.17] - 2026-10-31
 
 ### Added
 
 - **Release announcements on Telegram.** Publishing a GitHub release now posts to the announcement channel (`@NexaFlowApp`) and to the community releases topic (`t.me/NexaFlowCommunity/4`) through `@NexaFlowBuildBot`. The message body is the published release body verbatim, and both the phone and the Wear OS APK are attached. The new `release-announce` workflow runs on `release: published` (or manually with a tag and a dry-run switch), so a Telegram outage can never fail a build whose binaries already shipped. Transport is the Bot API only: token and chat targets live in repository secrets, with no userbot session or hosted platform.
 - Screenshots in the project README, taken from the running app (task list, trigger picker, action picker, settings and Quick Settings), in a responsive gallery.
+- **Run details on the agent run screen.** Tapping a run in the history opens its persisted event timeline (type, allowlisted safe code, sequence), read through the repository that owns run state.
 
 ### Changed
 
@@ -15,12 +16,21 @@
 
 ### Fixed
 
+- **Gemini tool turns with more than one call.** Every tool result is now returned in the same `contents` entry, because Gemini rejects a turn whose `functionResponse` parts do not match its `functionCall` parts. Previously a model that asked for two tools received HTTP 400.
+- **Provider failures now say what happened.** Error bodies are parsed for every provider, `Retry-After` is honored in the transports, and an invalid key reported as HTTP 400 (Gemini's behaviour), a missing model reported as 400/404, and a quota exhaustion are classified correctly instead of collapsing into a generic failure. The chat surface and the provider setup row explain the cause in all ten locales.
+- **Blocked or empty Gemini responses no longer look successful.** `promptFeedback.blockReason`, an empty candidate list and a content-free SAFETY/RECITATION finish reason fail the turn; previously they produced an empty answer marked as completed.
+- **Gemini model discovery follows pagination.** The API returns 50 models per page by default, so a valid model outside the first page could be reported as missing during connection verification.
 - The ROM "write any system setting" action was still English in nine locales (`action_rom_setting_set_setting_sub`, in both the builder and the task list). It is now translated in German, Spanish, French, Hindi, Japanese, Portuguese, Russian, Turkish and Simplified Chinese.
+- **A run can no longer be reported as completed after a budget rejection.** When the output reservation is refused, the run ends `FAILED` with `output_limit` instead of being marked `COMPLETED` while part of the answer was discarded.
+- **Illegal run transitions are rejected explicitly.** `AgentRunStatus` now declares every allowed edge; `QUEUED -> COMPLETED`, or reviving a terminal run, returns `false` before any row or event is written instead of relying only on the database.
 
 ### Tests and verification
 
+- **Opt-in live Gemini checks.** `GeminiLiveProviderTest` drives the real `generativelanguage.googleapis.com` through the production adapter and is skipped unless `GEMINI_API_KEY` is set. Against a working key it confirmed model discovery (60 models), connection verification (HTTP 200), a completed generation turn, and a two-tool turn in which both `functionResponse` parts shared one `contents` entry — the parallel-call fix, the echoed `thoughtSignature` parts and the two-request tool loop now have live evidence, not only fake-transport coverage.
+- New coverage: `AiProviderHttpFailureTest` (error envelopes, invalid-key-in-400, model-not-found-in-404, quota versus rate limit, `Retry-After` parsing, secret redaction), `GeminiToolLoopIntegrationTest` (parallel batching through the real engine, blocked prompts) and `AgentRunStateMachineTest` (every accepted edge, rejected `QUEUED -> COMPLETED`, terminal-once behaviour).
 - `scripts/audit_translation_completeness.py` gained a sixth layer: an English phrase inside a non-Latin locale (no character of that locale's script, two or more Latin words) is now a failure. The previous layers only caught values copied verbatim from the default, which is how the reworded English above survived. The self-test covers the new class.
 - `scripts/publish_telegram_release.py` ships with 15 unit tests: markdown rendering and HTML escaping, chunking under the message limit, oversized-line wrapping, intro content, target parsing (missing channel, numeric topic) and the publish order (intro → changelog → documents, per target).
+- Local gates before the tag: `:core:ai-runtime:testDebugUnitTest` (100 tests, 0 failures, 3 live tests skipped without a key), `detekt`, string parity, translation completeness, hardcoded text, AI secret boundary and provider registry all pass.
 
 ## [v3.91.16] - 2026-10-30
 

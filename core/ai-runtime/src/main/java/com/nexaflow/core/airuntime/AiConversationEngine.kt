@@ -124,14 +124,25 @@ class AiConversationEngine(
                 return@flow
             } catch (failure: Exception) {
                 val requestFailure = failure as? AiProviderRequestException
+                val reason = requestFailure?.failure
+                    ?: AiProviderFailureClassifier.fromThrowable(failure)
                 registry.recordProviderFailure(
                     providerId = provider.descriptor.value.id,
-                    failure = requestFailure?.failure
-                        ?: AiProviderFailureClassifier.fromThrowable(failure),
+                    failure = reason,
                     retryAfterMs = requestFailure?.retryAfterMs
                 )
-                emit(AiConversationEvent.Failed("provider_failure"))
-                traceSink?.onTerminal(AiAgentTraceOutcome.FAILED, "provider_failure")
+                emit(
+                    AiConversationEvent.Failed(
+                        code = "provider_failure",
+                        reason = reason,
+                        httpStatus = requestFailure?.httpStatus,
+                        retryAfterMs = requestFailure?.retryAfterMs
+                    )
+                )
+                traceSink?.onTerminal(
+                    AiAgentTraceOutcome.FAILED,
+                    "provider_failure:" + reason.name.lowercase()
+                )
                 return@flow
             }
 

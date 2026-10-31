@@ -458,6 +458,59 @@ and the agent management surface (phases P2–P7 of
 `AI_AGENTS_ENABLEMENT_PLAN_2026-10-30_AR.md`). Those are not part of this
 foundation and must not be assumed by API consumers.
 
+## Phase 18 - provider failure diagnostics and Gemini wire correctness
+
+Implemented foundation (P0 of the agent enablement plan):
+
+- [x] typed provider failures carry the HTTP status, `Retry-After` and the
+      provider's own error code/message (`AiProviderErrorPayload`,
+      `AiProviderHttpFailure`), redacted and bounded; the provider body decides
+      the classification when the status alone is misleading (Gemini reports an
+      invalid key as HTTP 400, providers report a missing model as 400 or 404)
+- [x] `Retry-After` is parsed from every native transport and from the
+      OpenAI-compatible buffered/streaming transports
+- [x] parallel tool calls are answered in **one** Gemini function-response turn;
+      Gemini rejects a turn whose `functionResponse` count differs from its
+      `functionCall` count
+- [x] Gemini model discovery follows `nextPageToken` (the API returns 50 models
+      per page by default, so a valid model could previously look missing)
+- [x] Gemini requests declare `toolConfig.functionCallingConfig.mode = AUTO`
+- [x] a blocked prompt (`promptFeedback.blockReason`), an empty candidate list or
+      a content-free SAFETY/RECITATION finish reason fails the turn instead of
+      completing with an empty answer and a `COMPLETED` trace
+- [x] chat and provider setup explain the failure (key, quota, network/timeout,
+      model) in all ten locales instead of a generic message
+
+Still open, deliberately not claimed here: native SSE streaming for
+Gemini/Responses/Anthropic, usage/cost extraction, retries with backoff and
+per-run model overrides. Those remain P1/P2 work.
+
+## Phase 19 - explicit run lifecycle and budget terminality (P1/P2)
+
+Implemented on top of the existing runtime (no second engine, no second run
+store):
+
+- [x] `AgentRunStatus.canTransitionTo` is the single source of truth for run
+      edges: `QUEUED -> {RUNNING, FAILED, CANCELLED, INTERRUPTED}`,
+      `RUNNING -> {WAITING_FOR_APPROVAL, terminal}`,
+      `WAITING_FOR_APPROVAL -> {RUNNING, terminal}`, terminal states frozen.
+      `AgentRunRepository.markRunning`/`finish` reject illegal edges before the
+      row is touched; the database still guarantees terminal-once writes.
+- [x] a rejected output-budget reservation can no longer be reported as
+      `COMPLETED`: the coordinator records `output_limit` and the terminal
+      status stays `FAILED`.
+- [x] cancelling the caller's collector marks the run `CANCELLED` with code
+      `cancelled` (non-cancellable write), and process death marks in-flight
+      runs `INTERRUPTED` (`process_restarted`) without replay.
+- [x] the run screen exposes the persisted event timeline of any run in history
+      (type + allowlisted safe code + sequence), fetched through
+      `AgentRunRepository.observeEvents`.
+
+Deliberately not implemented: MCP/A2A protocol work, multi-agent delegation and
+cost extraction. There is no pricing source in the project, so a configured
+`maxCostMicros` still fails closed with `cost_unknown` and is never silently
+ignored.
+
 ## Security invariants
 
 - Full permanent access means no repetitive per-task prompt after pairing.

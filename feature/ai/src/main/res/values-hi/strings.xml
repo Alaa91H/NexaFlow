@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">एजेंट सेटिंग</string>
+    <string name="ai_chat_error_auth">API कुंजी अस्वीकार की गई। सेटिंग्स में प्रदाता कुंजी जाँचें।</string>
+    <string name="ai_chat_error_rate_limited">प्रदाता दर सीमा या कोटा समाप्त हो गया है। बाद में पुनः प्रयास करें।</string>
+    <string name="ai_chat_error_network">मॉडल प्रदाता तक नहीं पहुँच सके। नेटवर्क और एंडपॉइंट जाँचें।</string>
+    <string name="ai_chat_error_model">चुना गया मॉडल या एंडपॉइंट नहीं मिला। प्रदाता सेटिंग्स जाँचें।</string>
 </resources>

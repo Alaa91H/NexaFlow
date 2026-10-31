@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.nexaflow.core.airuntime.AiConnectionFailure
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -184,7 +185,7 @@ fun AiChatScreen(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     ) {
                         Text(
-                            text = errorMessage(code),
+                            text = errorMessage(code, state.errorReason),
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                         TextButton(onClick = viewModel::clearError) {
@@ -308,11 +309,25 @@ private fun ChatComposer(
 private const val MAX_COMPOSER_CHARS = 32_768
 
 @Composable
-private fun errorMessage(code: String): String = when (code) {
+private fun errorMessage(code: String, reason: AiConnectionFailure?): String = when (code) {
     "no_provider" -> stringResource(R.string.ai_chat_no_provider_error)
     "invalid_conversation" -> stringResource(R.string.ai_chat_invalid_request)
     "output_limit" -> stringResource(R.string.ai_chat_output_limit)
     "tool_limit", "tool_iteration_limit" ->
         stringResource(R.string.ai_chat_tool_limit)
-    else -> stringResource(R.string.ai_chat_provider_failure)
+    else -> when (reason) {
+        AiConnectionFailure.AUTHENTICATION,
+        AiConnectionFailure.PERMISSION -> stringResource(R.string.ai_chat_error_auth)
+        AiConnectionFailure.RATE_LIMITED,
+        AiConnectionFailure.QUOTA_EXCEEDED ->
+            stringResource(R.string.ai_chat_error_rate_limited)
+        AiConnectionFailure.MODEL_NOT_FOUND,
+        AiConnectionFailure.ENDPOINT_NOT_FOUND -> stringResource(R.string.ai_chat_error_model)
+        AiConnectionFailure.TIMEOUT,
+        AiConnectionFailure.NETWORK,
+        AiConnectionFailure.DNS,
+        AiConnectionFailure.TLS,
+        AiConnectionFailure.SERVER_ERROR -> stringResource(R.string.ai_chat_error_network)
+        else -> stringResource(R.string.ai_chat_provider_failure)
+    }
 }
