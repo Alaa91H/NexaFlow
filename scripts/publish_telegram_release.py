@@ -373,9 +373,9 @@ def main() -> None:
             raise SystemExit(f"missing or empty release asset: {path}")
         documents.append((path, build_caption(path.name, args.tag)))
 
-    changelog = [f"<b>سجل التغييرات — {escape_html(args.tag)}</b>"] + split_messages(
-        markdown_to_html(notes)
-    )
+    # The intro already announces the changelog, so the notes start directly:
+    # a standalone "changelog" heading would just be another message.
+    changelog = split_messages(markdown_to_html(notes))
     intro = build_intro(
         args.tag, args.repo, args.prerelease, [p.name for p, _ in documents]
     )
