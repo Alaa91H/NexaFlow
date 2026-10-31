@@ -79,6 +79,7 @@ jobs:
       run: >-
         ./gradlew :macrobenchmark:connectedBenchmarkAndroidTest
         -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.suppressErrors=EMULATOR,ACTIVITY-MISSING
+        -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.profiling.mode=none
         --no-parallel --max-workers=2 --console=plain
     - name: Enforce startup budget
       run: |
