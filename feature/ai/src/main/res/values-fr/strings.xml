@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">Paramètres de l’agent</string>
+    <string name="ai_chat_error_auth">La clé API a été refusée. Vérifiez la clé du fournisseur dans les réglages.</string>
+    <string name="ai_chat_error_rate_limited">Le fournisseur limite les requêtes ou le quota est épuisé. Réessayez plus tard.</string>
+    <string name="ai_chat_error_network">Impossible de joindre le fournisseur du modèle. Vérifiez le réseau et le point de terminaison.</string>
+    <string name="ai_chat_error_model">Le modèle ou le point de terminaison sélectionné est introuvable. Vérifiez les réglages du fournisseur.</string>
 </resources>

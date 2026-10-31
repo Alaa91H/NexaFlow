@@ -398,6 +398,9 @@
     <string name="managed_agent_run_cost_unknown">費用を検証できないため、上限付き実行を停止しました。</string>
     <string name="managed_agent_run_deadline">実行時間の上限を超えました。</string>
     <string name="managed_agent_run_approval_invalid">承認期限切れ、またはポリシー変更。</string>
+    <string name="managed_agent_run_details_title">実行の詳細</string>
+    <string name="managed_agent_run_details_empty">この実行に記録されたイベントはありません。</string>
+    <string name="managed_agent_run_details_close">閉じる</string>
     <string name="managed_agent_cost_unknown_hint">費用を検証できません。上限設定時は実行を拒否します。</string>
     <string name="managed_agent_memory_export">プライベートメモをエクスポート</string>
     <string name="managed_agent_memory_export_title">エージェントメモリをエクスポートしますか？</string>

@@ -1,5 +1,6 @@
 package com.nexaflow.app.ai
 
+import com.nexaflow.core.airuntime.AiRetryAfter
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiCompatibleTransport
 import com.nexaflow.core.airuntime.OpenAiCompatibleTransportResponse
@@ -12,7 +13,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
-import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -96,7 +96,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
         endpoint: URI,
         apiKey: String?
     ): OpenAiCompatibleTransportResponse {
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = "GET"
@@ -109,10 +109,12 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             }
 
             val status = connection.responseCode
+            val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
             if (status in 300..399) {
                 return OpenAiCompatibleTransportResponse(
                     statusCode = status,
-                    body = """{"error":"redirect_rejected"}"""
+                    body = """{"error":{"code":"redirect_rejected"}}""",
+                    retryAfterMs = retryAfterMs
                 )
             }
             val stream = if (status in 200..299) {
@@ -130,7 +132,8 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
                 statusCode = status,
                 body = stream.use {
                     readBounded(it, MAX_RESPONSE_BYTES)
-                }.toString(Charsets.UTF_8)
+                }.toString(Charsets.UTF_8),
+                retryAfterMs = retryAfterMs
             )
         } finally {
             connection.disconnect()
@@ -177,7 +180,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
         apiKey: String?,
         gatewayHeaders: Map<String, String>
     ): OpenAiCompatibleTransportResponse {
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = "POST"
@@ -195,10 +198,12 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             connection.outputStream.use { it.write(payload) }
 
             val status = connection.responseCode
+            val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
             if (status in 300..399) {
                 return OpenAiCompatibleTransportResponse(
                     statusCode = status,
-                    body = """{"error":"redirect_rejected"}"""
+                    body = """{"error":{"code":"redirect_rejected"}}""",
+                    retryAfterMs = retryAfterMs
                 )
             }
             val stream = if (status in 200..299) {
@@ -213,7 +218,8 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             val bytes = stream.use { readBounded(it, MAX_RESPONSE_BYTES) }
             return OpenAiCompatibleTransportResponse(
                 statusCode = status,
-                body = bytes.toString(Charsets.UTF_8)
+                body = bytes.toString(Charsets.UTF_8),
+                retryAfterMs = retryAfterMs
             )
         } finally {
             connection.disconnect()
@@ -285,7 +291,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
         if (status in 300..399) {
             return OpenAiCompatibleTransportResponse(
                 statusCode = status,
-                body = """{"error":"redirect_rejected"}"""
+                body = """{"error":{"code":"redirect_rejected"}}"""
             )
         }
 

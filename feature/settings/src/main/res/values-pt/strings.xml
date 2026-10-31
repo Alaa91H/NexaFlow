@@ -398,6 +398,9 @@
     <string name="managed_agent_run_cost_unknown">Custo não verificável; execução com limite bloqueada.</string>
     <string name="managed_agent_run_deadline">Tempo máximo excedido.</string>
     <string name="managed_agent_run_approval_invalid">Aprovação expirou ou a política mudou.</string>
+    <string name="managed_agent_run_details_title">Detalhes da execução</string>
+    <string name="managed_agent_run_details_empty">Nenhum evento registrado para esta execução.</string>
+    <string name="managed_agent_run_details_close">Fechar</string>
     <string name="managed_agent_cost_unknown_hint">Custo não verificável; execuções com limite são bloqueadas.</string>
     <string name="managed_agent_memory_export">Exportar notas privadas</string>
     <string name="managed_agent_memory_export_title">Exportar a memória do agente?</string>

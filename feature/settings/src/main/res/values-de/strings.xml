@@ -396,6 +396,9 @@
     <string name="managed_agent_run_cost_unknown">Kosten sind nicht überprüfbar; Lauf mit Kostenlimit blockiert.</string>
     <string name="managed_agent_run_deadline">Zeitlimit überschritten.</string>
     <string name="managed_agent_run_approval_invalid">Genehmigung abgelaufen oder Agent-/Geräterichtlinie geändert.</string>
+    <string name="managed_agent_run_details_title">Laufdetails</string>
+    <string name="managed_agent_run_details_empty">Für diesen Lauf sind keine Ereignisse aufgezeichnet.</string>
+    <string name="managed_agent_run_details_close">Schließen</string>
     <string name="managed_agent_cost_unknown_hint">Kosten fehlen; Läufe mit Kostenlimit werden blockiert.</string>
     <string name="managed_agent_memory_export">Private Notizen exportieren</string>
     <string name="managed_agent_memory_export_title">Agentenspeicher exportieren?</string>

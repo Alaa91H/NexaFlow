@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Macrobenchmark target: the benchmark variant is non-debuggable, so it must
+     be explicitly profileable for the library to read Perfetto traces. This
+     manifest only merges into the `benchmark` variant. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <profileable
+            android:shell="true"
+            tools:targetApi="29" />
+    </application>
+</manifest>

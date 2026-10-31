@@ -403,6 +403,9 @@
     <string name="managed_agent_run_cost_unknown">لا يقدم الموفر تكلفة قابلة للتحقق؛ أُوقف التشغيل ذو سقف التكلفة.</string>
     <string name="managed_agent_run_deadline">تجاوز التشغيل المهلة المحددة.</string>
     <string name="managed_agent_run_approval_invalid">انتهت الموافقة أو تغيرت سياسة الوكيل/الجهاز.</string>
+    <string name="managed_agent_run_details_title">تفاصيل التشغيل</string>
+    <string name="managed_agent_run_details_empty">لا توجد أحداث مسجلة لهذا التشغيل.</string>
+    <string name="managed_agent_run_details_close">إغلاق</string>
     <string name="managed_agent_cost_unknown_hint">لا تتوفر بيانات موثوقة للتكلفة؛ يُرفض التشغيل عند تحديد سقف.</string>
     <string name="managed_agent_memory_export">تصدير الملاحظات الخاصة</string>
     <string name="managed_agent_memory_export_title">تصدير ذاكرة الوكيل؟</string>

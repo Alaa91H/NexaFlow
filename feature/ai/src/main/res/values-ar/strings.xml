@@ -18,4 +18,8 @@
     <string name="ai_chat_tool_limit">بلغت حلقة الأدوات حد الأمان.</string>
     <string name="ai_chat_provider_failure">تعذر على مزود النموذج إكمال الرد.</string>
     <string name="ai_chat_voice_input">إدخال صوتي</string>
+    <string name="ai_chat_error_auth">تم رفض مفتاح API. تحقّق من مفتاح المزوّد في الإعدادات.</string>
+    <string name="ai_chat_error_rate_limited">المزوّد يحدّ من الطلبات أو نفدت الحصة. أعد المحاولة لاحقًا.</string>
+    <string name="ai_chat_error_network">تعذّر الوصول إلى مزوّد النموذج. تحقّق من الشبكة ونقطة الوصول.</string>
+    <string name="ai_chat_error_model">لم يُعثر على النموذج أو نقطة الوصول المحددة. تحقّق من إعدادات المزوّد.</string>
 </resources>

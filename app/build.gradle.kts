@@ -184,6 +184,16 @@ android {
                 }
             }
         }
+        // Macrobenchmark target variant (NFA-12). A copy of the release
+        // pipeline (R8 + resource shrinking) signed with the debug key, so
+        // `:macrobenchmark` measures a production-like, non-debuggable build
+        // without requiring the production keystore on a benchmark runner.
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

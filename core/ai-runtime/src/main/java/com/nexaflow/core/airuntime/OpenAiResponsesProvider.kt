@@ -32,7 +32,8 @@ data class OpenAiResponsesProviderConfig(
 
 data class OpenAiResponsesTransportResponse(
     val statusCode: Int,
-    val body: String
+    val body: String,
+    val retryAfterMs: Long? = null
 )
 
 interface OpenAiResponsesTransport {
@@ -163,7 +164,11 @@ class OpenAiResponsesProvider(
             headers
         )
         if (response.statusCode !in 200..299) {
-            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
+            throw AiProviderHttpFailure.of(
+                response.statusCode,
+                response.body,
+                response.retryAfterMs
+            )
         }
         val root = json.parseToJsonElement(response.body).jsonObject
         var emittedText = false
@@ -231,7 +236,10 @@ class OpenAiResponsesProvider(
             return AiModelDiscoveryResult(
                 false,
                 httpStatus = response.statusCode,
-                failure = AiProviderFailureClassifier.fromHttpStatus(response.statusCode)
+                failure = AiProviderHttpFailure.classify(
+                    response.statusCode,
+                    response.body
+                )
             )
         }
         val models = runCatching {

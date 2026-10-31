@@ -398,6 +398,9 @@
     <string name="managed_agent_run_cost_unknown">Coût non vérifiable ; exécution plafonnée bloquée.</string>
     <string name="managed_agent_run_deadline">Délai maximal dépassé.</string>
     <string name="managed_agent_run_approval_invalid">Approbation expirée ou politique modifiée.</string>
+    <string name="managed_agent_run_details_title">Détails de l\'exécution</string>
+    <string name="managed_agent_run_details_empty">Aucun événement enregistré pour cette exécution.</string>
+    <string name="managed_agent_run_details_close">Fermer</string>
     <string name="managed_agent_cost_unknown_hint">Coût non vérifiable ; les exécutions plafonnées sont bloquées.</string>
     <string name="managed_agent_memory_export">Exporter les notes privées</string>
     <string name="managed_agent_memory_export_title">Exporter la mémoire de l’agent ?</string>

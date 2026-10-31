@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">Ajustes del agente</string>
+    <string name="ai_chat_error_auth">Se rechazó la clave de API. Revisa la clave del proveedor en los ajustes.</string>
+    <string name="ai_chat_error_rate_limited">El proveedor limita las solicitudes o se agotó la cuota. Inténtalo más tarde.</string>
+    <string name="ai_chat_error_network">No se pudo contactar con el proveedor del modelo. Revisa la red y el endpoint.</string>
+    <string name="ai_chat_error_model">No se encontró el modelo o el endpoint seleccionado. Revisa los ajustes del proveedor.</string>
 </resources>

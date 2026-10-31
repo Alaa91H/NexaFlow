@@ -7,7 +7,7 @@
 // module is excluded from the CI gate (nothing invokes its assemble tasks);
 // it compiles cleanly with the rest of the build and runs on demand:
 //
-//   ./gradlew :macrobenchmark:connectedDebugAndroidTest
+//   ./gradlew :macrobenchmark:connectedBenchmarkAndroidTest
 //
 // (Requires an emulator/device; produces startup timings and compares
 // `startup()` vs `startupWithBaselineProfile()`.)
@@ -22,15 +22,45 @@ android {
     defaultConfig {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // The planner microbenchmark measures in-process planner code, but this
+        // module also drives :app through MacrobenchmarkRule, so the library's
+        // IsolationActivity (AndroidBenchmarkRunner) cannot own the screen: the
+        // runner times out launching it between macro tests. Only the isolation
+        // warning is dropped; DEBUGGABLE and emulator findings still fail the
+        // run, and CI passes `EMULATOR,ACTIVITY-MISSING` because that property
+        // replaces this value.
+        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] =
+            "ACTIVITY-MISSING"
+        // androidx.benchmark records a method trace for every microbenchmark by
+        // default. The planner benchmark measures latency, and the resulting
+        // trace cannot be pulled from the CI emulator (UTP fails with EOF and
+        // the device drops offline), so method tracing is disabled here while
+        // macrobenchmark keeps its own Perfetto capture.
+        testInstrumentationRunnerArguments["androidx.benchmark.profiling.mode"] = "none"
         // The module benchmarks :app; AGP links them for the benchmark run.
         targetProjectPath = ":app"
     }
 
-    // Test modules ship only a debug variant; `assembleDebug` at the root
-    // resolves cleanly on device-less CI, and no R8 runs over test code.
+    // Test modules run one variant per target build type. The default debug
+    // variant stays for local debugging; CI benchmarks the `benchmark`
+    // variant below so the measured app is not debuggable.
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    // The benchmark variant is the one that measures :app's `benchmark`
+    // variant, so the target is non-debuggable and R8-shrunk like production.
+    // Library dependencies only ship debug/release, hence the fallback.
+    buildTypes {
+        create("benchmark") {
+            // The benchmark library rejects a debuggable target, and a
+            // self-instrumenting module is its own target for the planner
+            // microbenchmark, so neither side may keep the debug flag.
+            isDebuggable = false
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
 
     // Required by AGP for self-instrumenting benchmark modules.

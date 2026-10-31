@@ -5,18 +5,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.agentruntime.AgentDefinition
 import com.nexaflow.core.agentruntime.AgentRun
+import com.nexaflow.core.agentruntime.AgentRunEvent
 import com.nexaflow.core.agentruntime.ManagedAgentRunEvent
 import com.nexaflow.core.agentruntime.ManagedAgentRunUseCase
 import com.nexaflow.data.agents.AgentDefinitionRepository
+import com.nexaflow.data.agents.AgentRunRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -32,30 +37,51 @@ data class ManagedAgentRunLocalState(
 data class ManagedAgentRunUiState(
     val agent: AgentDefinition? = null,
     val runs: List<AgentRun> = emptyList(),
-    val local: ManagedAgentRunLocalState = ManagedAgentRunLocalState()
+    val local: ManagedAgentRunLocalState = ManagedAgentRunLocalState(),
+    val selectedRunId: String? = null,
+    val selectedRunEvents: List<AgentRunEvent> = emptyList()
 )
 
 @HiltViewModel
 class ManagedAgentRunViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     definitions: AgentDefinitionRepository,
-    private val runUseCase: ManagedAgentRunUseCase
+    private val runUseCase: ManagedAgentRunUseCase,
+    private val runs: AgentRunRepository
 ) : ViewModel() {
     private val agentId: String = checkNotNull(savedStateHandle["agentId"])
     private val local = MutableStateFlow(ManagedAgentRunLocalState())
+    private val selectedRunId = MutableStateFlow<String?>(null)
     private var runJob: Job? = null
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val selectedRunEvents = selectedRunId.flatMapLatest { runId ->
+        if (runId == null) flowOf(emptyList()) else runs.observeEvents(runId)
+    }
 
     val state: StateFlow<ManagedAgentRunUiState> = combine(
         definitions.observeAll(),
         runUseCase.observeRuns(agentId),
-        local
-    ) { allDefinitions, runs, localState ->
+        local,
+        selectedRunId,
+        selectedRunEvents
+    ) { allDefinitions, runs, localState, runId, events ->
         ManagedAgentRunUiState(
             agent = allDefinitions.firstOrNull { it.id == agentId },
             runs = runs,
-            local = localState
+            local = localState,
+            selectedRunId = runId,
+            selectedRunEvents = events
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ManagedAgentRunUiState())
+
+    fun selectRun(runId: String) {
+        selectedRunId.value = runId
+    }
+
+    fun dismissRunDetails() {
+        selectedRunId.value = null
+    }
 
     fun editPrompt(value: String) {
         local.value = local.value.copy(prompt = value.take(MAX_PROMPT_CHARACTERS), errorCode = null)

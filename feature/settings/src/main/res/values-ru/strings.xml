@@ -398,6 +398,9 @@
     <string name="managed_agent_run_cost_unknown">Стоимость не проверяется; запуск с лимитом заблокирован.</string>
     <string name="managed_agent_run_deadline">Превышено время выполнения.</string>
     <string name="managed_agent_run_approval_invalid">Подтверждение истекло или политика изменилась.</string>
+    <string name="managed_agent_run_details_title">Подробности запуска</string>
+    <string name="managed_agent_run_details_empty">Для этого запуска события не записаны.</string>
+    <string name="managed_agent_run_details_close">Закрыть</string>
     <string name="managed_agent_cost_unknown_hint">Стоимость нельзя проверить; запуски с лимитом блокируются.</string>
     <string name="managed_agent_memory_export">Экспортировать личные заметки</string>
     <string name="managed_agent_memory_export_title">Экспортировать память агента?</string>

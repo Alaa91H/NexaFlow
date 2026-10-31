@@ -86,4 +86,5 @@ dependencies {
     // (see UpdateViewModelOffMainThreadTest) — project pattern.
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.robolectric.robolectric)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }

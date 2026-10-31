@@ -92,6 +92,130 @@ class AnthropicMessagesProviderTest {
     }
 
     @Test
+    fun errorResponseCarriesTypedFailureAndRetryDelay() = runBlocking {
+        val provider = AnthropicMessagesProvider(
+            transport = object : AnthropicMessagesTransport {
+                override suspend fun postMessages(
+                    config: AnthropicMessagesProviderConfig,
+                    body: JsonObject,
+                    apiKey: String?
+                ) = AnthropicMessagesTransportResponse(
+                    429,
+                    """{"error":{"type":"rate_limit_error","message":"slow down"}}""",
+                    retryAfterMs = 5_000L
+                )
+
+                override suspend fun getModels(
+                    config: AnthropicMessagesProviderConfig,
+                    apiKey: String?
+                ) = AnthropicMessagesTransportResponse(200, """{"data":[]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply { configure(remoteConfig()) }
+
+        val failure = runCatching {
+            provider.stream(
+                AiProviderRequest(
+                    conversationId = "c1",
+                    messages = listOf(AiConversationMessage(AiRole.USER, "hi")),
+                    tools = emptyList(),
+                    maxOutputCharacters = 128
+                )
+            ).toList()
+        }.exceptionOrNull() as AiProviderRequestException
+
+        assertEquals(AiConnectionFailure.RATE_LIMITED, failure.failure)
+        assertEquals(429, failure.httpStatus)
+        assertEquals(5_000L, failure.retryAfterMs)
+        assertEquals("rate_limit_error", failure.providerCode)
+    }
+
+    @Test
+    fun modelDiscoveryClassifiesHttpTransportAndMalformedResponses() = runBlocking {
+        fun providerWith(transport: AnthropicMessagesTransport) =
+            AnthropicMessagesProvider(
+                transport = transport,
+                apiKeyProvider = { "secret" }
+            ).apply { configure(remoteConfig()) }
+
+        val unauthorized = providerWith(
+            object : AnthropicMessagesTransport {
+                override suspend fun postMessages(
+                    config: AnthropicMessagesProviderConfig,
+                    body: JsonObject,
+                    apiKey: String?
+                ) = error("unused")
+
+                override suspend fun getModels(
+                    config: AnthropicMessagesProviderConfig,
+                    apiKey: String?
+                ) = AnthropicMessagesTransportResponse(
+                    401,
+                    """{"error":{"type":"authentication_error","message":"invalid x-api-key"}}"""
+                )
+            }
+        )
+        assertEquals(AiConnectionFailure.AUTHENTICATION, unauthorized.listModels().failure)
+
+        val offline = providerWith(
+            object : AnthropicMessagesTransport {
+                override suspend fun postMessages(
+                    config: AnthropicMessagesProviderConfig,
+                    body: JsonObject,
+                    apiKey: String?
+                ) = error("unused")
+
+                override suspend fun getModels(
+                    config: AnthropicMessagesProviderConfig,
+                    apiKey: String?
+                ): AnthropicMessagesTransportResponse = throw java.io.IOException("offline")
+            }
+        )
+        assertEquals(AiConnectionFailure.NETWORK, offline.listModels().failure)
+
+        val malformed = providerWith(
+            object : AnthropicMessagesTransport {
+                override suspend fun postMessages(
+                    config: AnthropicMessagesProviderConfig,
+                    body: JsonObject,
+                    apiKey: String?
+                ) = error("unused")
+
+                override suspend fun getModels(
+                    config: AnthropicMessagesProviderConfig,
+                    apiKey: String?
+                ) = AnthropicMessagesTransportResponse(200, "not json")
+            }
+        )
+        assertEquals(AiConnectionFailure.INVALID_RESPONSE, malformed.listModels().failure)
+
+        val missingModel = providerWith(
+            object : AnthropicMessagesTransport {
+                override suspend fun postMessages(
+                    config: AnthropicMessagesProviderConfig,
+                    body: JsonObject,
+                    apiKey: String?
+                ) = error("unused")
+
+                override suspend fun getModels(
+                    config: AnthropicMessagesProviderConfig,
+                    apiKey: String?
+                ) = AnthropicMessagesTransportResponse(200, """{"data":[{"id":"other"}]}""")
+            }
+        )
+        assertEquals(
+            AiConnectionFailure.MODEL_NOT_FOUND,
+            missingModel.verifyConnection().failure
+        )
+    }
+
+    private fun remoteConfig() = AnthropicMessagesProviderConfig(
+        enabled = true,
+        baseUrl = "https://api.anthropic.com/v1",
+        modelId = "claude-test"
+    )
+
+    @Test
     fun anthropicCredentialsCannotUseCleartextOrLocalEndpoints() {
         val remoteHttp = AnthropicMessagesProviderConfig(
             enabled = true,

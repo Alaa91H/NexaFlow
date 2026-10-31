@@ -405,6 +405,9 @@
     <string name="managed_agent_run_cost_unknown">Provider cost cannot be verified; capped run blocked.</string>
     <string name="managed_agent_run_deadline">Run exceeded its time limit.</string>
     <string name="managed_agent_run_approval_invalid">Approval expired or agent/device policy changed.</string>
+    <string name="managed_agent_run_details_title">Run details</string>
+    <string name="managed_agent_run_details_empty">No events recorded for this run.</string>
+    <string name="managed_agent_run_details_close">Close</string>
     <string name="managed_agent_cost_unknown_hint">Cost reporting is unavailable; capped runs fail closed.</string>
     <string name="managed_agent_memory_export">Export private notes</string>
     <string name="managed_agent_memory_export_title">Export agent memory?</string>

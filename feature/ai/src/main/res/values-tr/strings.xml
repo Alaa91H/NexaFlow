@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">Aracı ayarları</string>
+    <string name="ai_chat_error_auth">API anahtarı reddedildi. Ayarlarda sağlayıcı anahtarını kontrol edin.</string>
+    <string name="ai_chat_error_rate_limited">Sağlayıcı istekleri sınırlıyor veya kota doldu. Daha sonra tekrar deneyin.</string>
+    <string name="ai_chat_error_network">Model sağlayıcısına ulaşılamadı. Ağı ve uç noktayı kontrol edin.</string>
+    <string name="ai_chat_error_model">Seçilen model veya uç nokta bulunamadı. Sağlayıcı ayarlarını kontrol edin.</string>
 </resources>

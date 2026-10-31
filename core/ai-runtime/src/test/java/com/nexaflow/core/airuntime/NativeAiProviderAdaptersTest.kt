@@ -89,7 +89,10 @@ class NativeAiProviderAdaptersTest {
                     apiKey: String
                 ): GeminiNativeTransportResponse {
                     generationRequest = body
-                    return GeminiNativeTransportResponse(200, """{"candidates":[]}""")
+                    return GeminiNativeTransportResponse(
+                        200,
+                        """{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}"""
+                    )
                 }
 
                 override suspend fun getModels(
@@ -429,6 +432,252 @@ class NativeAiProviderAdaptersTest {
         failure as AiProviderRequestException
         assertEquals(429, failure.httpStatus)
         assertEquals(AiConnectionFailure.RATE_LIMITED, failure.failure)
+    }
+
+    @Test
+    fun geminiBatchesParallelToolResponsesIntoSingleTurn() = runTest {
+        var sent: JsonObject? = null
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ): GeminiNativeTransportResponse {
+                    sent = body
+                    return GeminiNativeTransportResponse(200, """{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}""")
+                }
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" },
+            callIdGenerator = { "gemini-call" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+        val calls = listOf(
+            AiToolCall("call-a", "device_status", JsonObject(emptyMap())),
+            AiToolCall("call-b", "nexaflow.list_tasks", JsonObject(emptyMap()))
+        )
+        val messages = listOf(
+            AiConversationMessage(AiRole.USER, "check two things"),
+            AiConversationMessage(AiRole.ASSISTANT, text = "", toolCalls = calls),
+            AiConversationMessage(AiRole.TOOL, """{"ok":1}""", toolCallId = "call-a", toolName = "device_status"),
+            AiConversationMessage(AiRole.TOOL, """{"ok":2}""", toolCallId = "call-b", toolName = "nexaflow.list_tasks")
+        )
+
+        provider.stream(request().copy(messages = messages)).toList()
+
+        val contents = sentOrThrow(sent)["contents"].toString()
+        val contentsArray = sentOrThrow(sent)["contents"]!!.jsonArray
+        assertEquals(3, contentsArray.size)
+        val responseParts = contentsArray.last().jsonObject.getValue("parts").jsonArray
+        assertEquals(2, responseParts.size)
+        assertTrue(contents.contains("functionResponse"))
+        assertEquals(2, Regex("\"functionResponse\"").findAll(contents).count())
+    }
+
+    @Test
+    fun geminiSendsExplicitAutoToolConfigWithTools() = runTest {
+        var sent: JsonObject? = null
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ): GeminiNativeTransportResponse {
+                    sent = body
+                    return GeminiNativeTransportResponse(200, """{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}""")
+                }
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+
+        provider.stream(request()).toList()
+
+        assertEquals(
+            "AUTO",
+            sentOrThrow(sent)["toolConfig"]?.jsonObject
+                ?.get("functionCallingConfig")?.jsonObject
+                ?.get("mode")?.jsonPrimitive?.content
+        )
+    }
+
+    @Test
+    fun geminiRejectsBlockedPromptInsteadOfCompletingEmpty() = runTest {
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(
+                    200,
+                    """{"promptFeedback":{"blockReason":"SAFETY"}}"""
+                )
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+
+        val failure = runCatching {
+            provider.stream(request()).toList()
+        }.exceptionOrNull()
+
+        assertTrue(failure is AiProviderRequestException)
+        failure as AiProviderRequestException
+        assertEquals(AiConnectionFailure.INVALID_RESPONSE, failure.failure)
+        assertEquals("prompt_blocked_safety", failure.providerCode)
+        assertTrue(failure.providerMessage!!.contains("SAFETY"))
+    }
+
+    @Test
+    fun geminiRejectsSafetyFinishReasonWithoutContent() = runTest {
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(
+                    200,
+                    """{"candidates":[{"finishReason":"SAFETY","content":{"parts":[]}}]}"""
+                )
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+
+        val failure = runCatching {
+            provider.stream(request()).toList()
+        }.exceptionOrNull()
+
+        assertEquals("finish_safety", (failure as AiProviderRequestException).providerCode)
+    }
+
+    @Test
+    fun geminiDiscoversModelsAcrossPages() = runTest {
+        val requestedPages = mutableListOf<String?>()
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"candidates":[]}""")
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = error("paginated discovery must not use the legacy single page")
+
+                override suspend fun getModelsPage(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String,
+                    pageToken: String?,
+                    pageSize: Int
+                ): GeminiNativeTransportResponse {
+                    requestedPages += pageToken
+                    assertEquals(1000, pageSize)
+                    return if (pageToken == null) {
+                        GeminiNativeTransportResponse(
+                            200,
+                            """{"models":[{"name":"models/gemini-a"}],"nextPageToken":"page-2"}"""
+                        )
+                    } else {
+                        GeminiNativeTransportResponse(
+                            200,
+                            """{"models":[{"name":"models/gemini-b"}]}"""
+                        )
+                    }
+                }
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-b"))
+        }
+
+        val discovery = provider.listModels()
+
+        assertTrue(discovery.success)
+        assertEquals(listOf("gemini-a", "gemini-b"), discovery.models.map { it.id })
+        assertEquals(listOf(null, "page-2"), requestedPages)
+        assertTrue(provider.verifyConnection().success)
+    }
+
+    @Test
+    fun geminiModelPageUriEncodesThePageTokenExactlyOnce() {
+        val uri = GeminiNativeEndpointPolicy.modelsPageUri(
+            GeminiNativeProviderConfig(),
+            pageToken = "next/token+1",
+            pageSize = 50
+        )
+
+        assertEquals("pageSize=50&pageToken=next%2Ftoken%2B1", uri.rawQuery)
+        assertEquals("/v1beta/models", uri.path)
+    }
+
+    @Test
+    fun geminiStreamFailureCarriesProviderMessageFromErrorBody() = runTest {
+        val provider = GeminiNativeProvider(
+            transport = object : GeminiNativeTransport {
+                override suspend fun generateContent(
+                    config: GeminiNativeProviderConfig,
+                    body: JsonObject,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(
+                    400,
+                    """{"error":{"code":400,"message":"API key not valid. Please pass a valid API key.","status":"INVALID_ARGUMENT"}}""",
+                    2_000L
+                )
+
+                override suspend fun getModels(
+                    config: GeminiNativeProviderConfig,
+                    apiKey: String
+                ) = GeminiNativeTransportResponse(200, """{"models":[{"name":"models/gemini-test"}]}""")
+            },
+            apiKeyProvider = { "secret" }
+        ).apply {
+            configure(GeminiNativeProviderConfig(enabled = true, modelId = "gemini-test"))
+        }
+
+        val failure = runCatching {
+            provider.stream(request()).toList()
+        }.exceptionOrNull() as AiProviderRequestException
+
+        assertEquals(AiConnectionFailure.AUTHENTICATION, failure.failure)
+        assertEquals(400, failure.httpStatus)
+        assertEquals(2_000L, failure.retryAfterMs)
+        assertEquals("INVALID_ARGUMENT", failure.providerCode)
+        assertTrue(failure.providerMessage!!.contains("API key not valid"))
+    }
+
+    private fun sentOrThrow(value: JsonObject?): JsonObject {
+        assertTrue("provider request body was not captured", value != null)
+        return value!!
     }
 
     private fun request() = AiProviderRequest(

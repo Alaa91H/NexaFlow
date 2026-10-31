@@ -1,5 +1,9 @@
 package com.nexaflow.app.ai
 
+import com.nexaflow.core.airuntime.AiConnectionFailure
+import com.nexaflow.core.airuntime.AiProviderHttpFailure
+import com.nexaflow.core.airuntime.AiProviderRequestException
+import com.nexaflow.core.airuntime.AiRetryAfter
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiEndpointPolicy
 import java.io.BufferedInputStream
@@ -9,7 +13,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
-import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -57,7 +60,7 @@ internal object AndroidOpenAiStreamingTransport {
         gatewayHeaders: Map<String, String>,
         emitPayload: suspend (String) -> Unit
     ) {
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = "POST"
@@ -75,8 +78,16 @@ internal object AndroidOpenAiStreamingTransport {
             connection.outputStream.use { it.write(payload) }
 
             val status = connection.responseCode
-            require(status !in 300..399) { "Provider redirect was rejected" }
-            require(status in 200..299) { "Provider returned HTTP $status" }
+            val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
+            if (status in 300..399) throw redirectFailure(retryAfterMs)
+            if (status !in 200..299) {
+                val body = runCatching {
+                    (connection.errorStream ?: connection.inputStream)
+                        .use { readBounded(it, MAX_ERROR_BODY_BYTES) }
+                        .toString(Charsets.UTF_8)
+                }.getOrDefault("")
+                throw AiProviderHttpFailure.of(status, body, retryAfterMs)
+            }
             val contentLength = connection.contentLengthLong
             require(contentLength <= MAX_STREAM_BYTES || contentLength < 0) {
                 "Provider response exceeds maximum size"
@@ -161,6 +172,14 @@ internal object AndroidOpenAiStreamingTransport {
             runCatching { socket.close() }
         }
     }
+
+    private fun redirectFailure(retryAfterMs: Long?) = AiProviderRequestException(
+        failure = AiConnectionFailure.UNSUPPORTED_PROTOCOL,
+        httpStatus = 300,
+        retryAfterMs = retryAfterMs,
+        providerCode = "redirect_rejected",
+        providerMessage = "Provider redirect was rejected"
+    )
 
     private fun readHeaders(
         input: InputStream,
@@ -346,6 +365,7 @@ internal object AndroidOpenAiStreamingTransport {
     private const val READ_TIMEOUT_MS = 45_000
     private const val MAX_REQUEST_BYTES = 1 * 1024 * 1024
     private const val MAX_STREAM_BYTES = 2 * 1024 * 1024
+    private const val MAX_ERROR_BODY_BYTES = 64 * 1024
     private const val MAX_HEADER_BYTES = 64 * 1024
     private const val MAX_STATUS_LINE_LENGTH = 1024
     private const val MAX_HEADER_LINE_LENGTH = 8192

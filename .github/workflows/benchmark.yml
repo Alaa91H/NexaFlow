@@ -72,9 +72,14 @@ jobs:
         adb shell settings put global transition_animation_scale 0
         adb shell settings put global animator_duration_scale 0
     - name: Run startup macrobenchmarks
+      # The `benchmark` variants of :app and :macrobenchmark are non-debuggable
+      # and R8-shrunk, so DEBUGGABLE is not suppressed. EMULATOR is a property
+      # of this runner, and ACTIVITY-MISSING repeats the module's own value
+      # because this property replaces it instead of merging.
       run: >-
-        ./gradlew :macrobenchmark:connectedDebugAndroidTest
-        -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.suppressErrors=EMULATOR
+        ./gradlew :macrobenchmark:connectedBenchmarkAndroidTest
+        -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.suppressErrors=EMULATOR,ACTIVITY-MISSING
+        -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.profiling.mode=none
         --no-parallel --max-workers=2 --console=plain
     - name: Enforce startup budget
       run: |

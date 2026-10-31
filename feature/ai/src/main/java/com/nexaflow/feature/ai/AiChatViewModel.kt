@@ -2,6 +2,7 @@ package com.nexaflow.feature.ai
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.airuntime.AiConnectionFailure
 import com.nexaflow.core.airuntime.AiConversationEngine
 import com.nexaflow.core.airuntime.AiConversationEvent
 import com.nexaflow.core.airuntime.AiConversationMessage
@@ -23,7 +24,8 @@ data class AiChatUiState(
     val providerName: String? = null,
     val running: Boolean = false,
     val activeToolName: String? = null,
-    val errorCode: String? = null
+    val errorCode: String? = null,
+    val errorReason: AiConnectionFailure? = null
 )
 
 @HiltViewModel
@@ -63,7 +65,8 @@ class AiChatViewModel @Inject constructor(
             running = true,
             assistantDraft = "",
             activeToolName = null,
-            errorCode = null
+            errorCode = null,
+            errorReason = null
         )
 
         responseJob = viewModelScope.launch {
@@ -89,7 +92,8 @@ class AiChatViewModel @Inject constructor(
                             running = false,
                             assistantDraft = "",
                             activeToolName = null,
-                            errorCode = null
+                            errorCode = null,
+                            errorReason = null
                         )
                     }
                     is AiConversationEvent.Unavailable -> {
@@ -104,7 +108,8 @@ class AiChatViewModel @Inject constructor(
                             running = false,
                             assistantDraft = "",
                             activeToolName = null,
-                            errorCode = event.code
+                            errorCode = event.code,
+                            errorReason = event.reason
                         )
                     }
                 }
@@ -123,7 +128,8 @@ class AiChatViewModel @Inject constructor(
             running = false,
             assistantDraft = "",
             activeToolName = null,
-            errorCode = null
+            errorCode = null,
+            errorReason = null
         )
     }
 
@@ -138,7 +144,7 @@ class AiChatViewModel @Inject constructor(
     }
 
     fun clearError() {
-        _state.value = _state.value.copy(errorCode = null)
+        _state.value = _state.value.copy(errorCode = null, errorReason = null)
     }
 
     private fun systemMessage() = AiConversationMessage(
@@ -150,7 +156,8 @@ class AiChatViewModel @Inject constructor(
         running: Boolean = _state.value.running,
         assistantDraft: String = _state.value.assistantDraft,
         activeToolName: String? = _state.value.activeToolName,
-        errorCode: String? = _state.value.errorCode
+        errorCode: String? = _state.value.errorCode,
+        errorReason: AiConnectionFailure? = _state.value.errorReason
     ) {
         _state.value = _state.value.copy(
             messages = transcript.filter {
@@ -160,7 +167,8 @@ class AiChatViewModel @Inject constructor(
             running = running,
             assistantDraft = assistantDraft,
             activeToolName = activeToolName,
-            errorCode = errorCode
+            errorCode = errorCode,
+            errorReason = errorReason
         )
     }
 

@@ -13,6 +13,7 @@ import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -320,6 +321,171 @@ class OpenAiCompatibleProviderTest {
         local = true
     )
 
+    @Test
+    fun streamFailureCarriesTypedFailureAndRetryDelay() = runTest {
+        val transport = object : OpenAiCompatibleTransport {
+            override suspend fun postChatCompletions(
+                config: OpenAiCompatibleProviderConfig,
+                body: JsonObject,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(
+                429,
+                """{"error":{"code":"rate_limit_exceeded","message":"slow down"}}""",
+                retryAfterMs = 2_000L
+            )
+        }
+        val provider = provider(transport)
+        provider.configure(config())
+
+        val failure = runCatching {
+            provider.stream(
+                AiProviderRequest(
+                    conversationId = "c1",
+                    messages = listOf(AiConversationMessage(AiRole.USER, "hi")),
+                    tools = emptyList(),
+                    maxOutputCharacters = 128
+                )
+            ).toList()
+        }.exceptionOrNull() as AiProviderRequestException
+
+        assertEquals(AiConnectionFailure.RATE_LIMITED, failure.failure)
+        assertEquals(429, failure.httpStatus)
+        assertEquals(2_000L, failure.retryAfterMs)
+        assertEquals("rate_limit_exceeded", failure.providerCode)
+    }
+
+    @Test
+    fun bufferedStreamRejectsAnErrorResponseWithItsDelay() = runTest {
+        val transport = object : OpenAiCompatibleTransport {
+            override suspend fun postChatCompletions(
+                config: OpenAiCompatibleProviderConfig,
+                body: JsonObject,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(
+                503,
+                """{"error":{"message":"busy"}}""",
+                retryAfterMs = 4_000L
+            )
+        }
+
+        val failure = runCatching {
+            transport.streamChatCompletions(config(), JsonObject(emptyMap()), "key").toList()
+        }.exceptionOrNull() as AiProviderRequestException
+
+        assertEquals(AiConnectionFailure.SERVER_ERROR, failure.failure)
+        assertEquals(4_000L, failure.retryAfterMs)
+    }
+
+    @Test
+    fun structuredFallbackFailureCarriesTheProviderError() = runTest {
+        val transport = FallbackCapabilityTransport(
+            fallbackContent = """{"tool":"nexaflow.list_tasks","arguments":{}}""",
+            fallbackResponse = OpenAiCompatibleTransportResponse(
+                400,
+                """{"error":{"code":"invalid_api_key","message":"Incorrect API key provided"}}""",
+                retryAfterMs = 1_500L
+            )
+        )
+        val provider = OpenAiCompatibleProvider(
+            transport = transport,
+            fallbackToolCallIdGenerator = { "fallback-test" }
+        )
+        provider.configure(config())
+        provider.probe()
+
+        val failure = runCatching {
+            provider.stream(requestWithTool("list tasks")).toList()
+        }.exceptionOrNull() as AiProviderRequestException
+
+        assertEquals(AiConnectionFailure.AUTHENTICATION, failure.failure)
+        assertEquals(400, failure.httpStatus)
+        assertEquals(1_500L, failure.retryAfterMs)
+        assertEquals("invalid_api_key", failure.providerCode)
+    }
+
+    @Test
+    fun discoveryFailureUsesTheProviderErrorBody() = runTest {
+        val transport = object : OpenAiCompatibleTransport {
+            override suspend fun postChatCompletions(
+                config: OpenAiCompatibleProviderConfig,
+                body: JsonObject,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(200, "{}")
+
+            override suspend fun getModels(
+                config: OpenAiCompatibleProviderConfig,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(
+                400,
+                """{"error":{"code":"invalid_api_key","message":"Incorrect API key provided"}}"""
+            )
+        }
+        val provider = provider(transport)
+        provider.configure(config())
+
+        val discovery = provider.listModels()
+
+        assertFalse(discovery.success)
+        assertEquals(400, discovery.httpStatus)
+        assertEquals(AiConnectionFailure.AUTHENTICATION, discovery.failure)
+    }
+
+    @Test
+    fun discoveryRejectsMalformedModelPayloads() = runTest {
+        val transport = object : OpenAiCompatibleTransport {
+            override suspend fun postChatCompletions(
+                config: OpenAiCompatibleProviderConfig,
+                body: JsonObject,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(200, "{}")
+
+            override suspend fun getModels(
+                config: OpenAiCompatibleProviderConfig,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(200, "not json")
+        }
+        val provider = provider(transport)
+        provider.configure(config())
+
+        val discovery = provider.listModels()
+
+        assertFalse(discovery.success)
+        assertEquals(AiConnectionFailure.INVALID_RESPONSE, discovery.failure)
+    }
+
+    @Test
+    fun unreachableDiscoveryKeepsTheGenericFailureKind() = runTest {
+        val transport = object : OpenAiCompatibleTransport {
+            override suspend fun postChatCompletions(
+                config: OpenAiCompatibleProviderConfig,
+                body: JsonObject,
+                apiKey: String?
+            ) = OpenAiCompatibleTransportResponse(200, "{}")
+
+            override suspend fun getModels(
+                config: OpenAiCompatibleProviderConfig,
+                apiKey: String?
+            ): OpenAiCompatibleTransportResponse = throw IllegalStateException("connection refused")
+        }
+        val provider = provider(transport)
+        provider.configure(config())
+
+        val discovery = provider.listModels()
+
+        assertFalse(discovery.success)
+        assertNull(discovery.httpStatus)
+        assertEquals(AiConnectionFailure.UNKNOWN, discovery.failure)
+    }
+
+    @Test
+    fun discoveryResultDefaultsCarryNoStatusOrFailure() {
+        val result = OpenAiModelDiscoveryResult(success = false)
+
+        assertEquals(null, result.statusCode)
+        assertEquals(null, result.failure)
+        assertTrue(result.models.isEmpty())
+    }
+
     private class FakeTransport : OpenAiCompatibleTransport {
         var lastBody: JsonObject? = null
 
@@ -337,7 +503,8 @@ class OpenAiCompatibleProviderTest {
     }
 
     private class FallbackCapabilityTransport(
-        private val fallbackContent: String
+        private val fallbackContent: String,
+        private val fallbackResponse: OpenAiCompatibleTransportResponse? = null
     ) : OpenAiCompatibleTransport {
         val postBodies = mutableListOf<JsonObject>()
         private var postCount = 0
@@ -354,6 +521,9 @@ class OpenAiCompatibleProviderTest {
                 2 -> "Native tools unavailable"
                 3 -> """{"ok":true}"""
                 else -> fallbackContent
+            }
+            if (postCount >= FALLBACK_REQUEST && fallbackResponse != null) {
+                return fallbackResponse
             }
             return OpenAiCompatibleTransportResponse(
                 200,
@@ -383,6 +553,10 @@ class OpenAiCompatibleProviderTest {
                     )
                 }
             }.toString()
+
+        private companion object {
+            private const val FALLBACK_REQUEST = 4
+        }
     }
 
     private class StreamingTransport(
