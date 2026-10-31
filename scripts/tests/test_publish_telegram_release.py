@@ -7,8 +7,10 @@ must fail here, not in a tag run after the release is already public.
 from __future__ import annotations
 
 import importlib.util
+import json
 import tempfile
 import unittest
+import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -120,6 +122,41 @@ class TargetTests(unittest.TestCase):
             tg.targets_from_env({"TELEGRAM_CHANNEL_CHAT_ID": "@NexaFlowApp"}),
             [("@NexaFlowApp", None)],
         )
+
+
+class EncodeTests(unittest.TestCase):
+    def test_link_preview_options_travel_as_parseable_json(self):
+        # The Bot API rejects a urlencoded Python repr; this failed for real in
+        # the first live announcement, so pin the wire format.
+        calls = []
+
+        class Capture(tg.TelegramClient):
+            def _call(self, method, fields, document=None):  # noqa: D401
+                body, content_type = tg._encode(fields, document)
+                calls.append((method, fields, body, content_type))
+                return {}
+
+        client = Capture("token")
+        client.send_message("@NexaFlowApp", "hello")
+
+        method, fields, body, content_type = calls[0]
+        self.assertEqual(method, "sendMessage")
+        self.assertEqual(content_type, "application/x-www-form-urlencoded")
+        parsed = urllib.parse.parse_qs(body.decode("utf-8"))
+        self.assertEqual(
+            json.loads(parsed["link_preview_options"][0]), {"is_disabled": True}
+        )
+
+    def test_topic_id_is_sent_as_message_thread_id(self):
+        calls = []
+
+        class Capture(tg.TelegramClient):
+            def _call(self, method, fields, document=None):
+                calls.append(fields)
+                return {}
+
+        Capture("token").send_message("@NexaFlowCommunity", "hello", 4)
+        self.assertEqual(calls[0]["message_thread_id"], 4)
 
 
 class PublishTests(unittest.TestCase):
