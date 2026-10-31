@@ -1,5 +1,6 @@
 package com.nexaflow.feature.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.nexaflow.core.agentruntime.AgentRun
+import com.nexaflow.core.agentruntime.AgentRunEvent
 import com.nexaflow.core.agentruntime.AgentRunStatus
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -112,9 +114,17 @@ fun ManagedAgentRunScreen(
                     Text(stringResource(R.string.managed_agent_run_empty_history), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
-                items(state.runs.take(25), key = AgentRun::id) { run -> AgentRunHistoryRow(run) }
+                items(state.runs.take(25), key = AgentRun::id) { run ->
+                    AgentRunHistoryRow(run, onClick = { viewModel.selectRun(run.id) })
+                }
             }
         }
+    }
+    if (state.selectedRunId != null) {
+        RunDetailsDialog(
+            events = state.selectedRunEvents,
+            onDismiss = viewModel::dismissRunDetails
+        )
     }
     state.local.pendingApproval?.let { approval ->
         AlertDialog(
@@ -142,7 +152,37 @@ fun ManagedAgentRunScreen(
 }
 
 @Composable
-private fun AgentRunHistoryRow(run: AgentRun) {
+private fun RunDetailsDialog(
+    events: List<AgentRunEvent>,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.managed_agent_run_details_title)) },
+        text = {
+            if (events.isEmpty()) {
+                Text(stringResource(R.string.managed_agent_run_details_empty))
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(events, key = AgentRunEvent::id) { event ->
+                        Text(
+                            text = "${event.sequence}. ${event.type.name} - ${event.safeCode}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.managed_agent_run_details_close))
+            }
+        }
+    )
+}
+
+@Composable
+private fun AgentRunHistoryRow(run: AgentRun, onClick: () -> Unit) {
     val statusLabel = when (run.status) {
         AgentRunStatus.QUEUED -> R.string.managed_agent_run_queued
         AgentRunStatus.RUNNING -> R.string.managed_agent_run_active
@@ -153,11 +193,13 @@ private fun AgentRunHistoryRow(run: AgentRun) {
         AgentRunStatus.INTERRUPTED -> R.string.managed_agent_run_interrupted
     }
     NexaFlowCard {
-        Text(stringResource(statusLabel), style = MaterialTheme.typography.titleSmall)
-        Text(
-            text = run.outcomeCode ?: run.id.take(8),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodySmall
-        )
+        Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+            Text(stringResource(statusLabel), style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = run.outcomeCode ?: run.id.take(8),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }

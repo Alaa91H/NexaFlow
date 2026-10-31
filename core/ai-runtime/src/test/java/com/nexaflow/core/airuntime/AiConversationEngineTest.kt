@@ -105,7 +105,9 @@ class AiConversationEngineTest {
             listOf(AiConversationMessage(AiRole.USER, "hello"))
         ).toList()
 
-        assertEquals(AiConversationEvent.Failed("provider_failure"), events.last())
+        val failed = events.last() as AiConversationEvent.Failed
+        assertEquals("provider_failure", failed.code)
+        assertEquals(AiConnectionFailure.UNKNOWN, failed.reason)
         val health = registry.state.value.providerHealth.getValue("failing")
         assertEquals(AiProviderHealthState.DEGRADED, health.state)
         assertEquals(1, health.consecutiveFailures)
@@ -140,7 +142,11 @@ class AiConversationEngineTest {
             listOf(AiConversationMessage(AiRole.USER, "hello"))
         ).toList()
 
-        assertEquals(AiConversationEvent.Failed("provider_failure"), events.last())
+        val failed = events.last() as AiConversationEvent.Failed
+        assertEquals("provider_failure", failed.code)
+        assertEquals(AiConnectionFailure.RATE_LIMITED, failed.reason)
+        assertEquals(429, failed.httpStatus)
+        assertEquals(5_000L, failed.retryAfterMs)
         val health = registry.state.value.providerHealth.getValue("rate-limited")
         assertEquals(AiProviderHealthState.COOLDOWN, health.state)
         assertEquals(AiConnectionFailure.RATE_LIMITED, health.lastFailure)

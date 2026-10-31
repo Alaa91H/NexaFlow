@@ -7,8 +7,8 @@ rank,score,path,complexity,coupling,churn,evidence
 6,0.930026,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionCatalog.kt,2,182,1,branch_tokens=2;cross_module_imports=1;enum_refs=181;commits_in_last_50_before_4199f4a=1
 7,0.900968,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt,36,75,2,branch_tokens=36;cross_module_imports=4;enum_refs=71;commits_in_last_50_before_4199f4a=2
 8,0.895461,core/execution/src/main/java/com/nexaflow/core/execution/TriggerStateEvaluator.kt,85,69,0,branch_tokens=85;cross_module_imports=12;enum_refs=57;commits_in_last_50_before_4199f4a=0
-9,0.843133,core/automation-engine/src/main/java/com/nexaflow/core/engine/BatteryMonitor.kt,66,49,1,branch_tokens=66;cross_module_imports=45;enum_refs=4;commits_in_last_50_before_4199f4a=1
-10,0.831157,data/src/main/java/com/nexaflow/data/agents/AgentRunRepository.kt,16,12,4,branch_tokens=16;cross_module_imports=12;enum_refs=0;commits_in_last_50_before_4199f4a=4
+9,0.845546,data/src/main/java/com/nexaflow/data/agents/AgentRunRepository.kt,18,12,4,branch_tokens=18;cross_module_imports=12;enum_refs=0;commits_in_last_50_before_4199f4a=4
+10,0.843133,core/automation-engine/src/main/java/com/nexaflow/core/engine/BatteryMonitor.kt,66,49,1,branch_tokens=66;cross_module_imports=45;enum_refs=4;commits_in_last_50_before_4199f4a=1
 11,0.783729,feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderActionPresentation.kt,30,138,0,branch_tokens=30;cross_module_imports=7;enum_refs=131;commits_in_last_50_before_4199f4a=0
 12,0.745818,core/execution/src/main/java/com/nexaflow/core/execution/handler/SystemActionsHandler.kt,9,125,1,branch_tokens=9;cross_module_imports=5;enum_refs=120;commits_in_last_50_before_4199f4a=1
 13,0.716005,domain/src/main/java/com/nexaflow/domain/catalog/ActionNodeSchemas.kt,6,123,1,branch_tokens=6;cross_module_imports=1;enum_refs=122;commits_in_last_50_before_4199f4a=1

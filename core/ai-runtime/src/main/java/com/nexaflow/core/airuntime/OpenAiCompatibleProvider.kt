@@ -34,7 +34,8 @@ data class OpenAiCompatibleProviderConfig(
 
 data class OpenAiCompatibleTransportResponse(
     val statusCode: Int,
-    val body: String
+    val body: String,
+    val retryAfterMs: Long? = null
 )
 
 data class OpenAiProviderProbeResult(
@@ -52,7 +53,8 @@ data class OpenAiModelInfo(
 data class OpenAiModelDiscoveryResult(
     val success: Boolean,
     val models: List<OpenAiModelInfo> = emptyList(),
-    val statusCode: Int? = null
+    val statusCode: Int? = null,
+    val failure: AiConnectionFailure? = null
 )
 
 interface OpenAiCompatibleTransport {
@@ -90,7 +92,11 @@ interface OpenAiCompatibleTransport {
     ): Flow<String> = flow {
         val response = postChatCompletions(config, body, apiKey)
         if (response.statusCode !in 200..299) {
-            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
+            throw AiProviderHttpFailure.of(
+                response.statusCode,
+                response.body,
+                response.retryAfterMs
+            )
         }
         emit(response.body)
     }
@@ -143,7 +149,8 @@ class OpenAiCompatibleProvider(
         if (response.statusCode !in 200..299) {
             return OpenAiModelDiscoveryResult(
                 success = false,
-                statusCode = response.statusCode
+                statusCode = response.statusCode,
+                failure = AiProviderHttpFailure.classify(response.statusCode, response.body)
             )
         }
 
@@ -159,7 +166,8 @@ class OpenAiCompatibleProvider(
         }.getOrElse {
             return OpenAiModelDiscoveryResult(
                 success = false,
-                statusCode = response.statusCode
+                statusCode = response.statusCode,
+                failure = AiConnectionFailure.INVALID_RESPONSE
             )
         }
         return OpenAiModelDiscoveryResult(
@@ -184,7 +192,7 @@ class OpenAiCompatibleProvider(
             failure = if (result.success) {
                 null
             } else {
-                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+                result.failure ?: AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
             }
         )
     }
@@ -252,7 +260,8 @@ class OpenAiCompatibleProvider(
                 providerId = snapshot.providerId,
                 dialect = AiApiDialect.OPENAI_CHAT_COMPLETIONS,
                 httpStatus = response.statusCode,
-                failure = AiProviderFailureClassifier.fromHttpStatus(response.statusCode),
+                failure = AiProviderHttpFailure.classify(response.statusCode, response.body),
+                retryAfterMs = response.retryAfterMs,
                 latencyMs = elapsedMillis(startedAt)
             )
         }
@@ -600,7 +609,11 @@ class OpenAiCompatibleProvider(
                 headers = headers
             )
             if (response.statusCode !in 200..299) {
-                throw AiProviderRequestException.fromHttpStatus(response.statusCode)
+                throw AiProviderHttpFailure.of(
+                    response.statusCode,
+                    response.body,
+                    response.retryAfterMs
+                )
             }
             val message = json.parseToJsonElement(response.body)
                 .jsonObject["choices"]

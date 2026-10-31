@@ -398,6 +398,9 @@
     <string name="managed_agent_run_cost_unknown">Maliyet doğrulanamıyor; sınırlandırılmış çalışma engellendi.</string>
     <string name="managed_agent_run_deadline">Zaman sınırı aşıldı.</string>
     <string name="managed_agent_run_approval_invalid">Onay süresi doldu veya ilke değişti.</string>
+    <string name="managed_agent_run_details_title">Çalıştırma ayrıntıları</string>
+    <string name="managed_agent_run_details_empty">Bu çalıştırma için kayıtlı olay yok.</string>
+    <string name="managed_agent_run_details_close">Kapat</string>
     <string name="managed_agent_cost_unknown_hint">Maliyet doğrulanamıyor; sınırlı çalışmalar engellenir.</string>
     <string name="managed_agent_memory_export">Özel notları dışa aktar</string>
     <string name="managed_agent_memory_export_title">Ajan belleği dışa aktarılsın mı?</string>
@@ -444,4 +447,7 @@
     <string name="agent_automation_approval_review_title">%1$s riskli görevi incele</string>
     <string name="agent_automation_approval_summary_unavailable">Görev ayrıntıları kullanılamıyor. Bu isteği onaylamayın.</string>
     <string name="agent_automation_approval_reject">Reddet</string>
+    <string name="ai_provider_test_model_missing">Seçilen model bulunamadı. Kullanılabilir bir model seçin.</string>
+    <string name="ai_provider_test_timeout">Sağlayıcı zamanında yanıt vermedi. Tekrar deneyin.</string>
+    <string name="ai_provider_test_network">Sağlayıcıya ulaşılamadı. Ağı, uç noktayı ve TLS ayarlarını kontrol edin.</string>
 </resources>

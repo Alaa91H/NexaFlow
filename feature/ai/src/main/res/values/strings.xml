@@ -18,4 +18,8 @@
     <string name="ai_chat_tool_limit">The tool loop reached its safety limit.</string>
     <string name="ai_chat_provider_failure">The model provider could not complete the response.</string>
     <string name="ai_chat_voice_input">Voice input</string>
+    <string name="ai_chat_error_auth">The API key was rejected. Check the provider key in settings.</string>
+    <string name="ai_chat_error_rate_limited">The provider is rate limited or out of quota. Try again later.</string>
+    <string name="ai_chat_error_network">Could not reach the model provider. Check the network connection and endpoint.</string>
+    <string name="ai_chat_error_model">The selected model or endpoint was not found. Check the provider settings.</string>
 </resources>

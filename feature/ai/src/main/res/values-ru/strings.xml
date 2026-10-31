@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">Настройки агента</string>
+    <string name="ai_chat_error_auth">Ключ API отклонён. Проверьте ключ провайдера в настройках.</string>
+    <string name="ai_chat_error_rate_limited">Провайдер ограничивает запросы или квота исчерпана. Повторите попытку позже.</string>
+    <string name="ai_chat_error_network">Не удалось связаться с провайдером модели. Проверьте сеть и эндпоинт.</string>
+    <string name="ai_chat_error_model">Выбранная модель или эндпоинт не найдены. Проверьте настройки провайдера.</string>
 </resources>

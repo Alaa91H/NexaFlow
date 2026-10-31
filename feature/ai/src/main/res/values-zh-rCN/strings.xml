@@ -20,4 +20,8 @@
 
     <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
     <string name="ai_chat_agent_settings">代理设置</string>
+    <string name="ai_chat_error_auth">API 密钥被拒绝。请在设置中检查提供商密钥。</string>
+    <string name="ai_chat_error_rate_limited">提供商限制请求或配额已用尽。请稍后重试。</string>
+    <string name="ai_chat_error_network">无法连接模型提供商。请检查网络和端点。</string>
+    <string name="ai_chat_error_model">未找到所选模型或端点。请检查提供商设置。</string>
 </resources>

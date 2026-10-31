@@ -398,6 +398,9 @@
     <string name="managed_agent_run_cost_unknown">費用を検証できないため、上限付き実行を停止しました。</string>
     <string name="managed_agent_run_deadline">実行時間の上限を超えました。</string>
     <string name="managed_agent_run_approval_invalid">承認期限切れ、またはポリシー変更。</string>
+    <string name="managed_agent_run_details_title">実行の詳細</string>
+    <string name="managed_agent_run_details_empty">この実行に記録されたイベントはありません。</string>
+    <string name="managed_agent_run_details_close">閉じる</string>
     <string name="managed_agent_cost_unknown_hint">費用を検証できません。上限設定時は実行を拒否します。</string>
     <string name="managed_agent_memory_export">プライベートメモをエクスポート</string>
     <string name="managed_agent_memory_export_title">エージェントメモリをエクスポートしますか？</string>
@@ -444,4 +447,7 @@
     <string name="agent_automation_approval_review_title">リスク %1$s のタスクを確認</string>
     <string name="agent_automation_approval_summary_unavailable">タスクの詳細を表示できません。この要求は承認しないでください。</string>
     <string name="agent_automation_approval_reject">拒否</string>
+    <string name="ai_provider_test_model_missing">選択したモデルが見つかりません。利用可能なモデルを選んでください。</string>
+    <string name="ai_provider_test_timeout">プロバイダーが時間内に応答しませんでした。再試行してください。</string>
+    <string name="ai_provider_test_network">プロバイダーに接続できませんでした。ネットワーク、エンドポイント、TLSを確認してください。</string>
 </resources>

@@ -70,6 +70,29 @@ class AgentRunRepositoryTest {
     }
 
     @Test
+    fun illegalLifecycleEdgesAreRejectedBeforeWriting() = runTest {
+        val queued = assertIs<AgentRunStartResult.Created>(
+            repository.start("agent-one", "state-machine", "request", 1, 1, 60_000)
+        ).run
+
+        // A queued run never reached the provider, so it cannot be completed.
+        assertFalse(repository.finish(queued.id, AgentRunStatus.COMPLETED, "completed"))
+        assertEquals(AgentRunStatus.QUEUED, repository.find(queued.id)?.status)
+        assertEquals(listOf("QUEUED"), repository.observeEvents(queued.id).first().map { it.type.name })
+
+        // Rejecting a queued run is a legal terminal edge.
+        assertTrue(repository.finish(queued.id, AgentRunStatus.FAILED, "concurrent_run_limit"))
+        assertEquals(AgentRunStatus.FAILED, repository.find(queued.id)?.status)
+
+        // Terminal runs stay frozen and never emit a second terminal event.
+        assertFalse(repository.finish(queued.id, AgentRunStatus.CANCELLED, "cancelled"))
+        assertEquals(
+            listOf("QUEUED", "TERMINAL"),
+            repository.observeEvents(queued.id).first().map { it.type.name }
+        )
+    }
+
+    @Test
     fun activeRunLimitIsEnforcedAndProcessRecoveryNeverQueuesAReplay() = runTest {
         val first = assertIs<AgentRunStartResult.Created>(
             repository.start("agent-one", "key-1", "request-1", 1, 1, 60_000)

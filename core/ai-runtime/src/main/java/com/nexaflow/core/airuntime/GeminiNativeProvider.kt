@@ -35,7 +35,8 @@ data class GeminiNativeProviderConfig(
 
 data class GeminiNativeTransportResponse(
     val statusCode: Int,
-    val body: String
+    val body: String,
+    val retryAfterMs: Long? = null
 )
 
 interface GeminiNativeTransport {
@@ -57,6 +58,22 @@ interface GeminiNativeTransport {
         config: GeminiNativeProviderConfig,
         apiKey: String
     ): GeminiNativeTransportResponse
+
+    /**
+     * One page of the model catalog. The default keeps existing transports
+     * source-compatible: it serves the single legacy page and terminates
+     * pagination when a page token is requested.
+     */
+    suspend fun getModelsPage(
+        config: GeminiNativeProviderConfig,
+        apiKey: String,
+        pageToken: String?,
+        pageSize: Int
+    ): GeminiNativeTransportResponse = if (pageToken == null) {
+        getModels(config, apiKey)
+    } else {
+        GeminiNativeTransportResponse(200, """{"models":[]}""")
+    }
 }
 
 object GeminiNativeEndpointPolicy {
@@ -69,6 +86,23 @@ object GeminiNativeEndpointPolicy {
 
     fun modelsUri(config: GeminiNativeProviderConfig): URI =
         endpoint(config, "/models")
+
+    fun modelsPageUri(
+        config: GeminiNativeProviderConfig,
+        pageToken: String?,
+        pageSize: Int
+    ): URI {
+        val base = modelsUri(config)
+        val query = buildString {
+            append("pageSize=").append(pageSize.coerceIn(1, MAX_PAGE_SIZE))
+            pageToken?.takeIf(String::isNotBlank)?.let { token ->
+                append("&pageToken=").append(java.net.URLEncoder.encode(token, "UTF-8"))
+            }
+        }
+        return URI(base.scheme, null, base.host, base.port, base.path, query, null)
+    }
+
+    const val MAX_PAGE_SIZE = 1000
 
     fun requireAddresses(addresses: List<java.net.InetAddress>) =
         EndpointSecurityPolicy.requireAddressScope(addresses, local = false)
@@ -155,7 +189,7 @@ class GeminiNativeProvider(
         val reason = if (generation.statusCode in 200..299) {
             null
         } else {
-            AiProviderFailureClassifier.fromHttpStatus(generation.statusCode)
+            AiProviderHttpFailure.classify(generation.statusCode, generation.body)
         }
         return AiConnectionTestResult(
             success = reason == null,
@@ -184,43 +218,59 @@ class GeminiNativeProvider(
         }
         val key = apiKeyProvider()?.takeIf(String::isNotBlank)
             ?: return AiModelDiscoveryResult(false, failure = AiConnectionFailure.AUTHENTICATION)
-        val response = try {
-            transport.getModels(snapshot, key)
-        } catch (failure: Throwable) {
-            return AiModelDiscoveryResult(
-                false,
-                failure = AiProviderFailureClassifier.fromThrowable(failure)
-            )
-        }
-        if (response.statusCode !in 200..299) {
-            return AiModelDiscoveryResult(
-                false,
-                httpStatus = response.statusCode,
-                failure = AiProviderFailureClassifier.fromHttpStatus(response.statusCode)
-            )
-        }
-        val models = runCatching {
-            json.parseToJsonElement(response.body).jsonObject["models"]?.jsonArray
-                ?.mapNotNull { item ->
+        val discovered = LinkedHashSet<String>()
+        var pageToken: String? = null
+        var pages = 0
+        while (pages < MAX_MODEL_PAGES && discovered.size < MAX_MODELS) {
+            pages += 1
+            val response = try {
+                transport.getModelsPage(snapshot, key, pageToken, PAGE_SIZE)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                return AiModelDiscoveryResult(
+                    false,
+                    models = discovered.map(::AiDiscoveredModel),
+                    failure = AiProviderFailureClassifier.fromThrowable(failure)
+                )
+            }
+            if (response.statusCode !in 200..299) {
+                return AiModelDiscoveryResult(
+                    false,
+                    models = discovered.map(::AiDiscoveredModel),
+                    httpStatus = response.statusCode,
+                    failure = AiProviderHttpFailure.classify(
+                        response.statusCode,
+                        response.body
+                    )
+                )
+            }
+            val page = runCatching {
+                json.parseToJsonElement(response.body).jsonObject
+            }.getOrElse {
+                return AiModelDiscoveryResult(
+                    false,
+                    models = discovered.map(::AiDiscoveredModel),
+                    httpStatus = response.statusCode,
+                    failure = AiConnectionFailure.INVALID_RESPONSE
+                )
+            }
+            page["models"]?.jsonArray.orEmpty().forEach { item ->
+                val id = runCatching {
                     item.jsonObject["name"]?.jsonPrimitive?.contentOrNull
-                        ?.removePrefix("models/")
-                        ?.trim()
-                        ?.takeIf(String::isNotEmpty)
+                }.getOrNull()
+                id?.removePrefix("models/")?.trim()?.takeIf(String::isNotEmpty)?.let {
+                    discovered += it
                 }
-                ?.distinct()
-                ?.take(MAX_MODELS)
-                .orEmpty()
-        }.getOrElse {
-            return AiModelDiscoveryResult(
-                false,
-                httpStatus = response.statusCode,
-                failure = AiConnectionFailure.INVALID_RESPONSE
-            )
+            }
+            pageToken = page["nextPageToken"]?.jsonPrimitive?.contentOrNull
+                ?.takeIf(String::isNotBlank)
+            if (pageToken == null) break
         }
         return AiModelDiscoveryResult(
             true,
-            models.map(::AiDiscoveredModel),
-            httpStatus = response.statusCode
+            discovered.take(MAX_MODELS).map(::AiDiscoveredModel),
+            httpStatus = 200
         )
     }
 
@@ -251,29 +301,58 @@ class GeminiNativeProvider(
             headers
         )
         if (response.statusCode !in 200..299) {
-            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
+            throw AiProviderHttpFailure.of(
+                response.statusCode,
+                response.body,
+                response.retryAfterMs
+            )
         }
         val root = json.parseToJsonElement(response.body).jsonObject
-        val candidate = root["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
-        candidate?.get("content")?.jsonObject?.get("parts")?.jsonArray.orEmpty()
-            .forEach { partElement ->
-                val part = partElement.jsonObject
-                part["text"]?.jsonPrimitive?.contentOrNull
-                    ?.takeIf(String::isNotEmpty)
-                    ?.let { emit(AiProviderEvent.TextDelta(it)) }
-                part["functionCall"]?.jsonObject?.let { call ->
-                    val name = call["name"]?.jsonPrimitive?.contentOrNull.orEmpty()
-                    val args = call["args"] as? JsonObject ?: JsonObject(emptyMap())
-                    if (name.isNotBlank()) {
-                        emit(
-                            AiProviderEvent.ToolCall(
-                                AiToolCall(callIdGenerator(), name, args)
-                            )
+        val blockReason = root["promptFeedback"]?.jsonObject
+            ?.get("blockReason")?.jsonPrimitive?.contentOrNull
+            ?.takeIf(String::isNotBlank)
+        if (blockReason != null) {
+            throw blockedResponse("prompt_blocked_" + blockReason.lowercase(), blockReason)
+        }
+        val candidates = root["candidates"]?.jsonArray.orEmpty()
+        if (candidates.isEmpty()) {
+            val feedback = root["promptFeedback"]?.jsonObject
+                ?.get("blockReasonMessage")?.jsonPrimitive?.contentOrNull
+            throw blockedResponse("empty_candidates", feedback)
+        }
+        val candidate = candidates.firstOrNull()?.jsonObject
+        val finishReason = candidate?.get("finishReason")?.jsonPrimitive?.contentOrNull
+            ?.takeIf(String::isNotBlank)
+        val responseParts = candidate?.get("content")?.jsonObject?.get("parts")
+        var producedText = false
+        var producedCalls = false
+        responseParts?.jsonArray.orEmpty().forEach { partElement ->
+            val part = partElement.jsonObject
+            part["text"]?.jsonPrimitive?.contentOrNull
+                ?.takeIf(String::isNotEmpty)
+                ?.let {
+                    producedText = true
+                    emit(AiProviderEvent.TextDelta(it))
+                }
+            part["functionCall"]?.jsonObject?.let { call ->
+                val name = call["name"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                val args = call["args"] as? JsonObject ?: JsonObject(emptyMap())
+                if (name.isNotBlank()) {
+                    producedCalls = true
+                    emit(
+                        AiProviderEvent.ToolCall(
+                            AiToolCall(callIdGenerator(), name, args)
                         )
-                    }
+                    )
                 }
             }
-        val responseParts = candidate?.get("content")?.jsonObject?.get("parts")
+        }
+        if (!producedText && !producedCalls && finishReason in BLOCKING_FINISH_REASONS) {
+            throw blockedResponse(
+                "finish_" + finishReason.orEmpty().lowercase(),
+                finishReason
+            )
+        }
         if (responseParts is kotlinx.serialization.json.JsonArray) {
             emit(
                 AiProviderEvent.WireContext(
@@ -281,12 +360,18 @@ class GeminiNativeProvider(
                 )
             )
         }
-        emit(
-            AiProviderEvent.Finished(
-                candidate?.get("finishReason")?.jsonPrimitive?.contentOrNull
-            )
-        )
+        emit(AiProviderEvent.Finished(finishReason))
     }
+
+    private fun blockedResponse(code: String, detail: String?) = AiProviderRequestException(
+        failure = AiConnectionFailure.INVALID_RESPONSE,
+        httpStatus = 200,
+        providerCode = AiProviderHttpFailure.sanitizeCode(code),
+        providerMessage = AiProviderHttpFailure.sanitizeMessage(
+            "Gemini returned no usable content" +
+                (detail?.let { ": $it" } ?: "")
+        )
+    )
 
     private fun AiProviderRequest.toBody() = buildJsonObject {
         val systemText = messages
@@ -300,51 +385,69 @@ class GeminiNativeProvider(
             }
         }
         putJsonArray("contents") {
-            messages.filter { it.role != AiRole.SYSTEM }.forEach { message ->
+            val conversational = messages.filter { it.role != AiRole.SYSTEM }
+            var index = 0
+            while (index < conversational.size) {
+                val message = conversational[index]
+                if (message.role == AiRole.TOOL) {
+                    // Gemini requires one function-response turn per function-call turn:
+                    // every parallel call must be answered by the same `contents` entry.
+                    val parts = buildJsonArray {
+                        while (index < conversational.size &&
+                            conversational[index].role == AiRole.TOOL
+                        ) {
+                            val result = conversational[index]
+                            add(
+                                buildJsonObject {
+                                    putJsonObject("functionResponse") {
+                                        put("name", result.toolName.orEmpty())
+                                        put(
+                                            "response",
+                                            buildJsonObject { put("result", result.text) }
+                                        )
+                                    }
+                                }
+                            )
+                            index += 1
+                        }
+                    }
+                    add(buildJsonObject {
+                        put("role", "user")
+                        put("parts", parts)
+                    })
+                    continue
+                }
                 add(
                     buildJsonObject {
                         put("role", if (message.role == AiRole.ASSISTANT) "model" else "user")
                         putJsonArray("parts") {
-                            if (message.role == AiRole.TOOL) {
-                                add(
-                                    buildJsonObject {
-                                        putJsonObject("functionResponse") {
-                                            put("name", message.toolName.orEmpty())
-                                            put(
-                                                "response",
-                                                buildJsonObject { put("result", message.text) }
-                                            )
-                                        }
-                                    }
-                                )
+                            val previousParts = if (message.role == AiRole.ASSISTANT) {
+                                message.providerContext[GEMINI_CONTENT_PARTS_CONTEXT]
+                                    as? kotlinx.serialization.json.JsonArray
                             } else {
-                                val previousParts = if (message.role == AiRole.ASSISTANT) {
-                                    message.providerContext[GEMINI_CONTENT_PARTS_CONTEXT]
-                                        as? kotlinx.serialization.json.JsonArray
-                                } else {
-                                    null
+                                null
+                            }
+                            if (previousParts != null) {
+                                previousParts.forEach { add(it) }
+                            } else {
+                                if (message.text.isNotBlank()) {
+                                    add(buildJsonObject { put("text", message.text) })
                                 }
-                                if (previousParts != null) {
-                                    previousParts.forEach { add(it) }
-                                } else {
-                                    if (message.text.isNotBlank()) {
-                                        add(buildJsonObject { put("text", message.text) })
-                                    }
-                                    message.toolCalls.forEach { call ->
-                                        add(
-                                            buildJsonObject {
-                                                putJsonObject("functionCall") {
-                                                    put("name", call.name)
-                                                    put("args", call.arguments)
-                                                }
+                                message.toolCalls.forEach { call ->
+                                    add(
+                                        buildJsonObject {
+                                            putJsonObject("functionCall") {
+                                                put("name", call.name)
+                                                put("args", call.arguments)
                                             }
-                                        )
-                                    }
+                                        }
+                                    )
                                 }
                             }
                         }
                     }
                 )
+                index += 1
             }
         }
         if (tools.isNotEmpty()) {
@@ -371,6 +474,9 @@ class GeminiNativeProvider(
                         }
                     }
                 )
+            }
+            putJsonObject("toolConfig") {
+                putJsonObject("functionCallingConfig") { put("mode", "AUTO") }
             }
         }
     }
@@ -412,6 +518,16 @@ class GeminiNativeProvider(
 
     private companion object {
         const val MAX_MODELS = 512
+        const val MAX_MODEL_PAGES = 10
+        const val PAGE_SIZE = GeminiNativeEndpointPolicy.MAX_PAGE_SIZE
+        val BLOCKING_FINISH_REASONS = setOf(
+            "SAFETY",
+            "RECITATION",
+            "BLOCKLIST",
+            "PROHIBITED_CONTENT",
+            "SPII",
+            "IMAGE_SAFETY"
+        )
     }
 }
 

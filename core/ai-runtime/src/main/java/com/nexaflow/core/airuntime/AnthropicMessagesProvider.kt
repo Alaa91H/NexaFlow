@@ -1,7 +1,7 @@
 package com.nexaflow.core.airuntime
 
 import com.nexaflow.core.common.EndpointSecurityPolicy
-
+import java.io.IOException
 import java.net.URI
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,11 @@ data class AnthropicMessagesProviderConfig(
     val gatewaySession: Boolean = false
 )
 
-data class AnthropicMessagesTransportResponse(val statusCode: Int, val body: String)
+data class AnthropicMessagesTransportResponse(
+    val statusCode: Int,
+    val body: String,
+    val retryAfterMs: Long? = null
+)
 
 interface AnthropicMessagesTransport {
     suspend fun postMessages(
@@ -121,7 +125,9 @@ class AnthropicMessagesProvider(
         val result = discoverModels()
         val modelExists = result.success && result.models.any { it == snapshot.modelId }
         val failure = when {
-            !result.success -> AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+            !result.success -> result.failure ?: AiProviderFailureClassifier.fromHttpStatus(
+                result.statusCode
+            )
             !modelExists -> AiConnectionFailure.MODEL_NOT_FOUND
             else -> null
         }
@@ -142,7 +148,8 @@ class AnthropicMessagesProvider(
     data class ModelDiscoveryResult(
         val success: Boolean,
         val models: List<String> = emptyList(),
-        val statusCode: Int? = null
+        val statusCode: Int? = null,
+        val failure: AiConnectionFailure? = null
     )
 
     suspend fun discoverModels(): ModelDiscoveryResult {
@@ -150,10 +157,22 @@ class AnthropicMessagesProvider(
         if (!isConfigured(snapshot)) return ModelDiscoveryResult(success = false)
         val key = apiKeyProvider()?.takeIf(String::isNotBlank)
             ?: return ModelDiscoveryResult(success = false)
-        val response = runCatching { transport.getModels(snapshot, key) }.getOrNull()
-            ?: return ModelDiscoveryResult(success = false)
+        val response = try {
+            transport.getModels(snapshot, key)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (failure: IOException) {
+            return ModelDiscoveryResult(
+                success = false,
+                failure = AiProviderFailureClassifier.fromThrowable(failure)
+            )
+        }
         if (response.statusCode !in 200..299) {
-            return ModelDiscoveryResult(success = false, statusCode = response.statusCode)
+            return ModelDiscoveryResult(
+                success = false,
+                statusCode = response.statusCode,
+                failure = AiProviderHttpFailure.classify(response.statusCode, response.body)
+            )
         }
         val models = runCatching {
             json.parseToJsonElement(response.body).jsonObject["data"]?.jsonArray
@@ -163,7 +182,11 @@ class AnthropicMessagesProvider(
                 ?.take(MAX_MODELS)
                 .orEmpty()
         }.getOrElse {
-            return ModelDiscoveryResult(success = false, statusCode = response.statusCode)
+            return ModelDiscoveryResult(
+                success = false,
+                statusCode = response.statusCode,
+                failure = AiConnectionFailure.INVALID_RESPONSE
+            )
         }
         return ModelDiscoveryResult(true, models, response.statusCode)
     }
@@ -177,7 +200,7 @@ class AnthropicMessagesProvider(
             failure = if (result.success) {
                 null
             } else {
-                AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
+                result.failure ?: AiProviderFailureClassifier.fromHttpStatus(result.statusCode)
             }
         )
     }
@@ -220,7 +243,11 @@ class AnthropicMessagesProvider(
             headers
         )
         if (response.statusCode !in 200..299) {
-            throw AiProviderRequestException.fromHttpStatus(response.statusCode)
+            throw AiProviderHttpFailure.of(
+                response.statusCode,
+                response.body,
+                response.retryAfterMs
+            )
         }
         val root = json.parseToJsonElement(response.body).jsonObject
         root["content"]?.jsonArray.orEmpty().forEach { block ->

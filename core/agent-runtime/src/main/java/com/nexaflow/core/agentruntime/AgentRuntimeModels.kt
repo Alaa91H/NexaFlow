@@ -159,7 +159,28 @@ enum class AgentRunStatus {
     INTERRUPTED;
 
     val isTerminal: Boolean
-        get() = this in setOf(COMPLETED, FAILED, CANCELLED, INTERRUPTED)
+        get() = this in TERMINAL_STATUSES
+
+    /**
+     * Explicit lifecycle. Every edge the run ledger may take is listed here so
+     * that a bug in a caller cannot, for example, complete a run that never
+     * started or revive a finished one.
+     */
+    fun canTransitionTo(next: AgentRunStatus): Boolean = when (this) {
+        QUEUED -> next in setOf(RUNNING, FAILED, CANCELLED, INTERRUPTED)
+        RUNNING -> next in setOf(
+            WAITING_FOR_APPROVAL, COMPLETED, FAILED, CANCELLED, INTERRUPTED
+        )
+        WAITING_FOR_APPROVAL -> next in setOf(
+            RUNNING, COMPLETED, FAILED, CANCELLED, INTERRUPTED
+        )
+        COMPLETED, FAILED, CANCELLED, INTERRUPTED -> false
+    }
+
+    companion object {
+        private val TERMINAL_STATUSES =
+            setOf(COMPLETED, FAILED, CANCELLED, INTERRUPTED)
+    }
 }
 
 /** Durable run metadata; content and provider credentials deliberately have no fields here. */

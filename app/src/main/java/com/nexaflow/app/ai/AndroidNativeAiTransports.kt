@@ -1,5 +1,6 @@
 package com.nexaflow.app.ai
 
+import com.nexaflow.core.airuntime.AiRetryAfter
 import com.nexaflow.core.airuntime.GeminiNativeEndpointPolicy
 import com.nexaflow.core.airuntime.GeminiNativeProviderConfig
 import com.nexaflow.core.airuntime.GeminiNativeTransport
@@ -40,7 +41,9 @@ class AndroidOpenAiResponsesTransport : OpenAiResponsesTransport {
             headers = AndroidAiGatewayHeaders.normalized(headers) +
                 mapOf("Authorization" to "Bearer $apiKey"),
             payload = body.toString().toByteArray(Charsets.UTF_8)
-        ).let { OpenAiResponsesTransportResponse(it.statusCode, it.body) }
+        ).let {
+            OpenAiResponsesTransportResponse(it.statusCode, it.body, it.retryAfterMs)
+        }
     }
 
     override suspend fun getModels(
@@ -55,7 +58,9 @@ class AndroidOpenAiResponsesTransport : OpenAiResponsesTransport {
             endpoint = endpoint,
             method = "GET",
             headers = mapOf("Authorization" to "Bearer $apiKey")
-        ).let { OpenAiResponsesTransportResponse(it.statusCode, it.body) }
+        ).let {
+            OpenAiResponsesTransportResponse(it.statusCode, it.body, it.retryAfterMs)
+        }
     }
 }
 
@@ -83,14 +88,23 @@ class AndroidGeminiNativeTransport : GeminiNativeTransport {
             headers = AndroidAiGatewayHeaders.normalized(headers) +
                 mapOf("x-goog-api-key" to apiKey),
             payload = body.toString().toByteArray(Charsets.UTF_8)
-        ).let { GeminiNativeTransportResponse(it.statusCode, it.body) }
+        ).let {
+            GeminiNativeTransportResponse(it.statusCode, it.body, it.retryAfterMs)
+        }
     }
 
     override suspend fun getModels(
         config: GeminiNativeProviderConfig,
         apiKey: String
+    ): GeminiNativeTransportResponse = getModelsPage(config, apiKey, null, 1000)
+
+    override suspend fun getModelsPage(
+        config: GeminiNativeProviderConfig,
+        apiKey: String,
+        pageToken: String?,
+        pageSize: Int
     ): GeminiNativeTransportResponse = withContext(Dispatchers.IO) {
-        val endpoint = GeminiNativeEndpointPolicy.modelsUri(config)
+        val endpoint = GeminiNativeEndpointPolicy.modelsPageUri(config, pageToken, pageSize)
         GeminiNativeEndpointPolicy.requireAddresses(
             InetAddress.getAllByName(endpoint.host).toList()
         )
@@ -98,13 +112,16 @@ class AndroidGeminiNativeTransport : GeminiNativeTransport {
             endpoint = endpoint,
             method = "GET",
             headers = mapOf("x-goog-api-key" to apiKey)
-        ).let { GeminiNativeTransportResponse(it.statusCode, it.body) }
+        ).let {
+            GeminiNativeTransportResponse(it.statusCode, it.body, it.retryAfterMs)
+        }
     }
 }
 
 private data class NativeHttpResponse(
     val statusCode: Int,
-    val body: String
+    val body: String,
+    val retryAfterMs: Long? = null
 )
 
 private object NativeHttpsJsonClient {
@@ -137,6 +154,7 @@ private object NativeHttpsJsonClient {
             }
 
             val status = connection.responseCode
+            val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
             if (status in 300..399) {
                 return NativeHttpResponse(status, """{"error":"redirect_rejected"}""")
             }
@@ -165,7 +183,7 @@ private object NativeHttpsJsonClient {
                 }
                 output.toByteArray()
             }
-            return NativeHttpResponse(status, bytes.toString(Charsets.UTF_8))
+            return NativeHttpResponse(status, bytes.toString(Charsets.UTF_8), retryAfterMs)
         } finally {
             connection.disconnect()
         }

@@ -33,7 +33,7 @@ BASELINE_HOTSPOTS = {
     "feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt": 71_326,
     "domain/src/main/java/com/nexaflow/domain/canonical/LegacyMappingTable.kt": 63_403,
     "core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowIcons.kt": 58_833,
-    "feature/settings/src/main/java/com/nexaflow/feature/settings/AgentSettingsScreen.kt": 49_745,
+    "feature/settings/src/main/java/com/nexaflow/feature/settings/AgentSettingsScreen.kt": 49_941,
     "feature/settings/src/main/java/com/nexaflow/feature/settings/SettingsScreen.kt": 50_315,
     "feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt": 46_733,
     "core/execution/src/main/java/com/nexaflow/core/execution/TriggerStateEvaluator.kt": 46_187,

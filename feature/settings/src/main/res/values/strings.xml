@@ -405,6 +405,9 @@
     <string name="managed_agent_run_cost_unknown">Provider cost cannot be verified; capped run blocked.</string>
     <string name="managed_agent_run_deadline">Run exceeded its time limit.</string>
     <string name="managed_agent_run_approval_invalid">Approval expired or agent/device policy changed.</string>
+    <string name="managed_agent_run_details_title">Run details</string>
+    <string name="managed_agent_run_details_empty">No events recorded for this run.</string>
+    <string name="managed_agent_run_details_close">Close</string>
     <string name="managed_agent_cost_unknown_hint">Cost reporting is unavailable; capped runs fail closed.</string>
     <string name="managed_agent_memory_export">Export private notes</string>
     <string name="managed_agent_memory_export_title">Export agent memory?</string>
@@ -440,4 +443,7 @@
     <string name="agent_automation_approval_summary_unavailable">Task details are unavailable. Do not approve this request.</string>
     <string name="agent_automation_approval_reject">Reject</string>
     <string name="agent_lan_access_tls_required">LAN access is temporarily unavailable until encrypted TLS connections are supported.</string>
+    <string name="ai_provider_test_model_missing">The selected model was not found. Pick an available model.</string>
+    <string name="ai_provider_test_timeout">The provider did not answer in time. Try again.</string>
+    <string name="ai_provider_test_network">Could not reach the provider. Check the network, endpoint and TLS settings.</string>
 </resources>

@@ -26,12 +26,17 @@ import com.nexaflow.core.security.InMemorySecureStorage
 import com.nexaflow.data.agents.AgentDefinitionRepository
 import com.nexaflow.data.agents.AgentMemoryRepository
 import com.nexaflow.data.agents.AgentRunRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.junit.After
@@ -236,6 +241,120 @@ class ManagedAgentRunCoordinatorTest {
         assertTrue(userMessage.contains("Likes quiet notifications"))
         assertTrue(userMessage.contains("untrusted reference data"))
         assertFalse(userMessage.contains("must never cross over"))
+    }
+
+    @Test
+    fun outputBudgetOverrunFailsTheRunInsteadOfCompletingIt() = runBlocking {
+        val provider = OverrunProvider(characters = 200)
+        val definitions = AgentDefinitionRepository(database.agentDefinitionDao())
+        val runs = AgentRunRepository(database.agentRunDao())
+        val coordinator = ManagedAgentRunCoordinator(
+            definitions = definitions,
+            runs = runs,
+            memories = AgentMemoryRepository(InMemorySecureStorage()),
+            registry = AiProviderRegistry(listOf(provider)),
+            tools = FakeTools(),
+            context = ApplicationProvider.getApplicationContext()
+        )
+        definitions.create(
+            AgentDefinition(
+                id = "agent-output-capped",
+                name = "Output capped",
+                providerProfileId = "local-profile",
+                modelId = "local-model",
+                budget = AgentBudget(maxOutputCharacters = 100),
+                enabled = true,
+                createdAtMillis = 1,
+                updatedAtMillis = 1
+            )
+        )
+
+        val events = coordinator.runAgent("agent-output-capped", "write a lot", "output-request").toList()
+
+        val runId = (events.first { it is ManagedAgentRunEvent.Queued } as ManagedAgentRunEvent.Queued).runId
+        assertTrue(events.none { it is ManagedAgentRunEvent.Completed })
+        assertTrue(events.last() == ManagedAgentRunEvent.Failed(runId, "output_limit"))
+        assertEquals(AgentRunStatus.FAILED, runs.find(runId)?.status)
+        assertEquals("output_limit", runs.find(runId)?.outcomeCode)
+    }
+
+    @Test
+    fun cancellingTheCollectorMarksTheRunCancelled() = runBlocking {
+        val provider = SuspendingProvider()
+        val definitions = AgentDefinitionRepository(database.agentDefinitionDao())
+        val runs = AgentRunRepository(database.agentRunDao())
+        val coordinator = ManagedAgentRunCoordinator(
+            definitions = definitions,
+            runs = runs,
+            memories = AgentMemoryRepository(InMemorySecureStorage()),
+            registry = AiProviderRegistry(listOf(provider)),
+            tools = FakeTools(),
+            context = ApplicationProvider.getApplicationContext()
+        )
+        definitions.create(
+            AgentDefinition(
+                id = "agent-cancellable",
+                name = "Cancellable",
+                providerProfileId = "local-profile",
+                modelId = "local-model",
+                enabled = true,
+                createdAtMillis = 1,
+                updatedAtMillis = 1
+            )
+        )
+        val firstDelta = CompletableDeferred<Unit>()
+        var runId: String? = null
+        val job = launch {
+            coordinator.runAgent("agent-cancellable", "start", "cancel-request").collect { event ->
+                when (event) {
+                    is ManagedAgentRunEvent.Queued -> runId = event.runId
+                    is ManagedAgentRunEvent.AssistantDelta -> firstDelta.complete(Unit)
+                    else -> Unit
+                }
+            }
+        }
+
+        withTimeout(5_000) { firstDelta.await() }
+        job.cancelAndJoin()
+
+        val id = requireNotNull(runId)
+        assertEquals(AgentRunStatus.CANCELLED, runs.find(id)?.status)
+        assertEquals("cancelled", runs.find(id)?.outcomeCode)
+        assertTrue(runs.observeEvents(id).first().last().safeCode == "cancelled")
+    }
+
+    private class OverrunProvider(private val characters: Int) : AiModelProvider {
+        override val descriptor = MutableStateFlow(
+            AiProviderDescriptor(
+                id = "local-profile",
+                displayName = "Local",
+                modelId = "local-model",
+                capabilities = AiProviderCapabilities(toolCalling = true, streaming = true, local = true),
+                available = true
+            )
+        )
+
+        override fun stream(request: AiProviderRequest) = flow {
+            emit(AiProviderEvent.TextDelta("x".repeat(characters)))
+            emit(AiProviderEvent.Finished())
+        }
+    }
+
+    private class SuspendingProvider : AiModelProvider {
+        override val descriptor = MutableStateFlow(
+            AiProviderDescriptor(
+                id = "local-profile",
+                displayName = "Local",
+                modelId = "local-model",
+                capabilities = AiProviderCapabilities(toolCalling = true, streaming = true, local = true),
+                available = true
+            )
+        )
+
+        override fun stream(request: AiProviderRequest) = flow {
+            emit(AiProviderEvent.TextDelta("partial"))
+            awaitCancellation()
+        }
     }
 
     private class ApprovalProvider : AiModelProvider {

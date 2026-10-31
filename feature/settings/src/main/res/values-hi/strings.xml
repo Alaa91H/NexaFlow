@@ -398,6 +398,9 @@
     <string name="managed_agent_run_cost_unknown">लागत सत्यापित नहीं; लागत-सीमा वाला रन रोक दिया गया।</string>
     <string name="managed_agent_run_deadline">समय-सीमा पूरी हुई।</string>
     <string name="managed_agent_run_approval_invalid">अनुमति समाप्त हुई या नीति बदली।</string>
+    <string name="managed_agent_run_details_title">रन विवरण</string>
+    <string name="managed_agent_run_details_empty">इस रन के लिए कोई घटना दर्ज नहीं है।</string>
+    <string name="managed_agent_run_details_close">बंद करें</string>
     <string name="managed_agent_cost_unknown_hint">लागत सत्यापन नहीं; सीमा वाले रन रोक दिए जाते हैं।</string>
     <string name="managed_agent_memory_export">निजी नोट निर्यात करें</string>
     <string name="managed_agent_memory_export_title">एजेंट मेमोरी निर्यात करें?</string>
@@ -444,4 +447,7 @@
     <string name="agent_automation_approval_review_title">%1$s जोखिम वाले कार्य की समीक्षा करें</string>
     <string name="agent_automation_approval_summary_unavailable">कार्य का विवरण उपलब्ध नहीं है। इस अनुरोध को मंज़ूरी न दें।</string>
     <string name="agent_automation_approval_reject">अस्वीकार करें</string>
+    <string name="ai_provider_test_model_missing">चुना गया मॉडल नहीं मिला। उपलब्ध मॉडल चुनें।</string>
+    <string name="ai_provider_test_timeout">प्रदाता ने समय पर उत्तर नहीं दिया। पुनः प्रयास करें।</string>
+    <string name="ai_provider_test_network">प्रदाता तक नहीं पहुँच सके। नेटवर्क, एंडपॉइंट और TLS जाँचें।</string>
 </resources>
