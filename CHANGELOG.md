@@ -31,6 +31,7 @@
 - `scripts/audit_translation_completeness.py` gained a sixth layer: an English phrase inside a non-Latin locale (no character of that locale's script, two or more Latin words) is now a failure. The previous layers only caught values copied verbatim from the default, which is how the reworded English above survived. The self-test covers the new class.
 - `scripts/publish_telegram_release.py` ships with 15 unit tests: markdown rendering and HTML escaping, chunking under the message limit, oversized-line wrapping, intro content, target parsing (missing channel, numeric topic) and the publish order (intro → changelog → documents, per target).
 - Local gates before the tag: `:core:ai-runtime:testDebugUnitTest` (100 tests, 0 failures, 3 live tests skipped without a key), `detekt`, string parity, translation completeness, hardcoded text, AI secret boundary and provider registry all pass.
+- The architecture-fitness baseline for `AgentSettingsScreen.kt` is raised by 196 bytes (49,745 → 49,941) for the typed failure-reason call, so the growth is recorded rather than hidden.
 
 ## [v3.91.16] - 2026-10-30
 
