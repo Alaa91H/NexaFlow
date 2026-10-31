@@ -425,6 +425,15 @@ class OpenAiCompatibleProviderTest {
         assertEquals(AiConnectionFailure.INVALID_RESPONSE, discovery.failure)
     }
 
+    @Test
+    fun discoveryResultDefaultsCarryNoStatusOrFailure() {
+        val result = OpenAiModelDiscoveryResult(success = false)
+
+        assertEquals(null, result.statusCode)
+        assertEquals(null, result.failure)
+        assertTrue(result.models.isEmpty())
+    }
+
     private class FakeTransport : OpenAiCompatibleTransport {
         var lastBody: JsonObject? = null
 

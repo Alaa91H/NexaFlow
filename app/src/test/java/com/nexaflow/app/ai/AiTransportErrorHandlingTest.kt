@@ -27,7 +27,6 @@ class AiTransportErrorHandlingTest {
         val contentType: String? = "application/json"
     )
 
-    private val productionOpener = AiHttpConnections.opener
     private var response: FakeResponse? = null
     private var lastConnection: FakeHttpsConnection? = null
 
@@ -188,8 +187,10 @@ class AiTransportErrorHandlingTest {
     }
 
     @Test
-    fun theProductionOpenerBuildsAConnectionWithoutConnecting() {
-        val connection = productionOpener(java.net.URI.create("https://api.openai.com/v1/models"))
+    fun thePlatformOpenerBuildsAConnectionWithoutConnecting() {
+        val connection = AiHttpConnections.platformOpen(
+            java.net.URI.create("https://api.openai.com/v1/models")
+        )
 
         assertEquals("api.openai.com", connection.url.host)
     }

@@ -13,9 +13,10 @@ import javax.net.ssl.HttpsURLConnection
 internal object AiHttpConnections {
 
     @Volatile
-    var opener: (URI) -> HttpsURLConnection = { endpoint ->
-        endpoint.toURL().openConnection() as HttpsURLConnection
-    }
+    var opener: (URI) -> HttpsURLConnection = ::platformOpen
 
     fun open(endpoint: URI): HttpsURLConnection = opener(endpoint)
+
+    fun platformOpen(endpoint: URI): HttpsURLConnection =
+        endpoint.toURL().openConnection() as HttpsURLConnection
 }
