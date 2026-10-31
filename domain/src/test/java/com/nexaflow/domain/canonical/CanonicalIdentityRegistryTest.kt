@@ -14,8 +14,8 @@ class CanonicalIdentityRegistryTest {
     fun defaultRegistryContainsEveryT01ReviewedIdentity() {
         val registry = CanonicalIdentityRegistry.default()
 
-        assertEquals(134, registry.targets().size)
-        assertEquals(46, registry.operations().size)
+        assertEquals(135, registry.targets().size)
+        assertEquals(47, registry.operations().size)
         assertEquals(12, registry.predicates().size)
         assertEquals(CapabilityId.entries.size, registry.capabilities().size)
     }

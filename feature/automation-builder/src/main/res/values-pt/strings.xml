@@ -1247,4 +1247,15 @@
     <string name="network_metered">Rede limitada por dados</string>
     <string name="network_ssid">Nome do Wi-Fi (SSID)</string>
     <string name="network_bssid">Ponto de acesso (BSSID)</string>
+    <string name="action_agent_run">Executar agente de IA</string>
+    <string name="action_agent_run_sub">Executa um agente de IA guardado com um pedido</string>
+    <string name="agent_run_agent_label">Agente</string>
+    <string name="agent_run_no_agents">Nenhum agente ativado. Ative um em Definições → IA e agentes.</string>
+    <string name="agent_run_prompt_label">Pedido</string>
+    <string name="agent_run_prompt_hint">O que o agente deve fazer? As variáveis são expandidas antes da execução.</string>
+    <string name="agent_run_duration_label">Segundos máximos (1–3600)</string>
+    <string name="agent_run_approval_label">Se o agente precisar de aprovação de ferramenta</string>
+    <string name="agent_run_approval_fail">Parar a execução</string>
+    <string name="agent_run_approval_skip">Ignorar a ferramenta</string>
+    <string name="agent_run_result_label">Variável de resultado (opcional)</string>
 </resources>

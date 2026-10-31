@@ -27,11 +27,11 @@ DIRECT_SCOPE_ALLOWLIST = {
 BASELINE_HOTSPOTS = {
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt": 54_348,
     "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt": 114_819,
-    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt": 54_710,
+    "feature/automation-builder/src/main/java/com/nexaflow/feature/builder/ActionConfigEditor.kt": 55_055,
     "core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt": 86_767,
     "core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt": 83_428,
     "feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt": 71_326,
-    "domain/src/main/java/com/nexaflow/domain/canonical/LegacyMappingTable.kt": 63_167,
+    "domain/src/main/java/com/nexaflow/domain/canonical/LegacyMappingTable.kt": 63_403,
     "core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowIcons.kt": 58_833,
     "feature/settings/src/main/java/com/nexaflow/feature/settings/AgentSettingsScreen.kt": 49_745,
     "feature/settings/src/main/java/com/nexaflow/feature/settings/SettingsScreen.kt": 50_315,

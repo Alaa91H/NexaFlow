@@ -587,4 +587,6 @@
     <string name="action_sms_block_sub">Suprime los SMS coincidentes (requiere el rol de SMS predeterminado)</string>
     <string name="action_sms_reply">Responder a SMS entrante</string>
     <string name="action_sms_reply_sub">Enviar un mensaje a quien inició el flujo por SMS</string>
+    <string name="action_agent_run">Ejecutar agente de IA</string>
+    <string name="action_agent_run_sub">Ejecuta un agente de IA guardado con una instrucción</string>
 </resources>

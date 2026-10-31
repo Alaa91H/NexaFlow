@@ -1247,4 +1247,15 @@
     <string name="network_metered">Сеть с тарификацией трафика</string>
     <string name="network_ssid">Имя Wi-Fi (SSID)</string>
     <string name="network_bssid">Точка доступа (BSSID)</string>
+    <string name="action_agent_run">Запустить ИИ-агента</string>
+    <string name="action_agent_run_sub">Запускает сохранённого ИИ-агента с запросом</string>
+    <string name="agent_run_agent_label">Агент</string>
+    <string name="agent_run_no_agents">Нет включённых агентов. Включите его в Настройки → ИИ и агенты.</string>
+    <string name="agent_run_prompt_label">Запрос</string>
+    <string name="agent_run_prompt_hint">Что должен сделать агент? Переменные подставляются перед запуском.</string>
+    <string name="agent_run_duration_label">Максимум секунд (1–3600)</string>
+    <string name="agent_run_approval_label">Если агенту нужно одобрение инструмента</string>
+    <string name="agent_run_approval_fail">Остановить запуск</string>
+    <string name="agent_run_approval_skip">Пропустить инструмент</string>
+    <string name="agent_run_result_label">Переменная результата (необязательно)</string>
 </resources>

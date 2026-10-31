@@ -1247,4 +1247,15 @@
     <string name="network_metered">मापी गई नेटवर्क</string>
     <string name="network_ssid">Wi-Fi नाम (SSID)</string>
     <string name="network_bssid">एक्सेस पॉइंट (BSSID)</string>
+    <string name="action_agent_run">AI एजेंट चलाएँ</string>
+    <string name="action_agent_run_sub">सहेजे गए AI एजेंट को प्रॉम्प्ट के साथ चलाता है</string>
+    <string name="agent_run_agent_label">एजेंट</string>
+    <string name="agent_run_no_agents">कोई सक्षम एजेंट नहीं। सेटिंग्स → AI और एजेंट में एक सक्षम करें।</string>
+    <string name="agent_run_prompt_label">प्रॉम्प्ट</string>
+    <string name="agent_run_prompt_hint">एजेंट को क्या करना चाहिए? रन से पहले वेरिएबल बदल दिए जाते हैं।</string>
+    <string name="agent_run_duration_label">अधिकतम सेकंड (1–3600)</string>
+    <string name="agent_run_approval_label">अगर एजेंट को टूल स्वीकृति चाहिए</string>
+    <string name="agent_run_approval_fail">रन रोकें</string>
+    <string name="agent_run_approval_skip">टूल छोड़ें</string>
+    <string name="agent_run_result_label">परिणाम वेरिएबल (वैकल्पिक)</string>
 </resources>

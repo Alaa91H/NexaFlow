@@ -1254,4 +1254,15 @@
     <string name="network_metered">Metered network</string>
     <string name="network_ssid">Wi-Fi name (SSID)</string>
     <string name="network_bssid">Access point (BSSID)</string>
+    <string name="action_agent_run">Run AI agent</string>
+    <string name="action_agent_run_sub">Runs a saved AI agent with a prompt</string>
+    <string name="agent_run_agent_label">Agent</string>
+    <string name="agent_run_no_agents">No enabled agents. Enable one in Settings → AI &amp; Agents.</string>
+    <string name="agent_run_prompt_label">Prompt</string>
+    <string name="agent_run_prompt_hint">What should the agent do? Variables are expanded before the run.</string>
+    <string name="agent_run_duration_label">Maximum seconds (1–3600)</string>
+    <string name="agent_run_approval_label">If the agent needs tool approval</string>
+    <string name="agent_run_approval_fail">Stop the run</string>
+    <string name="agent_run_approval_skip">Skip the tool</string>
+    <string name="agent_run_result_label">Result variable (optional)</string>
 </resources>

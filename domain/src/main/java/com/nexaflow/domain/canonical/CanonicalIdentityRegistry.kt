@@ -89,6 +89,7 @@ class CanonicalIdentityRegistry private constructor(
 object CanonicalIdentityCatalog {
     val targets: List<CanonicalTargetDescriptor> = listOf(
             "core.advanced.command",
+            "core.ai.agent",
             "core.application.camera",
             "core.application.contacts",
             "core.application.foreground",
@@ -249,6 +250,7 @@ object CanonicalIdentityCatalog {
             "core.operation.open",
             "core.operation.open_app_page",
             "core.operation.reboot",
+            "core.operation.run",
             "core.operation.reject",
             "core.operation.restart",
             "core.operation.scan",

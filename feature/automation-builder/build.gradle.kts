@@ -111,7 +111,12 @@ dependencies {
     // LocationAccess (silent location toggle + single-shot fix) for the
     // location trigger editor.
     implementation(project(":core:automation-engine"))
+    // Read-only agent choice seam powers the AGENT_RUN action picker without
+    // crossing the feature-to-persistence boundary.
+    implementation(project(":core:agent-runtime"))
     testImplementation(libs.junit.junit)
+    // Virtual-time Main dispatcher for the agent picker view model.
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
     // Compose UI tests running under Robolectric (semantics assertions on the
     // live badge states). ui-test-manifest is already a debugImplementation.
     testImplementation(libs.androidx.compose.ui.ui.test.junit4)

@@ -1247,4 +1247,15 @@
     <string name="network_metered">Kotalı ağ</string>
     <string name="network_ssid">Wi-Fi adı (SSID)</string>
     <string name="network_bssid">Erişim noktası (BSSID)</string>
+    <string name="action_agent_run">AI ajanını çalıştır</string>
+    <string name="action_agent_run_sub">Kayıtlı bir AI ajanını istemle çalıştırır</string>
+    <string name="agent_run_agent_label">Ajan</string>
+    <string name="agent_run_no_agents">Etkin ajan yok. Ayarlar → AI ve ajanlar bölümünden birini etkinleştirin.</string>
+    <string name="agent_run_prompt_label">İstem</string>
+    <string name="agent_run_prompt_hint">Ajan ne yapmalı? Değişkenler çalıştırmadan önce genişletilir.</string>
+    <string name="agent_run_duration_label">Maksimum saniye (1–3600)</string>
+    <string name="agent_run_approval_label">Ajan araç onayı isterse</string>
+    <string name="agent_run_approval_fail">Çalıştırmayı durdur</string>
+    <string name="agent_run_approval_skip">Aracı atla</string>
+    <string name="agent_run_result_label">Sonuç değişkeni (isteğe bağlı)</string>
 </resources>

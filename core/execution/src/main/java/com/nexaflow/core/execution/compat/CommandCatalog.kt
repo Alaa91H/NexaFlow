@@ -57,6 +57,8 @@ object CommandCatalog {
         ActionType.DATA_DATE_TIME to direct(),
         ActionType.DATA_JSON to direct(),
         ActionType.DATA_ARRAY to direct(),
+        // In-app AI agent runs use the in-process runtime, not a device command.
+        ActionType.AGENT_RUN to direct(),
         // DISPLAY
         ActionType.SYSTEM_BRIGHTNESS to shell(setOf(RomCapability.WRITE_SETTINGS)),
         ActionType.SYSTEM_AUTO_BRIGHTNESS to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),

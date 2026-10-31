@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the T15 typed Kotlin mapping table from the T01 review inventory.
 
-Single source of truth: scripts/canonical_inventory_review.py (237/237
+Single source of truth: scripts/canonical_inventory_review.py (238/238
 REVIEWED). Trigger reviews map to ObserveNode skeletons via
 core.predicate.<name>; action reviews map to InvokeNode skeletons via
 core.operation.<name>. The generated rules intentionally consume no config
@@ -110,8 +110,8 @@ def generate() -> str:
     actions = action_reviews()
     if len(triggers) != 57:
         raise SystemExit(f"expected 57 trigger reviews, found {len(triggers)}")
-    if len(actions) != 180:
-        raise SystemExit(f"expected 180 action reviews, found {len(actions)}")
+    if len(actions) != 181:
+        raise SystemExit(f"expected 181 action reviews, found {len(actions)}")
 
     lines: list[str] = []
     for name in sorted(triggers):
@@ -146,10 +146,10 @@ def generate() -> str:
     body = "\n".join(lines)
     header = (
         HEADER.replace("{TRIGGERS}", "57")
-        .replace("{ACTIONS}", "180")
-        .replace("{TOTAL}", "237")
+        .replace("{ACTIONS}", "181")
+        .replace("{TOTAL}", "238")
     )
-    footer = FOOTER.replace("{TOTAL}", "237")
+    footer = FOOTER.replace("{TOTAL}", "238")
     return header + body + "\n" + footer
 
 

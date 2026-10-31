@@ -434,6 +434,30 @@ delegation beyond A2A task delegation, and richer self-healing beyond
 safe-disable proposals. Self-healing never bypasses validation, dry-run or
 command policy.
 
+## Phase 17 - agent runs from automations
+
+Implemented foundation:
+
+- [x] `ActionType.AGENT_RUN` plus the canonical node `core.ai.agent` /
+      `core.operation.run`, declared through `ActionNodeSchemas` and the
+      generated legacy mapping table (238 reviewed mappings)
+- [x] bounded configuration: `agentId`, `prompt` (≤ 8,192 characters),
+      `maxDurationSeconds` (1–3,600), `onApprovalRequired` (`FAIL`/`SKIP`) and
+      an optional `resultVariable` for the summary
+- [x] execution through the plain `AgentRunGateway` seam in `:core:execution`,
+      bound in the app to `ManagedAgentRunUseCase`, so the executor never
+      depends on Hilt, Room or a provider module
+- [x] fail-closed approvals: an automation has no dialog, so every gated tool
+      is denied; `FAIL` aborts and `SKIP` continues without the denied tool
+- [x] agent runs requested by a task reuse the existing budget, routing,
+      approval, idempotency (`executionId:nodeId:agentId`) and audit path
+
+Remaining future work: durable background runs outside the app process,
+persisted conversations, real cost budgets, capability-aware model selection
+and the agent management surface (phases P2–P7 of
+`AI_AGENTS_ENABLEMENT_PLAN_2026-10-30_AR.md`). Those are not part of this
+foundation and must not be assumed by API consumers.
+
 ## Security invariants
 
 - Full permanent access means no repetitive per-task prompt after pairing.

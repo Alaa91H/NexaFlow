@@ -20,7 +20,7 @@ TEST_FILE = ROOT / (
 )
 
 REQUIRED_TEST_CASES = (
-    "tableCoversAll237AutomationTypes",
+    "tableCoversAll238AutomationTypes",
     "everyMappingReferencesRegisteredIdentities",
     "canonicalizationIsDeterministicAndIdempotent",
     "unknownInputStaysRejected",
@@ -40,10 +40,10 @@ def main() -> int:
     actions = action_reviews()
     if len(triggers) != 57:
         problems.append(f"trigger coverage {len(triggers)}/57")
-    if len(actions) != 180:
-        problems.append(f"action coverage {len(actions)}/180")
-    if len(triggers) + len(actions) != 237:
-        problems.append(f"total coverage {len(triggers) + len(actions)}/237")
+    if len(actions) != 181:
+        problems.append(f"action coverage {len(actions)}/181")
+    if len(triggers) + len(actions) != 238:
+        problems.append(f"total coverage {len(triggers) + len(actions)}/238")
 
     if not TABLE_FILE.is_file() or not COMMUNICATION_TABLE_FILE.is_file():
         problems.append("missing generated LegacyMappingTable.kt")
@@ -82,8 +82,8 @@ def main() -> int:
         return 1
 
     print(
-        "CANONICAL_LEGACY_MAPPINGS: OK — 57/57 triggers + 180/180 actions = "
-        "237/237 rules generated from the reviewed inventory, identity-"
+        "CANONICAL_LEGACY_MAPPINGS: OK — 57/57 triggers + 181/181 actions = "
+        "238/238 rules generated from the reviewed inventory, identity-"
         "validated, idempotent and drift-checked"
     )
     return 0

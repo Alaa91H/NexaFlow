@@ -358,6 +358,13 @@ internal object ActionNodeSchemas {
         ActionType.ROM_BATCH -> schema(
             jsonField("batch_json", required = true)
         )
+        ActionType.AGENT_RUN -> schema(
+            stringField("agentId", required = true),
+            stringField("prompt", required = true, expressionCapable = true),
+            durationField("maxDurationSeconds", default = "60", min = 1.0, max = 3_600.0),
+            enumField("onApprovalRequired", "FAIL", "SKIP", default = "FAIL"),
+            stringField("resultVariable")
+        )
         else -> NodeConfigurationSchema()
     }
 

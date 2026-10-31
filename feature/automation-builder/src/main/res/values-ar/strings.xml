@@ -1245,4 +1245,15 @@
     <string name="network_metered">شبكة باستهلاك محسوب</string>
     <string name="network_ssid">اسم شبكة Wi-Fi (SSID)</string>
     <string name="network_bssid">نقطة الوصول (BSSID)</string>
+    <string name="action_agent_run">تشغيل وكيل ذكاء اصطناعي</string>
+    <string name="action_agent_run_sub">يشغّل وكيلًا محفوظًا بطلب نصي</string>
+    <string name="agent_run_agent_label">الوكيل</string>
+    <string name="agent_run_no_agents">لا توجد وكلاء مفعّلون. فعّل وكيلًا من الإعدادات ← الذكاء الاصطناعي والوكلاء.</string>
+    <string name="agent_run_prompt_label">الطلب</string>
+    <string name="agent_run_prompt_hint">ما الذي تريد أن يفعله الوكيل؟ تُوسَّع المتغيرات قبل التشغيل.</string>
+    <string name="agent_run_duration_label">أقصى مدة بالثواني (1–3600)</string>
+    <string name="agent_run_approval_label">إذا احتاج الوكيل موافقة على أداة</string>
+    <string name="agent_run_approval_fail">إيقاف التشغيل</string>
+    <string name="agent_run_approval_skip">تخطّي الأداة</string>
+    <string name="agent_run_result_label">متغير النتيجة (اختياري)</string>
 </resources>

@@ -68,7 +68,9 @@ fun ActionConfigEditor(
     // Re-launches the plugin's EDIT_SETTING activity (plugin actions only).
     onPluginConfigure: (() -> Unit)? = null,
     // Saved tasks the notification action can attach as interactive buttons.
-    automations: List<Automation> = emptyList()
+    automations: List<Automation> = emptyList(),
+    // Saved agents for the AGENT_RUN picker; null resolves them through Hilt.
+    agentChoices: List<com.nexaflow.core.agentruntime.EnabledAgent>? = null
 ) {
     when (option.actionType) {
         ActionType.SYSTEM_NETWORK_MODE -> {
@@ -461,6 +463,12 @@ fun ActionConfigEditor(
                 }
             }
         }
+        // A saved in-app AI agent, run with a bounded prompt.
+        ActionType.AGENT_RUN -> AgentRunEditor(
+            config = config,
+            onConfigChange = onConfigChange,
+            agents = agentChoices
+        )
         // Launch, close and the Play Store listing share one package contract.
         ActionType.APPLICATION_CLOSE_APP,
         ActionType.APPLICATION_LAUNCH_APP,

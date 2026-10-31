@@ -321,8 +321,8 @@ def generate(root: Path, destination: Path) -> None:
     model = read(root, MODEL)
     triggers = contracts.enum_names(model, "TriggerType")
     actions = contracts.enum_names(model, "ActionType")
-    if len(triggers) != 57 or len(actions) != 180:
-        raise ValueError(f"Expected baseline 57/180; found {len(triggers)}/{len(actions)}. Review inventory update.")
+    if len(triggers) != 57 or len(actions) != 181:
+        raise ValueError(f"Expected baseline 57/181; found {len(triggers)}/{len(actions)}. Review inventory update.")
 
     trigger_fields = schema_fields(root, TRIGGER_SCHEMA, "TriggerType", triggers)
     action_fields = schema_fields(root, ACTION_SCHEMA, "ActionType", actions)

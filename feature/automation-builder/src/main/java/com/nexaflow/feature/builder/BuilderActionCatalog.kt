@@ -309,6 +309,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_bluetooth_scan, R.string.action_bluetooth_scan_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_BLUETOOTH_SCAN, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_wifi_scan_now, R.string.action_wifi_scan_now_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SCAN_NOW, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_set_timezone, R.string.action_set_timezone_sub, Icons.Filled.Schedule, ActionType.SYSTEM_SET_TIMEZONE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_agent_run, R.string.action_agent_run_sub, Icons.AutoMirrored.Filled.Chat, ActionType.AGENT_RUN, ActionCategory.SYSTEM),
     // PLUGINS
     ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS),
     // ADVANCED — shown only when the matching elevated channel exists

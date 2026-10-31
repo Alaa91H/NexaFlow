@@ -2,7 +2,7 @@ package com.nexaflow.domain.canonical
 
 /**
  * Single T26 command-semantics registry for every operation emitted by the
- * reviewed 237-entry automation mapping inventory.
+ * reviewed 238-entry automation mapping inventory.
  *
  * Conservative classifications are deliberate: user-visible/external effects
  * are never promoted to blindly retryable merely because a provider happens
@@ -34,6 +34,9 @@ object CanonicalCommandSemanticsCatalog {
         semantic("reboot", CommandIdempotency.CONDITIONALLY_IDEMPOTENT, false),
         semantic("reject", CommandIdempotency.IDEMPOTENT, false),
         semantic("restart", CommandIdempotency.CONDITIONALLY_IDEMPOTENT, false),
+        // An agent run has external, unrepeatable effects; a retry must be an
+        // explicit new decision, never an automatic replay.
+        semantic("run", CommandIdempotency.NON_IDEMPOTENT, false),
         semantic("scan", CommandIdempotency.CONDITIONALLY_IDEMPOTENT, false),
         semantic("schedule", CommandIdempotency.NON_IDEMPOTENT, false),
         semantic("search_and_play", CommandIdempotency.CONDITIONALLY_IDEMPOTENT, false),

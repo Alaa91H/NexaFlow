@@ -6,6 +6,8 @@ import androidx.room.RoomDatabase
 import com.nexaflow.app.agent.AgentAutomationEventBridge
 import com.nexaflow.app.agent.AgentRunEventBridge
 import com.nexaflow.app.agent.ManagedAgentRunCoordinator
+import com.nexaflow.app.agent.ManagedAgentRunGateway
+import com.nexaflow.core.agentruntime.AgentChoiceSource
 import com.nexaflow.core.agentruntime.ManagedAgentRunUseCase
 import com.nexaflow.core.automationcontrol.AutomationAuditSink
 import com.nexaflow.core.automationcontrol.AutomationCommandService
@@ -90,6 +92,7 @@ import com.nexaflow.core.security.AndroidKeystoreOccurrenceIdentityHmac
 import com.nexaflow.core.security.OccurrenceIdentityHmac
 import com.nexaflow.core.security.SecretVault
 import com.nexaflow.core.security.SecureStorage
+import com.nexaflow.data.agents.RepositoryAgentChoiceSource
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.domain.export.AutomationExporter
 import com.nexaflow.data.repository.AutomationRepositoryImpl
@@ -172,6 +175,10 @@ object AppModule {
     @Singleton
     fun provideManagedAgentRunUseCase(coordinator: ManagedAgentRunCoordinator): ManagedAgentRunUseCase =
         coordinator
+
+    @Provides
+    @Singleton
+    fun provideAgentChoiceSource(source: RepositoryAgentChoiceSource): AgentChoiceSource = source
 
     @Provides
     fun provideSmsActivityDao(database: AppDatabase): SmsActivityDao = database.smsActivityDao()
@@ -605,13 +612,14 @@ object AppModule {
         smsActivityRepository: com.nexaflow.domain.repositories.SmsActivityRepository,
         agentApprovalValidator: AgentApprovalValidator,
         canonicalNodeDispatcher: CanonicalNodeDispatcher,
-        canonicalTriggerDispatcher: CanonicalTriggerDispatcher
+        canonicalTriggerDispatcher: CanonicalTriggerDispatcher,
+        managedAgentRunGateway: ManagedAgentRunGateway
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
             historyRepository,
             notificationPreferences,
-            actionRegistry = ActionRegistry.withSemanticRouter(semanticActionRouter),
+            actionRegistry = ActionRegistry.withSemanticRouter(semanticActionRouter, managedAgentRunGateway),
             logStore = logStore,
             variableRepository = variableRepository,
             automationRuntimeStore = automationRuntimeStore,

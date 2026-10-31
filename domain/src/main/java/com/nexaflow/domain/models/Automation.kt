@@ -771,6 +771,15 @@ enum class ActionType {
     DATA_MATH,
     DATA_DATE_TIME,
     DATA_JSON,
-    DATA_ARRAY
+    DATA_ARRAY,
+    /**
+     * Runs one saved in-app AI agent with a templated prompt. Config keys:
+     * `agentId` (stable id), `prompt` (%variable capable), optional
+     * `maxDurationSeconds`, optional `onApprovalRequired` (`FAIL` or `SKIP`),
+     * and optional `resultVariable` for the bounded result summary. A run that
+     * needs a tool approval never waits for a user here: without `SKIP` it
+     * fails closed, so a background task cannot hang on a dialog.
+     */
+    AGENT_RUN
 }
 
