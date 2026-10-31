@@ -21,7 +21,6 @@
 - **Blocked or empty Gemini responses no longer look successful.** `promptFeedback.blockReason`, an empty candidate list and a content-free SAFETY/RECITATION finish reason fail the turn; previously they produced an empty answer marked as completed.
 - **Gemini model discovery follows pagination.** The API returns 50 models per page by default, so a valid model outside the first page could be reported as missing during connection verification.
 - The ROM "write any system setting" action was still English in nine locales (`action_rom_setting_set_setting_sub`, in both the builder and the task list). It is now translated in German, Spanish, French, Hindi, Japanese, Portuguese, Russian, Turkish and Simplified Chinese.
-- **A run can no longer be reported as completed after a budget rejection.** When the output reservation is refused, the run ends `FAILED` with `output_limit` instead of being marked `COMPLETED` while part of the answer was discarded.
 - **Illegal run transitions are rejected explicitly.** `AgentRunStatus` now declares every allowed edge; `QUEUED -> COMPLETED`, or reviving a terminal run, returns `false` before any row or event is written instead of relying only on the database.
 
 ### Tests and verification

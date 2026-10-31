@@ -144,8 +144,8 @@ internal object AndroidOpenAiStreamingTransport {
                 ?.toIntOrNull()
                 ?: throw IllegalArgumentException("Provider returned an invalid HTTP status")
             val headers = readHeaders(input, statusLine.length)
-            val retryAfterMs = AiRetryAfter.parse(headers["retry-after"])
-            if (status in 300..399) throw redirectFailure(retryAfterMs)
+            require(status !in 300..399) { "Provider redirect was rejected" }
+            require(status in 200..299) { "Provider returned HTTP $status" }
 
             val contentLength = headers["content-length"]?.toLongOrNull()
             if (contentLength != null) {
@@ -163,15 +163,8 @@ internal object AndroidOpenAiStreamingTransport {
             } else {
                 input
             }
-            val bounded = BoundedInputStream(decoded, MAX_STREAM_BYTES)
-            if (status !in 200..299) {
-                val body = runCatching {
-                    readBounded(bounded, MAX_ERROR_BODY_BYTES).toString(Charsets.UTF_8)
-                }.getOrDefault("")
-                throw AiProviderHttpFailure.of(status, body, retryAfterMs)
-            }
             emitPayloads(
-                input = bounded,
+                input = BoundedInputStream(decoded, MAX_STREAM_BYTES),
                 contentType = headers["content-type"],
                 emitPayload = emitPayload
             )

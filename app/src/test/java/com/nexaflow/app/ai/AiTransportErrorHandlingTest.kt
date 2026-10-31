@@ -27,6 +27,7 @@ class AiTransportErrorHandlingTest {
         val contentType: String? = "application/json"
     )
 
+    private val productionOpener = AiHttpConnections.opener
     private var response: FakeResponse? = null
     private var lastConnection: FakeHttpsConnection? = null
 
@@ -184,6 +185,53 @@ class AiTransportErrorHandlingTest {
 
         assertTrue(result.body.contains("redirect_rejected"))
         assertEquals(1_000L, result.retryAfterMs)
+    }
+
+    @Test
+    fun theProductionOpenerBuildsAConnectionWithoutConnecting() {
+        val connection = productionOpener(java.net.URI.create("https://api.openai.com/v1/models"))
+
+        assertEquals("api.openai.com", connection.url.host)
+    }
+
+    @Test
+    fun modelDiscoveryCarriesTheDelayAndRejectsRedirects() = runBlocking {
+        response = FakeResponse(
+            status = 200,
+            body = """{"data":[]}""",
+            headers = mapOf("Retry-After" to "5")
+        )
+        val success = AndroidOpenAiCompatibleTransport().getModels(compatible, "key")
+        assertEquals(200, success.statusCode)
+        assertEquals(5_000L, success.retryAfterMs)
+
+        response = FakeResponse(
+            status = 302,
+            body = "",
+            headers = mapOf("Retry-After" to "2")
+        )
+        val redirect = AndroidOpenAiCompatibleTransport().getModels(compatible, "key")
+        assertTrue(redirect.body.contains("redirect_rejected"))
+        assertEquals(2_000L, redirect.retryAfterMs)
+    }
+
+    @Test
+    fun streamingRejectsRedirectsWithAProtocolFailure() = runBlocking {
+        response = FakeResponse(
+            status = 302,
+            body = "",
+            headers = mapOf("Retry-After" to "6")
+        )
+
+        val failure = runCatching {
+            AndroidOpenAiStreamingTransport
+                .stream(compatible, JsonObject(emptyMap()), "key")
+                .toList()
+        }.exceptionOrNull() as AiProviderRequestException
+
+        assertEquals(AiConnectionFailure.UNSUPPORTED_PROTOCOL, failure.failure)
+        assertEquals("redirect_rejected", failure.providerCode)
+        assertEquals(6_000L, failure.retryAfterMs)
     }
 
     @Test

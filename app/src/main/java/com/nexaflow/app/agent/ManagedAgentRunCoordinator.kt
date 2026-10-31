@@ -190,9 +190,6 @@ class ManagedAgentRunCoordinator @Inject constructor(
             var terminalStatus = AgentRunStatus.FAILED
             var terminalCode = "engine_incomplete"
             var fatalToolFailure: String? = null
-            // A budget rejection is terminal for this run: the model must not be
-            // reported as a successful completion after output was discarded.
-            var budgetExhausted = false
             val requestText = withSavedMemoryContext(
                 prompt,
                 memories.observeSnapshot(definition.id),
@@ -212,7 +209,6 @@ class ManagedAgentRunCoordinator @Inject constructor(
                     when (event) {
                         is AiConversationEvent.AssistantDelta -> {
                             if (ledger.reserveOutput(event.text.length) != AgentBudgetDecision.ALLOWED) {
-                                budgetExhausted = true
                                 terminalCode = "output_limit"
                             } else {
                                 send(ManagedAgentRunEvent.AssistantDelta(event.text))
@@ -226,7 +222,7 @@ class ManagedAgentRunCoordinator @Inject constructor(
                             if (toolError in TERMINAL_TOOL_FAILURES) fatalToolFailure = toolError
                         }
                         is AiConversationEvent.Completed -> {
-                            if (fatalToolFailure == null && !budgetExhausted) {
+                            if (fatalToolFailure == null) {
                                 terminalStatus = AgentRunStatus.COMPLETED
                                 terminalCode = "completed"
                             }
@@ -242,10 +238,6 @@ class ManagedAgentRunCoordinator @Inject constructor(
             fatalToolFailure?.let { code ->
                 terminalStatus = AgentRunStatus.FAILED
                 terminalCode = code
-            }
-            if (budgetExhausted) {
-                terminalStatus = AgentRunStatus.FAILED
-                terminalCode = "output_limit"
             }
             val usage = ledger.usage()
             runs.recordUsage(

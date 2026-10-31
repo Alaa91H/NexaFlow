@@ -288,12 +288,10 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
             headers[name] = value
         }
 
-        val retryAfterMs = AiRetryAfter.parse(headers["retry-after"])
         if (status in 300..399) {
             return OpenAiCompatibleTransportResponse(
                 statusCode = status,
-                body = """{"error":{"code":"redirect_rejected"}}""",
-                retryAfterMs = retryAfterMs
+                body = """{"error":{"code":"redirect_rejected"}}"""
             )
         }
 
@@ -315,8 +313,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
 
         return OpenAiCompatibleTransportResponse(
             statusCode = status,
-            body = bytes.toString(Charsets.UTF_8),
-            retryAfterMs = retryAfterMs
+            body = bytes.toString(Charsets.UTF_8)
         )
     }
 
