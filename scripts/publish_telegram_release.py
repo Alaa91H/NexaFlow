@@ -191,7 +191,9 @@ class TelegramClient:
             "chat_id": chat_id,
             "text": text,
             "parse_mode": "HTML",
-            "link_preview_options": {"is_disabled": True},
+            # Bot API object parameters travel as JSON *strings*; a bare dict
+            # would be urlencoded as a Python repr and rejected as malformed.
+            "link_preview_options": json.dumps({"is_disabled": True}),
         }
         if topic_id is not None:
             payload["message_thread_id"] = topic_id
@@ -269,6 +271,8 @@ def _retry_after(detail: str, header: str | None) -> int:
 def _encode(fields: dict, document: Path | None) -> tuple[bytes, str]:
     """Return a urlencoded body, or multipart when a file is attached."""
     if document is None:
+        # Scalars only: callers serialize Bot API object parameters to JSON
+        # first (see send_message), so urlencode never sees a container.
         return urllib.parse.urlencode(fields).encode("utf-8"), (
             "application/x-www-form-urlencoded"
         )
