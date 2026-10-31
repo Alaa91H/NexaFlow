@@ -21,7 +21,11 @@ android {
 
     defaultConfig {
         minSdk = 26
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // AndroidBenchmarkRunner (an AndroidJUnitRunner subclass) launches the
+        // library's IsolationActivity: without it the planner microbenchmark
+        // fails with ACTIVITY-MISSING, and macrobenchmark measurements lose
+        // sustained performance mode.
+        testInstrumentationRunner = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
         // The module benchmarks :app; AGP links them for the benchmark run.
         targetProjectPath = ":app"
     }
