@@ -31,6 +31,12 @@ android {
         // replaces this value.
         testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] =
             "ACTIVITY-MISSING"
+        // androidx.benchmark records a method trace for every microbenchmark by
+        // default. The planner benchmark measures latency, and the resulting
+        // trace cannot be pulled from the CI emulator (UTP fails with EOF and
+        // the device drops offline), so method tracing is disabled here while
+        // macrobenchmark keeps its own Perfetto capture.
+        testInstrumentationRunnerArguments["androidx.benchmark.profiling.mode"] = "none"
         // The module benchmarks :app; AGP links them for the benchmark run.
         targetProjectPath = ":app"
     }
