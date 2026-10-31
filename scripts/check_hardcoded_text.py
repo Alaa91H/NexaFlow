@@ -137,7 +137,7 @@ def strip_comments(text: str) -> str:
 ALLOWLIST: list[dict[str, str]] = [
     {
         "path": "feature/settings/src/main/java/com/nexaflow/feature/settings/SettingsScreen.kt",
-        "line": 658,
+        "line": 659,
         "reason": "Native name of the Arabic language in the in-app language picker",
     },
 ]

@@ -480,7 +480,7 @@
     <string name="action_rom_setting_qs_tiles">QS 图块</string>
     <string name="action_rom_setting_qs_tiles_sub">配置快速设置图块和面板</string>
     <string name="action_rom_setting_set_setting">自定义设置</string>
-    <string name="action_rom_setting_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_rom_setting_set_setting_sub">使用选择器写入任意系统设置 — 适用于任何 ROM</string>
     <string name="action_rom_setting_status_bar">状态栏</string>
     <string name="action_rom_setting_status_bar_sub">时钟、电量、图标、流量</string>
     <string name="action_rom_setting_theme">主题和 Monet</string>

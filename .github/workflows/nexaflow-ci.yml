@@ -814,18 +814,6 @@ jobs:
           name: nexaflow-wear-release-apk
           path: release-assets/wear
 
-      - name: Download R8 mapping
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
-        with:
-          name: nexaflow-release-mapping
-          path: release-assets/mapping
-
-      - name: Download SBOM
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
-        with:
-          name: nexaflow-sbom
-          path: release-assets/sbom
-
       - name: Prepare versioned release assets
         shell: bash
         run: |
@@ -833,21 +821,15 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
-          MAPPING="NexaFlow-$TAG-mapping.txt"
-          SBOM="NexaFlow-$TAG-sbom.cdx.json"
           cp release-assets/phone/app-release.apk "$PHONE"
           cp release-assets/wear/wear-release.apk "$WEAR"
-          cp release-assets/mapping/mapping.txt "$MAPPING"
-          cp release-assets/sbom/nexaflow-sbom.cdx.json "$SBOM"
-          # Unreadable release crashes are the cost of a missing mapping file;
-          # an empty SBOM defeats the CVE response plan. Neither may ship empty.
+          # The release page carries installable binaries only. The R8 mapping
+          # and the SBOM stay attached to the workflow run as downloadable
+          # artifacts, so they never appear as release clutter (and an empty
+          # file can never masquerade as a shipped artifact).
           test -s "$PHONE"
           test -s "$WEAR"
-          test -s "$MAPPING"
-          test -s "$SBOM"
           python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
-          # Publish verifiable fingerprints next to the binaries (NFA-08/4.4).
-          sha256sum "$PHONE" "$WEAR" "$MAPPING" "$SBOM" > "NexaFlow-$TAG-SHA256SUMS.txt"
 
       - name: Publish GitHub Release
         env:
@@ -858,30 +840,27 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
-          MAPPING="NexaFlow-$TAG-mapping.txt"
-          SBOM="NexaFlow-$TAG-sbom.cdx.json"
-          SUMS="NexaFlow-$TAG-SHA256SUMS.txt"
           PRERELEASE=()
           [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$PHONE" "$WEAR" "$MAPPING" "$SBOM" "$SUMS" --clobber
+            gh release upload "$TAG" "$PHONE" "$WEAR" --clobber
             gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
           else
-            gh release create "$TAG" "$PHONE" "$WEAR" "$MAPPING" "$SBOM" "$SUMS" \
+            gh release create "$TAG" "$PHONE" "$WEAR" \
               --verify-tag \
               --title "NexaFlow $TAG" \
               --notes-file release-notes.md \
               "${PRERELEASE[@]}"
           fi
 
-          # Keep reruns of an existing tag as clean as a newly created release:
-          # only the versioned APKs, mapping file, and SBOM remain attached.
+          # The release page is the download surface: keep exactly the two
+          # versioned APKs and drop anything else, including build outputs a
+          # previous workflow revision attached (mapping, SBOM, checksums).
           RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq .id)"
           gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" --paginate \
             | jq -r --arg phone "$PHONE" --arg wear "$WEAR" \
-                --arg mapping "$MAPPING" --arg sbom "$SBOM" --arg sums "$SUMS" \
-                '.[] | .name as $name | select([$phone, $wear, $mapping, $sbom, $sums] | index($name) | not) | .id' \
+                '.[] | select(.name != $phone and .name != $wear) | .id' \
             | while read -r ASSET_ID; do
                 test -n "$ASSET_ID" && gh api --method DELETE \
                   "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
@@ -893,8 +872,6 @@ jobs:
           subject-path: |
             NexaFlow-${{ github.ref_name }}.apk
             NexaFlow-Wear-${{ github.ref_name }}.apk
-            NexaFlow-${{ github.ref_name }}-mapping.txt
-            NexaFlow-${{ github.ref_name }}-sbom.cdx.json
 
       - name: Verify published release
         env:
@@ -905,32 +882,29 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
-          MAPPING="NexaFlow-$TAG-mapping.txt"
-          SBOM="NexaFlow-$TAG-sbom.cdx.json"
-          SUMS="NexaFlow-$TAG-SHA256SUMS.txt"
           RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
           test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
           test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
           MISSING="$(jq \
-            --arg phone "$PHONE" --arg wear "$WEAR" --arg mapping "$MAPPING" --arg sbom "$SBOM" --arg sums "$SUMS" \
-            '[$phone, $wear, $mapping, $sbom, $sums] - [.assets[].name] | length' \
+            --arg phone "$PHONE" --arg wear "$WEAR" \
+            '[$phone, $wear] - [.assets[].name] | length' \
             <<<"$RELEASE_JSON")"
           test "$MISSING" = "0" || {
-            echo "::error::Release is missing one of: APKs, R8 mapping, or SBOM."
+            echo "::error::Release is missing the phone or Wear OS APK."
             exit 1
           }
           EXTRA="$(jq \
-            --arg phone "$PHONE" --arg wear "$WEAR" --arg mapping "$MAPPING" --arg sbom "$SBOM" --arg sums "$SUMS" \
-            '[.assets[].name | select(. != $phone and . != $wear and . != $mapping and . != $sbom and . != $sums)] | length' \
+            --arg phone "$PHONE" --arg wear "$WEAR" \
+            '[.assets[].name | select(. != $phone and . != $wear)] | length' \
             <<<"$RELEASE_JSON")"
-          test "$EXTRA" = "0" || { echo "::error::Release contains unexpected non-versioned assets."; exit 1; }
-          for ASSET in "$PHONE" "$WEAR" "$MAPPING" "$SBOM" "$SUMS"; do
+          test "$EXTRA" = "0" || { echo "::error::Release contains assets other than the two APKs."; exit 1; }
+          for ASSET in "$PHONE" "$WEAR"; do
             SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
             STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
             test -n "$SIZE" && test "$SIZE" -gt 0
             test "$STATE" = "uploaded"
           done
-          echo "::notice::Release $TAG published and verified (APKs + R8 mapping + SBOM + SHA-256 sums)."
+          echo "::notice::Release $TAG published and verified (phone APK + Wear OS APK only)."
 
   # Branch integration is intentionally PR-only. The former consolidate job
   # merged every remote branch into main with incoming-branch conflict wins and

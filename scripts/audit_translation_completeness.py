@@ -24,6 +24,12 @@ zh-rCN):
                          %%, ...) must match the default exactly, or the
                          locale crashes or leaks at runtime.
   5. EMPTY VALUES      - translations that are blank or whitespace.
+  6. ENGLISH IN SCRIPT LOCALES - a value in ar/hi/ja/ru/zh-rCN that carries no
+                         character of its own script and reads as an English
+                         phrase (two or more Latin words). Layer 2 only sees
+                         values copied verbatim from the default; a lightly
+                         reworded English sentence ("Enable it now") used to
+                         pass every gate.
 
 Exit code 0 only when every layer is clean. --self-test re-runs the
 detector on known-bad fixtures and must stay green in CI.
@@ -53,6 +59,16 @@ SCRIPT_RANGES = {
     "hi": (0x0900, 0x097F),      # Devanagari
     "ja": (0x3040, 0x30FF),      # Kana (hiragana + katakana)
     "zh-rCN": (0x4E00, 0x9FFF),  # CJK unified
+}
+
+# Script presence used by layer 6. Japanese prose mixes kana with kanji, and
+# Chinese prose uses kanji plus CJK punctuation, so both ranges count as native.
+NATIVE_SCRIPT_RANGES = {
+    "ar": ((0x0600, 0x06FF),),
+    "ru": ((0x0400, 0x04FF),),
+    "hi": ((0x0900, 0x097F),),
+    "ja": ((0x3040, 0x30FF), (0x4E00, 0x9FFF), (0x3000, 0x303F)),
+    "zh-rCN": ((0x4E00, 0x9FFF), (0x3000, 0x303F)),
 }
 
 LATIN_WORD_RE = re.compile(r"[A-Za-z]{2,}")
@@ -104,6 +120,8 @@ IDENTICAL_OK = {
     "QS Tiles",
     "Ambient & AOD",
     "Ambient / AOD",
+    # Protocol/product names spelled in Latin script by every vendor.
+    "API Anthropic Messages",
 }
 
 # Words that ARE the correct word in a specific locale (same spelling as
@@ -158,6 +176,16 @@ DEFAULT_SCRIPT_OK = {
 def has_script(text: str, script: str) -> bool:
     lo, hi = SCRIPT_RANGES[script]
     return any(lo <= ord(ch) <= hi for ch in text)
+
+
+def has_native_script(text: str, locale: str) -> bool:
+    ranges = NATIVE_SCRIPT_RANGES[locale]
+    return any(lo <= ord(ch) <= hi for ch in text for lo, hi in ranges)
+
+
+def is_english_phrase(text: str) -> bool:
+    """Two or more Latin words: a sentence, not a brand or an acronym."""
+    return len(LATIN_WORD_RE.findall(text)) >= 2
 
 
 def placeholder_bag(text: str) -> Counter:
@@ -280,6 +308,20 @@ def audit() -> list[str]:
                         f"{mod} [{loc}] {key}: placeholder mismatch "
                         f"{dict(placeholder_bag(value))} != {dict(placeholder_bag(base_value))}"
                     )
+
+                # Layer 6: an English sentence in a non-Latin locale. Layer 2
+                # misses reworded English, which is exactly what a hurried
+                # translation leaves behind.
+                if (
+                    loc in NATIVE_SCRIPT_RANGES
+                    and not has_native_script(value, loc)
+                    and is_english_phrase(value)
+                    and value not in IDENTICAL_OK
+                    and (mod, key) not in REVIEWED
+                ):
+                    problems.append(
+                        f"{mod} [{loc}] {key}: English text in the {loc} file: {value[:60]!r}"
+                    )
     return problems
 
 
@@ -346,6 +388,19 @@ FIXTURE_AR_PH = """<?xml version="1.0" encoding="utf-8"?>
 </resources>
 """
 
+# Reworded English: not identical to the default, so layer 2 stays silent and
+# only the layer-6 rule can catch it.
+FIXTURE_AR_REWORDED = """<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NexaFlow</string>
+    <string name="enable">Enable it now</string>
+    <string name="greeting">مرحبًا يا %1$s!</string>
+    <string name="battery">البطارية: %d%%</string>
+    <string name="ok">OK</string>
+    <string name="nfc">NFC</string>
+</resources>
+"""
+
 # Blank translation.
 FIXTURE_AR_EMPTY = """<?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -406,6 +461,11 @@ def self_test() -> int:
         p = _run_on(d, FIXTURE_DEFAULT, FIXTURE_AR_EMPTY, None)
         if not any("[ar]" in x and "empty translation" in x for x in p):
             failures.append(f"empty translation not detected: {p}")
+
+    with tempfile.TemporaryDirectory() as d:
+        p = _run_on(d, FIXTURE_DEFAULT, FIXTURE_AR_REWORDED, None)
+        if not any("[ar]" in x and "English text" in x for x in p):
+            failures.append(f"reworded English not detected: {p}")
 
     if failures:
         print("SELF-TEST FAILURES:")

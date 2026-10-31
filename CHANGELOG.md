@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Release announcements on Telegram.** Publishing a GitHub release now posts to the announcement channel (`@NexaFlowApp`) and to the community releases topic (`t.me/NexaFlowCommunity/4`) through `@NexaFlowBuildBot`. The message body is the published release body verbatim, and both the phone and the Wear OS APK are attached. The new `release-announce` workflow runs on `release: published` (or manually with a tag and a dry-run switch), so a Telegram outage can never fail a build whose binaries already shipped. Transport is the Bot API only: token and chat targets live in repository secrets, with no userbot session or hosted platform.
+- Screenshots in the project README, taken from the running app (task list, trigger picker, action picker, settings and Quick Settings), in a responsive gallery.
+
+### Changed
+
+- **GitHub releases now carry the two signed APKs and nothing else.** The R8 mapping, the SBOM and the SHA-256 checksum file stay attached to the workflow run as downloadable artifacts and are pruned from the release page, including on reruns and on every existing release.
+- **The About information is listed directly in Settings → About**, next to the version row: developer, Telegram, email, source repository, channel, community group and support. Opening the dialog is no longer required to find them, and the dialog and the settings rows now read the same targets from one place (`AboutTargets`).
+- The README is rewritten as a project page: feature groups, install steps, permissions, languages, quality scope, privacy notes and a complete community/support table with the channel, the community releases topic, the developer contacts and optional support.
+
+### Fixed
+
+- The ROM "write any system setting" action was still English in nine locales (`action_rom_setting_set_setting_sub`, in both the builder and the task list). It is now translated in German, Spanish, French, Hindi, Japanese, Portuguese, Russian, Turkish and Simplified Chinese.
+
+### Tests and verification
+
+- `scripts/audit_translation_completeness.py` gained a sixth layer: an English phrase inside a non-Latin locale (no character of that locale's script, two or more Latin words) is now a failure. The previous layers only caught values copied verbatim from the default, which is how the reworded English above survived. The self-test covers the new class.
+- `scripts/publish_telegram_release.py` ships with 15 unit tests: markdown rendering and HTML escaping, chunking under the message limit, oversized-line wrapping, intro content, target parsing (missing channel, numeric topic) and the publish order (intro → changelog → documents, per target).
+
 ## [v3.91.16] - 2026-10-30
 
 ### Added

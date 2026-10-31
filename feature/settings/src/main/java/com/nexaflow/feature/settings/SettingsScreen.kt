@@ -34,7 +34,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Language
@@ -559,11 +558,13 @@ fun SettingsScreen(navController: NavController) {
                     },
                     alternatingIndex = 5
                 ) {
-                SettingRow(
-                    icon = Icons.Filled.Info,
-                    title = stringResource(R.string.about_nexaflow),
-                    subtitle = stringResource(R.string.version, appVersion(context)),
-                    onClick = { showAbout = true }
+                // The About information is listed here directly, like the
+                // version above: a user looking for the channel, the community
+                // or a way to reach the developer does not have to open the
+                // dialog first.
+                AboutRows(
+                    appVersion = appVersion(context),
+                    onOpenAbout = { showAbout = true }
                 )
                 }
             }

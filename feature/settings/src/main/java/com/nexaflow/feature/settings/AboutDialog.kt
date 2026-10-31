@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -72,49 +73,49 @@ internal fun AboutDialog(
                 SettingRow(
                     icon = Icons.Filled.Person,
                     title = stringResource(R.string.about_developer),
-                    subtitle = DEVELOPER_HANDLE
+                    subtitle = AboutTargets.DEVELOPER_HANDLE
                 )
                 SettingRow(
                     icon = Icons.Filled.Code,
                     title = stringResource(R.string.about_github),
                     subtitle = stringResource(R.string.about_github_sub),
-                    onClick = { openUrl(context, DEV_GITHUB_URL) }
+                    onClick = { openUrl(context, AboutTargets.DEV_GITHUB_URL) }
                 )
                 SettingRow(
                     icon = Icons.Filled.Email,
                     title = stringResource(R.string.about_email),
                     subtitle = stringResource(R.string.about_email_sub),
-                    onClick = { openEmail(context, DEV_EMAIL) }
+                    onClick = { openEmail(context, AboutTargets.DEV_EMAIL) }
                 )
                 SettingRow(
                     icon = Icons.AutoMirrored.Filled.Send,
                     title = stringResource(R.string.about_telegram),
                     subtitle = stringResource(R.string.about_telegram_sub),
-                    onClick = { openUrl(context, DEV_TELEGRAM_URL) }
+                    onClick = { openUrl(context, AboutTargets.DEV_TELEGRAM_URL) }
                 )
                 SettingRow(
                     icon = Icons.Filled.Code,
                     title = stringResource(R.string.about_repository),
                     subtitle = stringResource(R.string.about_repository_sub),
-                    onClick = { openUrl(context, PROJECT_REPOSITORY_URL) }
+                    onClick = { openUrl(context, AboutTargets.PROJECT_REPOSITORY_URL) }
                 )
                 SettingRow(
                     icon = Icons.Filled.Campaign,
                     title = stringResource(R.string.about_channel),
                     subtitle = stringResource(R.string.about_channel_sub),
-                    onClick = { openUrl(context, PROJECT_CHANNEL_URL) }
+                    onClick = { openUrl(context, AboutTargets.PROJECT_CHANNEL_URL) }
                 )
                 SettingRow(
                     icon = Icons.Filled.Group,
                     title = stringResource(R.string.about_community),
                     subtitle = stringResource(R.string.about_community_sub),
-                    onClick = { openUrl(context, PROJECT_COMMUNITY_URL) }
+                    onClick = { openUrl(context, AboutTargets.PROJECT_COMMUNITY_URL) }
                 )
                 SettingRow(
                     icon = Icons.Filled.Favorite,
                     title = stringResource(R.string.about_support),
                     subtitle = stringResource(R.string.about_support_sub),
-                    onClick = { openUrl(context, DEV_KOFI_URL) }
+                    onClick = { openUrl(context, AboutTargets.DEV_KOFI_URL) }
                 )
             }
         },
@@ -124,28 +125,97 @@ internal fun AboutDialog(
     )
 }
 
-private const val DEVELOPER_HANDLE = "Alaa91H"
-private const val DEV_GITHUB_URL = "https://github.com/Alaa91H"
-private const val DEV_EMAIL = "alahus2591@gmail.com"
-private const val DEV_TELEGRAM_URL = "https://t.me/Alaa91h"
-private const val DEV_KOFI_URL = "https://ko-fi.com/alaa91h"
+/**
+ * The About information as settings rows.
+ *
+ * Listed directly in the About group rather than hidden behind the dialog:
+ * the version row opens the dialog for the description and licence, and every
+ * link a user may need (developer, channel, community, support) is one tap
+ * away without opening anything first.
+ */
+@Composable
+internal fun AboutRows(appVersion: String, onOpenAbout: () -> Unit) {
+    val context = LocalContext.current
+    SettingRow(
+        icon = Icons.Filled.Info,
+        title = stringResource(R.string.about_nexaflow),
+        subtitle = stringResource(R.string.version, appVersion),
+        onClick = onOpenAbout
+    )
+    SettingRow(
+        icon = Icons.Filled.Person,
+        title = stringResource(R.string.about_developer),
+        subtitle = AboutTargets.DEVELOPER_HANDLE,
+        onClick = { openUrl(context, AboutTargets.DEV_TELEGRAM_URL) }
+    )
+    SettingRow(
+        icon = Icons.AutoMirrored.Filled.Send,
+        title = stringResource(R.string.about_telegram),
+        subtitle = stringResource(R.string.about_telegram_sub),
+        onClick = { openUrl(context, AboutTargets.DEV_TELEGRAM_URL) }
+    )
+    SettingRow(
+        icon = Icons.Filled.Email,
+        title = stringResource(R.string.about_email),
+        subtitle = stringResource(R.string.about_email_sub),
+        onClick = { openEmail(context, AboutTargets.DEV_EMAIL) }
+    )
+    SettingRow(
+        icon = Icons.Filled.Code,
+        title = stringResource(R.string.about_repository),
+        subtitle = stringResource(R.string.about_repository_sub),
+        onClick = { openUrl(context, AboutTargets.PROJECT_REPOSITORY_URL) }
+    )
+    SettingRow(
+        icon = Icons.Filled.Campaign,
+        title = stringResource(R.string.about_channel),
+        subtitle = stringResource(R.string.about_channel_sub),
+        onClick = { openUrl(context, AboutTargets.PROJECT_CHANNEL_URL) }
+    )
+    SettingRow(
+        icon = Icons.Filled.Group,
+        title = stringResource(R.string.about_community),
+        subtitle = stringResource(R.string.about_community_sub),
+        onClick = { openUrl(context, AboutTargets.PROJECT_COMMUNITY_URL) }
+    )
+    SettingRow(
+        icon = Icons.Filled.Favorite,
+        title = stringResource(R.string.about_support),
+        subtitle = stringResource(R.string.about_support_sub),
+        onClick = { openUrl(context, AboutTargets.DEV_KOFI_URL) }
+    )
+}
 
-// Project surfaces: the source repository, the release/announcement channel
-// and the user community group. Kept separate from the developer's personal
-// contacts so each link states where it leads.
-private const val PROJECT_REPOSITORY_URL = "https://github.com/Alaa91H/NexaFlow"
-private const val PROJECT_CHANNEL_URL = "https://t.me/NexaFlowApp"
-private const val PROJECT_COMMUNITY_URL = "https://t.me/NexaFlowCommunity"
+/**
+ * Every address the About surface offers, in one place.
+ *
+ * Settings renders the same targets directly in its About group, so the dialog
+ * and the settings rows can never disagree about where a link leads.
+ */
+internal object AboutTargets {
+    const val DEVELOPER_HANDLE = "Alaa91H"
+    const val DEV_GITHUB_URL = "https://github.com/Alaa91H"
+    const val DEV_EMAIL = "alahus2591@gmail.com"
+    const val DEV_TELEGRAM_URL = "https://t.me/Alaa91h"
+    const val DEV_KOFI_URL = "https://ko-fi.com/alaa91h"
+
+    // Project surfaces: the source repository, the release/announcement
+    // channel and the user community group. Kept separate from the developer's
+    // personal contacts so each link states where it leads.
+    const val PROJECT_REPOSITORY_URL = "https://github.com/Alaa91H/NexaFlow"
+    const val PROJECT_CHANNEL_URL = "https://t.me/NexaFlowApp"
+    const val PROJECT_COMMUNITY_URL = "https://t.me/NexaFlowCommunity"
+}
 
 /** Opens [url] in the system browser (best-effort, no crash on missing handler). */
-private fun openUrl(context: Context, url: String) {
+internal fun openUrl(context: Context, url: String) {
     runCatching {
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     }
 }
 
 /** Opens the default mail app addressed to [address] (best-effort). */
-private fun openEmail(context: Context, address: String) {
+internal fun openEmail(context: Context, address: String) {
     runCatching {
         context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$address")))
     }

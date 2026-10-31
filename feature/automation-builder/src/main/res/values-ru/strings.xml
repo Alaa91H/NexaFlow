@@ -958,7 +958,7 @@
     <string name="action_rom_setting_qs_tiles">QS-плитки</string>
     <string name="action_rom_setting_qs_tiles_sub">Настроить плитки и панель быстрых настроек</string>
     <string name="action_rom_setting_set_setting">Своё значение</string>
-    <string name="action_rom_setting_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_rom_setting_set_setting_sub">Записывать любой системный параметр через выбор — работает на любой прошивке</string>
     <string name="action_rom_setting_status_bar">Строка состояния</string>
     <string name="action_rom_setting_status_bar_sub">Часы, батарея, значки, трафик</string>
     <string name="action_rom_setting_theme">Тема и Monet</string>

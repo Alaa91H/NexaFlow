@@ -958,7 +958,7 @@
     <string name="action_rom_setting_qs_tiles">QS Tiles</string>
     <string name="action_rom_setting_qs_tiles_sub">Configurar mosaicos e painel de configurações rápidas</string>
     <string name="action_rom_setting_set_setting">Configuração personalizada</string>
-    <string name="action_rom_setting_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_rom_setting_set_setting_sub">Escreva qualquer definição do sistema com o seletor — funciona em qualquer ROM</string>
     <string name="action_rom_setting_status_bar">Barra de status</string>
     <string name="action_rom_setting_status_bar_sub">Relógio, bateria, ícones, tráfego</string>
     <string name="action_rom_setting_theme">Tema e Monet</string>

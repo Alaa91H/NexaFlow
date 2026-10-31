@@ -961,7 +961,7 @@
     <string name="action_rom_setting_qs_tiles">QS Tiles</string>
     <string name="action_rom_setting_qs_tiles_sub">Configurer les tuiles et le panneau de réglages rapides</string>
     <string name="action_rom_setting_set_setting">Paramètre personnalisé</string>
-    <string name="action_rom_setting_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_rom_setting_set_setting_sub">Écrire n\'importe quel réglage système avec le sélecteur — fonctionne sur toute ROM</string>
     <string name="action_rom_setting_status_bar">Barre d\'état</string>
     <string name="action_rom_setting_status_bar_sub">Horloge, batterie, icônes, trafic</string>
     <string name="action_rom_setting_theme">Thème et Monet</string>

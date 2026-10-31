@@ -958,7 +958,7 @@
     <string name="action_rom_setting_qs_tiles">QS Tiles</string>
     <string name="action_rom_setting_qs_tiles_sub">クイック設定のタイルとパネルを設定</string>
     <string name="action_rom_setting_set_setting">カスタム設定</string>
-    <string name="action_rom_setting_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_rom_setting_set_setting_sub">ピッカーで任意のシステム設定を書き込み — どの ROM でも動作します</string>
     <string name="action_rom_setting_status_bar">ステータスバー</string>
     <string name="action_rom_setting_status_bar_sub">時計、バッテリー、アイコン、トラフィック</string>
     <string name="action_rom_setting_theme">テーマとMonet</string>
