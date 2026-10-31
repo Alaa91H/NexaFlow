@@ -1,5 +1,38 @@
 # Validation record
 
+## Release surface, Telegram announcements and About rows (Unreleased) — 2026-10-31 (local, no device)
+
+This change limits every GitHub release to the two signed APKs, adds the
+`release-announce` workflow (Telegram channel + community releases topic via
+`@NexaFlowBuildBot`), lists the About information directly in Settings, expands
+the translation audit and rewrites the README with screenshots.
+
+| Command | Result |
+|---|---|
+| `./gradlew testDebugUnitTest --console=plain` | PASS — 3,122 tests, 0 failures, 0 errors, 0 skipped across 471 test classes |
+| `./gradlew :feature:settings:testDebugUnitTest --tests '*AboutDialogTest*'` | PASS — 7 tests, including the two new ones: the About rows render all targets without opening the dialog, and the direct channel row opens `https://t.me/NexaFlowApp` |
+| `./gradlew detekt` | PASS |
+| `./gradlew lintDebug` | PASS — 1,326 tasks, 8m58s |
+| `python3 -m unittest scripts.tests.test_publish_telegram_release` | PASS — 15 tests (markdown → Telegram HTML, escaping, chunking, oversized-line wrapping, intro content, target parsing, publish order) |
+| `python3 scripts/audit_translation_completeness.py --self-test` and the audit itself | PASS — self-test detects the new reworded-English class; `TRANSLATION_PROBLEMS: 0` on the tree after translating `action_rom_setting_set_setting_sub` in 9 locales × 2 modules |
+| `python3 scripts/check_hardcoded_text.py` | PASS — allowlist anchor re-pointed after the About rows moved lines |
+| Source gates (`auto_fix --check`, strings parity, vendor neutrality, README counts, Compose stability, atomic architecture fitness, module boundaries) | PASS — 0 problems each |
+| `python3 -m unittest discover -s scripts/tests -p 'test_*.py'` | 5 failures, all environmental: `check_canonical_release_readiness` / `_closure` / `_final_audit` refuse a dirty worktree (they pass on the committed tree), plus the hardcoded-text anchor, fixed and re-run green |
+
+Telegram integration was verified against the live Bot API without publishing:
+`getMe` returns `@NexaFlowBuildBot`; `getChat` resolves the channel and the forum
+supergroup (`is_forum: true`); the bot is an administrator with posting rights in
+both; a private HTML message rendered correctly; a 7,721,360-byte APK uploaded via
+multipart and was deleted afterwards. A public post to the channel or the
+community topic was **not** sent.
+
+Release assets were pruned through the GitHub API: all 30 published releases now
+carry APK files only, and `v3.91.16` has exactly `NexaFlow-v3.91.16.apk` and
+`NexaFlow-Wear-v3.91.16.apk`.
+
+**NOT TESTED:** a CI tag run of the edited `release` job, a physical-device run,
+and the first real public announcement.
+
 ## AGENT_RUN action (v3.91.16) — 2026-10-30 (local, no device)
 
 All results below are the actual exit statuses of this checkout; nothing was

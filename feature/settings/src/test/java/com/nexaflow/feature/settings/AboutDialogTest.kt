@@ -6,8 +6,10 @@ import android.content.Intent
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -109,6 +111,52 @@ class AboutDialogTest {
         composeRule.onNodeWithText("@NexaFlowApp").assertExists()
         composeRule.onNodeWithText("@NexaFlowCommunity").assertExists()
         composeRule.onNodeWithText("Alaa91H/NexaFlow").assertExists()
+    }
+
+    @Test
+    fun aboutInformationIsListedDirectlyInSettings() {
+        var opened = false
+        composeRule.setContent {
+            AboutRows(appVersion = "3.91.16", onOpenAbout = { opened = true })
+        }
+
+        // Everything a user may look for is on screen without opening the
+        // dialog first: version, developer, email, repository, channel,
+        // community and support.
+        listOf(
+            R.string.about_nexaflow,
+            R.string.about_developer,
+            R.string.about_telegram,
+            R.string.about_email,
+            R.string.about_repository,
+            R.string.about_channel,
+            R.string.about_community,
+            R.string.about_support,
+        ).forEach { key ->
+            composeRule.onNodeWithText(string(key)).assertExists()
+        }
+        composeRule.onNodeWithText(context.getString(R.string.version, "3.91.16")).assertExists()
+
+        composeRule.onNodeWithText(string(R.string.about_nexaflow))
+            .performSemanticsAction(SemanticsActions.OnClick)
+        assertTrue(opened)
+    }
+
+    @Test
+    fun theDirectChannelRowOpensTheChannel() {
+        val recorder = RecordingContext(context)
+        composeRule.setContent {
+            CompositionLocalProvider(LocalContext provides recorder) {
+                AboutRows(appVersion = "3.91.16", onOpenAbout = {})
+            }
+        }
+
+        composeRule.onNodeWithText(string(R.string.about_channel))
+            .performSemanticsAction(SemanticsActions.OnClick)
+
+        val started = recorder.started.single()
+        assertEquals(Intent.ACTION_VIEW, started.action)
+        assertEquals("https://t.me/NexaFlowApp", started.data.toString())
     }
 
     @Test

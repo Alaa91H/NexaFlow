@@ -480,7 +480,7 @@
     <string name="action_rom_setting_qs_tiles">QS Kutucukları</string>
     <string name="action_rom_setting_qs_tiles_sub">Hızlı ayar kutucuklarını ve panelini yapılandır</string>
     <string name="action_rom_setting_set_setting">Özel ayar</string>
-    <string name="action_rom_setting_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_rom_setting_set_setting_sub">Seçici ile herhangi bir sistem ayarını yazın — her ROM’da çalışır</string>
     <string name="action_rom_setting_status_bar">Durum çubuğu</string>
     <string name="action_rom_setting_status_bar_sub">Saat, pil, simgeler, trafik</string>
     <string name="action_rom_setting_theme">Tema ve Monet</string>
