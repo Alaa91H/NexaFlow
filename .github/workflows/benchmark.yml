@@ -72,8 +72,10 @@ jobs:
         adb shell settings put global transition_animation_scale 0
         adb shell settings put global animator_duration_scale 0
     - name: Run startup macrobenchmarks
+      # The `benchmark` variants of :app and :macrobenchmark are non-debuggable
+      # and R8-shrunk, so only the emulator warning is suppressed.
       run: >-
-        ./gradlew :macrobenchmark:connectedDebugAndroidTest
+        ./gradlew :macrobenchmark:connectedBenchmarkAndroidTest
         -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.suppressErrors=EMULATOR
         --no-parallel --max-workers=2 --console=plain
     - name: Enforce startup budget

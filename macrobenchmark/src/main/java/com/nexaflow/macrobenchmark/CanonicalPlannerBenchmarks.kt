@@ -36,7 +36,9 @@ class CanonicalPlannerBenchmarks {
         children = (0 until 1_024).map { index ->
             SetStateNode(
                 id = CanonicalNodeId("benchmark-$index"),
-                target = TargetId("core.benchmark.target.$index"),
+                // Stable ids require every dotted segment to start with a
+                // letter, so the index is prefixed with `t`.
+                target = TargetId("core.benchmark.target.t$index"),
                 state = BooleanValue(index % 2 == 0),
             )
         },

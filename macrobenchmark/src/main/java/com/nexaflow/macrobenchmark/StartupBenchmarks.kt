@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
  *    profile's classes, isolating the AOT benefit from OS-side noise.
  *
  * Device-only. Run with a connected emulator/device:
- *   ./gradlew :macrobenchmark:connectedDebugAndroidTest
+ *   ./gradlew :macrobenchmark:connectedBenchmarkAndroidTest
  *
  * Results land in macrobenchmark/build/outputs/connected_android_test_additional_output/.
  */
