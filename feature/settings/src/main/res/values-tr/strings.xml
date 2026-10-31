@@ -447,7 +447,4 @@
     <string name="agent_automation_approval_review_title">%1$s riskli görevi incele</string>
     <string name="agent_automation_approval_summary_unavailable">Görev ayrıntıları kullanılamıyor. Bu isteği onaylamayın.</string>
     <string name="agent_automation_approval_reject">Reddet</string>
-    <string name="ai_provider_test_model_missing">Seçilen model bulunamadı. Kullanılabilir bir model seçin.</string>
-    <string name="ai_provider_test_timeout">Sağlayıcı zamanında yanıt vermedi. Tekrar deneyin.</string>
-    <string name="ai_provider_test_network">Sağlayıcıya ulaşılamadı. Ağı, uç noktayı ve TLS ayarlarını kontrol edin.</string>
 </resources>

@@ -445,7 +445,4 @@
     <string name="agent_automation_approval_review_title">Revisar tarea de riesgo %1$s</string>
     <string name="agent_automation_approval_summary_unavailable">No se pueden ver los detalles de la tarea. No apruebes esta solicitud.</string>
     <string name="agent_automation_approval_reject">Rechazar</string>
-    <string name="ai_provider_test_model_missing">No se encontró el modelo seleccionado. Elige un modelo disponible.</string>
-    <string name="ai_provider_test_timeout">El proveedor no respondió a tiempo. Inténtalo de nuevo.</string>
-    <string name="ai_provider_test_network">No se pudo contactar con el proveedor. Revisa la red, el endpoint y TLS.</string>
 </resources>

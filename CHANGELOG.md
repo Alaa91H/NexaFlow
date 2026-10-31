@@ -17,7 +17,7 @@
 ### Fixed
 
 - **Gemini tool turns with more than one call.** Every tool result is now returned in the same `contents` entry, because Gemini rejects a turn whose `functionResponse` parts do not match its `functionCall` parts. Previously a model that asked for two tools received HTTP 400.
-- **Provider failures now say what happened.** Error bodies are parsed for every provider, `Retry-After` is honored in the transports, and an invalid key reported as HTTP 400 (Gemini's behaviour), a missing model reported as 400/404, and a quota exhaustion are classified correctly instead of collapsing into a generic failure. The chat surface and the provider setup row explain the cause in all ten locales.
+- **Provider failures now say what happened.** Error bodies are parsed for every provider, `Retry-After` is honored in the transports, and an invalid key reported as HTTP 400 (Gemini's behaviour), a missing model reported as 400/404, and a quota exhaustion are classified correctly instead of collapsing into a generic failure. The chat surface explains the cause in all ten locales.
 - **Blocked or empty Gemini responses no longer look successful.** `promptFeedback.blockReason`, an empty candidate list and a content-free SAFETY/RECITATION finish reason fail the turn; previously they produced an empty answer marked as completed.
 - **Gemini model discovery follows pagination.** The API returns 50 models per page by default, so a valid model outside the first page could be reported as missing during connection verification.
 - The ROM "write any system setting" action was still English in nine locales (`action_rom_setting_set_setting_sub`, in both the builder and the task list). It is now translated in German, Spanish, French, Hindi, Japanese, Portuguese, Russian, Turkish and Simplified Chinese.
@@ -31,7 +31,6 @@
 - `scripts/audit_translation_completeness.py` gained a sixth layer: an English phrase inside a non-Latin locale (no character of that locale's script, two or more Latin words) is now a failure. The previous layers only caught values copied verbatim from the default, which is how the reworded English above survived. The self-test covers the new class.
 - `scripts/publish_telegram_release.py` ships with 15 unit tests: markdown rendering and HTML escaping, chunking under the message limit, oversized-line wrapping, intro content, target parsing (missing channel, numeric topic) and the publish order (intro → changelog → documents, per target).
 - Local gates before the tag: `:core:ai-runtime:testDebugUnitTest` (100 tests, 0 failures, 3 live tests skipped without a key), `detekt`, string parity, translation completeness, hardcoded text, AI secret boundary and provider registry all pass.
-- The architecture-fitness baseline for `AgentSettingsScreen.kt` is raised by 196 bytes (49,745 → 49,941) for the typed failure-reason call, so the growth is recorded rather than hidden.
 
 ## [v3.91.16] - 2026-10-30
 

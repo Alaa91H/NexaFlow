@@ -8,7 +8,6 @@ import com.nexaflow.core.airuntime.AnthropicMessagesTransportResponse
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
-import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
@@ -57,7 +56,7 @@ class AndroidAnthropicMessagesTransport : AnthropicMessagesTransport {
         val addresses = InetAddress.getAllByName(endpoint.host).toList()
         AnthropicEndpointPolicy.requireAddresses(addresses)
 
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = method

@@ -447,7 +447,4 @@
     <string name="agent_automation_approval_review_title">查看 %1$s 风险任务</string>
     <string name="agent_automation_approval_summary_unavailable">无法获取任务详情。请勿批准此请求。</string>
     <string name="agent_automation_approval_reject">拒绝</string>
-    <string name="ai_provider_test_model_missing">未找到所选模型。请选择一个可用模型。</string>
-    <string name="ai_provider_test_timeout">提供商未及时响应。请重试。</string>
-    <string name="ai_provider_test_network">无法连接提供商。请检查网络、端点和 TLS 设置。</string>
 </resources>

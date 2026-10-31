@@ -12,7 +12,6 @@ import com.nexaflow.core.airuntime.OpenAiResponsesTransportResponse
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.URI
-import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
@@ -134,7 +133,7 @@ private object NativeHttpsJsonClient {
         require(endpoint.scheme == "https")
         require(payload == null || payload.size <= MAX_REQUEST_BYTES)
 
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = method
@@ -156,7 +155,11 @@ private object NativeHttpsJsonClient {
             val status = connection.responseCode
             val retryAfterMs = AiRetryAfter.parse(connection.getHeaderField("Retry-After"))
             if (status in 300..399) {
-                return NativeHttpResponse(status, """{"error":"redirect_rejected"}""")
+                return NativeHttpResponse(
+                    status,
+                    """{"error":{"code":"redirect_rejected"}}""",
+                    retryAfterMs
+                )
             }
 
             val contentLength = connection.contentLengthLong

@@ -13,7 +13,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
-import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -97,7 +96,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
         endpoint: URI,
         apiKey: String?
     ): OpenAiCompatibleTransportResponse {
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = "GET"
@@ -181,7 +180,7 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
         apiKey: String?,
         gatewayHeaders: Map<String, String>
     ): OpenAiCompatibleTransportResponse {
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = "POST"

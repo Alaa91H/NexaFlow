@@ -75,6 +75,7 @@ class AiChatViewModelTest {
         viewModel.clearError()
         assertEquals(1, viewModel.state.value.messages.size)
         assertEquals(null, viewModel.state.value.errorCode)
+        assertEquals(null, viewModel.state.value.errorReason)
 
         viewModel.clearConversation()
         assertTrue(viewModel.state.value.messages.isEmpty())
@@ -118,6 +119,24 @@ class AiChatViewModelTest {
         assertFalse(viewModel.state.value.running)
     }
 
+    @Test
+    fun aSuccessfulReplyClearsTheFailureReason() = runTest(mainDispatcher) {
+        val registry = AiProviderRegistry(listOf(SucceedingProvider()))
+        registry.updateRoutingPolicy(AiRoutingPolicy(mode = AiRoutingMode.CLOUD_ONLY))
+        val viewModel = AiChatViewModel(
+            engine = AiConversationEngine(registry),
+            providerRegistry = registry
+        ).also { viewModelStore.put("ai-chat-ok", it) }
+        runCurrent()
+
+        viewModel.send("hello")
+        runCurrent()
+
+        assertEquals(null, viewModel.state.value.errorCode)
+        assertEquals(null, viewModel.state.value.errorReason)
+        assertFalse(viewModel.state.value.running)
+    }
+
     private fun createViewModel() = AiChatViewModel(
         engine = AiConversationEngine(AiProviderRegistry()),
         providerRegistry = AiProviderRegistry()
@@ -142,6 +161,24 @@ class AiChatViewModelTest {
                 providerCode = "INVALID_ARGUMENT",
                 providerMessage = "API key not valid. Please pass a valid API key."
             )
+        }
+    }
+
+    private class SucceedingProvider : AiModelProvider {
+        private val _descriptor = MutableStateFlow(
+            AiProviderDescriptor(
+                id = "test-ok",
+                displayName = "Test ok",
+                modelId = "test-model",
+                capabilities = AiProviderCapabilities(),
+                available = true
+            )
+        )
+        override val descriptor: StateFlow<AiProviderDescriptor> = _descriptor.asStateFlow()
+
+        override fun stream(request: AiProviderRequest): Flow<AiProviderEvent> = flow {
+            emit(AiProviderEvent.TextDelta("hi"))
+            emit(AiProviderEvent.Finished("stop"))
         }
     }
 

@@ -16,7 +16,6 @@ import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
 import com.nexaflow.core.airuntime.AiAuthScheme
 import com.nexaflow.core.airuntime.AiApiDialect
-import com.nexaflow.core.airuntime.AiConnectionFailure
 import com.nexaflow.core.airuntime.AiConnectionTestResult
 import com.nexaflow.core.airuntime.AiCredentialReferences
 import com.nexaflow.core.airuntime.AiCredentialStore
@@ -80,7 +79,6 @@ data class AgentSettingsUiState(
     val providerApiKeyConfigured: Boolean = false,
     val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
     val providerProbeStatusCode: Int? = null,
-    val providerProbeFailure: AiConnectionFailure? = null,
     val providerLastVerifiedAtMillis: Long? = null,
     val modelDiscoveryState: AiModelDiscoveryState = AiModelDiscoveryState.IDLE,
     val profileModelChoices: List<String> = emptyList(),
@@ -346,7 +344,6 @@ class AgentSettingsViewModel @Inject constructor(
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 providerProbeStatusCode = null,
-                providerProbeFailure = null,
                 discoveredModels = emptyList(),
                 operationFailed = !success
             )
@@ -366,7 +363,6 @@ class AgentSettingsViewModel @Inject constructor(
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 providerProbeStatusCode = null,
-                providerProbeFailure = null,
                 providerLastVerifiedAtMillis = null,
                 operationFailed = !success
             )
@@ -471,7 +467,6 @@ class AgentSettingsViewModel @Inject constructor(
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 providerProbeStatusCode = null,
-                providerProbeFailure = null,
                 providerLastVerifiedAtMillis = null,
                 operationFailed = !saved
             )
@@ -484,7 +479,6 @@ class AgentSettingsViewModel @Inject constructor(
         _state.value = _state.value.copy(
             providerProbeState = AiProviderProbeState.TESTING,
             providerProbeStatusCode = null,
-            providerProbeFailure = null,
             providerLastVerifiedAtMillis = null,
         )
         viewModelScope.launch {
@@ -504,11 +498,6 @@ class AgentSettingsViewModel @Inject constructor(
                     AiProviderProbeState.FAILED
                 },
                 providerProbeStatusCode = verification?.httpStatus,
-                providerProbeFailure = if (verification?.success == true) {
-                    null
-                } else {
-                    verification?.failure ?: AiConnectionFailure.UNKNOWN
-                },
                 providerLastVerifiedAtMillis = if (verification?.success == true) {
                     System.currentTimeMillis()
                 } else {
@@ -576,7 +565,6 @@ class AgentSettingsViewModel @Inject constructor(
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
                 providerProbeStatusCode = null,
-                providerProbeFailure = null,
                 providerLastVerifiedAtMillis = null,
                 operationFailed = !success
             )
@@ -661,7 +649,6 @@ class AgentSettingsViewModel @Inject constructor(
         _state.value = _state.value.copy(
             providerProbeState = AiProviderProbeState.TESTING,
             providerProbeStatusCode = null,
-            providerProbeFailure = null,
         )
         viewModelScope.launch {
             val verification = runCatching {
@@ -683,20 +670,14 @@ class AgentSettingsViewModel @Inject constructor(
                     local = local,
                     reasoningEffort = AiReasoningLevel.BALANCED.apiValue,
                     apiKeyProvider = { key }
-                ) ?: return@runCatching null
-                adapter.verifyConnection()
-            }.getOrNull()
-            val succeeded = verification?.success == true
+                ) ?: return@runCatching false to null
+                adapter.verifyConnection().let { it.success to it.httpStatus }
+            }.getOrDefault(false to null)
             _state.value = _state.value.copy(
-                providerProbeState = if (succeeded) AiProviderProbeState.SUCCESS
+                providerProbeState = if (verification.first) AiProviderProbeState.SUCCESS
                     else AiProviderProbeState.FAILED,
-                providerProbeStatusCode = verification?.httpStatus,
-                providerProbeFailure = if (succeeded) {
-                    null
-                } else {
-                    verification?.failure ?: AiConnectionFailure.UNKNOWN
-                },
-                providerLastVerifiedAtMillis = if (succeeded) {
+                providerProbeStatusCode = verification.second,
+                providerLastVerifiedAtMillis = if (verification.first) {
                     System.currentTimeMillis()
                 } else {
                     null
@@ -739,7 +720,6 @@ class AgentSettingsViewModel @Inject constructor(
         _state.value = _state.value.copy(
             providerProbeState = AiProviderProbeState.IDLE,
             providerProbeStatusCode = null,
-            providerProbeFailure = null,
             providerLastVerifiedAtMillis = null,
             modelDiscoveryState = AiModelDiscoveryState.IDLE,
             profileModelChoices = emptyList()
@@ -751,7 +731,6 @@ class AgentSettingsViewModel @Inject constructor(
         _state.value = _state.value.copy(
             providerProbeState = AiProviderProbeState.TESTING,
             providerProbeStatusCode = null,
-            providerProbeFailure = null,
         )
         viewModelScope.launch {
             val result = provider.verifyConnection()
@@ -764,7 +743,6 @@ class AgentSettingsViewModel @Inject constructor(
                     AiProviderProbeState.FAILED
                 },
                 providerProbeStatusCode = result.httpStatus,
-                providerProbeFailure = if (result.success) null else result.failure,
             )
         }
     }
@@ -784,7 +762,6 @@ class AgentSettingsViewModel @Inject constructor(
         pairing: AgentPairingUi? = _state.value.pairing,
         providerProbeState: AiProviderProbeState = _state.value.providerProbeState,
         providerProbeStatusCode: Int? = _state.value.providerProbeStatusCode,
-        providerProbeFailure: AiConnectionFailure? = _state.value.providerProbeFailure,
         providerLastVerifiedAtMillis: Long? = _state.value.providerLastVerifiedAtMillis,
         discoveredModels: List<OpenAiModelInfo> = _state.value.discoveredModels,
         operationFailed: Boolean = false
@@ -833,7 +810,6 @@ class AgentSettingsViewModel @Inject constructor(
             providerApiKeyConfigured = providerApiKeyConfigured,
             providerProbeState = providerProbeState,
             providerProbeStatusCode = providerProbeStatusCode,
-            providerProbeFailure = providerProbeFailure,
             providerLastVerifiedAtMillis = providerLastVerifiedAtMillis,
             modelDiscoveryState = _state.value.modelDiscoveryState,
             profileModelChoices = _state.value.profileModelChoices,

@@ -445,7 +445,4 @@
     <string name="agent_automation_approval_review_title">Aufgabe mit Risiko %1$s prüfen</string>
     <string name="agent_automation_approval_summary_unavailable">Aufgabendetails sind nicht verfügbar. Genehmigen Sie diese Anfrage nicht.</string>
     <string name="agent_automation_approval_reject">Ablehnen</string>
-    <string name="ai_provider_test_model_missing">Das gewählte Modell wurde nicht gefunden. Wähle ein verfügbares Modell.</string>
-    <string name="ai_provider_test_timeout">Der Anbieter hat nicht rechtzeitig geantwortet. Versuche es erneut.</string>
-    <string name="ai_provider_test_network">Der Anbieter ist nicht erreichbar. Prüfe Netzwerk, Endpunkt und TLS-Einstellungen.</string>
 </resources>

@@ -443,7 +443,4 @@
     <string name="agent_automation_approval_summary_unavailable">Task details are unavailable. Do not approve this request.</string>
     <string name="agent_automation_approval_reject">Reject</string>
     <string name="agent_lan_access_tls_required">LAN access is temporarily unavailable until encrypted TLS connections are supported.</string>
-    <string name="ai_provider_test_model_missing">The selected model was not found. Pick an available model.</string>
-    <string name="ai_provider_test_timeout">The provider did not answer in time. Try again.</string>
-    <string name="ai_provider_test_network">Could not reach the provider. Check the network, endpoint and TLS settings.</string>
 </resources>

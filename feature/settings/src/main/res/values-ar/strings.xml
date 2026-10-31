@@ -444,7 +444,4 @@
     <string name="agent_automation_approval_review_title">مراجعة مهمة خطورتها %1$s</string>
     <string name="agent_automation_approval_summary_unavailable">تفاصيل المهمة غير متاحة. لا توافق على هذا الطلب.</string>
     <string name="agent_automation_approval_reject">رفض</string>
-    <string name="ai_provider_test_model_missing">لم يُعثر على النموذج المحدد. اختر نموذجًا متاحًا.</string>
-    <string name="ai_provider_test_timeout">لم يستجب المزوّد في الوقت المحدد. أعد المحاولة.</string>
-    <string name="ai_provider_test_network">تعذّر الوصول إلى المزوّد. تحقّق من الشبكة ونقطة الوصول وإعدادات TLS.</string>
 </resources>

@@ -99,7 +99,10 @@ object GeminiNativeEndpointPolicy {
                 append("&pageToken=").append(java.net.URLEncoder.encode(token, "UTF-8"))
             }
         }
-        return URI(base.scheme, null, base.host, base.port, base.path, query, null)
+        // The query is already percent-encoded; the multi-argument URI
+        // constructor would encode the escapes a second time and corrupt the
+        // page token (`next/token` became `next%252Ftoken`).
+        return URI.create(base.toString() + "?" + query)
     }
 
     const val MAX_PAGE_SIZE = 1000

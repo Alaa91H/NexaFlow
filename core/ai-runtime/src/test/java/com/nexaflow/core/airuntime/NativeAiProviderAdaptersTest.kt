@@ -629,6 +629,18 @@ class NativeAiProviderAdaptersTest {
     }
 
     @Test
+    fun geminiModelPageUriEncodesThePageTokenExactlyOnce() {
+        val uri = GeminiNativeEndpointPolicy.modelsPageUri(
+            GeminiNativeProviderConfig(),
+            pageToken = "next/token+1",
+            pageSize = 50
+        )
+
+        assertEquals("pageSize=50&pageToken=next%2Ftoken%2B1", uri.rawQuery)
+        assertEquals("/v1beta/models", uri.path)
+    }
+
+    @Test
     fun geminiStreamFailureCarriesProviderMessageFromErrorBody() = runTest {
         val provider = GeminiNativeProvider(
             transport = object : GeminiNativeTransport {

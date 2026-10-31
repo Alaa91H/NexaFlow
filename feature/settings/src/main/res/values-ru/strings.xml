@@ -447,7 +447,4 @@
     <string name="agent_automation_approval_review_title">Проверить задачу с риском %1$s</string>
     <string name="agent_automation_approval_summary_unavailable">Сведения о задаче недоступны. Не одобряйте этот запрос.</string>
     <string name="agent_automation_approval_reject">Отклонить</string>
-    <string name="ai_provider_test_model_missing">Выбранная модель не найдена. Выберите доступную модель.</string>
-    <string name="ai_provider_test_timeout">Провайдер не ответил вовремя. Повторите попытку.</string>
-    <string name="ai_provider_test_network">Не удалось связаться с провайдером. Проверьте сеть, эндпоинт и TLS.</string>
 </resources>

@@ -13,7 +13,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
-import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -61,7 +60,7 @@ internal object AndroidOpenAiStreamingTransport {
         gatewayHeaders: Map<String, String>,
         emitPayload: suspend (String) -> Unit
     ) {
-        val connection = endpoint.toURL().openConnection() as HttpsURLConnection
+        val connection = AiHttpConnections.open(endpoint)
         try {
             connection.instanceFollowRedirects = false
             connection.requestMethod = "POST"

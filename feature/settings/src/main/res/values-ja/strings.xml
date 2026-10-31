@@ -447,7 +447,4 @@
     <string name="agent_automation_approval_review_title">リスク %1$s のタスクを確認</string>
     <string name="agent_automation_approval_summary_unavailable">タスクの詳細を表示できません。この要求は承認しないでください。</string>
     <string name="agent_automation_approval_reject">拒否</string>
-    <string name="ai_provider_test_model_missing">選択したモデルが見つかりません。利用可能なモデルを選んでください。</string>
-    <string name="ai_provider_test_timeout">プロバイダーが時間内に応答しませんでした。再試行してください。</string>
-    <string name="ai_provider_test_network">プロバイダーに接続できませんでした。ネットワーク、エンドポイント、TLSを確認してください。</string>
 </resources>
