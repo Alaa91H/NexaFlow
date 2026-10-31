@@ -21,11 +21,16 @@ android {
 
     defaultConfig {
         minSdk = 26
-        // AndroidBenchmarkRunner (an AndroidJUnitRunner subclass) launches the
-        // library's IsolationActivity: without it the planner microbenchmark
-        // fails with ACTIVITY-MISSING, and macrobenchmark measurements lose
-        // sustained performance mode.
-        testInstrumentationRunner = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // The planner microbenchmark measures in-process planner code, but this
+        // module also drives :app through MacrobenchmarkRule, so the library's
+        // IsolationActivity (AndroidBenchmarkRunner) cannot own the screen: the
+        // runner times out launching it between macro tests. Only the isolation
+        // warning is dropped; DEBUGGABLE and emulator findings still fail the
+        // run, and CI passes `EMULATOR,ACTIVITY-MISSING` because that property
+        // replaces this value.
+        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] =
+            "ACTIVITY-MISSING"
         // The module benchmarks :app; AGP links them for the benchmark run.
         targetProjectPath = ":app"
     }
