@@ -123,7 +123,10 @@ def main() -> int:
             "fun NodeConfiguratorSheet",
             "ModalBottomSheet",
             "selected_count",
-            "OutlinedTextField",
+            # Ink Glass hosts the search field as the shared SearchPill instead
+            # of a Material OutlinedTextField; the product requirement (a
+            # searchable picker) is unchanged.
+            "SearchPill",
             "verticalScroll",
         ):
             if token not in sheet:

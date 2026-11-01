@@ -1,9 +1,6 @@
 package com.nexaflow.app.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -12,15 +9,13 @@ import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.nexaflow.app.R
-import com.nexaflow.core.ui.theme.NexaFlowType
-import com.nexaflow.core.ui.theme.nexaFlowType
 
 /**
  * Ink Glass typography (§5.5).
  *
  * Plus Jakarta Sans (OFL) carries Latin, IBM Plex Sans Arabic (OFL) carries
  * Arabic. Compose does not fall back per glyph across `Font` entries, so the
- * family is chosen per locale in [rememberContentFontFamily]: Arabic locales
+ * family is chosen per locale by [contentFontFamily]: Arabic locales
  * get Plex, Cyrillic/Devanagari/CJK locales keep Roboto Flex (Plus Jakarta has
  * no coverage there), everything else gets Jakarta.
  */
@@ -65,17 +60,6 @@ fun contentFontFamily(languageTag: String): FontFamily = when (languageTag) {
     else -> JakartaFamily
 }
 
-@Composable
-fun rememberContentFontFamily(): FontFamily {
-    val locale = LocalConfiguration.current.locales[0]
-    return remember(locale.language) { contentFontFamily(locale.language) }
-}
-
-@Composable
-fun rememberNexaFlowType(): NexaFlowType {
-    val family = rememberContentFontFamily()
-    return remember(family) { nexaFlowType(family) }
-}
 
 /**
  * Material 3 roles re-cut on the Ink scale so built-in components (menus,

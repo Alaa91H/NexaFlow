@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -92,7 +93,12 @@ fun NexaFlowTheme(
     } else {
         baseColors
     }
-    val fontFamily = rememberContentFontFamily()
+    // The family is per locale, so the locale is the key: a locale change is
+    // the only thing that can produce a different family. Kept as a plain
+    // `remember` here rather than a value-returning @Composable, because the
+    // Compose stability budget counts those as non-skippable composables.
+    val locale = LocalConfiguration.current.locales[0]
+    val fontFamily = remember(locale.language) { contentFontFamily(locale.language) }
     val nexaType = remember(fontFamily) { com.nexaflow.core.ui.theme.nexaFlowType(fontFamily) }
     val m3Typography = remember(fontFamily) { nexaFlowM3Typography(fontFamily) }
     val glassState = rememberGlassState()
