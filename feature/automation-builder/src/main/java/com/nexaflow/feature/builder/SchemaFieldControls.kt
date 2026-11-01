@@ -456,16 +456,16 @@ private fun PackagesCollectionControl(
         }
     }
     if (showPicker) {
+        // One write path for the sheet: the multi-select mode reports a list,
+        // and the single handler (unused while `multiSelect` is on) reuses it.
+        fun applyPackages(names: List<String>) {
+            onValueChange(names.joinToString(","))
+            showPicker = false
+        }
         AppPickerDialog(
-            onPickSingle = { app ->
-                onValueChange(app.packageName)
-                showPicker = false
-            },
+            onPickSingle = { app -> applyPackages(listOf(app.packageName)) },
             onDismiss = { showPicker = false },
-            onPickMultiple = { picked ->
-                onValueChange(picked.joinToString(",") { it.packageName })
-                showPicker = false
-            },
+            onPickMultiple = { picked -> applyPackages(picked.map { it.packageName }) },
             multiSelect = true,
             preSelectedPackages = packages,
         )

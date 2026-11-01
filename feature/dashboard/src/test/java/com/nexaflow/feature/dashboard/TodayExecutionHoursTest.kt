@@ -28,6 +28,27 @@ class TodayExecutionHoursTest {
     )
 
     @Test
+    fun theDefaultsReadTheWallClock() {
+        // The ViewModel calls this without arguments on every execution change,
+        // so the defaults themselves are on the hot path: a run recorded now
+        // must come back as the hour the device's clock currently shows.
+        val now = System.currentTimeMillis()
+        val expected = java.time.Instant.ofEpochMilli(now)
+            .atZone(ZoneId.systemDefault())
+            .hour
+        val record = ExecutionRecord(
+            id = "now",
+            automationId = "automation",
+            automationName = "Routine",
+            success = true,
+            message = "",
+            executedAt = now,
+        )
+
+        assertEquals(listOf(expected), hoursOfToday(listOf(record)))
+    }
+
+    @Test
     fun onlyTodaysRunsAreKept() {
         val hours = hoursOfToday(
             records = listOf(
