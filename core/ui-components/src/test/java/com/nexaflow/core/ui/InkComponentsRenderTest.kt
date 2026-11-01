@@ -250,6 +250,23 @@ class InkComponentsRenderTest {
     }
 
     @Test
+    fun rawColourStatusPillRendersItsComputedPair() {
+        composeRule.setContent {
+            InkPreviewSurface(dark = true) {
+                // Call sites that already own a semantic pair (import summaries,
+                // builder previews) use this overload instead of a variant.
+                StatusPill(
+                    text = "Imported 12 tasks",
+                    background = DarkNexaFlowColors.success.copy(alpha = 0.17f),
+                    contentColor = DarkNexaFlowColors.success
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Imported 12 tasks").assertIsDisplayed()
+    }
+
+    @Test
     fun categoryChipCoversUnselectedIconsAndPlainLabels() {
         composeRule.setContent {
             InkPreviewSurface(dark = true) {
