@@ -588,4 +588,5 @@
     <string name="trigger_wear_event_sub">Run the task when a NexaFlow watch is connected or disconnected</string>
     <string name="action_agent_run">Run AI agent</string>
     <string name="action_agent_run_sub">Runs a saved AI agent with a prompt</string>
+    <string name="back">Back</string>
 </resources>

@@ -589,4 +589,5 @@
     <string name="action_sms_reply_sub">Enviar un mensaje a quien inició el flujo por SMS</string>
     <string name="action_agent_run">Ejecutar agente de IA</string>
     <string name="action_agent_run_sub">Ejecuta un agente de IA guardado con una instrucción</string>
+    <string name="back">Atrás</string>
 </resources>

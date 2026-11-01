@@ -589,4 +589,5 @@
     <string name="action_sms_reply_sub">向触发此工作流的短信发件人发送消息</string>
     <string name="action_agent_run">运行 AI 智能体</string>
     <string name="action_agent_run_sub">使用提示词运行已保存的 AI 智能体</string>
+    <string name="back">返回</string>
 </resources>

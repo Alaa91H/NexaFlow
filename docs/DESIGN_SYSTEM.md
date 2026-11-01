@@ -270,10 +270,14 @@ nodes of a chain. The station's single action lives in the Dock
 keeps its inline catalogue panel rather than opening the picker sheet, and has
 no Run-now entry point because an unsaved routine cannot be executed.
 
-Details: `ScreenHeader`, hero card (56dp tile, title, status, switch), bento row
-(last/next run), `FlowStepRow`s, history as a grouped surface.
+Details: `ScreenHeader` with `HeaderIconButton` actions (shortcut, edit, delete)
+over the existing detail sections; the deep-link and per-node diagnostics are
+unchanged.
 
-History: `SearchPill`, 13sp/700 day labels, rows = tile + title + time + status.
+History: `ScreenHeader`, outcome filters as `CategoryChip`s, 13sp/700 day labels,
+and one grouped surface per day — rows are a 44dp tinted tile, the task name and
+meta, and a trailing status pill, with 5% dividers between rows and 28dp corners
+on the first and last of each day.
 
 Settings: `SettingsGroup`/`SettingRow` grouped surfaces with 44dp tiles.
 

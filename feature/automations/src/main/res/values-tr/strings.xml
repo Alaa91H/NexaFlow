@@ -589,4 +589,5 @@
     <string name="action_sms_reply_sub">İş akışını başlatan SMS göndericisine mesaj gönder</string>
     <string name="action_agent_run">AI ajanını çalıştır</string>
     <string name="action_agent_run_sub">Kayıtlı bir AI ajanını istemle çalıştırır</string>
+    <string name="back">Geri</string>
 </resources>
