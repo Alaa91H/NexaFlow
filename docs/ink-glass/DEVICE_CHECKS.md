@@ -110,7 +110,7 @@ Screenshots in `docs/ink-glass/screenshots/`.
 | `:app:assembleDebug` | PASS |
 | `:app:lintDebug` | PASS — 0 errors, 5 pre-existing warnings; the 11 locale files lint clean after the deletions |
 | Removed resources in the shipped APK | PASS — `aapt2 dump resources app-debug.apk` contains no `trigger_temporal_filters_title`, `trigger_expression_*` or `http_retry*` entries |
-| Device (b3a3beb3) | The new debug APK was installed and the app relaunched into the Arabic dashboard; the trigger sheet itself was **not** opened on device this pass, because the builder still sits behind the three-step wizard and blind `adb input` taps through the config sheets are not a reliable way to reach it. The APK resource dump above is the check that the section cannot render. |
+| Device (b3a3beb3, Android 17, Arabic RTL) | PASS — the new APK was installed and driven into the builder. Adding the «تغير مستوى الصوت» trigger, the type that used to carry the widest filter block (debounce, stability, hysteresis, rate limit, cooldown, minimum interval), opens a sheet with only الدفق / الاتجاه / الحد / حفظ. The WHEN station shows no «تعبير محفزات متقدم» card. A text dump of both screens matched **zero** of `فلاتر` / `التثبيط` / `التهدئة` / `التباين` / `استقرار` / `حد المعدل` / `تعبير محفزات`. Screenshot: `screenshots/12-volume-trigger-sheet.png`. The phone dropped off adb before the second (device-trigger) sheet could be captured, so that one is covered by the code removal and the APK resource dump rather than by a screenshot. |
 
 ## Still open
 
