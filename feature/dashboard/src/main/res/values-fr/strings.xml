@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Paramètres</string>
     <string name="search_hint">Rechercher des tâches</string>
-    <string name="clear_search">Effacer la recherche</string>
     <string name="no_search_results_title">Aucun résultat</string>
     <string name="no_search_results_sub">Aucune tâche ne correspond à votre recherche.</string>
     <string name="run_now">Exécuter maintenant</string>

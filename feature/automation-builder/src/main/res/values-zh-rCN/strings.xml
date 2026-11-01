@@ -5,19 +5,10 @@
     <string name="canonical_add_battery">添加电池条件</string>
     <string name="canonical_battery_threshold">阈值</string>
     <string name="battery_direction_label">方向</string>
-    <string name="canonical_battery_toggle_direction">更改阈值方向</string>
     <string name="canonical_add_delay">添加等待</string>
-    <string name="canonical_store_secret">保存受保护的密钥</string>
-    <string name="canonical_secret_value">密钥值</string>
-    <string name="canonical_secret_store_failed">无法保存受保护的值。请检查引用并重试。</string>
     <string name="canonical_choose_app">选择应用</string>
     <string name="canonical_search_apps">搜索应用</string>
     <string name="canonical_no_apps_found">未找到应用</string>
-    <string name="canonical_file_permission_error">此提供方未授予持久文件访问权限。请选择其他文件。</string>
-    <string name="canonical_choose_file">选择文件</string>
-            <string name="canonical_browse">浏览</string>
-    <string name="canonical_latitude">纬度</string>
-    <string name="canonical_longitude">经度</string>
 <string name="canonical_choose_time">选择时间</string>
     <string name="canonical_choose_date">选择日期</string>
 <string name="canonical_field_invalid_value">请输入有效值。</string>
@@ -690,10 +681,8 @@
     <string name="wifi_sleep_never">从不</string>
     <string name="storage_below">低于</string>
     <string name="storage_above">高于</string>
-    <string name="trigger_brightness_direction">方向</string>
     <string name="trigger_brightness_threshold">亮度 阈值</string>
     <string name="trigger_data_saver_state">状态</string>
-    <string name="trigger_storage_direction">方向</string>
     <string name="trigger_storage_threshold">阈值 (MB)</string>
     <string name="trigger_type_auto_rotate">自动旋转</string>
     <string name="trigger_type_bluetooth_state">蓝牙</string>
@@ -808,7 +797,6 @@
     <string name="settings_vpn">VPN</string>
     <string name="trigger_desc_clipboard">剪贴板内容更改时触发</string>
     <string name="trigger_desc_nfc_tag">扫描 NFC 标签时触发</string>
-    <string name="trigger_desc_screen_timeout">屏幕超时设置更改时触发</string>
     <string name="trigger_events_on_change">更改时触发</string>
     <string name="trigger_signal_threshold">信号阈值</string>
     <string name="trigger_temperature_threshold">温度阈值 (°C)</string>
@@ -988,7 +976,6 @@
     <string name="trigger_type_mobile_data">移动数据已连接</string>
     <string name="trigger_type_mobile_data_sub">移动数据为活动网络时运行（或相反）</string>
     <string name="key_event_custom">自定义按键（名称或代码）</string>
-    <string name="battery_temp_hint">摄氏度，例如 40</string>
     <string name="map_picker_title">选择位置</string>
     <string name="map_selected_location">已选位置</string>
     <string name="map_picker_hint">打开已安装的地图应用搜索或选择地点，然后复制其坐标并粘贴到此处。</string>
@@ -1138,8 +1125,6 @@
     <string name="migrate_banner_title">更新连接类任务</string>
     <string name="migrate_banner_message">部分任务仍在使用旧的合并连接触发器。将它们迁移到独立的 Wi-Fi 和移动数据触发器。</string>
     <string name="migrate_banner_button">立即迁移</string>
-    <string name="clamp_range">数值必须在 %1$s 之间 — 已自动调整</string>
-    <string name="clamp_range_unit">数值必须在 %1$s %2$s 之间 — 已自动调整</string>
     <string name="pointer_speed_range">指针速度范围为 -7（最慢）到 7（最快）；0 为系统默认值。</string>
     <string name="screensaver_minutes_chip">%1$d 分钟</string>
     <string name="http_allow_private">允许本地/专用网络目标</string>
@@ -1201,8 +1186,6 @@
     <string name="option_tier_all">所有选项</string>
     <string name="option_tier_expanded">已展开</string>
     <string name="option_tier_collapsed">已收起</string>
-    <string name="canonical_battery_charger">充电器：%1$s</string>
-    <string name="canonical_battery_charging_state">充电状态：%1$s</string>
     <string name="canonical_mixed_trigger_error">在一个自动化中，请使用原生电池条件或传统触发器，不要同时使用两者。</string>
     <string name="action_call_block_silent">静默拦截来电</string>
     <string name="action_call_block_silent_sub">拦截来电但不请求显示拒接界面</string>

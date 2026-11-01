@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">設定</string>
     <string name="search_hint">タスクを検索</string>
-    <string name="clear_search">検索をクリア</string>
     <string name="no_search_results_title">結果なし</string>
     <string name="no_search_results_sub">検索に一致するタスクがありません。</string>
     <string name="run_now">今すぐ実行</string>

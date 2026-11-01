@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Configurações</string>
     <string name="search_hint">Pesquisar tarefas</string>
-    <string name="clear_search">Limpar pesquisa</string>
     <string name="no_search_results_title">Sem resultados</string>
     <string name="no_search_results_sub">Nenhuma tarefa corresponde à sua pesquisa.</string>
     <string name="run_now">Executar agora</string>

@@ -42,7 +42,8 @@ data class NexaFlowColors(
      * Ask-pill label. Ink pairs the 6% `onSurface` pill with its own periwinkle;
      * under dynamic colour it falls back to `primary`, because a wallpaper
      * scheme can hand back an `onPrimaryContainer` that is darker than the pill
-     * and turns the label invisible (seen on a HyperOS A17 device).
+     * and turns the label invisible (seen with a Material You wallpaper palette
+     * on Android 17).
      */
     val askPillLabel: Color
 )

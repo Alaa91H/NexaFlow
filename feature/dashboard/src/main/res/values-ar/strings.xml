@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">الإعدادات</string>
     <string name="search_hint">ابحث في المهام</string>
-    <string name="clear_search">مسح البحث</string>
     <string name="no_search_results_title">لا توجد نتائج</string>
     <string name="no_search_results_sub">لا توجد مهام تطابق بحثك.</string>
     <string name="run_now">تشغيل الآن</string>

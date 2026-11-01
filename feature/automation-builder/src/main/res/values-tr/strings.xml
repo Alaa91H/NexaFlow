@@ -5,19 +5,10 @@
     <string name="canonical_add_battery">Pil koşulu ekle</string>
     <string name="canonical_battery_threshold">Eşik</string>
     <string name="battery_direction_label">Yön</string>
-    <string name="canonical_battery_toggle_direction">Eşik yönünü değiştir</string>
     <string name="canonical_add_delay">Bekleme ekle</string>
-    <string name="canonical_store_secret">Korunan gizli değeri kaydet</string>
-    <string name="canonical_secret_value">Gizli değer</string>
-    <string name="canonical_secret_store_failed">Korunan değer kaydedilemedi. Başvuruyu kontrol edip yeniden deneyin.</string>
     <string name="canonical_choose_app">Uygulama seç</string>
     <string name="canonical_search_apps">Uygulama ara</string>
     <string name="canonical_no_apps_found">Uygulama bulunamadı</string>
-    <string name="canonical_file_permission_error">Bu sağlayıcı kalıcı dosya erişimi vermedi. Başka bir dosya seçin.</string>
-    <string name="canonical_choose_file">Dosya seç</string>
-            <string name="canonical_browse">Gözat</string>
-    <string name="canonical_latitude">Enlem</string>
-    <string name="canonical_longitude">Boylam</string>
 <string name="canonical_choose_time">Saat seç</string>
     <string name="canonical_choose_date">Tarih seç</string>
 <string name="canonical_field_invalid_value">Geçerli bir değer girin.</string>
@@ -690,10 +681,8 @@
     <string name="wifi_sleep_never">Asla</string>
     <string name="storage_below">Altında</string>
     <string name="storage_above">Üstünde</string>
-    <string name="trigger_brightness_direction">Yön</string>
     <string name="trigger_brightness_threshold">Parlaklık Eşik</string>
     <string name="trigger_data_saver_state">Durum</string>
-    <string name="trigger_storage_direction">Yön</string>
     <string name="trigger_storage_threshold">Eşik (MB)</string>
     <string name="trigger_type_auto_rotate">Otomatik döndürme</string>
     <string name="trigger_type_bluetooth_state">Bluetooth</string>
@@ -808,7 +797,6 @@
     <string name="settings_vpn">VPN</string>
     <string name="trigger_desc_clipboard">Pano içeriği değiştiğinde tetiklenir</string>
     <string name="trigger_desc_nfc_tag">Bir NFC etiketi okunduğunda tetiklenir</string>
-    <string name="trigger_desc_screen_timeout">Ekran zaman aşımı ayarı değiştiğinde tetiklenir</string>
     <string name="trigger_events_on_change">Değişimde tetiklenir</string>
     <string name="trigger_signal_threshold">Sinyal eşiği</string>
     <string name="trigger_temperature_threshold">Sıcaklık eşiği (°C)</string>
@@ -988,7 +976,6 @@
     <string name="trigger_type_mobile_data">Mobil veri bağlı</string>
     <string name="trigger_type_mobile_data_sub">Mobil veri etkin ağ olduğunda çalışır (veya olmazsa)</string>
     <string name="key_event_custom">Özel tuş (ad veya kod)</string>
-    <string name="battery_temp_hint">Santigrat derece, örn. 40</string>
     <string name="map_picker_title">Konum seç</string>
     <string name="map_selected_location">Seçilen konum</string>
     <string name="map_picker_hint">Yer aramak veya seçmek için yüklü harita uygulamanızı açın, koordinatlarını kopyalayıp buraya yapıştırın.</string>
@@ -1138,8 +1125,6 @@
     <string name="migrate_banner_title">Bağlantı görevlerini güncelle</string>
     <string name="migrate_banner_message">Bazı görevler hâlâ eski birleşik bağlantı tetikleyicisini kullanıyor. Bunları özel Wi-Fi ve mobil veri tetikleyicilerine taşıyın.</string>
     <string name="migrate_banner_button">Şimdi taşı</string>
-    <string name="clamp_range">Değer %1$s arasında olmalı — sığacak şekilde ayarlandı</string>
-    <string name="clamp_range_unit">Değer %1$s %2$s arasında olmalı — sığacak şekilde ayarlandı</string>
     <string name="pointer_speed_range">İşaretçi hızı -7 (en yavaş) ile 7 (en hızlı) arasındadır; 0 sistem varsayılanıdır.</string>
     <string name="screensaver_minutes_chip">%1$d dk</string>
     <string name="http_allow_private">Yerel/özel ağ hedeflerine izin ver</string>
@@ -1201,8 +1186,6 @@
     <string name="option_tier_all">Tüm seçenekler</string>
     <string name="option_tier_expanded">Genişletilmiş</string>
     <string name="option_tier_collapsed">Daraltılmış</string>
-    <string name="canonical_battery_charger">Şarj cihazı: %1$s</string>
-    <string name="canonical_battery_charging_state">Şarj durumu: %1$s</string>
     <string name="canonical_mixed_trigger_error">Bir otomasyonda yerel pil koşullarını veya eski tetikleyicileri kullanın; ikisini birlikte kullanmayın.</string>
     <string name="action_call_block_silent">Aramayı sessizce engelle</string>
     <string name="action_call_block_silent_sub">Reddetme ekranı istemeden aramayı engelle</string>

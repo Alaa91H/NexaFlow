@@ -5,19 +5,10 @@
     <string name="canonical_add_battery">バッテリー条件を追加</string>
     <string name="canonical_battery_threshold">しきい値</string>
     <string name="battery_direction_label">方向</string>
-    <string name="canonical_battery_toggle_direction">しきい値の方向を変更</string>
     <string name="canonical_add_delay">待機を追加</string>
-    <string name="canonical_store_secret">保護されたシークレットを保存</string>
-    <string name="canonical_secret_value">シークレット値</string>
-    <string name="canonical_secret_store_failed">保護された値を保存できませんでした。参照を確認して再試行してください。</string>
     <string name="canonical_choose_app">アプリを選択</string>
     <string name="canonical_search_apps">アプリを検索</string>
     <string name="canonical_no_apps_found">アプリが見つかりません</string>
-    <string name="canonical_file_permission_error">このプロバイダーはファイルへの永続アクセスを許可しませんでした。別のファイルを選択してください。</string>
-    <string name="canonical_choose_file">ファイルを選択</string>
-            <string name="canonical_browse">参照</string>
-    <string name="canonical_latitude">緯度</string>
-    <string name="canonical_longitude">経度</string>
 <string name="canonical_choose_time">時刻を選択</string>
     <string name="canonical_choose_date">日付を選択</string>
 <string name="canonical_field_invalid_value">有効な値を入力してください。</string>
@@ -690,10 +681,8 @@
     <string name="wifi_sleep_never">しない</string>
     <string name="storage_below">以下</string>
     <string name="storage_above">以上</string>
-    <string name="trigger_brightness_direction">方向</string>
     <string name="trigger_brightness_threshold">明るさ しきい値</string>
     <string name="trigger_data_saver_state">状態</string>
-    <string name="trigger_storage_direction">方向</string>
     <string name="trigger_storage_threshold">しきい値 (MB)</string>
     <string name="trigger_type_auto_rotate">自動回転</string>
     <string name="trigger_type_bluetooth_state">Bluetooth</string>
@@ -808,7 +797,6 @@
     <string name="settings_vpn">VPN</string>
     <string name="trigger_desc_clipboard">クリップボードの内容が変わったときに発動</string>
     <string name="trigger_desc_nfc_tag">NFCタグを検出したときに発動</string>
-    <string name="trigger_desc_screen_timeout">画面のタイムアウト設定が変わったときに発動</string>
     <string name="trigger_events_on_change">変更時に発動</string>
     <string name="trigger_signal_threshold">信号しきい値</string>
     <string name="trigger_temperature_threshold">温度しきい値 (°C)</string>
@@ -988,7 +976,6 @@
     <string name="trigger_type_mobile_data">モバイルデータ接続済み</string>
     <string name="trigger_type_mobile_data_sub">モバイルデータがアクティブなネットワークのときに実行（またはその逆）</string>
     <string name="key_event_custom">カスタムキー（名前またはコード）</string>
-    <string name="battery_temp_hint">摂氏（例: 40）</string>
     <string name="map_picker_title">場所を選択</string>
     <string name="map_selected_location">選択した場所</string>
     <string name="map_picker_hint">インストール済みの地図アプリを開いて場所を検索・選択し、その座標をコピーしてここに貼り付けてください。</string>
@@ -1138,8 +1125,6 @@
     <string name="migrate_banner_title">接続タスクを更新</string>
     <string name="migrate_banner_message">一部のタスクは旧式の統合接続トリガーを使用しています。Wi-Fi とモバイルデータの専用トリガーに移行します。</string>
     <string name="migrate_banner_button">今すぐ移行</string>
-    <string name="clamp_range">値は %1$s の範囲内である必要があります — 調整しました</string>
-    <string name="clamp_range_unit">値は %1$s %2$s の範囲内である必要があります — 調整しました</string>
     <string name="pointer_speed_range">ポインター速度は -7（最も遅い）から 7（最も速い）です。0 はシステムのデフォルトです。</string>
     <string name="screensaver_minutes_chip">%1$d分</string>
     <string name="http_allow_private">ローカル/プライベートネットワーク宛先を許可</string>
@@ -1201,8 +1186,6 @@
     <string name="option_tier_all">すべてのオプション</string>
     <string name="option_tier_expanded">展開済み</string>
     <string name="option_tier_collapsed">折りたたみ済み</string>
-    <string name="canonical_battery_charger">充電器: %1$s</string>
-    <string name="canonical_battery_charging_state">充電状態: %1$s</string>
     <string name="canonical_mixed_trigger_error">1つの自動化では、標準のバッテリー条件か従来のトリガーのどちらかを使用してください。</string>
     <string name="action_call_block_silent">着信を通知せずブロック</string>
     <string name="action_call_block_silent_sub">拒否画面を表示せずに着信を拒否</string>

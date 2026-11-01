@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Einstellungen</string>
     <string name="search_hint">Aufgaben suchen</string>
-    <string name="clear_search">Suche löschen</string>
     <string name="no_search_results_title">Keine Ergebnisse</string>
     <string name="no_search_results_sub">Keine Aufgaben passen zu deiner Suche.</string>
     <string name="run_now">Jetzt ausführen</string>

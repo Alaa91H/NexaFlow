@@ -45,6 +45,15 @@ RESTRICTED_TRIGGERS = {
     # tasks, but new tasks must use the dedicated WIFI_CONNECTED and
     # MOBILE_DATA_CONNECTED triggers instead.
     "CONNECTIVITY",
+    # USB charger connection. Kept for saved tasks; the charger trigger now
+    # declares its source (wall / computer / wireless) and is the single entry.
+    "USB_CONNECTED",
+    # Wi-Fi state. Kept for saved tasks; WIFI_CONNECTED and WIFI_DISCONNECTED
+    # are the dedicated events a new task picks.
+    "WIFI_STATE",
+    # Per-device Bluetooth identity needs a device argument the generic picker
+    # does not collect; saved tasks keep matching through the stored address.
+    "BLUETOOTH_DEVICE",
 }
 
 VERSIONED_TAG = re.compile(r"^v\d+\.\d+\.\d+(?:[-.][0-9A-Za-z]+)*$")

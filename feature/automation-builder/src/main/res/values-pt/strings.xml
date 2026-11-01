@@ -5,19 +5,10 @@
     <string name="canonical_add_battery">Adicionar condição de bateria</string>
     <string name="canonical_battery_threshold">Limite</string>
     <string name="battery_direction_label">Direção</string>
-    <string name="canonical_battery_toggle_direction">Alterar direção do limite</string>
     <string name="canonical_add_delay">Adicionar espera</string>
-    <string name="canonical_store_secret">Guardar segredo protegido</string>
-    <string name="canonical_secret_value">Valor secreto</string>
-    <string name="canonical_secret_store_failed">Não foi possível guardar o valor protegido. Verifique a referência e tente novamente.</string>
     <string name="canonical_choose_app">Escolher aplicativo</string>
     <string name="canonical_search_apps">Pesquisar aplicativos</string>
     <string name="canonical_no_apps_found">Nenhum aplicativo encontrado</string>
-    <string name="canonical_file_permission_error">Este provedor não concedeu acesso permanente ao arquivo. Escolha outro arquivo.</string>
-    <string name="canonical_choose_file">Escolher arquivo</string>
-            <string name="canonical_browse">Procurar</string>
-    <string name="canonical_latitude">Latitude</string>
-    <string name="canonical_longitude">Longitude</string>
 <string name="canonical_choose_time">Escolher hora</string>
     <string name="canonical_choose_date">Escolher data</string>
 <string name="canonical_field_invalid_value">Insira um valor válido.</string>
@@ -690,10 +681,8 @@
     <string name="wifi_sleep_never">Nunca</string>
     <string name="storage_below">Abaixo</string>
     <string name="storage_above">Acima</string>
-    <string name="trigger_brightness_direction">Direção</string>
     <string name="trigger_brightness_threshold">Brilho Limite</string>
     <string name="trigger_data_saver_state">Estado</string>
-    <string name="trigger_storage_direction">Direção</string>
     <string name="trigger_storage_threshold">Limite (MB)</string>
     <string name="trigger_type_auto_rotate">Rotação automática</string>
     <string name="trigger_type_bluetooth_state">Bluetooth</string>
@@ -808,7 +797,6 @@
     <string name="settings_vpn">VPN</string>
     <string name="trigger_desc_clipboard">Dispara quando o conteúdo da área de transferência muda</string>
     <string name="trigger_desc_nfc_tag">Dispara quando uma etiqueta NFC é lida</string>
-    <string name="trigger_desc_screen_timeout">Dispara quando o tempo limite da tela muda</string>
     <string name="trigger_events_on_change">Dispara ao alterar</string>
     <string name="trigger_signal_threshold">Limite de sinal</string>
     <string name="trigger_temperature_threshold">Limite de temperatura (°C)</string>
@@ -988,7 +976,6 @@
     <string name="trigger_type_mobile_data">Dados móveis conectados</string>
     <string name="trigger_type_mobile_data_sub">É executado quando os dados móveis são a rede ativa (ou não)</string>
     <string name="key_event_custom">Tecla personalizada (nome ou código)</string>
-    <string name="battery_temp_hint">Graus Celsius, ex. 40</string>
     <string name="map_picker_title">Escolher local</string>
     <string name="map_selected_location">Local selecionado</string>
     <string name="map_picker_hint">Abra seu app de mapas instalado para buscar ou selecionar um lugar, depois copie suas coordenadas e cole aqui.</string>
@@ -1138,8 +1125,6 @@
     <string name="migrate_banner_title">Atualizar tarefas de conectividade</string>
     <string name="migrate_banner_message">Algumas tarefas ainda usam o antigo gatilho de conexão combinada. Migre-as para os gatilhos dedicados de Wi-Fi e dados móveis.</string>
     <string name="migrate_banner_button">Migrar agora</string>
-    <string name="clamp_range">O valor deve estar entre %1$s — foi ajustado</string>
-    <string name="clamp_range_unit">O valor deve estar entre %1$s %2$s — foi ajustado</string>
     <string name="pointer_speed_range">A velocidade do ponteiro vai de -7 (mais lenta) a 7 (mais rápida); 0 é o padrão do sistema.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
     <string name="http_allow_private">Permitir destinos de rede locais/privados</string>
@@ -1201,8 +1186,6 @@
     <string name="option_tier_all">Todas as opções</string>
     <string name="option_tier_expanded">Expandido</string>
     <string name="option_tier_collapsed">Recolhido</string>
-    <string name="canonical_battery_charger">Carregador: %1$s</string>
-    <string name="canonical_battery_charging_state">Estado de carregamento: %1$s</string>
     <string name="canonical_mixed_trigger_error">Use condições nativas de bateria ou acionadores clássicos em uma automação, mas não ambos.</string>
     <string name="action_call_block_silent">Bloquear chamada silenciosamente</string>
     <string name="action_call_block_silent_sub">Impedir a chamada sem solicitar a tela de rejeição</string>

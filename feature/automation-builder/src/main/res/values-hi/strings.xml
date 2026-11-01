@@ -5,19 +5,10 @@
     <string name="canonical_add_battery">बैटरी शर्त जोड़ें</string>
     <string name="canonical_battery_threshold">सीमा</string>
     <string name="battery_direction_label">दिशा</string>
-    <string name="canonical_battery_toggle_direction">सीमा दिशा बदलें</string>
     <string name="canonical_add_delay">विलंब जोड़ें</string>
-    <string name="canonical_store_secret">सुरक्षित रहस्य सहेजें</string>
-    <string name="canonical_secret_value">रहस्य मान</string>
-    <string name="canonical_secret_store_failed">सुरक्षित मान सहेजा नहीं जा सका। संदर्भ जाँचें और फिर प्रयास करें।</string>
     <string name="canonical_choose_app">ऐप चुनें</string>
     <string name="canonical_search_apps">ऐप खोजें</string>
     <string name="canonical_no_apps_found">कोई ऐप नहीं मिला</string>
-    <string name="canonical_file_permission_error">इस प्रदाता ने फ़ाइल का स्थायी एक्सेस नहीं दिया। दूसरी फ़ाइल चुनें।</string>
-    <string name="canonical_choose_file">फ़ाइल चुनें</string>
-            <string name="canonical_browse">ब्राउज़ करें</string>
-    <string name="canonical_latitude">अक्षांश</string>
-    <string name="canonical_longitude">देशांतर</string>
 <string name="canonical_choose_time">समय चुनें</string>
     <string name="canonical_choose_date">तारीख चुनें</string>
 <string name="canonical_field_invalid_value">मान्य मान दर्ज करें।</string>
@@ -690,10 +681,8 @@
     <string name="wifi_sleep_never">कभी नहीं</string>
     <string name="storage_below">नीचे</string>
     <string name="storage_above">ऊपर</string>
-    <string name="trigger_brightness_direction">दिशा</string>
     <string name="trigger_brightness_threshold">चमक सीमा</string>
     <string name="trigger_data_saver_state">स्थिति</string>
-    <string name="trigger_storage_direction">दिशा</string>
     <string name="trigger_storage_threshold">सीमा (MB)</string>
     <string name="trigger_type_auto_rotate">ऑटो-रोटेट</string>
     <string name="trigger_type_bluetooth_state">ब्लूटूथ</string>
@@ -808,7 +797,6 @@
     <string name="settings_vpn">VPN</string>
     <string name="trigger_desc_clipboard">क्लिपबोर्ड सामग्री बदलने पर ट्रिगर होता है</string>
     <string name="trigger_desc_nfc_tag">NFC टैग स्कैन होने पर ट्रिगर होता है</string>
-    <string name="trigger_desc_screen_timeout">स्क्रीन टाइमआउट सेटिंग बदलने पर ट्रिगर होता है</string>
     <string name="trigger_events_on_change">बदलने पर ट्रिगर होता है</string>
     <string name="trigger_signal_threshold">सिग्नल सीमा</string>
     <string name="trigger_temperature_threshold">तापमान सीमा (°C)</string>
@@ -988,7 +976,6 @@
     <string name="trigger_type_mobile_data">मोबाइल डेटा कनेक्टेड</string>
     <string name="trigger_type_mobile_data_sub">तब चलता है जब मोबाइल डेटा सक्रिय नेटवर्क हो (या न हो)</string>
     <string name="key_event_custom">कस्टम कुंजी (नाम या कोड)</string>
-    <string name="battery_temp_hint">डिग्री सेल्सियस, जैसे 40</string>
     <string name="map_picker_title">स्थान चुनें</string>
     <string name="map_selected_location">चयनित स्थान</string>
     <string name="map_picker_hint">खोजने या कोई जगह चुनने के लिए अपना स्थापित मैप्स ऐप खोलें, फिर उसके निर्देशांक कॉपी करके यहाँ पेस्ट करें।</string>
@@ -1138,8 +1125,6 @@
     <string name="migrate_banner_title">कनेक्टिविटी कार्य अपडेट करें</string>
     <string name="migrate_banner_message">कुछ कार्य अभी भी पुराने संयुक्त कनेक्शन ट्रिगर का उपयोग करते हैं। उन्हें समर्पित Wi-Fi और मोबाइल डेटा ट्रिगर में बदलें।</string>
     <string name="migrate_banner_button">अभी माइग्रेट करें</string>
-    <string name="clamp_range">मान %1$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
-    <string name="clamp_range_unit">मान %1$s %2$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
     <string name="pointer_speed_range">पॉइंटर गति -7 (सबसे धीमी) से 7 (सबसे तेज़) तक है; 0 सिस्टम डिफ़ॉल्ट है।</string>
     <string name="screensaver_minutes_chip">%1$d मिनट</string>
     <string name="http_allow_private">स्थानीय/निजी नेटवर्क गंतव्यों की अनुमति दें</string>
@@ -1201,8 +1186,6 @@
     <string name="option_tier_all">सभी विकल्प</string>
     <string name="option_tier_expanded">विस्तारित</string>
     <string name="option_tier_collapsed">समेटा हुआ</string>
-    <string name="canonical_battery_charger">चार्जर: %1$s</string>
-    <string name="canonical_battery_charging_state">चार्जिंग स्थिति: %1$s</string>
     <string name="canonical_mixed_trigger_error">एक ऑटोमेशन में या तो मूल बैटरी शर्तें इस्तेमाल करें या पुराने ट्रिगर, दोनों नहीं।</string>
     <string name="action_call_block_silent">कॉल को चुपचाप ब्लॉक करें</string>
     <string name="action_call_block_silent_sub">अस्वीकार स्क्रीन दिखाने का अनुरोध किए बिना कॉल रोकें</string>

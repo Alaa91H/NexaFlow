@@ -5,19 +5,10 @@
     <string name="canonical_add_battery">Добавить условие батареи</string>
     <string name="canonical_battery_threshold">Порог</string>
     <string name="battery_direction_label">Направление</string>
-    <string name="canonical_battery_toggle_direction">Изменить направление порога</string>
     <string name="canonical_add_delay">Добавить ожидание</string>
-    <string name="canonical_store_secret">Сохранить защищённый секрет</string>
-    <string name="canonical_secret_value">Значение секрета</string>
-    <string name="canonical_secret_store_failed">Не удалось сохранить защищённое значение. Проверьте ссылку и повторите попытку.</string>
     <string name="canonical_choose_app">Выбрать приложение</string>
     <string name="canonical_search_apps">Поиск приложений</string>
     <string name="canonical_no_apps_found">Приложения не найдены</string>
-    <string name="canonical_file_permission_error">Этот провайдер не предоставил постоянный доступ к файлу. Выберите другой файл.</string>
-    <string name="canonical_choose_file">Выбрать файл</string>
-            <string name="canonical_browse">Обзор</string>
-    <string name="canonical_latitude">Широта</string>
-    <string name="canonical_longitude">Долгота</string>
 <string name="canonical_choose_time">Выбрать время</string>
     <string name="canonical_choose_date">Выбрать дату</string>
 <string name="canonical_field_invalid_value">Введите допустимое значение.</string>
@@ -690,10 +681,8 @@
     <string name="wifi_sleep_never">Никогда</string>
     <string name="storage_below">Ниже</string>
     <string name="storage_above">Выше</string>
-    <string name="trigger_brightness_direction">Направление</string>
     <string name="trigger_brightness_threshold">Яркость Порог</string>
     <string name="trigger_data_saver_state">Состояние</string>
-    <string name="trigger_storage_direction">Направление</string>
     <string name="trigger_storage_threshold">Порог (MB)</string>
     <string name="trigger_type_auto_rotate">Автоповорот</string>
     <string name="trigger_type_bluetooth_state">Bluetooth</string>
@@ -808,7 +797,6 @@
     <string name="settings_vpn">VPN</string>
     <string name="trigger_desc_clipboard">Срабатывает при изменении буфера обмена</string>
     <string name="trigger_desc_nfc_tag">Срабатывает при считывании NFC-метки</string>
-    <string name="trigger_desc_screen_timeout">Срабатывает при изменении тайм-аута экрана</string>
     <string name="trigger_events_on_change">Срабатывает при изменении</string>
     <string name="trigger_signal_threshold">Порог сигнала</string>
     <string name="trigger_temperature_threshold">Порог температуры (°C)</string>
@@ -988,7 +976,6 @@
     <string name="trigger_type_mobile_data">Мобильные данные подключены</string>
     <string name="trigger_type_mobile_data_sub">Срабатывает, когда мобильные данные — активная сеть (или нет)</string>
     <string name="key_event_custom">Своя клавиша (имя или код)</string>
-    <string name="battery_temp_hint">Градусы Цельсия, напр. 40</string>
     <string name="map_picker_title">Выбрать место</string>
     <string name="map_selected_location">Выбранное место</string>
     <string name="map_picker_hint">Откройте установленное картографическое приложение, найдите или выберите место, скопируйте его координаты и вставьте сюда.</string>
@@ -1138,8 +1125,6 @@
     <string name="migrate_banner_title">Обновить задачи подключения</string>
     <string name="migrate_banner_message">Некоторые задачи всё ещё используют старый объединённый триггер подключения. Перенесите их на отдельные триггеры Wi-Fi и мобильных данных.</string>
     <string name="migrate_banner_button">Мигрировать сейчас</string>
-    <string name="clamp_range">Значение должно быть между %1$s — оно было скорректировано</string>
-    <string name="clamp_range_unit">Значение должно быть между %1$s %2$s — оно было скорректировано</string>
     <string name="pointer_speed_range">Скорость указателя от -7 (самая медленная) до 7 (самая быстрая); 0 — системное значение по умолчанию.</string>
     <string name="screensaver_minutes_chip">%1$d мин</string>
     <string name="http_allow_private">Разрешить локальные/частные адреса</string>
@@ -1201,8 +1186,6 @@
     <string name="option_tier_all">Все варианты</string>
     <string name="option_tier_expanded">Развернуто</string>
     <string name="option_tier_collapsed">Свернуто</string>
-    <string name="canonical_battery_charger">Зарядное устройство: %1$s</string>
-    <string name="canonical_battery_charging_state">Состояние зарядки: %1$s</string>
     <string name="canonical_mixed_trigger_error">В одной автоматизации используйте либо встроенные условия батареи, либо обычные триггеры, но не оба варианта.</string>
     <string name="action_call_block_silent">Беззвучно блокировать вызов</string>
     <string name="action_call_block_silent_sub">Отклонить вызов без показа интерфейса отказа</string>
