@@ -1243,7 +1243,6 @@ fun AutomationBuilderScreen(
                                         TriggerOptionRow(
                                             type = type,
                                             checked = type in selectedTriggerTypes,
-                                            alternatingIndex = optionIndex,
                                             availability = triggerAvailabilityByType[type]
                                                 ?: BuilderOptionAvailability.READY,
                                             onBlockedClick = { requestGrantForTrigger(type) },
@@ -1281,7 +1280,6 @@ fun AutomationBuilderScreen(
                                                 TriggerOptionRow(
                                                     type = type,
                                                     checked = type in selectedTriggerTypes,
-                                                    alternatingIndex = optionIndex,
                                                     availability = triggerAvailabilityByType[type]
                                                         ?: BuilderOptionAvailability.READY,
                                                     onBlockedClick = { requestGrantForTrigger(type) },
@@ -1314,7 +1312,6 @@ fun AutomationBuilderScreen(
                                                 TriggerOptionRow(
                                                     type = type,
                                                     checked = type in selectedTriggerTypes,
-                                                    alternatingIndex = optionIndex,
                                                     availability = triggerAvailabilityByType[type]
                                                         ?: BuilderOptionAvailability.READY,
                                                     onBlockedClick = { requestGrantForTrigger(type) },
@@ -1441,7 +1438,6 @@ fun AutomationBuilderScreen(
                                             ActionOptionRow(
                                                 option = option,
                                                 checked = option.actionType in selectedActionTypes,
-                                                alternatingIndex = optionIndex,
                                                 availability = actionAvailabilityByType[option.actionType]
                                                     ?: BuilderOptionAvailability.READY,
                                                 onBlockedClick = { requestGrantForAction(option.actionType) },
@@ -1479,7 +1475,6 @@ fun AutomationBuilderScreen(
                                                     ActionOptionRow(
                                                         option = option,
                                                         checked = option.actionType in selectedActionTypes,
-                                                        alternatingIndex = optionIndex,
                                                         availability = actionAvailabilityByType[option.actionType]
                                                             ?: BuilderOptionAvailability.READY,
                                                         onBlockedClick = { requestGrantForAction(option.actionType) },
@@ -1513,7 +1508,6 @@ fun AutomationBuilderScreen(
                                                     ActionOptionRow(
                                                         option = option,
                                                         checked = option.actionType in selectedActionTypes,
-                                                        alternatingIndex = optionIndex,
                                                         availability = actionAvailabilityByType[option.actionType]
                                                             ?: BuilderOptionAvailability.READY,
                                                         onBlockedClick = { requestGrantForAction(option.actionType) },

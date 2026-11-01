@@ -27,7 +27,9 @@ import androidx.lifecycle.lifecycleScope
 import com.nexaflow.app.ui.theme.NexaFlowTheme
 import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.datastore.ThemePreferences
+import com.nexaflow.core.datastore.GlassEffectsMode
 import com.nexaflow.core.datastore.ThemeSettings
+import com.nexaflow.core.ui.GlassPreference
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.ExecutionResultPresentation
@@ -133,7 +135,8 @@ class MainActivity : AppCompatActivity() {
             NexaFlowTheme(
                 themeMode = theme.mode,
                 accent = theme.accent,
-                dynamicColor = theme.dynamicColor
+                dynamicColor = theme.dynamicColor,
+                glass = theme.glassEffects.toGlassPreference()
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -303,6 +306,12 @@ class MainActivity : AppCompatActivity() {
      * wallpaper palette when dynamic color is enabled (Android 12+), else the
      * static splash background as fallback.
      */
+    private fun GlassEffectsMode.toGlassPreference(): GlassPreference = when (this) {
+        GlassEffectsMode.AUTO -> GlassPreference.AUTO
+        GlassEffectsMode.ON -> GlassPreference.ON
+        GlassEffectsMode.OFF -> GlassPreference.OFF
+    }
+
     private fun resolveSplashSurface(settings: ThemeSettings): Int {
         val dark = when (settings.mode) {
             ThemeMode.SYSTEM ->

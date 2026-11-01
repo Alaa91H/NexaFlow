@@ -39,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +48,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.TriggerType
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -88,12 +89,11 @@ fun TriggerEditorCard(
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate" | "excludedDate"
     // Fixed header row; the builder owns expansion so the selected card is
     // the sole open card and a new card can close the previous one.
-    val accent = builderCardAccent(index)
-    NexaFlowCard(
-        modifier = modifier,
-        containerColor = builderCardContainerColor(index),
-        contentColor = builderCardContentColor
-    ) {
+    // Ink: every node card is the same surface; the hue that identifies it is
+    // the category of its trigger, never an alternating grey.
+    val category = triggerCategoryOf[draft.type]?.let { NexaFlowTheme.categories.of(it.toInkCategory()) }
+        ?: MaterialTheme.colorScheme.primary
+    NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
@@ -144,7 +144,7 @@ fun TriggerEditorCard(
                             Icon(
                                 imageVector = draft.type.icon(),
                                 contentDescription = null,
-                                tint = accent,
+                                tint = category,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
@@ -170,8 +170,8 @@ fun TriggerEditorCard(
                 }
                 TaskNumberBadge(
                     number = index + 1,
-                    containerColor = accent,
-                    contentColor = Color.White
+                    containerColor = category.copy(alpha = NexaFlowAlphas.SelectedRowTint),
+                    contentColor = category
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
@@ -368,13 +368,13 @@ fun TriggerEditorCard(
                         // Inside / outside the defined location (both flows).
                         val event = draft.config["event"] ?: "ENTER"
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            SelectChip(
+                            CategoryChip(
                                 selected = event == "ENTER",
                                 onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to "ENTER"))) },
                                 label = stringResource(R.string.location_inside),
                                 modifier = Modifier.weight(1f)
                             )
-                            SelectChip(
+                            CategoryChip(
                                 selected = event == "EXIT",
                                 onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to "EXIT"))) },
                                 label = stringResource(R.string.location_outside),
@@ -432,7 +432,7 @@ fun TriggerEditorCard(
                                 "HINGE" to R.string.sensor_numeric_hinge
                             )
                             kinds.forEach { (value, labelRes) ->
-                                SelectChip(
+                                CategoryChip(
                                     selected = sensor == value,
                                     onClick = {
                                         onConfigChange(
@@ -454,7 +454,7 @@ fun TriggerEditorCard(
                                 listOf("ABOVE" to R.string.sensor_event_above, "BELOW" to R.string.sensor_event_below,
                                     "AT_LEAST" to R.string.sensor_event_at_least, "AT_MOST" to R.string.sensor_event_at_most,
                                     "BETWEEN" to R.string.sensor_event_between).forEach { (comparison, label) ->
-                                    SelectChip(selected = (draft.config["event"] ?: "ABOVE") == comparison,
+                                    CategoryChip(selected = (draft.config["event"] ?: "ABOVE") == comparison,
                                         onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to comparison))) },
                                         label = stringResource(label))
                                 }
@@ -495,7 +495,7 @@ fun TriggerEditorCard(
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 com.nexaflow.domain.models.NumericSensors.samplePeriodsUs.sorted().forEach { period ->
                                     val hz = 1_000_000 / period
-                                    SelectChip(
+                                    CategoryChip(
                                         selected = samplingPeriod == period,
                                         onClick = { onConfigChange(draft.copy(config = draft.config +
                                             (com.nexaflow.domain.models.NumericSensors.SAMPLE_PERIOD_KEY to period.toString()))) },
@@ -520,7 +520,7 @@ fun TriggerEditorCard(
                                         "UNCOVERED" to R.string.sensor_event_uncovered
                                     )
                                     events.forEach { (value, labelRes) ->
-                                        SelectChip(
+                                        CategoryChip(
                                             selected = event == value,
                                             onClick = {
                                                 onConfigChange(
@@ -547,7 +547,7 @@ fun TriggerEditorCard(
                                         "BELOW" to R.string.sensor_event_below
                                     )
                                     events.forEach { (value, labelRes) ->
-                                        SelectChip(
+                                        CategoryChip(
                                             selected = event == value,
                                             onClick = {
                                                 onConfigChange(
@@ -628,7 +628,7 @@ fun TriggerEditorCard(
                         ) {
                             val methods = listOf("ANY", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                             methods.forEach { value ->
-                                SelectChip(
+                                CategoryChip(
                                     selected = method == value,
                                     onClick = {
                                         onConfigChange(draft.copy(config = draft.config + ("method" to value)))

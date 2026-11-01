@@ -27,15 +27,32 @@ enum class ThemeMode(val storedValue: String) {
     }
 }
 
+/**
+ * Dock glass preference. `AUTO` blurs on API 31+ unless Battery Saver is on;
+ * `ON`/`OFF` are explicit overrides the user can pick in Themes.
+ */
+enum class GlassEffectsMode(val storedValue: String) {
+    AUTO("auto"),
+    ON("on"),
+    OFF("off");
+
+    companion object {
+        fun fromStored(value: String?): GlassEffectsMode =
+            entries.firstOrNull { it.storedValue == value } ?: AUTO
+    }
+}
+
 data class ThemeSettings(
     val mode: ThemeMode = ThemeMode.SYSTEM,
-    val accent: String = "blue",
+    val accent: String = "ink",
     /**
-     * Android 12+ Material You colors from the wallpaper. True by default —
-     * the same experience as every Google app; the user can disable it in
-     * Settings to use the accent seed schemes instead.
+     * Android 12+ Material You colors from the wallpaper. Off by default:
+     * Ink is the product's design language, and Material You is opt-in so the
+     * reference palette is what every new install sees (§14.1).
      */
-    val dynamicColor: Boolean = true
+    val dynamicColor: Boolean = false,
+    /** Blur preference for the Dock; Auto follows API level + Battery Saver. */
+    val glassEffects: GlassEffectsMode = GlassEffectsMode.AUTO
 )
 
 class ThemePreferences(private val context: Context) {
@@ -45,8 +62,9 @@ class ThemePreferences(private val context: Context) {
     val theme: Flow<ThemeSettings> = dataStore.data.map { preferences ->
         ThemeSettings(
             mode = ThemeMode.fromStored(preferences[KEY_THEME_MODE]),
-            accent = preferences[KEY_ACCENT] ?: "blue",
-            dynamicColor = preferences[KEY_DYNAMIC_COLOR] ?: true
+            accent = preferences[KEY_ACCENT] ?: "ink",
+            dynamicColor = preferences[KEY_DYNAMIC_COLOR] ?: false,
+            glassEffects = GlassEffectsMode.fromStored(preferences[KEY_GLASS_EFFECTS])
         )
     }
 
@@ -62,9 +80,14 @@ class ThemePreferences(private val context: Context) {
         dataStore.edit { it[KEY_DYNAMIC_COLOR] = enabled }
     }
 
+    suspend fun setGlassEffects(mode: GlassEffectsMode) {
+        dataStore.edit { it[KEY_GLASS_EFFECTS] = mode.storedValue }
+    }
+
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_ACCENT = stringPreferencesKey("accent")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val KEY_GLASS_EFFECTS = stringPreferencesKey("glass_effects")
     }
 }

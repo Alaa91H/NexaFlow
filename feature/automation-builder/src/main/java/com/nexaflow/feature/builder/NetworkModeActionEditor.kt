@@ -57,7 +57,7 @@ import com.nexaflow.core.rom.NetworkModeSnapshot
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.ShizukuShellBridge
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.variables.VariableResolver
@@ -141,7 +141,7 @@ internal fun NetworkModeSelector(
                                     R.string.network_mode_sim,
                                     subscription.slotIndex + 1
                                 )
-                                SelectChip(
+                                CategoryChip(
                                     selected = subscription.subscriptionId == selectedSubscriptionId,
                                     onClick = {
                                         onConfigChange(
@@ -190,7 +190,7 @@ internal fun NetworkModeSelector(
                             val selected = savedMask == option.allowedNetworkTypes ||
                                 (savedMask == null && option.isAutomatic &&
                                     (config["mode"] ?: "AUTO") == "AUTO")
-                            SelectChip(
+                            CategoryChip(
                                 selected = selected,
                                 onClick = {
                                     onConfigChange(

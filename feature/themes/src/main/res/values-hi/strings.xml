@@ -28,4 +28,10 @@
     <string name="dynamic_color_sub">वॉलपेपर रंगों का उपयोग करें (Material You)</string>
     <string name="accent_disabled_hint">डायनामिक रंग बंद होने पर उपलब्ध</string>
     <string name="preview_dynamic">वॉलपेपर रंग (Material You)</string>
+    <string name="accent_ink">Ink</string>
+    <string name="glass_effects">ग्लास प्रभाव</string>
+    <string name="glass_effects_sub">डॉक को धुंधला करें; असमर्थित डिवाइस पर अपने आप बदल जाता है।</string>
+    <string name="glass_auto">स्वचालित</string>
+    <string name="glass_on">चालू</string>
+    <string name="glass_off">बंद</string>
 </resources>

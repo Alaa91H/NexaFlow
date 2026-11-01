@@ -288,4 +288,20 @@
     <string name="ask_nexaflow">Demander à NexaFlow…</string>
 
     <string name="task_restore_failed">Impossible de restaurer les paramètres précédents de la tâche : %1$s</string>
+    <string name="dashboard_title">Routines</string>
+    <string name="dashboard_caption">%1$d tâches · %2$d actives</string>
+    <string name="bento_next_run">Prochaine exécution</string>
+    <string name="bento_today">Aujourd’hui</string>
+    <string name="bento_runs">exécutions</string>
+    <string name="bento_no_upcoming">Aucune exécution à venir</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">%1$d exécutions aujourd’hui</string>
+    <string name="relative_in_minutes">dans %1$d min</string>
+    <string name="relative_in_hours">dans %1$d h</string>
+    <string name="relative_in_days">dans %1$d j</string>
+    <string name="flow_when">QUAND</string>
+    <string name="flow_then">ALORS</string>
+    <string name="flow_reverts_auto">Revient automatiquement à la fin de la routine</string>
+    <string name="flow_exit_actions">Exécute %1$d actions de sortie</string>
+    <string name="status_error">Erreur</string>
 </resources>

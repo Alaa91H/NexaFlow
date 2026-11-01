@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,6 +43,8 @@ import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowFloatingActionButton
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -415,12 +416,9 @@ internal fun SelectedActionCard(
     onDragDelta: (Float) -> Unit = {},
     onDragEnd: () -> Unit = {}
 ) {
-    val accent = builderCardAccent(index)
-    NexaFlowCard(
-        modifier = modifier,
-        containerColor = builderCardContainerColor(index),
-        contentColor = builderCardContentColor
-    ) {
+    // Ink: uniform card, category-coloured identity (§7.3).
+    val category = NexaFlowTheme.categories.of(option.category.toInkCategory())
+    NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
@@ -465,8 +463,8 @@ internal fun SelectedActionCard(
                 )
                 TaskNumberBadge(
                     number = index + 1,
-                    containerColor = accent,
-                    contentColor = Color.White
+                    containerColor = category.copy(alpha = NexaFlowAlphas.SelectedRowTint),
+                    contentColor = category
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,

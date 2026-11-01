@@ -48,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -66,11 +65,15 @@ import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.SystemAppStatusDetector
-import com.nexaflow.core.ui.IconBadge
-import com.nexaflow.core.ui.alternatingSurfaceColor
-import com.nexaflow.core.ui.SelectChip
-import com.nexaflow.core.ui.StatusPill
+import com.nexaflow.core.ui.Dimens
+import com.nexaflow.core.ui.IconTile
+import com.nexaflow.core.ui.MultiCheck
+import com.nexaflow.core.ui.PickerGroup
+import com.nexaflow.core.ui.theme.NexaFlowCategory
 import com.nexaflow.core.ui.theme.NexaFlowTheme
+import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.CategoryChip
+import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
@@ -150,7 +153,7 @@ fun OptionChips(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         options.forEach { option ->
-            SelectChip(
+            CategoryChip(
                 selected = selected == option,
                 onClick = { onSelect(option) },
                 label = labels?.get(option) ?: option
@@ -375,12 +378,11 @@ fun CategoryAccordion(
                 items = tabs,
                 key = { index, tab -> "$index:${tab.first}" }
             ) { index, (label, icon) ->
-                SelectChip(
+                CategoryChip(
                     selected = selectedIndex == index,
                     onClick = { onExpandedChange(if (selectedIndex == index) null else index) },
                     label = label,
                     leadingIcon = icon,
-                    alternatingIndex = index,
                     // Bound each chip so a long localised label is ellipsized
                     // inside its own cell and never widens the strip into an
                     // unstable layout on compact RTL displays.
@@ -417,12 +419,7 @@ fun CategoryAccordion(
             // Keep the option catalogue in a dedicated layout boundary. This
             // prevents future callers from layering sibling options at the same
             // origin and isolates option drawing from the tab strip above.
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clipToBounds(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
+            PickerGroup {
                 content(index)
             }
         }
@@ -437,19 +434,17 @@ internal fun ActionOptionRow(
     availability: BuilderOptionAvailability = BuilderOptionAvailability.READY,
     onBlockedClick: () -> Unit = {},
     modifier: Modifier = Modifier,
-    alternatingIndex: Int? = null
 ) {
     CatalogOptionRow(
         title = stringResource(option.titleRes),
         subtitle = stringResource(option.subtitleRes),
         icon = option.icon,
-        color = option.color,
         checked = checked,
         onToggle = onToggle,
         availability = availability,
         onBlockedClick = onBlockedClick,
         modifier = modifier,
-        alternatingIndex = alternatingIndex
+        category = option.category.toInkCategory()
     )
 }
 
@@ -467,20 +462,17 @@ internal fun TriggerOptionRow(
     availability: BuilderOptionAvailability = BuilderOptionAvailability.READY,
     onBlockedClick: () -> Unit = {},
     modifier: Modifier = Modifier,
-    alternatingIndex: Int? = null
 ) {
-    val categoryColor = triggerCategoryOf[type]?.color ?: MaterialTheme.colorScheme.primary
     CatalogOptionRow(
         title = stringResource(type.labelRes()),
         subtitle = stringResource(type.descRes()),
         icon = type.icon(),
-        color = categoryColor,
         checked = checked,
         onToggle = onSelect,
         availability = availability,
         onBlockedClick = onBlockedClick,
         modifier = modifier,
-        alternatingIndex = alternatingIndex
+        category = (triggerCategoryOf[type] ?: TriggerCategory.DEVICE).toInkCategory()
     )
 }
 
@@ -489,15 +481,13 @@ private fun CatalogOptionRow(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    color: Color,
     checked: Boolean,
     onToggle: () -> Unit,
     availability: BuilderOptionAvailability,
     onBlockedClick: () -> Unit,
     modifier: Modifier,
-    alternatingIndex: Int?
+    category: NexaFlowCategory,
 ) {
-    val rowSurface = alternatingIndex?.let { alternatingSurfaceColor(it) }
     val isReady = availability == BuilderOptionAvailability.READY
     val isGrantable = availability == BuilderOptionAvailability.PERMISSION_REQUIRED
     val lockedMessage = when (availability) {
@@ -510,16 +500,7 @@ private fun CatalogOptionRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .then(
-                if (rowSurface != null) {
-                    Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(rowSurface)
-                        .padding(horizontal = 8.dp)
-                } else {
-                    Modifier
-                }
-            )
+            .padding(horizontal = 8.dp)
             .semantics(mergeDescendants = true) {
                 role = if (isReady) Role.Checkbox else Role.Button
                 if (isReady) {
@@ -537,20 +518,22 @@ private fun CatalogOptionRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        IconBadge(
+        IconTile(
             icon = icon,
-            containerColor = color.copy(alpha = 0.15f),
-            contentColor = color
+            category = category,
+            size = Dimens.PickerTile,
+            radius = Dimens.PickerTileRadius,
+            picker = true
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleSmall
+                style = NexaFlowTheme.type.pickerRowTitle.forText(title)
             )
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
+                style = NexaFlowTheme.type.meta.forText(subtitle),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             lockedMessage?.let { message ->
                 Text(
@@ -561,11 +544,7 @@ private fun CatalogOptionRow(
             }
         }
         if (isReady) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = { onToggle() },
-                modifier = Modifier.clearAndSetSemantics { },
-            )
+            MultiCheck(checked = checked)
         } else {
             StatusPill(
                 text = stringResource(
@@ -873,24 +852,24 @@ internal val STREAM_OPTIONS = listOf(
 
 // region Previews
 
-@Preview(name = "SelectChip", showBackground = true)
+@Preview(name = "CategoryChip", showBackground = true)
 @Composable
-private fun SelectChipPreview() {
+private fun CategoryChipPreview() {
     MaterialTheme {
         Column {
-            SelectChip(selected = true, onClick = {}, label = "Selected")
-            SelectChip(selected = false, onClick = {}, label = "Unselected")
+            CategoryChip(selected = true, onClick = {}, label = "Selected")
+            CategoryChip(selected = false, onClick = {}, label = "Unselected")
         }
     }
 }
 
-@Preview(name = "SelectChip – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "CategoryChip – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun SelectChipDarkPreview() {
+private fun CategoryChipDarkPreview() {
     MaterialTheme {
         Column {
-            SelectChip(selected = true, onClick = {}, label = "Selected")
-            SelectChip(selected = false, onClick = {}, label = "Unselected")
+            CategoryChip(selected = true, onClick = {}, label = "Selected")
+            CategoryChip(selected = false, onClick = {}, label = "Unselected")
         }
     }
 }

@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.NexaFlowIcons
 import com.nexaflow.core.ui.NexaFlowTopBar
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 
 /**
  * Ready-made accent palette (Google 2026 tones) shown as a fixed strip at the
@@ -193,7 +193,7 @@ fun IconPickerScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     item {
-                        SelectChip(
+                        CategoryChip(
                             selected = category == null,
                             onClick = { category = null },
                             label = stringResource(R.string.category_all)
@@ -202,7 +202,7 @@ fun IconPickerScreen(navController: NavController) {
                     items(availableCategories.size) { index ->
                         val cat = availableCategories[index]
                         val isSelected = category == cat
-                        SelectChip(
+                        CategoryChip(
                             selected = isSelected,
                             onClick = { category = cat },
                             label = stringResource(categoryLabelRes(cat))

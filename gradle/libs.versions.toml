@@ -40,6 +40,8 @@ vPlayServicesWearable = "20.0.1"
 # versioned together, so one ref keeps them from drifting apart.
 vWearCompose = "1.7.1"
 vMockitoKotlin = "6.4.0"
+# Backdrop blur for the Ink Glass Dock (dev.chrisbanes.haze on Maven Central).
+vHaze = "1.7.3"
 vTurbine = "1.2.1"
 vOkHttp = "5.5.1"
 
@@ -92,6 +94,7 @@ com-google-android-gms-play-services-auth-api-phone = { module = "com.google.and
 com-google-code-gson-gson = { module = "com.google.code.gson:gson", version.ref = "v2_15_0" }
 com-google-dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "v2_60_1" }
 com-google-dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "v2_60_1" }
+dev-chrisbanes-haze-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "vHaze" }
 dev-rikka-shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "v13_1_5" }
 dev-rikka-shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "v13_1_5" }
 io-sentry-sentry-android = { module = "io.sentry:sentry-android", version.ref = "v8_62_0" }

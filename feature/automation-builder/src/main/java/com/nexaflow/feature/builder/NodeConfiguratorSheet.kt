@@ -1,29 +1,35 @@
 package com.nexaflow.feature.builder
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens
+import com.nexaflow.core.ui.DockPrimaryButton
+import com.nexaflow.core.ui.ScreenHeader
+import com.nexaflow.core.ui.SearchPill
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 
 /**
- * T12 product shell: the builder opens one modal configurator for discovery
- * instead of permanently laying every trigger/action option into the wizard.
- *
- * The caller supplies the schema/catalog-driven category and row content.
- * This shell owns the common search, selected-count and confirmation surface;
- * node-specific editors remain field renderers beneath the same shell while
- * the remaining T18-T25 families are cut over.
+ * The trigger / action picker shell (§7.2). Solid `surfaceContainerHigh` with
+ * a 28dp top radius and a 60% scrim — never blurred. Header, search, category
+ * chips and rows come from the caller; the shell owns the search field, the
+ * selected count and the confirm Dock.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,40 +44,54 @@ internal fun NodeConfiguratorSheet(
     onDismiss: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        scrimColor = Color.Black.copy(alpha = 0.6f),
+        shape = RoundedCornerShape(topStart = Dimens.GroupRadius, topEnd = Dimens.GroupRadius),
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 24.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+                .padding(horizontal = Dimens.ScreenHorizontalPadding)
+                .padding(bottom = Dimens.Space6),
+            verticalArrangement = Arrangement.spacedBy(Dimens.Space3)
         ) {
-            Text(text = title, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+            ScreenHeader(
+                title = title,
+                caption = selectedCount?.let { stringResource(R.string.selected_count, it) },
+                onBack = onDismiss,
+                titleStyle = NexaFlowTheme.type.subScreenTitle
+            )
             if (searchQuery != null && onSearchQueryChange != null) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchQueryChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    label = { Text(stringResource(R.string.search)) }
-                )
-            }
-            selectedCount?.let { count ->
-                Text(
-                    text = stringResource(R.string.selected_count, count),
-                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                SearchPill(
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    placeholder = stringResource(R.string.search)
                 )
             }
             content()
-            Button(
-                onClick = onConfirm,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 48.dp),
-                enabled = confirmEnabled
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimens.Space3)
             ) {
-                Text(confirmLabel)
+                if (selectedCount != null) {
+                    Text(
+                        text = stringResource(R.string.selected_count, selectedCount),
+                        style = NexaFlowTheme.type.sectionLabel,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                DockPrimaryButton(
+                    label = confirmLabel,
+                    onClick = onConfirm,
+                    enabled = confirmEnabled,
+                    modifier = if (selectedCount == null) Modifier.fillMaxWidth() else Modifier
+                )
             }
         }
     }
@@ -92,30 +112,36 @@ internal fun NodeConfiguratorPanel(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp),
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+            .padding(horizontal = Dimens.Space1),
+        verticalArrangement = Arrangement.spacedBy(Dimens.Space3)
     ) {
-        Text(text = title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchQueryChange,
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            label = { Text(stringResource(R.string.search)) }
+        ScreenHeader(
+            title = title,
+            caption = stringResource(R.string.selected_count, selectedCount),
+            titleStyle = NexaFlowTheme.type.subScreenTitle
         )
-        Text(
-            text = stringResource(R.string.selected_count, selectedCount),
-            style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+        SearchPill(
+            query = searchQuery,
+            onQueryChange = onSearchQueryChange,
+            placeholder = stringResource(R.string.search)
         )
         content()
-        Button(
-            onClick = onConfirm,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp),
-            enabled = confirmEnabled
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Dimens.Space3)
         ) {
-            Text(confirmLabel)
+            Text(
+                text = stringResource(R.string.selected_count, selectedCount),
+                style = NexaFlowTheme.type.sectionLabel,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            DockPrimaryButton(
+                label = confirmLabel,
+                onClick = onConfirm,
+                enabled = confirmEnabled
+            )
         }
     }
 }

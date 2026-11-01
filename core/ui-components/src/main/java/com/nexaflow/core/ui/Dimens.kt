@@ -48,4 +48,67 @@ object Dimens {
 
     /** Max content width for large screens (list-detail / centered panes). */
     val MaxContentWidth: Dp = 840.dp
+
+    // --- Ink Glass tokens (24/28 radii, hairline borders, Dock metrics) ---
+
+    /** Content card, bento tile and flow-container radius. */
+    val CardRadius: Dp = 24.dp
+
+    /** Grouped list surface (picker, settings, history) radius. */
+    val GroupRadius: Dp = 28.dp
+
+    /** Routine icon tile edge (squircle). */
+    val RoutineTile: Dp = 48.dp
+
+    /** Routine icon tile corner radius. */
+    val RoutineTileRadius: Dp = 16.dp
+
+    /** Picker/settings row icon tile edge. */
+    val PickerTile: Dp = 44.dp
+
+    /** Picker/settings row icon tile corner radius. */
+    val PickerTileRadius: Dp = 14.dp
+
+    /** Circular icon button visual size (touch target is 48). */
+    val IconButton: Dp = 44.dp
+
+    /** Screen header height (icon button + vertical breathing room). */
+    val ScreenHeaderHeight: Dp = 44.dp
+
+    /** Search pill height. */
+    val SearchHeight: Dp = 52.dp
+
+    /** Category chip height (touch target is 48 via minimumInteractiveComponentSize). */
+    val ChipHeight: Dp = 40.dp
+
+    /** Multi-select check circle diameter. */
+    val CheckSize: Dp = 28.dp
+
+    /** Dock (glass bar) height, radius, insets and internal metrics. */
+    val DockHeight: Dp = 68.dp
+    val DockRadius: Dp = 34.dp
+    val DockMarginH: Dp = 16.dp
+    val DockMarginBottom: Dp = 28.dp
+    val DockPadding: Dp = 8.dp
+    val DockButton: Dp = 52.dp
+    val DockMaxWidth: Dp = 560.dp
+
+    /** Hairline border width. */
+    val HairlineBorder: Dp = 1.dp
+
+    /** Ambient glow diameters. */
+    val GlowA: Dp = 340.dp
+    val GlowB: Dp = 360.dp
+
+    /** Default gap between stacked cards and bento tiles. */
+    val CardGap: Dp = Space3
+
+    /** Gap between an icon tile and its text column. */
+    val TileTextGap: Dp = 14.dp
+
+    /** Corner radius for flow chips. */
+    val FlowChipRadius: Dp = 12.dp
+
+    /** Flow label column width in FlowStepRow. */
+    val FlowLabelWidth: Dp = 44.dp
 }

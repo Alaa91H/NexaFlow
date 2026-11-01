@@ -75,6 +75,38 @@ private val GoogleBlue = AccentSeed(
     darkOnTertiaryContainer = Color(0xFFF9D8FD)
 )
 
+/**
+ * NexaFlow Ink — the default seed (§5.1). Primary is the reference's #6D8CFF;
+ * the neutral roles come from the Ink family above, so every accent seed now
+ * sits on the same near-black blue base.
+ */
+private val GoogleInk = AccentSeed(
+    lightPrimary = Color(0xFF3A5CCC),
+    lightOnPrimary = Color.White,
+    lightPrimaryContainer = Color(0xFFDCE3FF),
+    lightOnPrimaryContainer = Color(0xFF0A1033),
+    lightSecondary = Color(0xFF5A6274),
+    lightOnSecondary = Color.White,
+    lightSecondaryContainer = Color(0xFFE6E9F2),
+    lightOnSecondaryContainer = Color(0xFF141926),
+    lightTertiary = Color(0xFF7A5CD6),
+    lightOnTertiary = Color.White,
+    lightTertiaryContainer = Color(0xFFEDE4FF),
+    lightOnTertiaryContainer = Color(0xFF221046),
+    darkPrimary = Color(0xFF6D8CFF),
+    darkOnPrimary = Color(0xFF0A1033),
+    darkPrimaryContainer = Color(0xFF2B3A6B),
+    darkOnPrimaryContainer = Color(0xFFDCE3FF),
+    darkSecondary = Color(0xFFB9C2D8),
+    darkOnSecondary = Color(0xFF232B3F),
+    darkSecondaryContainer = Color(0xFF2A3144),
+    darkOnSecondaryContainer = Color(0xFFE3E7F2),
+    darkTertiary = Color(0xFFC3B3FF),
+    darkOnTertiary = Color(0xFF2C1B5E),
+    darkTertiaryContainer = Color(0xFF3B2C6B),
+    darkOnTertiaryContainer = Color(0xFFEDE4FF)
+)
+
 /** Green — seed #2FA84F (tone 40 ≈ #006D3C). */
 private val GoogleGreen = AccentSeed(
     lightPrimary = Color(0xFF006D3C),
@@ -215,46 +247,53 @@ private val GoogleTeal = AccentSeed(
     darkOnTertiaryContainer = Color(0xFFD8E2FF)
 )
 
-/** Neutral surface family (light). */
+/**
+ * Ink neutral surface family (light). Derived per §8: `surface` background,
+ * white cards, 10% hairlines — every pair contrast-checked before shipping.
+ */
 private object NeutralLight {
-    val background = Color(0xFFFDFBFF)
-    val onBackground = Color(0xFF1A1C20)
-    val surface = Color(0xFFFDFBFF)
-    val onSurface = Color(0xFF1A1C20)
-    val surfaceVariant = Color(0xFFE1E2EC)
-    val onSurfaceVariant = Color(0xFF44474F)
-    val outline = Color(0xFF74777F)
-    val outlineVariant = Color(0xFFC4C6D0)
-    val inverseSurface = Color(0xFF2F3036)
-    val onInverseSurface = Color(0xFFF1F0F4)
+    val background = Color(0xFFF6F7FB)
+    val onBackground = Color(0xFF141926)
+    val surface = Color(0xFFF6F7FB)
+    val onSurface = Color(0xFF141926)
+    val surfaceVariant = Color(0xFFE3E7F0)
+    val onSurfaceVariant = Color(0xFF4A5366)
+    val outline = Color(0xFF6E778C)
+    val outlineVariant = Color(0xFFC9CEDC)
+    val inverseSurface = Color(0xFF141926)
+    val onInverseSurface = Color(0xFFF6F7FB)
     val surfaceContainerLowest = Color.White
-    val surfaceContainerLow = Color(0xFFF7F8FC)
-    val surfaceContainer = Color(0xFFF1F1F7)
-    val surfaceContainerHigh = Color(0xFFECECF2)
-    val surfaceContainerHighest = Color(0xFFE6E6EC)
-    val surfaceDim = Color(0xFFDEDDE3)
-    val surfaceBright = Color(0xFFFDFBFF)
+    val surfaceContainerLow = Color.White
+    val surfaceContainer = Color(0xFFF1F3F9)
+    val surfaceContainerHigh = Color(0xFFEAEDF5)
+    val surfaceContainerHighest = Color(0xFFE2E6EF)
+    val surfaceDim = Color(0xFFDFE3EC)
+    val surfaceBright = Color(0xFFFBFCFE)
 }
 
-/** Neutral surface family (dark). */
+/**
+ * Ink neutral surface family (dark) — the §5.1 token table verbatim:
+ * #0A0D14 screen, #141926 cards, #171D2D container, #1B2234 Dock,
+ * #2A3144 toggle track.
+ */
 private object NeutralDark {
-    val background = Color(0xFF131316)
-    val onBackground = Color(0xFFE2E2E8)
-    val surface = Color(0xFF131316)
-    val onSurface = Color(0xFFE2E2E8)
-    val surfaceVariant = Color(0xFF44474F)
-    val onSurfaceVariant = Color(0xFFC4C6D0)
-    val outline = Color(0xFF8E9099)
-    val outlineVariant = Color(0xFF44474F)
-    val inverseSurface = Color(0xFFE2E2E8)
-    val onInverseSurface = Color(0xFF2F3036)
-    val surfaceContainerLowest = Color(0xFF0E0E11)
-    val surfaceContainerLow = Color(0xFF1B1B1F)
-    val surfaceContainer = Color(0xFF1F1F24)
-    val surfaceContainerHigh = Color(0xFF2A2A2E)
-    val surfaceContainerHighest = Color(0xFF343439)
-    val surfaceDim = Color(0xFF131316)
-    val surfaceBright = Color(0xFF3A3A3F)
+    val background = Color(0xFF0A0D14)
+    val onBackground = Color(0xFFEEF1F8)
+    val surface = Color(0xFF0A0D14)
+    val onSurface = Color(0xFFEEF1F8)
+    val surfaceVariant = Color(0xFF2A3144)
+    val onSurfaceVariant = Color(0xFF9AA4B8)
+    val outline = Color(0xFF5A6580)
+    val outlineVariant = Color(0xFF2A3144)
+    val inverseSurface = Color(0xFFEEF1F8)
+    val onInverseSurface = Color(0xFF0A0D14)
+    val surfaceContainerLowest = Color(0xFF070A10)
+    val surfaceContainerLow = Color(0xFF141926)
+    val surfaceContainer = Color(0xFF171D2D)
+    val surfaceContainerHigh = Color(0xFF1B2234)
+    val surfaceContainerHighest = Color(0xFF2A3144)
+    val surfaceDim = Color(0xFF0A0D14)
+    val surfaceBright = Color(0xFF232B3F)
 }
 
 /** M3 error roles (identical in every scheme). */
@@ -273,6 +312,7 @@ private object ErrorDark {
 }
 
 internal val accentSeeds = mapOf(
+    "ink" to GoogleInk,
     "blue" to GoogleBlue,
     "green" to GoogleGreen,
     "red" to GoogleRed,

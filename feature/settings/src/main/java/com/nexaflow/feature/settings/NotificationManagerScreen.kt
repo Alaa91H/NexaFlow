@@ -96,7 +96,7 @@ fun NotificationManagerScreen(navController: NavController) {
                 )
             }
             item {
-                NexaFlowCard(alternatingIndex = 0) {
+                NexaFlowCard() {
                     SettingRow(
                         icon = if (settings.enabled) Icons.Filled.NotificationsActive else Icons.Filled.NotificationsOff,
                         title = stringResource(R.string.notification_master),
@@ -113,7 +113,6 @@ fun NotificationManagerScreen(navController: NavController) {
             item {
                 NexaFlowCard(
                     modifier = Modifier.padding(top = 8.dp),
-                    alternatingIndex = 1
                 ) {
                     categories.forEachIndexed { index, category ->
                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -121,7 +120,6 @@ fun NotificationManagerScreen(navController: NavController) {
                                 icon = category.icon,
                                 title = stringResource(category.titleRes),
                                 subtitle = stringResource(category.subtitleRes),
-                                alternatingIndex = index,
                                 trailing = {
                                     Switch(
                                         checked = category.enabled,

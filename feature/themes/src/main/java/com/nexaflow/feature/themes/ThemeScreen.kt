@@ -45,10 +45,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.datastore.GlassEffectsMode
 import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.datastore.ThemeSettings
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.core.ui.NexaFlowCard
+import androidx.compose.foundation.layout.FlowRow
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 
@@ -57,6 +60,7 @@ private data class AccentOption(val key: String, val color: Color, val labelRes:
 // Seed colors match the accentSeeds in app:ui:theme — Google Blue #0B57D0
 // is the default, so the swatch previews exactly what the scheme produces.
 private val accentOptions = listOf(
+    AccentOption("ink", Color(0xFF6D8CFF), R.string.accent_ink),
     AccentOption("blue", Color(0xFF0B57D0), R.string.accent_blue),
     AccentOption("green", Color(0xFF006D3C), R.string.accent_green),
     AccentOption("red", Color(0xFFBA1A1A), R.string.accent_red),
@@ -89,6 +93,7 @@ fun ThemeScreen(navController: NavController) {
         onModeChange = viewModel::setThemeMode,
         onAccentChange = viewModel::setAccent,
         onDynamicColorChange = viewModel::setDynamicColor,
+        onGlassEffectsChange = viewModel::setGlassEffects,
         onBack = { navController.popBackStack() }
     )
 }
@@ -105,6 +110,7 @@ fun ThemeScreenContent(
     onModeChange: (ThemeMode) -> Unit,
     onAccentChange: (String) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
+    onGlassEffectsChange: (GlassEffectsMode) -> Unit,
     onBack: () -> Unit
 ) {
     Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.themes_title), onBack = onBack) }) { padding ->
@@ -199,6 +205,36 @@ fun ThemeScreenContent(
                                     checked = theme.dynamicColor,
                                     onCheckedChange = onDynamicColorChange
                                 )
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.glass_effects),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                text = stringResource(R.string.glass_effects_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                GlassEffectsMode.entries.forEach { mode ->
+                                    CategoryChip(
+                                        selected = theme.glassEffects == mode,
+                                        onClick = { onGlassEffectsChange(mode) },
+                                        label = stringResource(
+                                            when (mode) {
+                                                GlassEffectsMode.AUTO -> R.string.glass_auto
+                                                GlassEffectsMode.ON -> R.string.glass_on
+                                                GlassEffectsMode.OFF -> R.string.glass_off
+                                            }
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
@@ -343,7 +379,7 @@ fun ThemeScreenContent(
 private fun ThemeScreenPreviewLight() {
     MaterialTheme(colorScheme = lightColorScheme()) {
         Surface(modifier = Modifier.fillMaxSize()) {
-            ThemeScreenContent(ThemeSettings(), {}, {}, {}, {})
+            ThemeScreenContent(ThemeSettings(), {}, {}, {}, {}, {})
         }
     }
 }
@@ -355,7 +391,7 @@ private fun ThemeScreenPreviewDark() {
         Surface(modifier = Modifier.fillMaxSize()) {
             ThemeScreenContent(
                 ThemeSettings(mode = ThemeMode.DARK, accent = "purple", dynamicColor = true),
-                {}, {}, {}, {}
+                {}, {}, {}, {}, {}
             )
         }
     }

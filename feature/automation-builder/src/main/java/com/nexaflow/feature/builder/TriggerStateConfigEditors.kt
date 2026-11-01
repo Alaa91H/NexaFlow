@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 
 /**
  * Configuration sections for the trigger families that the canonical schema
@@ -340,14 +340,14 @@ internal fun BatteryTriggerConfig(draft: TriggerDraft, onConfigChange: (TriggerD
             color = MaterialTheme.colorScheme.primary
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SelectChip(
+            CategoryChip(
                 selected = direction == "ABOVE",
                 onClick = {
                     onConfigChange(draft.copy(config = draft.config + ("direction" to "ABOVE")))
                 },
                 label = stringResource(R.string.battery_above)
             )
-            SelectChip(
+            CategoryChip(
                 selected = direction == "BELOW",
                 onClick = {
                     onConfigChange(draft.copy(config = draft.config + ("direction" to "BELOW")))
@@ -387,7 +387,7 @@ internal fun BatteryTriggerConfig(draft: TriggerDraft, onConfigChange: (TriggerD
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             chargingOptions.forEach { (value, labelRes) ->
-                SelectChip(
+                CategoryChip(
                     selected = chargingState == value,
                     onClick = {
                         onConfigChange(draft.copy(config = draft.config + ("chargingState" to value)))
@@ -413,7 +413,7 @@ internal fun BatteryTriggerConfig(draft: TriggerDraft, onConfigChange: (TriggerD
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             chargerOptions.forEach { (value, labelRes) ->
-                SelectChip(
+                CategoryChip(
                     selected = chargerType == value,
                     onClick = {
                         onConfigChange(draft.copy(config = draft.config + ("chargerType" to value)))

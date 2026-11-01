@@ -288,4 +288,20 @@
     <string name="ask_nexaflow">询问 NexaFlow…</string>
 
     <string name="task_restore_failed">无法恢复任务的先前设置：%1$s</string>
+    <string name="dashboard_title">例程</string>
+    <string name="dashboard_caption">%1$d 个任务 · %2$d 个已启用</string>
+    <string name="bento_next_run">下次运行</string>
+    <string name="bento_today">今天</string>
+    <string name="bento_runs">次运行</string>
+    <string name="bento_no_upcoming">没有即将进行的运行</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">今天 %1$d 次运行</string>
+    <string name="relative_in_minutes">%1$d 分钟后</string>
+    <string name="relative_in_hours">%1$d 小时后</string>
+    <string name="relative_in_days">%1$d 天后</string>
+    <string name="flow_when">当…时</string>
+    <string name="flow_then">则</string>
+    <string name="flow_reverts_auto">例程结束时自动还原</string>
+    <string name="flow_exit_actions">运行 %1$d 个退出操作</string>
+    <string name="status_error">错误</string>
 </resources>

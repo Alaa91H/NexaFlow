@@ -1,148 +1,178 @@
 package com.nexaflow.app.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.nexaflow.app.R
+import com.nexaflow.core.ui.theme.NexaFlowType
+import com.nexaflow.core.ui.theme.nexaFlowType
 
 /**
- * Google 2026 type system — Roboto Flex variable font (the font behind
- * Google's current Material products) with Noto Sans Arabic fallback so
- * Arabic UI renders with matching weight and rhythm instead of the
- * default Roboto substitution.
+ * Ink Glass typography (§5.5).
+ *
+ * Plus Jakarta Sans (OFL) carries Latin, IBM Plex Sans Arabic (OFL) carries
+ * Arabic. Compose does not fall back per glyph across `Font` entries, so the
+ * family is chosen per locale in [rememberContentFontFamily]: Arabic locales
+ * get Plex, Cyrillic/Devanagari/CJK locales keep Roboto Flex (Plus Jakarta has
+ * no coverage there), everything else gets Jakarta.
  */
+
+/** Plus Jakarta Sans is a variable font; each weight is a variation instance. */
 @OptIn(ExperimentalTextApi::class)
-private fun googleFamily(weight: Int): FontFamily = FontFamily(
-    Font(
-        R.font.roboto_flex,
-        weight = FontWeight(weight),
-        variationSettings = FontVariation.Settings(FontVariation.weight(weight))
-    ),
-    Font(
-        R.font.noto_sans_arabic,
-        weight = FontWeight(weight),
-        variationSettings = FontVariation.Settings(FontVariation.weight(weight))
-    )
+private fun variableFamily(resId: Int, weights: List<Int>): FontFamily = FontFamily(
+    weights.map { weight ->
+        Font(
+            resId = resId,
+            weight = FontWeight(weight),
+            variationSettings = FontVariation.Settings(FontVariation.weight(weight))
+        )
+    }
 )
 
-private val googleNormal = googleFamily(FontWeight.Normal.weight)
-private val googleMedium = googleFamily(FontWeight.Medium.weight)
+private val JakartaFamily = variableFamily(
+    R.font.plus_jakarta_sans,
+    listOf(400, 500, 600, 700, 800)
+)
+
+private val RobotoFlexFamily = variableFamily(
+    R.font.roboto_flex,
+    listOf(400, 500, 600, 700, 800)
+)
+
+/** IBM Plex Sans Arabic ships static weights; 800 maps to Bold. */
+private val PlexArabicFamily = FontFamily(
+    Font(R.font.ibm_plex_sans_arabic_regular, FontWeight.Normal),
+    Font(R.font.ibm_plex_sans_arabic_medium, FontWeight.Medium),
+    Font(R.font.ibm_plex_sans_arabic_semibold, FontWeight.SemiBold),
+    Font(R.font.ibm_plex_sans_arabic_bold, FontWeight.Bold)
+)
 
 /**
- * Google Material 3 type scale (the spec values, Roboto Flex 2026 on Android).
- * Hierarchy comes from size and weight contrast, not from over-bolding:
- * display/headline/title/body sit at regular weight, labels at medium —
- * exactly how Google's own apps set type.
+ * The family for the current locale. Pure and testable in spirit: `ar` → Plex,
+ * `ru`/`hi`/`ja`/`zh` → Roboto Flex, everything else → Jakarta.
  */
-val Typography = Typography(
+fun contentFontFamily(languageTag: String): FontFamily = when (languageTag) {
+    "ar" -> PlexArabicFamily
+    "ru", "hi", "ja", "zh" -> RobotoFlexFamily
+    else -> JakartaFamily
+}
+
+@Composable
+fun rememberContentFontFamily(): FontFamily {
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(locale.language) { contentFontFamily(locale.language) }
+}
+
+@Composable
+fun rememberNexaFlowType(): NexaFlowType {
+    val family = rememberContentFontFamily()
+    return remember(family) { nexaFlowType(family) }
+}
+
+/**
+ * Material 3 roles re-cut on the Ink scale so built-in components (menus,
+ * dialogs, switches, text fields) inherit the same voice as the custom UI.
+ */
+fun nexaFlowM3Typography(family: FontFamily): Typography = Typography(
     displayLarge = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
-        fontSize = 57.sp,
-        lineHeight = 64.sp,
-        letterSpacing = (-0.25).sp
+        fontFamily = family,
+        fontWeight = FontWeight(800),
+        fontSize = 48.sp,
+        lineHeight = 56.sp,
+        letterSpacing = (-0.5).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
-        fontSize = 45.sp,
-        lineHeight = 52.sp,
-        letterSpacing = 0.sp
+        fontFamily = family,
+        fontWeight = FontWeight(800),
+        fontSize = 40.sp,
+        lineHeight = 48.sp
     ),
     displaySmall = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
-        letterSpacing = 0.sp
+        fontFamily = family,
+        fontWeight = FontWeight(800),
+        fontSize = 34.sp,
+        lineHeight = 42.sp
     ),
     headlineLarge = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
-        letterSpacing = 0.sp
+        fontFamily = family,
+        fontWeight = FontWeight(800),
+        fontSize = 30.sp,
+        lineHeight = 36.sp,
+        letterSpacing = (-0.6).sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
-        letterSpacing = 0.sp
+        fontFamily = family,
+        fontWeight = FontWeight(800),
+        fontSize = 26.sp,
+        lineHeight = 32.sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 0.sp
+        fontFamily = family,
+        fontWeight = FontWeight(800),
+        fontSize = 22.sp,
+        lineHeight = 28.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
+        fontFamily = family,
+        fontWeight = FontWeight(800),
         fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
+        lineHeight = 28.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = googleMedium,
-        fontWeight = FontWeight.Medium,
+        fontFamily = family,
+        fontWeight = FontWeight(700),
         fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.15.sp
+        lineHeight = 22.sp
     ),
     titleSmall = TextStyle(
-        fontFamily = googleMedium,
-        fontWeight = FontWeight.Medium,
+        fontFamily = family,
+        fontWeight = FontWeight(700),
         fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
+        lineHeight = 20.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
+        fontFamily = family,
+        fontWeight = FontWeight(500),
         fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        lineHeight = 24.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
+        fontFamily = family,
+        fontWeight = FontWeight(500),
         fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.25.sp
+        lineHeight = 20.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = googleNormal,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.4.sp
+        fontFamily = family,
+        fontWeight = FontWeight(500),
+        fontSize = 12.5.sp,
+        lineHeight = 16.sp
     ),
     labelLarge = TextStyle(
-        fontFamily = googleMedium,
-        fontWeight = FontWeight.Medium,
+        fontFamily = family,
+        fontWeight = FontWeight(700),
         fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
+        lineHeight = 20.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = googleMedium,
-        fontWeight = FontWeight.Medium,
+        fontFamily = family,
+        fontWeight = FontWeight(600),
         fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+        lineHeight = 16.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = googleMedium,
-        fontWeight = FontWeight.Medium,
+        fontFamily = family,
+        fontWeight = FontWeight(700),
         fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+        lineHeight = 14.sp,
+        letterSpacing = 0.2.sp
     )
 )

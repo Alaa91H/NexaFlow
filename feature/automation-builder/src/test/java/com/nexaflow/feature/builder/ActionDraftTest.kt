@@ -1,6 +1,5 @@
 package com.nexaflow.feature.builder
 
-import androidx.compose.ui.graphics.Color
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.EndMode
@@ -92,21 +91,19 @@ class ActionDraftTest {
     }
 
     @Test
-    fun cardAccent_cycleDistinguishesAdjacentCards_andRepeatsOnlyAfterPalette() {
-        assertNotEquals(builderCardAccent(0), builderCardAccent(1))
-        assertNotEquals(builderCardAccent(1), builderCardAccent(2))
-        assertEquals(
-            builderCardAccent(0),
-            builderCardAccent(builderCardAccentPalette.size)
+    fun actionCategoriesMapIntoTtheInkPalette() {
+        // The grey/dark-grey alternation is gone: identity now comes from the
+        // action's category. Distinct categories must stay distinguishable and
+        // every category must resolve to a hue.
+        val mapped = ActionCategory.entries.map { it.toInkCategory() }
+        assertEquals("every action category resolves", ActionCategory.entries.size, mapped.size)
+        assertNotEquals(
+            ActionCategory.DISPLAY.toInkCategory(),
+            ActionCategory.BATTERY.toInkCategory()
         )
-    }
-
-    @Test
-    fun cardContainer_cycleUsesGreyAndDarkGrey_withLightReadableContent() {
-        assertEquals(Color(0xFF2F3336), builderCardContainerColor(0))
-        assertEquals(Color(0xFF1E2022), builderCardContainerColor(1))
-        assertNotEquals(builderCardContainerColor(0), builderCardContainerColor(1))
-        assertEquals(builderCardContainerColor(0), builderCardContainerColor(2))
-        assertEquals(Color(0xFFF5F7F8), builderCardContentColor)
+        assertNotEquals(
+            ActionCategory.SOUND.toInkCategory(),
+            ActionCategory.CONNECTIVITY.toInkCategory()
+        )
     }
 }

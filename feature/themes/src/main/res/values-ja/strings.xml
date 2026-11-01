@@ -28,4 +28,10 @@
     <string name="dynamic_color_sub">壁紙の色を使用（Material You）</string>
     <string name="accent_disabled_hint">ダイナミックカラーがオフのときに利用できます</string>
     <string name="preview_dynamic">壁紙の色 (Material You)</string>
+    <string name="accent_ink">Ink</string>
+    <string name="glass_effects">ガラス効果</string>
+    <string name="glass_effects_sub">ドックをぼかします。非対応端末では自動的に代替表示になります。</string>
+    <string name="glass_auto">自動</string>
+    <string name="glass_on">オン</string>
+    <string name="glass_off">オフ</string>
 </resources>

@@ -28,4 +28,10 @@
     <string name="dynamic_color_sub">"Utiliser les couleurs du fond d'écran (Material You)"</string>
     <string name="accent_disabled_hint">Disponible lorsque la couleur dynamique est désactivée</string>
     <string name="preview_dynamic">"Couleurs du fond d'écran (Material You)"</string>
+    <string name="accent_ink">Ink</string>
+    <string name="glass_effects">Effets de verre</string>
+    <string name="glass_effects_sub">Floute le Dock ; remplacement automatique sur les appareils non compatibles.</string>
+    <string name="glass_auto">Auto</string>
+    <string name="glass_on">Activé</string>
+    <string name="glass_off">Désactivé</string>
 </resources>

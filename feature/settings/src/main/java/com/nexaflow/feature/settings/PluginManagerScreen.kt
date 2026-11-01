@@ -172,7 +172,6 @@ fun PluginManagerScreen(navController: NavController) {
             items(catalog.installed.size, key = { "installed:${catalog.installed[it].packageName}" }) { index ->
                 PluginCatalogCard(
                     entry = catalog.installed[index],
-                    alternatingIndex = index,
                     testing = testingPackage == catalog.installed[index].packageName,
                     onTest = { plugin -> testFire(plugin) },
                     onOpenStore = { openStore(context, it) },
@@ -203,7 +202,6 @@ fun PluginManagerScreen(navController: NavController) {
             ) { index ->
                 PluginCatalogCard(
                     entry = catalog.recommendedAvailable[index],
-                    alternatingIndex = catalog.installed.size + index,
                     testing = false,
                     onTest = {},
                     onOpenStore = { openStore(context, it) },
@@ -233,7 +231,6 @@ fun PluginManagerScreen(navController: NavController) {
             ) { index ->
                 PluginCatalogCard(
                     entry = catalog.advancedAvailable[index],
-                    alternatingIndex = catalog.installed.size + catalog.recommendedAvailable.size + index,
                     testing = false,
                     onTest = {},
                     onOpenStore = { openStore(context, it) },
@@ -312,7 +309,6 @@ private fun PluginSectionEmpty(title: String, detail: String) {
 @Composable
 private fun PluginCatalogCard(
     entry: PluginCatalogEntry,
-    alternatingIndex: Int,
     testing: Boolean,
     onTest: (PluginInfo) -> Unit,
     onOpenStore: (String) -> Unit,
@@ -326,7 +322,7 @@ private fun PluginCatalogCard(
     val canLaunch = entry.installed && entry.appEnabled &&
         context.packageManager.getLaunchIntentForPackage(entry.packageName) != null
 
-    NexaFlowCard(alternatingIndex = alternatingIndex) {
+    NexaFlowCard() {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier

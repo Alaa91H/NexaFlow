@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.core.core.ktx)
     implementation(platform(libs.androidx.compose.compose.bom))
     api(libs.androidx.compose.material.material.icons.extended)
+    implementation(libs.dev.chrisbanes.haze.haze)
     implementation(libs.androidx.compose.ui.ui)
     implementation(libs.androidx.compose.ui.ui.graphics)
     implementation(libs.androidx.compose.ui.ui.tooling.preview)

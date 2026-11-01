@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Ink Glass replaces the previous visual language.** One design system now covers every screen: a near-black blue base, tonal 24dp cards with 1dp hairlines instead of alternating grey and dark-grey surfaces, one uniform card style and category-coloured icon tiles, so a route's hue finally carries meaning. Behaviour, domain, data, Room schema and the automation engine are untouched. See `docs/DESIGN_SYSTEM.md`.
+- **The two stacked FABs are gone.** The dashboard now ends in a single glass Dock: the Ask pill plus one primary add button, bottom padding reserved so the last routine scrolls clear of it. Exactly one blurred element per screen; the Dock falls back to a solid surface at 94% on API 26–30, in Battery Saver or when Glass effects is Off, with identical layout.
+- **Routine cards collapse to a readable row and expand into a real flow.** The chevron is replaced by whole-card expansion, and the expanded block shows WHEN and THEN as chips with the exit footnote, above the readiness, lifecycle, health, trigger, constraint, action and end-behaviour diagnostics the card already carried.
+- **The trigger and action picker is rebuilt** around a screen header, search pill, category chips and a 28dp grouped list with 44dp tinted tiles and multi-check rows, with the Add action in the Dock.
+- **Arabic no longer receives letter-spacing or uppercasing.** Both are gated on the script of the string itself, so mixed titles such as “تشغيل GPS” keep their joining in any locale.
+
+### Added
+
+- Ink seed and neutral palette, `accentLabel`, the seven-hue category palette with light variants, and the full alpha-token set.
+- Plus Jakarta Sans (Latin) and IBM Plex Sans Arabic, bundled under the SIL OFL with per-locale family selection: Arabic, Cyrillic, Devanagari and CJK locales keep a family that covers their glyphs.
+- Shared components in `core/ui-components`: `IconTile`, `StatusPill`, `BentoStatCard` with sparkline, `SearchPill`, `CategoryChip`, `PickerGroup`/`PickerRow`/`MultiCheck`, `Dock`, `ScreenHeader`, `FlowStepRow`, `GlassSurface` and `ScreenGlow`.
+- Themes gains a **Glass effects** selector (Auto / On / Off) and a **Dynamic colour** switch, persisted in `ThemePreferences`.
+- New coverage: glass-mode resolution, sparkline bucketing, script-aware typography, category mapping and the updated design tokens.
+
+### Removed
+
+- `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes, together with every `alternatingIndex` parameter.
+
 ## [v3.91.19] - 2026-11-01
 
 ### Fixed

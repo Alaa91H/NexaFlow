@@ -28,4 +28,10 @@
     <string name="dynamic_color_sub">Usar cores do papel de parede (Material You)</string>
     <string name="accent_disabled_hint">Disponível quando a cor dinâmica está desativada</string>
     <string name="preview_dynamic">Cores do papel de parede (Material You)</string>
+    <string name="accent_ink">Ink</string>
+    <string name="glass_effects">Efeitos de vidro</string>
+    <string name="glass_effects_sub">Desfoca o Dock; substituído automaticamente em dispositivos não compatíveis.</string>
+    <string name="glass_auto">Automático</string>
+    <string name="glass_on">Ativado</string>
+    <string name="glass_off">Desativado</string>
 </resources>

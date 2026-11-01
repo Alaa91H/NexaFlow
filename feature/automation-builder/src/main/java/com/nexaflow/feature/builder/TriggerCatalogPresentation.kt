@@ -110,7 +110,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import com.nexaflow.domain.catalog.AutomationNodeFamily
 import com.nexaflow.domain.models.TriggerType

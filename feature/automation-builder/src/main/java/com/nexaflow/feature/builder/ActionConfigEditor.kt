@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 
@@ -89,7 +89,7 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     durations.forEach { seconds ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["seconds"]?.toIntOrNull() ?: 1) == seconds,
                             onClick = { onConfigChange(mapOf("seconds" to seconds.toString())) },
                             label = "${seconds}s"
@@ -203,7 +203,7 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     sounds.forEach { (value, label) ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["sound"] ?: "DEFAULT") == value,
                             onClick = { onConfigChange(config + ("sound" to value)) },
                             label = label
@@ -237,7 +237,7 @@ fun ActionConfigEditor(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 listOf(1L to stringResource(R.string.wait_1_min), 5L to stringResource(R.string.wait_5_min), 10L to stringResource(R.string.wait_10_min), 24L * 60L to stringResource(R.string.wait_24_h)).forEach { (value, label) ->
-                    SelectChip(
+                    CategoryChip(
                         selected = seconds == value * 60L,
                         onClick = { onConfigChange(mapOf("seconds" to (value * 60L).toString())) },
                         label = label
@@ -266,7 +266,7 @@ fun ActionConfigEditor(
             val selected = config["operation"]?.takeIf { it.isNotBlank() } ?: operations.first()
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 operations.forEach { operation ->
-                    SelectChip(selected = selected == operation,
+                    CategoryChip(selected = selected == operation,
                         onClick = { onConfigChange(config + ("operation" to operation)) }, label = operation)
                 }
             }
@@ -330,7 +330,7 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     methods.forEach { method ->
-                        SelectChip(
+                        CategoryChip(
                             selected = selectedMethod == method,
                             onClick = { onConfigChange(config + ("method" to method)) },
                             label = method
@@ -370,7 +370,7 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf(3L, 5L, 10L, 30L, 60L).forEach { secs ->
-                        SelectChip(
+                        CategoryChip(
                             selected = timeoutS == secs,
                             onClick = { onConfigChange(config + ("timeoutMs" to (secs * 1000L).toString())) },
                             label = stringResource(R.string.http_timeout_seconds, secs)
@@ -384,7 +384,7 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf("0", "1", "2", "3", "5").forEach { attempts ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["retryAttempts"] ?: "0") == attempts,
                             onClick = { onConfigChange(config + ("retryAttempts" to attempts)) },
                             label = attempts
@@ -400,14 +400,14 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf("250", "500", "1000", "2000").forEach { ms ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["retryBaseDelayMs"] ?: "1000") == ms,
                             onClick = { onConfigChange(config + ("retryBaseDelayMs" to ms)) },
                             label = stringResource(R.string.http_retry_base_ms, ms.toLong())
                         )
                     }
                     listOf("5000", "10000", "30000", "60000").forEach { ms ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["retryCapMs"] ?: "60000") == ms,
                             onClick = { onConfigChange(config + ("retryCapMs" to ms)) },
                             label = stringResource(R.string.http_retry_cap_ms, ms.toLong())
@@ -493,7 +493,7 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf("SYSTEM", "SECURE", "GLOBAL").forEach { ns ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["namespace"] ?: "GLOBAL") == ns,
                             onClick = { onConfigChange(config + ("namespace" to ns)) },
                             label = ns
@@ -527,7 +527,7 @@ fun ActionConfigEditor(
                 }
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("SECURE", "SYSTEM", "GLOBAL").forEach { ns ->
-                        SelectChip(selected = (config["namespace"] ?: "SECURE") == ns, onClick = { onConfigChange(config + ("namespace" to ns)) }, label = ns)
+                        CategoryChip(selected = (config["namespace"] ?: "SECURE") == ns, onClick = { onConfigChange(config + ("namespace" to ns)) }, label = ns)
                     }
                 }
                 OutlinedTextField(value = config["key"] ?: "", onValueChange = { onConfigChange(config + ("key" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.rom_custom_key_label)) }, singleLine = true)
@@ -539,7 +539,7 @@ fun ActionConfigEditor(
                 // Chips for common boolean/enum values — easy customization without typing
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("0", "1", "true", "false", "on", "off").forEach { v ->
-                        SelectChip(selected = (config["value"] ?: "") == v, onClick = { onConfigChange(config + ("value" to v)) }, label = v)
+                        CategoryChip(selected = (config["value"] ?: "") == v, onClick = { onConfigChange(config + ("value" to v)) }, label = v)
                     }
                 }
                 OutlinedTextField(value = config["value"] ?: "", onValueChange = { onConfigChange(config + ("value" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.rom_custom_value_custom)) }, singleLine = true, placeholder = { Text(stringResource(R.string.rom_custom_value_placeholder)) })
@@ -558,7 +558,7 @@ fun ActionConfigEditor(
                 val tiles = (config["tiles"] ?: "").split(',').map { it.trim() }.filter { it.isNotBlank() }.toSet()
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("wifi", "bt", "cell", "dnd", "airplane", "rotation", "flashlight", "battery", "alarm", "hotspot", "location", "nfc").forEach { tile ->
-                        SelectChip(selected = tile in tiles, onClick = {
+                        CategoryChip(selected = tile in tiles, onClick = {
                             val newTiles = if (tile in tiles) tiles - tile else tiles + tile
                             onConfigChange(config + ("tiles" to newTiles.joinToString(",")))
                         }, label = tile)
@@ -567,7 +567,7 @@ fun ActionConfigEditor(
                 Text(stringResource(R.string.rom_qs_columns), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("3", "4", "5").forEach { col ->
-                        SelectChip(selected = (config["columns"] ?: "4") == col, onClick = { onConfigChange(config + ("columns" to col)) }, label = "$col${stringResource(R.string.rom_qs_cols_suffix)}")
+                        CategoryChip(selected = (config["columns"] ?: "4") == col, onClick = { onConfigChange(config + ("columns" to col)) }, label = "$col${stringResource(R.string.rom_qs_cols_suffix)}")
                     }
                 }
                 ToggleConfigRow(label = stringResource(R.string.rom_qs_brightness_slider), checked = config["brightness_slider"] != "0", onCheckedChange = { onConfigChange(config + ("brightness_slider" to if (it) "1" else "0")) })
@@ -584,13 +584,13 @@ fun ActionConfigEditor(
                 Text(stringResource(R.string.rom_status_clock_position), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("left" to stringResource(R.string.rom_pos_left), "center" to stringResource(R.string.rom_pos_center), "right" to stringResource(R.string.rom_pos_right)).forEach { (v, l) ->
-                        SelectChip(selected = (config["clock_position"] ?: "right") == v, onClick = { onConfigChange(config + ("clock_position" to v)) }, label = l)
+                        CategoryChip(selected = (config["clock_position"] ?: "right") == v, onClick = { onConfigChange(config + ("clock_position" to v)) }, label = l)
                     }
                 }
                 Text(stringResource(R.string.rom_status_battery_style), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("0" to stringResource(R.string.rom_battery_icon), "1" to stringResource(R.string.rom_battery_circle), "2" to stringResource(R.string.rom_battery_text), "3" to stringResource(R.string.rom_battery_hidden)).forEach { (v, l) ->
-                        SelectChip(selected = (config["battery_style"] ?: "0") == v, onClick = { onConfigChange(config + ("battery_style" to v)) }, label = l)
+                        CategoryChip(selected = (config["battery_style"] ?: "0") == v, onClick = { onConfigChange(config + ("battery_style" to v)) }, label = l)
                     }
                 }
                 ToggleConfigRow(label = stringResource(R.string.rom_status_battery_percent), checked = config["battery_percent"] == "1", onCheckedChange = { onConfigChange(config + ("battery_percent" to if (it) "1" else "0")) })
@@ -604,7 +604,7 @@ fun ActionConfigEditor(
                 Text(stringResource(R.string.rom_lockscreen_clock_style), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("0" to stringResource(R.string.rom_clock_default), "1" to stringResource(R.string.rom_clock_bold), "2" to stringResource(R.string.rom_clock_minimal), "3" to stringResource(R.string.rom_clock_weather)).forEach { (v, l) ->
-                        SelectChip(selected = (config["clock_style"] ?: "0") == v, onClick = { onConfigChange(config + ("clock_style" to v)) }, label = l)
+                        CategoryChip(selected = (config["clock_style"] ?: "0") == v, onClick = { onConfigChange(config + ("clock_style" to v)) }, label = l)
                     }
                 }
                 ToggleConfigRow(label = stringResource(R.string.rom_lockscreen_weather), checked = config["weather"] == "1", onCheckedChange = { onConfigChange(config + ("weather" to if (it) "1" else "0")) })
@@ -619,13 +619,13 @@ fun ActionConfigEditor(
                 Text(stringResource(R.string.rom_theme_monet), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("1" to stringResource(R.string.rom_on), "0" to stringResource(R.string.rom_off)).forEach { (v, l) ->
-                        SelectChip(selected = (config["monet"] ?: "1") == v, onClick = { onConfigChange(config + ("monet" to v)) }, label = l)
+                        CategoryChip(selected = (config["monet"] ?: "1") == v, onClick = { onConfigChange(config + ("monet" to v)) }, label = l)
                     }
                 }
                 Text(stringResource(R.string.rom_theme_accent), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("#FF4081" to stringResource(R.string.rom_accent_pink), "#2196F3" to stringResource(R.string.rom_accent_blue), "#4CAF50" to stringResource(R.string.rom_accent_green), "#FF9800" to stringResource(R.string.rom_accent_orange)).forEach { (v, l) ->
-                        SelectChip(selected = (config["accent"] ?: "#FF4081").equals(v, ignoreCase = true), onClick = { onConfigChange(config + ("accent" to v)) }, label = l)
+                        CategoryChip(selected = (config["accent"] ?: "#FF4081").equals(v, ignoreCase = true), onClick = { onConfigChange(config + ("accent" to v)) }, label = l)
                     }
                 }
                 ToggleConfigRow(label = stringResource(R.string.rom_theme_themed_icons), checked = config["themed_icons"] == "1", onCheckedChange = { onConfigChange(config + ("themed_icons" to if (it) "1" else "0")) })
@@ -644,7 +644,7 @@ fun ActionConfigEditor(
                         Text(stringResource(R.string.rom_aod_schedule), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("0" to stringResource(R.string.rom_schedule_off), "1" to stringResource(R.string.rom_schedule_on), "2" to stringResource(R.string.rom_schedule_night)).forEach { (v, l) ->
-                                SelectChip(selected = (config["schedule"] ?: "0") == v, onClick = { onConfigChange(config + ("schedule" to v)) }, label = l)
+                                CategoryChip(selected = (config["schedule"] ?: "0") == v, onClick = { onConfigChange(config + ("schedule" to v)) }, label = l)
                             }
                         }
                     }
@@ -653,7 +653,7 @@ fun ActionConfigEditor(
                         Text(stringResource(R.string.rom_notif_timeout), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("3" to "3s", "5" to "5s", "8" to "8s").forEach { (v, l) ->
-                                SelectChip(selected = (config["timeout"] ?: "5") == v, onClick = { onConfigChange(config + ("timeout" to v)) }, label = l)
+                                CategoryChip(selected = (config["timeout"] ?: "5") == v, onClick = { onConfigChange(config + ("timeout" to v)) }, label = l)
                             }
                         }
                         ToggleConfigRow(label = stringResource(R.string.rom_notif_less_boring), checked = config["less_boring"] == "1", onCheckedChange = { onConfigChange(config + ("less_boring" to if (it) "1" else "0")) })
@@ -662,7 +662,7 @@ fun ActionConfigEditor(
                         Text(stringResource(R.string.rom_nav_mode), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("2" to stringResource(R.string.rom_nav_gesture), "0" to stringResource(R.string.rom_nav_3button), "1" to stringResource(R.string.rom_nav_2button)).forEach { (v, l) ->
-                                SelectChip(selected = (config["mode"] ?: "2") == v, onClick = { onConfigChange(config + ("mode" to v)) }, label = l)
+                                CategoryChip(selected = (config["mode"] ?: "2") == v, onClick = { onConfigChange(config + ("mode" to v)) }, label = l)
                             }
                         }
                         // Back-gesture height (dp): the handler writes it as
@@ -670,7 +670,7 @@ fun ActionConfigEditor(
                         Text(stringResource(R.string.rom_nav_back_height), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("" to stringResource(R.string.rom_nav_back_default), "0" to stringResource(R.string.rom_nav_back_full), "24" to stringResource(R.string.rom_nav_back_low), "48" to stringResource(R.string.rom_nav_back_medium), "80" to stringResource(R.string.rom_nav_back_high)).forEach { (v, l) ->
-                                SelectChip(
+                                CategoryChip(
                                     selected = (config["back_height"] ?: "") == v,
                                     onClick = {
                                         val updated = if (v.isBlank()) config - "back_height" else config + ("back_height" to v)
@@ -691,7 +691,7 @@ fun ActionConfigEditor(
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("sysui_qs_tiles" to stringResource(R.string.rom_batch_key_qs), "rom_status_bar_battery_style" to stringResource(R.string.rom_batch_key_battery), "lockscreen_clock_style" to stringResource(R.string.rom_batch_key_lockscreen)).forEach { (k, l) ->
                         val batch = config["batch_json"] ?: ""
-                        SelectChip(selected = batch.contains(k), onClick = {
+                        CategoryChip(selected = batch.contains(k), onClick = {
                             // Toggle key in batch (adds with default 1, removes if present)
                             val has = batch.contains(k)
                             val newBatch = if (has) batch.replace(Regex("\"$k\"\\s*:\\s*\"[^\"]*\"\\s*,?"), "").replace(",,", ",").replace("{,", "{").replace(",}", "}")
@@ -740,7 +740,7 @@ fun ActionConfigEditor(
                         "BRIGHTNESS_UP", "BRIGHTNESS_DOWN", "ENTER", "DEL", "ESCAPE",
                         "SCREENSHOT", "SLEEP", "WAKEUP", "CAMERA", "CALL", "ENDCALL"
                     ).forEach { key ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["key"] ?: "").equals(key, ignoreCase = true),
                             onClick = { onConfigChange(mapOf("key" to key)) },
                             label = key.replace('_', ' ').lowercase()
@@ -828,7 +828,7 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf("0.85", "1.0", "1.15", "1.3").forEach { scale ->
-                        SelectChip(
+                        CategoryChip(
                             selected = (config["scale"] ?: "1.0") == scale,
                             onClick = { onConfigChange(config + ("scale" to scale)) },
                             label = scale

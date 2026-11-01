@@ -117,7 +117,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.produceState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.alternatingSurfaceColor
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
@@ -319,7 +318,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     onRefresh = viewModel::refreshDiagnostics
                 )
                 AutomationDetailsSectionCard(
-                    index = 0,
                     title = stringResource(R.string.section_triggers),
                     expanded = triggersExpanded,
                     onExpandedChange = { triggersExpanded = !triggersExpanded }
@@ -337,7 +335,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 icon = icon,
                                 title = stringResource(titleRes),
                                 subtitle = stringResource(subtitleRes),
-                                alternatingIndex = index,
                                 trailing = {
                                     Text(
                                         text = triggerDetail(trigger.config),
@@ -350,7 +347,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 AutomationDetailsSectionCard(
-                    index = 1,
                     title = stringResource(R.string.section_constraints),
                     expanded = constraintsExpanded,
                     onExpandedChange = { constraintsExpanded = !constraintsExpanded }
@@ -368,7 +364,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 icon = icon,
                                 title = stringResource(titleRes),
                                 subtitle = stringResource(R.string.constraint_subtitle),
-                                alternatingIndex = index,
                                 trailing = {
                                     Text(
                                         text = constraintDetail(constraint.config),
@@ -381,7 +376,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 AutomationDetailsSectionCard(
-                    index = 2,
                     title = stringResource(R.string.section_actions),
                     expanded = actionsExpanded,
                     onExpandedChange = { actionsExpanded = !actionsExpanded }
@@ -399,7 +393,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 icon = icon,
                                 title = stringResource(titleRes),
                                 subtitle = stringResource(subtitleRes),
-                                alternatingIndex = index,
                                 trailing = {
                                     val detailText = actionDetail(action.config)
                                     val endText = endBehaviorText(action)
@@ -427,7 +420,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 AutomationDetailsSectionCard(
-                    index = 3,
                     title = stringResource(R.string.section_exit_behavior),
                     expanded = exitBehaviorExpanded,
                     onExpandedChange = { exitBehaviorExpanded = !exitBehaviorExpanded }
@@ -457,7 +449,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                     icon = icon,
                                     title = stringResource(titleRes),
                                     subtitle = endBehaviorText(action).orEmpty(),
-                                    alternatingIndex = index
                                 )
                             }
                             current.exitActions.forEachIndexed { index, action ->
@@ -466,7 +457,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                     icon = icon,
                                     title = stringResource(titleRes),
                                     subtitle = stringResource(subtitleRes),
-                                    alternatingIndex = perActionEndBehaviors.size + index
                                 )
                             }
                         }
@@ -606,14 +596,12 @@ fun AutomationDetailsScreen(navController: NavController) {
  */
 @Composable
 private fun AutomationDetailsSectionCard(
-    index: Int,
     title: String,
     expanded: Boolean,
     onExpandedChange: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val containerColor = alternatingSurfaceColor(index)
-    NexaFlowCard(containerColor = containerColor) {
+    NexaFlowCard() {
         SectionHeader(
             text = title,
             modifier = Modifier

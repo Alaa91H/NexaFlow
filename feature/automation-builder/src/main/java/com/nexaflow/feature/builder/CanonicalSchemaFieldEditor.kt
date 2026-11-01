@@ -45,7 +45,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.math.BigDecimal
 import java.math.RoundingMode
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.canonical.BooleanValue
 import com.nexaflow.domain.canonical.CanonicalValue
 import com.nexaflow.domain.canonical.CanonicalValueKind
@@ -204,7 +204,7 @@ private fun CanonicalFieldControl(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     field.allowedTokens.forEach { token ->
-                        SelectChip(
+                        CategoryChip(
                             selected = rawValue == token,
                             onClick = { onValueChange(token) },
                             label = token,
@@ -334,7 +334,7 @@ private fun CanonicalFieldControl(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     DURATION_UNITS.forEach { (label, millis) ->
-                        SelectChip(
+                        CategoryChip(
                             selected = unitMillis == millis,
                             onClick = { unitMillis = millis },
                             label = label,
