@@ -72,6 +72,7 @@ import com.nexaflow.core.ui.PickerGroup
 import com.nexaflow.core.ui.theme.NexaFlowCategory
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.domain.models.ActionType
@@ -528,11 +529,11 @@ private fun CatalogOptionRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = NexaFlowTheme.type.pickerRowTitle.forText(title)
+                style = NexaFlowTheme.type.pickerRowTitle.forUserText(title)
             )
             Text(
                 text = subtitle,
-                style = NexaFlowTheme.type.meta.forText(subtitle),
+                style = NexaFlowTheme.type.meta.forUserText(subtitle),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             lockedMessage?.let { message ->

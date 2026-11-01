@@ -19,6 +19,7 @@ import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.theme.eyebrowText
 import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 
 /**
  * WHEN → THEN → EXIT, made visible. One component renders every flow step —
@@ -75,7 +76,7 @@ fun FlowChip(text: String, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = text,
-            style = NexaFlowTheme.type.flowChip.forText(text),
+            style = NexaFlowTheme.type.flowChip.forUserText(text),
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1
         )

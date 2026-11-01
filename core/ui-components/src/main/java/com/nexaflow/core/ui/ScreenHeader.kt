@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 
 /**
  * Screen header (§6): a 44dp circular icon button at one end and the title
@@ -61,7 +62,7 @@ fun ScreenHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = titleStyle.forText(title),
+                style = titleStyle.forUserText(title),
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis

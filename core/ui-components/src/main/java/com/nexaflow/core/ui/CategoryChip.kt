@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 
 /**
  * Category selector chip (§6): 40dp tall inside a 48dp touch target, 16dp
@@ -95,7 +96,7 @@ fun CategoryChip(
             }
             Text(
                 text = label,
-                style = NexaFlowTheme.type.chip.forText(label),
+                style = NexaFlowTheme.type.chip.forUserText(label),
                 color = content
             )
         }

@@ -32,6 +32,7 @@ import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowCategory
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 
 /**
  * A grouped list surface (§6): 28dp radius, clipped, one hairline around the
@@ -117,7 +118,7 @@ fun PickerRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = NexaFlowTheme.type.pickerRowTitle.forText(title),
+                    style = NexaFlowTheme.type.pickerRowTitle.forUserText(title),
                     color = colors.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -125,7 +126,7 @@ fun PickerRow(
                 if (description != null) {
                     Text(
                         text = description,
-                        style = NexaFlowTheme.type.meta.forText(description),
+                        style = NexaFlowTheme.type.meta.forUserText(description),
                         color = colors.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis

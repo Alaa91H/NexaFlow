@@ -94,6 +94,7 @@ import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowCategory
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehaviorCatalog
@@ -679,14 +680,14 @@ internal fun RoutineCard(
                 ) {
                     Text(
                         text = automation.name,
-                        style = NexaFlowTheme.type.cardTitle.forText(automation.name),
+                        style = NexaFlowTheme.type.cardTitle.forUserText(automation.name),
                         color = colors.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = summary,
-                        style = NexaFlowTheme.type.meta.forText(summary),
+                        style = NexaFlowTheme.type.meta.forUserText(summary),
                         color = colors.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -729,7 +730,7 @@ internal fun RoutineCard(
                     if (footnote != null) {
                         Text(
                             text = footnote,
-                            style = NexaFlowTheme.type.meta.forText(footnote),
+                            style = NexaFlowTheme.type.meta.forUserText(footnote),
                             color = colors.onSurfaceVariant
                         )
                     }

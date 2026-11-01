@@ -5,6 +5,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
 
 /**
@@ -145,6 +147,16 @@ fun containsArabicScript(text: String): Boolean = arabicScript.containsMatchIn(t
  */
 fun TextStyle.forText(text: String): TextStyle =
     if (containsArabicScript(text)) copy(letterSpacing = 0.sp) else this
+
+/**
+ * User-authored text (routine, trigger and action names) is rendered with the
+ * content's own direction and aligned to the start, so “تشغيل GPS” and “O2 2GB”
+ * both read correctly inside one list regardless of the app locale (§5.5).
+ */
+fun TextStyle.forUserText(text: String): TextStyle = forText(text).copy(
+    textDirection = TextDirection.Content,
+    textAlign = TextAlign.Start
+)
 
 /**
  * Uppercase is a Latin-only affordance for eyebrows. Arabic has no case and

@@ -165,9 +165,10 @@ The scale (`NexaFlowType`, read through `NexaFlowTheme.type`):
   `TextStyle.forText(text)` (drops letter-spacing) and `eyebrowText(text)`
   (uppercases Latin only). `containsArabicScript` uses the `\p{IsArabic}`
   Unicode script property.
-* **User-authored titles are bidi-safe**: routine, trigger and action names use
-  `TextStyle(textDirection = TextDirection.Content)` with `TextAlign.Start`, so
-  “تشغيل GPS” and “O2 2GB” both render correctly inside one list.
+* **User-authored titles are bidi-safe**: routine, trigger and action names go
+  through `TextStyle.forUserText(text)`, which drops tracking for Arabic and sets
+  `textDirection = TextDirection.Content` with `TextAlign.Start`, so “تشغيل GPS”
+  and “O2 2GB” both render correctly inside one list.
 
 ---
 
@@ -225,6 +226,9 @@ it. Glass is never applied per list item.
 | `FlowStepRow` / `FlowChip` | One 44dp eyebrow label column + wrapping chips; the single component behind WHEN, THEN and EXIT everywhere. |
 | `EmptyState` / `LoadingState` | Empty icon in a 56dp / 20dp-radius tile at 14% primary; skeletons reuse the card shape with a 6% shimmer. |
 | `SettingsGroup` / `SettingRow` / `SectionHeader` | Grouped surfaces and rows with the same metrics as picker rows. |
+
+Every shared component ships previews in `InkComponentPreviews.kt`: light, dark,
+RTL (`locale = "ar"`), font scale 2.0, and phone/tablet widths for the chrome.
 
 `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes are
 removed; `IconBadge` survives only where a non-category circle is still right.

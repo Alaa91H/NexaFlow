@@ -1,5 +1,7 @@
 package com.nexaflow.core.ui
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -7,6 +9,7 @@ import org.robolectric.annotation.Config
 import com.nexaflow.core.ui.theme.containsArabicScript
 import com.nexaflow.core.ui.theme.eyebrowText
 import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 import com.nexaflow.core.ui.theme.nexaFlowType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,6 +45,18 @@ class ScriptTypographyTest {
         assertEquals("NEXT RUN", eyebrowText("Next run"))
         assertEquals("التشغيل القادم", eyebrowText("التشغيل القادم"))
         assertEquals("تشغيل GPS", eyebrowText("تشغيل GPS"))
+    }
+
+    @Test
+    fun userAuthoredTitlesFollowTheirOwnDirectionAndKeepTheirTracking() {
+        val mixed = eyebrow.forUserText("تشغيل GPS")
+        assertEquals(TextDirection.Content, mixed.textDirection)
+        assertEquals(TextAlign.Start, mixed.textAlign)
+        assertEquals(0.sp, mixed.letterSpacing)
+
+        val latin = eyebrow.forUserText("Morning mode")
+        assertEquals(TextDirection.Content, latin.textDirection)
+        assertEquals(eyebrow.letterSpacing, latin.letterSpacing)
     }
 
     @Test
