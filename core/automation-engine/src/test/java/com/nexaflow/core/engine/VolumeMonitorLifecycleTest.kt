@@ -33,7 +33,9 @@ class VolumeMonitorLifecycleTest {
         "volume-legacy",
         "volume-disabled",
         "volume-orphan",
-        "volume-streams"
+        "volume-streams",
+        "volume-hysteresis",
+        "volume-debounced"
     )
 
     @Before
@@ -212,6 +214,79 @@ class VolumeMonitorLifecycleTest {
         assertNull(runtimeStore.current(task.id))
         assertTrue(activeStore.activeKeys("volume").none { it.startsWith(task.id) })
         assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
+    }
+
+    /**
+     * Hysteresis is the legacy tuning knob the one-trigger volume UI no longer
+     * writes, but saved tasks that carry it must keep the threshold path (not
+     * the plain comparison) in charge of their stream.
+     */
+    @Test
+    fun `hysteresis keeps the threshold path in charge of the stream`() = runBlocking {
+        val task = testAutomation(
+            id = "volume-hysteresis",
+            triggers = listOf(
+                Trigger(
+                    TriggerType.VOLUME_CHANGED,
+                    mapOf(
+                        "stream" to "MUSIC",
+                        "threshold" to "50",
+                        "direction" to "ABOVE",
+                        "hysteresis" to "10",
+                    )
+                )
+            )
+        ).copy(actions = emptyList())
+        val repository = FakeRepository(listOf(task))
+        val monitor = monitorFor(repository, RecordingHistory())
+
+        monitor.reconcileSnapshot(mapOf("MUSIC" to 70))
+
+        assertEquals(
+            AutomationRuntimeLifecycleState.ACTIVE,
+            runtimeStore.current(task.id)?.lifecycleState
+        )
+        assertTrue(activeStore.activeKeys("volume").any { it.startsWith(task.id) })
+    }
+
+    /**
+     * A debounced activation does not fire on the snapshot that crossed the
+     * threshold: it waits the debounce window, re-reads the device's live
+     * stream and refuses when the level already fell back. That refusal is the
+     * safety property this test pins — and the only path that replays the
+     * threshold check after the fact.
+     */
+    @Test
+    fun `debounced activation re-reads the live stream before running`() = runBlocking {
+        val task = testAutomation(
+            id = "volume-debounced",
+            triggers = listOf(
+                Trigger(
+                    TriggerType.VOLUME_CHANGED,
+                    mapOf(
+                        "stream" to "MUSIC",
+                        "threshold" to "50",
+                        "direction" to "ABOVE",
+                        "debounceMs" to "40",
+                        "hysteresis" to "5",
+                    )
+                )
+            )
+        ).copy(actions = emptyList())
+        val repository = FakeRepository(listOf(task))
+        val history = RecordingHistory()
+        val monitor = monitorFor(repository, history)
+
+        monitor.reconcileSnapshot(mapOf("MUSIC" to 90))
+        // The recheck runs on the monitor's real scope after the window; give
+        // it a deadline rather than assuming the delay fired.
+        Thread.sleep(400)
+
+        // Robolectric's AudioManager reports volume 0 for MUSIC, so the live
+        // re-read is below the threshold and the deferred run is dropped.
+        assertNull(runtimeStore.current(task.id))
+        assertTrue(activeStore.activeKeys("volume").none { it.startsWith(task.id) })
+        assertTrue(history.exits.none { it == EXIT_NOOP_MARKER })
     }
 
     @Test
