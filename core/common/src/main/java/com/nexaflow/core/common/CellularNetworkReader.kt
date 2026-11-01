@@ -52,11 +52,8 @@ object CellularNetworkReader {
 
         // Prefer the data network type because this reader models the default
         // data SIM, then use the legacy type for older and OEM-specific APIs.
-        val dataType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            runCatching { telephony.dataNetworkType }.getOrDefault(TelephonyManager.NETWORK_TYPE_UNKNOWN)
-        } else {
-            TelephonyManager.NETWORK_TYPE_UNKNOWN
-        }
+        val dataType = runCatching { telephony.dataNetworkType }
+            .getOrDefault(TelephonyManager.NETWORK_TYPE_UNKNOWN)
         generationOf(dataType)?.let { return it }
         @Suppress("DEPRECATION")
         generationOf(runCatching { telephony.networkType }

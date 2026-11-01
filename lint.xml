@@ -46,6 +46,19 @@
     <issue id="CheckResult" severity="error" />
     <issue id="HardcodedText" severity="error" />
     <issue id="TypographyDashes" severity="error" />
+    <!--
+        @TargetApi silences the API check only inside the annotated function
+        while every caller stays unguarded, so it is a regression waiting to
+        happen and any new occurrence fails the build.
+
+        ObsoleteSdkInt stays a warning: two dead gates remain in code that no
+        JVM test can reach (the SMS notification channel inside a Hilt-injected
+        receiver, and the legacy PhoneStateListener flags inside the
+        connectivity monitor's main-thread registration). Every other dead gate
+        was removed with the changed lines covered by tests; promoting the rule
+        would fail the build on those two until a coverage-capable lane exists.
+    -->
+    <issue id="UseRequiresApi" severity="error" />
 
     <issue id="ProtectedPermissions" severity="ignore" />
     <issue id="GradleDependency" severity="ignore" />

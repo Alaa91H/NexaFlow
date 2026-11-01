@@ -280,7 +280,7 @@
     <string name="task_readiness_waiting_detail">At least one trigger or constraint is not satisfied right now</string>
     <string name="task_readiness_unknown_detail">Some conditions are event-driven, provider-managed, or cannot be verified continuously</string>
     <string name="task_readiness_disabled_detail">Enable the task before it can react to its triggers</string>
-    <string name="task_readiness_configuration_error_detail">A one-time time trigger cannot use an end behavior; configure a time range instead</string>
+    <string name="task_readiness_configuration_error_detail">A one-time trigger cannot use an end behavior; configure a time range instead</string>
     <string name="task_readiness_triggers">Triggers satisfied</string>
     <string name="task_readiness_constraints">Constraints satisfied</string>
     <string name="task_readiness_fraction">%1$d of %2$d</string>

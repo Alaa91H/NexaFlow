@@ -32,12 +32,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,6 +103,26 @@ fun TimePickerAlert(
     )
 }
 
+/**
+ * Material3 1.5 deprecates the value-based [Slider] overload. This keeps the
+ * exact behaviour that overload implemented internally: one remembered state
+ * kept in step with the hoisted value on every recomposition, so external
+ * updates move the thumb without discarding an in-flight drag.
+ */
+@Composable
+internal fun SyncedSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int = 0
+) {
+    val sliderState = remember {
+        SliderState(value, steps = steps, trackRange = valueRange)
+    }
+    SideEffect { sliderState.value = value }
+    Slider(state = sliderState, onValueChange = onValueChange)
+}
+
 @Composable
 fun SliderRow(
     label: String,
@@ -110,7 +132,7 @@ fun SliderRow(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(text = label, style = MaterialTheme.typography.bodySmall)
-        Slider(value = value, onValueChange = onValueChange, valueRange = valueRange)
+        SyncedSlider(value = value, onValueChange = onValueChange, valueRange = valueRange)
     }
 }
 

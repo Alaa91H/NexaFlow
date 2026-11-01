@@ -245,7 +245,7 @@ internal class SecureHttpTransport(
                             }
                         } else {
                             val bytes = java.io.ByteArrayOutputStream()
-                            response.body?.byteStream()?.use { input ->
+                            response.body.byteStream().use { input ->
                                 val buffer = ByteArray(8192)
                                 while (bytes.size() <= MAX_RESPONSE_BYTES) {
                                     val n = input.read(buffer, 0, minOf(buffer.size, MAX_RESPONSE_BYTES + 1 - bytes.size()))

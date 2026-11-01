@@ -616,26 +616,16 @@ object RootPermissionGranter {
     /** Special permissions granted through `appops set ... allow`. */
     internal fun specialAppOps(): List<Pair<String, String>> {
         val ops = mutableListOf<Pair<String, String>>()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ops += android.Manifest.permission.WRITE_SETTINGS to "android:write_settings"
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ops += android.Manifest.permission.SYSTEM_ALERT_WINDOW to "android:system_alert_window"
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            ops += android.Manifest.permission.PACKAGE_USAGE_STATS to "android:get_usage_stats"
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ops += android.Manifest.permission.ACCESS_NOTIFICATION_POLICY to
-                "android:access_notification_policy"
-        }
+        ops += android.Manifest.permission.WRITE_SETTINGS to "android:write_settings"
+        ops += android.Manifest.permission.SYSTEM_ALERT_WINDOW to "android:system_alert_window"
+        ops += android.Manifest.permission.PACKAGE_USAGE_STATS to "android:get_usage_stats"
+        ops += android.Manifest.permission.ACCESS_NOTIFICATION_POLICY to
+            "android:access_notification_policy"
+        ops += android.Manifest.permission.REQUEST_INSTALL_PACKAGES to
+            "android:request_install_packages"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             ops += android.Manifest.permission.SCHEDULE_EXACT_ALARM to
                 "android:schedule_exact_alarm"
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ops += android.Manifest.permission.REQUEST_INSTALL_PACKAGES to
-                "android:request_install_packages"
         }
         return ops
     }

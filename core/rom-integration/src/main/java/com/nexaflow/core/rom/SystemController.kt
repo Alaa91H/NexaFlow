@@ -303,14 +303,9 @@ class SystemController(
                 @Suppress("DEPRECATION")
                 context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(
-                    VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE)
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(ms)
-            }
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
             SystemControlResult.ok("Vibrated for ${durationSeconds}s")
         } catch (t: Throwable) {
             SystemControlResult.fail("Vibrate failed: ${t.message}")
@@ -1646,9 +1641,6 @@ class SystemController(
     fun togglePip(): SystemControlResult {
         return try {
             val activity = context as? android.app.Activity ?: return SystemControlResult.fail("Not an activity context")
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                return SystemControlResult.fail("Picture-in-picture requires Android 8 or newer")
-            }
             activity.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().build())
             SystemControlResult.ok("PiP toggled")
         } catch (t: Throwable) {

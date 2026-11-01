@@ -30,6 +30,9 @@ kotlin {
 }
 
 dependencies {
+    // @RequiresApi propagates an SDK requirement to callers instead of
+    // silencing the check inside the annotated function only.
+    implementation(libs.androidx.annotation.annotation)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     // Dispatchers.Main used by AppDispatchers.Default needs the Android artifact.
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.android)

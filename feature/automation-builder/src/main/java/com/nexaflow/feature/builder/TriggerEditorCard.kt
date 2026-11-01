@@ -28,7 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
+
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -345,7 +345,7 @@ fun TriggerEditorCard(
                                 text = stringResource(R.string.radius_meters_format, radius),
                                 style = MaterialTheme.typography.titleSmall
                             )
-                            Slider(
+                            SyncedSlider(
                                 value = radius.toFloat(),
                                 onValueChange = { value ->
                                     onConfigChange(

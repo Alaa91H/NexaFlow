@@ -1,7 +1,7 @@
 package com.nexaflow.core.common
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
+import androidx.annotation.RequiresApi
 import android.content.Context
 import android.net.TetheringInterface
 import android.net.TetheringManager
@@ -53,7 +53,7 @@ object HotspotStateReader {
         }
     }
 
-    @TargetApi(API_TETHERING_CALLBACK)
+    @RequiresApi(API_TETHERING_CALLBACK)
     private suspend fun freshStateApi36(context: Context): Boolean? =
         suspendCancellableCoroutine { continuation ->
             val manager = context.getSystemService(TetheringManager::class.java)
@@ -110,7 +110,7 @@ object HotspotStateReader {
         return observeApi36(context, executor, onStateChanged)
     }
 
-    @TargetApi(API_TETHERING_CALLBACK)
+    @RequiresApi(API_TETHERING_CALLBACK)
     private fun observeApi36(
         context: Context,
         executor: Executor,

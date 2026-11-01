@@ -192,7 +192,15 @@ fun Project.configureCoverage() {
     val coverageTask = tasks.register("coverageReport", JacocoReport::class) {
         group = "verification"
         description = "Aggregates unit-test coverage for this module (debug variant)."
-        dependsOn(tasks.matching { it.name.startsWith("testDebugUnitTest") })
+        // Filter by task type before matching: an unfiltered `tasks.matching`
+        // realizes every task in the module, including AGP's
+        // generate<Variant>ComposePreviewRunfiles, which throws at configuration
+        // time for variants without a host-test component (AGP 9.5, Google
+        // issue 572377862) and broke this gate before it could run.
+        dependsOn(
+            tasks.withType<org.gradle.api.tasks.testing.Test>()
+                .matching { it.name.startsWith("testDebugUnitTest") }
+        )
         // Pure-resource modules have no test source set at all: their (absent)
         // report is treated as a pass by the gate below.
         onlyIf { file("src/test").exists() }

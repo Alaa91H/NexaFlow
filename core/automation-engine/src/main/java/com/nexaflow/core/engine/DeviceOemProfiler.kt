@@ -51,13 +51,10 @@ class DeviceOemProfiler @Inject constructor(
     fun snapshot(): OemPowerProfile {
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
 
-        val isInDoze = if (Build.VERSION.SDK_INT >= 23) {
-            powerManager?.isDeviceIdleMode == true
-        } else false
+        val isInDoze = powerManager?.isDeviceIdleMode == true
 
-        val isIgnoringBatteryOptimizations = if (Build.VERSION.SDK_INT >= 23) {
+        val isIgnoringBatteryOptimizations =
             powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
-        } else true
 
         val isBackgroundRestricted = if (Build.VERSION.SDK_INT >= 28) {
             val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager

@@ -1,6 +1,6 @@
 package com.nexaflow.core.rom
 
-import android.annotation.TargetApi
+import androidx.annotation.RequiresApi
 import android.content.Context
 import android.content.ContextWrapper
 import android.net.TetheringManager
@@ -112,8 +112,10 @@ class UserShellService : IUserShellService.Stub {
      * to NexaFlow. The small ContextWrapper therefore supplies the canonical
      * package identity for that elevated UID.
      */
-    @TargetApi(API_PUBLIC_TETHERING_CONTROL)
     private fun runHotspotTethering(enabled: Boolean): String {
+        // The public request-scoped contract landed in Android 16. The guard is
+        // the only place the requirement is enforced: the inner helpers keep
+        // @RequiresApi so a future unguarded caller cannot slip through.
         if (Build.VERSION.SDK_INT < API_PUBLIC_TETHERING_CONTROL) {
             return "$INTERNAL_ERROR_EXIT\nAutomatic Internet hotspot control requires Android 16 or newer"
         }
@@ -177,7 +179,7 @@ class UserShellService : IUserShellService.Stub {
      * UserService has no non-SDK reflection restriction; construct it against
      * the real tethering binder while keeping the operation fully typed.
      */
-    @TargetApi(API_PUBLIC_TETHERING_CONTROL)
+    @RequiresApi(API_PUBLIC_TETHERING_CONTROL)
     private fun buildWifiTetheringRequest(): TetheringManager.TetheringRequest {
         val builder = TetheringManager.TetheringRequest.Builder(TetheringManager.TETHERING_WIFI)
         // Background automation must never unexpectedly launch carrier UI.
@@ -191,7 +193,7 @@ class UserShellService : IUserShellService.Stub {
         return builder.build()
     }
 
-    @TargetApi(API_PUBLIC_TETHERING_CONTROL)
+    @RequiresApi(API_PUBLIC_TETHERING_CONTROL)
     private fun createElevatedTetheringManager(baseContext: Context): TetheringManager {
         val callerPackage = when (Process.myUid()) {
             ROOT_UID -> ROOT_PACKAGE
