@@ -84,6 +84,8 @@ fun DockAskPill(
     icon: ImageVector? = null
 ) {
     val colors = MaterialTheme.colorScheme
+    // Ink's own periwinkle, or primary under dynamic colour (see the role's doc).
+    val labelColor = NexaFlowTheme.colors.askPillLabel
     Row(
         modifier = modifier
             .height(Dimens.DockButton)
@@ -98,14 +100,14 @@ fun DockAskPill(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = colors.onPrimaryContainer,
+                tint = labelColor,
                 modifier = Modifier.size(18.dp)
             )
         }
         Text(
             text = label,
             style = NexaFlowTheme.type.askPill.forText(label),
-            color = colors.onPrimaryContainer,
+            color = labelColor,
             maxLines = 1
         )
     }

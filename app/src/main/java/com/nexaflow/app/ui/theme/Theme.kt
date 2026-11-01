@@ -80,10 +80,15 @@ fun NexaFlowTheme(
         }
     }
 
-    // Dynamic colour has no dedicated label role, so the eyebrow follows primary.
+    // Dynamic colour has no dedicated label roles, so the eyebrow and the Ask
+    // pill follow primary — a wallpaper scheme's `onPrimaryContainer` can sit
+    // darker than the pill fill and turn the label invisible.
     val baseColors = if (darkTheme) DarkNexaFlowColors else LightNexaFlowColors
     val nexaFlowColors: NexaFlowColors = if (dynamicColor) {
-        baseColors.copy(accentLabel = colorScheme.primary)
+        baseColors.copy(
+            accentLabel = colorScheme.primary,
+            askPillLabel = colorScheme.primary
+        )
     } else {
         baseColors
     }

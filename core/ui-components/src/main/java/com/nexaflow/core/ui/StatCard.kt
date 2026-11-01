@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.theme.NexaFlowTheme
@@ -69,11 +70,15 @@ fun BentoStatCard(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(top = Dimens.Space1)
         )
+        // §9: at font scale 200% the caption wraps instead of losing its tail
+        // ("No upcoming runs" was truncating to "No"). Two lines is the card's
+        // whole budget, and the bento row is top-aligned so both cards grow.
         Text(
             text = caption,
             style = NexaFlowTheme.type.meta.forText(caption),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         if (sparkline != null) {
             Sparkline(

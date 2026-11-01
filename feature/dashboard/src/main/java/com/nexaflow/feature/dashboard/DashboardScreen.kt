@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -542,15 +545,22 @@ private fun DashboardBento(rows: List<AutomationRow>, todayHours: List<Int>) {
             stringResource(R.string.relative_in_days, (minutes / (60 * 24)).toInt())
         )
     }
+    // §7.1: the two bento cards are equal — `IntrinsicSize.Max` keeps the
+    // shorter card level with the one that carries the sparkline (and with
+    // both cards at font scale 200%).
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(Dimens.CardGap)
     ) {
         BentoStatCard(
             eyebrow = stringResource(R.string.bento_next_run),
             value = nextValue,
             caption = nextCaption,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
         )
         BentoStatCard(
             eyebrow = stringResource(R.string.bento_today),
@@ -558,7 +568,9 @@ private fun DashboardBento(rows: List<AutomationRow>, todayHours: List<Int>) {
             caption = stringResource(R.string.bento_runs),
             sparkline = executionBuckets(todayHours),
             sparklineDescription = stringResource(R.string.bento_today_a11y, todayHours.size),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
         )
     }
 }

@@ -37,7 +37,14 @@ data class NexaFlowColors(
      * off track (`surfaceContainerHighest`) with a lighter neutral than
      * `outline`, because `outline` on that track measures 2.2:1.
      */
-    val switchThumbOff: Color
+    val switchThumbOff: Color,
+    /**
+     * Ask-pill label. Ink pairs the 6% `onSurface` pill with its own periwinkle;
+     * under dynamic colour it falls back to `primary`, because a wallpaper
+     * scheme can hand back an `onPrimaryContainer` that is darker than the pill
+     * and turns the label invisible (seen on a HyperOS A17 device).
+     */
+    val askPillLabel: Color
 )
 
 /** Google-green tonal palette (seed #2FA84F), tone 40/80 split per M3 spec. */
@@ -51,7 +58,8 @@ val LightNexaFlowColors = NexaFlowColors(
     warningContainer = Color(0xFFFDF3E0),
     onWarningContainer = Color(0xFF2D1600),
     accentLabel = Color(0xFF3F51B5),
-    switchThumbOff = Color(0xFF6E778C)
+    switchThumbOff = Color(0xFF6E778C),
+    askPillLabel = Color(0xFF2E3E8F)
 )
 
 val DarkNexaFlowColors = NexaFlowColors(
@@ -64,7 +72,8 @@ val DarkNexaFlowColors = NexaFlowColors(
     warningContainer = Color(0xFF683900),
     onWarningContainer = Color(0xFFFFDCC2),
     accentLabel = Color(0xFF8B9AFF),
-    switchThumbOff = Color(0xFF8E99B0)
+    switchThumbOff = Color(0xFF8E99B0),
+    askPillLabel = Color(0xFFC9D3FF)
 )
 
 /** Composition local — provided by the app theme, read by every module. */

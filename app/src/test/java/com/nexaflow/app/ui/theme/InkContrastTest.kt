@@ -92,7 +92,7 @@ class InkContrastTest {
         assertText("dock label in fallback mode", colors.onSurface, solid)
         // Ask pill: 6% onSurface fill inside the dock, label uses onPrimaryContainer.
         val pill = over(colors.onSurface, NexaFlowAlphas.AskPillFill, solid)
-        assertText("ask pill label", colors.onPrimaryContainer, pill)
+        assertText("ask pill label", DarkNexaFlowColors.askPillLabel, pill)
         assertText("dock primary button label", colors.onPrimary, colors.primary)
     }
 
@@ -160,7 +160,7 @@ class InkContrastTest {
         assertText("dock label in glass mode", colors.onSurface, blurred)
         assertText("dock label in fallback mode", colors.onSurface, solid)
         val pill = over(colors.onSurface, NexaFlowAlphas.AskPillFill, solid)
-        assertText("ask pill label", colors.onPrimaryContainer, pill)
+        assertText("ask pill label", LightNexaFlowColors.askPillLabel, pill)
         assertText("dock primary button label", colors.onPrimary, colors.primary)
     }
 

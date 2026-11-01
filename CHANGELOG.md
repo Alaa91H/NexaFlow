@@ -19,6 +19,10 @@
 - Themes gains a **Glass effects** selector (Auto / On / Off) and a **Dynamic colour** switch, persisted in `ThemePreferences`.
 - New coverage: glass-mode resolution, sparkline bucketing, script-aware typography, category mapping, the updated design tokens, and a WCAG gate (`InkContrastTest`) that checks the real Ink schemes and every category tile at 4.5:1 text / 3:1 boundary contrast.
 
+### Fixed
+
+- **Readability faults found on a real device** (Android 17, 393dp, Arabic RTL): the bento caption truncated to one line at font scale 200%, the two bento cards sat at different heights, and the Ask pill used `onPrimaryContainer`, which a Material You wallpaper palette can hand back darker than the pill itself (`#002457` on a 6% fill, effectively invisible). The pill now has its own `askPillLabel` role — `#C9D3FF` in Ink, `primary` under dynamic colour — the caption wraps to two lines, and the row is measured with `IntrinsicSize.Max`. All three are gated by `InkContrastTest` and the new device screenshots.
+
 ### Removed
 
 - `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes, together with every `alternatingIndex` parameter.
