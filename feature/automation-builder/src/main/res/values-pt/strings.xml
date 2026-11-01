@@ -1010,12 +1010,6 @@
     <string name="rom_setting_trigger_hint">Dispara quando uma chave do sistema  muda para o valor alvo. Escolha uma chave do seu dispositivo — sem digitação.</string>
     <string name="rom_setting_pick_key">Escolher chave de configuração (por categorias)</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">Tempo limite e repetições</string>
-    <string name="http_timeout_hint">Quanto esperar pelo servidor antes de desistir.</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">Tentativas de repetição em falha</string>
-    <string name="http_output_path">Armazenar resposta no caminho de contexto (opcional)</string>
-    <string name="http_output_path_hint">Ações posteriores podem lê-lo via seletores %CTX.</string>
     <string name="wait_quick_timer">Temporizador rápido</string>
     <string name="wait_1_min">1 min</string>
     <string name="wait_5_min">5 min</string>
@@ -1147,9 +1141,6 @@
     <string name="migrate_banner_button">Migrar agora</string>
     <string name="clamp_range">O valor deve estar entre %1$s — foi ajustado</string>
     <string name="clamp_range_unit">O valor deve estar entre %1$s %2$s — foi ajustado</string>
-    <string name="http_retry_timing_label">Tempo entre tentativas</string>
-    <string name="http_retry_base_ms">Base: %1$d ms</string>
-    <string name="http_retry_cap_ms">Limite: %1$d ms</string>
     <string name="pointer_speed_range">A velocidade do ponteiro vai de -7 (mais lenta) a 7 (mais rápida); 0 é o padrão do sistema.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
     <string name="http_allow_private">Permitir destinos de rede locais/privados</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">Enviar uma mensagem para quem iniciou este fluxo</string>
 
     <string name="task_restore_failed">Não foi possível restaurar as configurações anteriores da tarefa</string>
-    <string name="trigger_temporal_filters_title">Filtros temporais</string>
 
-    <string name="trigger_expression_title">Expressão avançada de gatilhos</string>
-    <string name="trigger_expression_description">Regras opcionais com histórico temporal; o comportamento ANY/ALL atual permanece até a ativação.</string>
-    <string name="trigger_expression_all">TODOS</string>
-    <string name="trigger_expression_any">QUALQUER</string>
-    <string name="trigger_expression_not_state">NÃO estado</string>
-    <string name="trigger_expression_sequence">A depois B</string>
-    <string name="trigger_expression_count">Contagem no intervalo</string>
-    <string name="trigger_expression_trigger">Primeiro gatilho</string>
-    <string name="trigger_expression_second_trigger">Segundo gatilho</string>
-    <string name="trigger_expression_window_seconds">Intervalo (segundos, máx. 604800)</string>
-    <string name="trigger_expression_minimum_count">Contagem mínima (1–1000)</string>
-    <string name="trigger_expression_add_nested">Agrupar os demais gatilhos</string>
-    <string name="trigger_expression_preview">Pré-visualizar amostra</string>
-    <string name="trigger_expression_preview_satisfied">Amostra: condição satisfeita (eventos anteriores simulados)</string>
-    <string name="trigger_expression_preview_not_satisfied">Amostra: condição não satisfeita (eventos anteriores simulados)</string>
-    <string name="trigger_expression_invalid">Expressão inválida ou fonte não compatível. Corrija antes de salvar.</string>
-    <string name="trigger_expression_unsupported_source">Escolha um gatilho compatível</string>
     <string name="network_validated">Internet validada</string>
     <string name="network_captive_portal">Portal cativo</string>
     <string name="network_metered">Rede limitada por dados</string>

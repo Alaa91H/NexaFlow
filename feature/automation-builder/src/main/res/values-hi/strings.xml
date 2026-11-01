@@ -1010,12 +1010,6 @@
     <string name="rom_setting_trigger_hint">सिस्टम  कुंजी के लक्ष्य मान पर बदलने पर चलता है। अपने डिवाइस से कुंजी चुनें — टाइपिंग की ज़रूरत नहीं।</string>
     <string name="rom_setting_pick_key">सेटिंग कुंजी चुनें (वर्गीकृत)</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">टाइमआउट और पुनः प्रयास</string>
-    <string name="http_timeout_hint">हारने से पहले सर्वर की प्रतीक्षा कितनी देर।</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">विफलता पर पुनः प्रयास</string>
-    <string name="http_output_path">प्रतिक्रिया को संदर्भ पथ पर सहेजें (वैकल्पिक)</string>
-    <string name="http_output_path_hint">बाद की क्रियाएँ इसे %CTX चयनकर्ताओं से पढ़ सकती हैं।</string>
     <string name="wait_quick_timer">क्विक टाइमर</string>
     <string name="wait_1_min">1 मिनट</string>
     <string name="wait_5_min">5 मिनट</string>
@@ -1147,9 +1141,6 @@
     <string name="migrate_banner_button">अभी माइग्रेट करें</string>
     <string name="clamp_range">मान %1$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
     <string name="clamp_range_unit">मान %1$s %2$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
-    <string name="http_retry_timing_label">पुनः प्रयास समय</string>
-    <string name="http_retry_base_ms">आधार: %1$d ms</string>
-    <string name="http_retry_cap_ms">सीमा: %1$d ms</string>
     <string name="pointer_speed_range">पॉइंटर गति -7 (सबसे धीमी) से 7 (सबसे तेज़) तक है; 0 सिस्टम डिफ़ॉल्ट है।</string>
     <string name="screensaver_minutes_chip">%1$d मिनट</string>
     <string name="http_allow_private">स्थानीय/निजी नेटवर्क गंतव्यों की अनुमति दें</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">इस वर्कफ़्लो को शुरू करने वाले प्रेषक को संदेश भेजें</string>
 
     <string name="task_restore_failed">कार्य की पिछली सेटिंग बहाल नहीं की जा सकीं</string>
-    <string name="trigger_temporal_filters_title">समय-आधारित फ़िल्टर</string>
 
-    <string name="trigger_expression_title">उन्नत ट्रिगर अभिव्यक्ति</string>
-    <string name="trigger_expression_description">समय-आधारित इतिहास वाले वैकल्पिक नियम; सक्षम करने तक मौजूदा ANY/ALL व्यवहार नहीं बदलेगा।</string>
-    <string name="trigger_expression_all">सभी</string>
-    <string name="trigger_expression_any">कोई भी</string>
-    <string name="trigger_expression_not_state">स्थिति नहीं</string>
-    <string name="trigger_expression_sequence">A फिर B</string>
-    <string name="trigger_expression_count">समय-सीमा में गिनती</string>
-    <string name="trigger_expression_trigger">पहला ट्रिगर</string>
-    <string name="trigger_expression_second_trigger">दूसरा ट्रिगर</string>
-    <string name="trigger_expression_window_seconds">समय-सीमा (सेकंड, अधिकतम 604800)</string>
-    <string name="trigger_expression_minimum_count">न्यूनतम गिनती (1–1000)</string>
-    <string name="trigger_expression_add_nested">बाकी ट्रिगर को समूह में रखें</string>
-    <string name="trigger_expression_preview">नमूना देखें</string>
-    <string name="trigger_expression_preview_satisfied">नमूना परिणाम: शर्त पूरी हुई (पिछली घटनाएँ सिम्युलेटेड)</string>
-    <string name="trigger_expression_preview_not_satisfied">नमूना परिणाम: शर्त पूरी नहीं हुई (पिछली घटनाएँ सिम्युलेटेड)</string>
-    <string name="trigger_expression_invalid">यह अभिव्यक्ति अमान्य है या असमर्थित स्रोत का उपयोग करती है। सहेजने से पहले ठीक करें।</string>
-    <string name="trigger_expression_unsupported_source">समर्थित ट्रिगर चुनें</string>
     <string name="network_validated">सत्यापित इंटरनेट</string>
     <string name="network_captive_portal">कैप्टिव पोर्टल</string>
     <string name="network_metered">मापी गई नेटवर्क</string>

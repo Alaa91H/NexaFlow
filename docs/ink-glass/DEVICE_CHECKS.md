@@ -81,6 +81,37 @@ Screenshots in `docs/ink-glass/screenshots/`.
   `ANY`/`CHARGING`/`NOT_CHARGING`), so existing tasks and the engine are
   unaffected.
 
+## Option-simplification pass (requested after the ordering pass)
+
+* **Why.** A trigger or action editor was showing tuning layers on top of the
+  choice itself — millisecond debounce/rate-limit/cooldown/stability/hysteresis
+  fields on most triggers, a five-mode expression builder with nested groups and
+  second windows on the WHEN station, and timeout/retry/backoff/output-path knobs
+  on HTTP requests. None of them are needed to say *when* something happens or
+  *what* should run, and they made a two-field choice read as an unexplained
+  form.
+* **What was removed.** The `trigger_temporal_filters_title` block from both the
+  canonical and the specialised trigger editors, the schema helper that built it,
+  `TriggerExpressionEditorCard` and its preview component, and the HTTP advanced
+  tail. 27 string keys per locale (270 lines) were deleted across the 10 locales,
+  so the strings cannot reappear from a stale resource.
+* **What was deliberately kept.** The configuration schema still accepts those
+  fields and the engine still reads them: a task saved earlier keeps its tuned
+  values, its stored expression still evaluates, and nothing in `domain/`,
+  `core/execution` or the Room schema changed. A stored expression that no longer
+  validates is dropped on save (the builder could otherwise block forever on a
+  rule it can no longer open).
+
+### Verification for this pass
+
+| Check | Result |
+| --- | --- |
+| `:feature:automation-builder:testDebugUnitTest` | PASS (includes the rewritten `TriggerExpressionReferenceRepairTest`, which now asserts the stored-runtime contract without the deleted preview) |
+| `:app:assembleDebug` | PASS |
+| `:app:lintDebug` | PASS — 0 errors, 5 pre-existing warnings; the 11 locale files lint clean after the deletions |
+| Removed resources in the shipped APK | PASS — `aapt2 dump resources app-debug.apk` contains no `trigger_temporal_filters_title`, `trigger_expression_*` or `http_retry*` entries |
+| Device (b3a3beb3) | The new debug APK was installed and the app relaunched into the Arabic dashboard; the trigger sheet itself was **not** opened on device this pass, because the builder still sits behind the three-step wizard and blind `adb input` taps through the config sheets are not a reliable way to reach it. The APK resource dump above is the check that the section cannot render. |
+
 ## Still open
 
 * **The builder is not on §7.3 yet.** "New task" opens the earlier three-step

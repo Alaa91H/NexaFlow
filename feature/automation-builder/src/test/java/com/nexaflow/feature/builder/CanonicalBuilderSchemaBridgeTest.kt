@@ -102,36 +102,6 @@ class CanonicalBuilderSchemaBridgeTest {
     }
 
     @Test
-    fun temporalFilterSchemaIsAvailableAlongsideSpecializedAndAdvancedEditors() {
-        val expected = mapOf(
-            TriggerType.WEBHOOK to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs"),
-            TriggerType.TIME to emptySet(),
-            TriggerType.CALENDAR to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs"),
-            TriggerType.LOCATION to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs"),
-            TriggerType.BATTERY to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs", "stableForMs", "hysteresis"),
-            TriggerType.VOLUME_CHANGED to setOf("rateLimitCount", "rateLimitWindowMs", "minIntervalMs", "cooldownMs", "debounceMs", "stableForMs", "hysteresis"),
-        )
-
-        expected.forEach { (type, ids) ->
-            val binding = CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger(type)
-            if (ids.isEmpty()) {
-                assertNull(binding)
-            } else {
-                val fields = requireNotNull(binding).schema.fields
-                assertEquals(ids, fields.map { it.id.value }.toSet())
-                assertEquals(
-                    setOf("debounceMs", "rateLimitWindowMs", "minIntervalMs", "cooldownMs", "stableForMs").intersect(ids),
-                    fields.filter { it.type == NodeFieldType.DURATION_MS }
-                        .map { it.id.value }.toSet(),
-                )
-                if (type == TriggerType.BATTERY) {
-                    assertEquals(NodeFieldType.DECIMAL, fields.single { it.id.value == "hysteresis" }.type)
-                }
-            }
-        }
-    }
-
-    @Test
     fun unifiedSettingsBindingIsOneCanonicalPageContract() {
         val binding = requireNotNull(
             CanonicalBuilderSchemaBridge.editingBindingForAction(

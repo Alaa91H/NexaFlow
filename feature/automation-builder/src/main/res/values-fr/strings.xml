@@ -1013,12 +1013,6 @@
     <string name="rom_setting_trigger_hint">Se déclenche quand une clé système  passe à la valeur cible. Choisissez une clé de votre appareil — sans saisie.</string>
     <string name="rom_setting_pick_key">Choisir une clé de réglage (par catégories)</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">Délai et tentatives</string>
-    <string name="http_timeout_hint">Combien de temps attendre le serveur avant d’abandonner.</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">Nouvelles tentatives en cas d’échec</string>
-    <string name="http_output_path">Stocker la réponse à un chemin de contexte (facultatif)</string>
-    <string name="http_output_path_hint">Les actions suivantes peuvent le lire via les sélecteurs %CTX.</string>
     <string name="wait_quick_timer">Minuteur rapide</string>
     <string name="wait_1_min">1 min</string>
     <string name="wait_5_min">5 min</string>
@@ -1150,9 +1144,6 @@
     <string name="migrate_banner_button">Migrer maintenant</string>
     <string name="clamp_range">La valeur doit être comprise entre %1$s — elle a été ajustée</string>
     <string name="clamp_range_unit">La valeur doit être comprise entre %1$s %2$s — elle a été ajustée</string>
-    <string name="http_retry_timing_label">Minuterie des tentatives</string>
-    <string name="http_retry_base_ms">Base : %1$d ms</string>
-    <string name="http_retry_cap_ms">Plafond : %1$d ms</string>
     <string name="pointer_speed_range">La vitesse du pointeur va de -7 (la plus lente) à 7 (la plus rapide) ; 0 est la valeur par défaut du système.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
     <string name="http_allow_private">Autoriser les destinations réseau locales/privées</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">Envoyer un message à l’expéditeur à l’origine de ce flux</string>
 
     <string name="task_restore_failed">Impossible de restaurer les paramètres précédents de la tâche</string>
-    <string name="trigger_temporal_filters_title">Filtres temporels</string>
 
-    <string name="trigger_expression_title">Expression avancée de déclencheurs</string>
-    <string name="trigger_expression_description">Règles facultatives avec historique temporel ; le comportement ANY/ALL actuel reste inchangé jusqu’à activation.</string>
-    <string name="trigger_expression_all">TOUS</string>
-    <string name="trigger_expression_any">UN AU MOINS</string>
-    <string name="trigger_expression_not_state">NON état</string>
-    <string name="trigger_expression_sequence">A puis B</string>
-    <string name="trigger_expression_count">Nombre dans la fenêtre</string>
-    <string name="trigger_expression_trigger">Premier déclencheur</string>
-    <string name="trigger_expression_second_trigger">Deuxième déclencheur</string>
-    <string name="trigger_expression_window_seconds">Fenêtre (secondes, max. 604800)</string>
-    <string name="trigger_expression_minimum_count">Nombre minimal (1–1000)</string>
-    <string name="trigger_expression_add_nested">Imbriquer les autres déclencheurs</string>
-    <string name="trigger_expression_preview">Prévisualiser un exemple</string>
-    <string name="trigger_expression_preview_satisfied">Exemple : condition satisfaite (événements antérieurs simulés)</string>
-    <string name="trigger_expression_preview_not_satisfied">Exemple : condition non satisfaite (événements antérieurs simulés)</string>
-    <string name="trigger_expression_invalid">Expression invalide ou source non prise en charge. Corrigez-la avant l’enregistrement.</string>
-    <string name="trigger_expression_unsupported_source">Choisissez un déclencheur pris en charge</string>
     <string name="network_validated">Internet validé</string>
     <string name="network_captive_portal">Portail captif</string>
     <string name="network_metered">Réseau avec données limitées</string>

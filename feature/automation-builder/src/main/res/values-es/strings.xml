@@ -1013,12 +1013,6 @@
     <string name="rom_setting_trigger_hint">Se activa cuando una clave del sistema  cambia al valor objetivo. Elige una clave de tu dispositivo — sin escribir.</string>
     <string name="rom_setting_pick_key">Elegir clave de ajuste (por categorías)</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">Tiempo de espera y reintentos</string>
-    <string name="http_timeout_hint">Cuánto esperar al servidor antes de rendirse.</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">Reintentos en caso de fallo</string>
-    <string name="http_output_path">Guardar respuesta en ruta de contexto (opcional)</string>
-    <string name="http_output_path_hint">Las acciones posteriores pueden leerlo mediante selectores %CTX.</string>
     <string name="wait_quick_timer">Temporizador rápido</string>
     <string name="wait_1_min">1 min</string>
     <string name="wait_5_min">5 min</string>
@@ -1150,9 +1144,6 @@
     <string name="migrate_banner_button">Migrar ahora</string>
     <string name="clamp_range">El valor debe estar entre %1$s — se ajustó para encajar</string>
     <string name="clamp_range_unit">El valor debe estar entre %1$s %2$s — se ajustó para encajar</string>
-    <string name="http_retry_timing_label">Tiempo entre reintentos</string>
-    <string name="http_retry_base_ms">Base: %1$d ms</string>
-    <string name="http_retry_cap_ms">Límite: %1$d ms</string>
     <string name="pointer_speed_range">La velocidad del puntero va de -7 (la más lenta) a 7 (la más rápida); 0 es el valor del sistema.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
     <string name="http_allow_private">Permitir destinos de red locales/privados</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">Enviar un mensaje a quien inició este flujo</string>
 
     <string name="task_restore_failed">No se pudo restaurar la configuración anterior de la tarea</string>
-    <string name="trigger_temporal_filters_title">Filtros temporales</string>
 
-    <string name="trigger_expression_title">Expresión avanzada de activadores</string>
-    <string name="trigger_expression_description">Reglas opcionales con historial temporal; el comportamiento ANY/ALL actual no cambia hasta activarlas.</string>
-    <string name="trigger_expression_all">TODOS</string>
-    <string name="trigger_expression_any">CUALQUIERA</string>
-    <string name="trigger_expression_not_state">NO estado</string>
-    <string name="trigger_expression_sequence">A y después B</string>
-    <string name="trigger_expression_count">Recuento en intervalo</string>
-    <string name="trigger_expression_trigger">Primer activador</string>
-    <string name="trigger_expression_second_trigger">Segundo activador</string>
-    <string name="trigger_expression_window_seconds">Intervalo (segundos, máx. 604800)</string>
-    <string name="trigger_expression_minimum_count">Recuento mínimo (1–1000)</string>
-    <string name="trigger_expression_add_nested">Anidar los activadores restantes</string>
-    <string name="trigger_expression_preview">Previsualizar muestra</string>
-    <string name="trigger_expression_preview_satisfied">Muestra: condición satisfecha (eventos anteriores simulados)</string>
-    <string name="trigger_expression_preview_not_satisfied">Muestra: condición no satisfecha (eventos anteriores simulados)</string>
-    <string name="trigger_expression_invalid">La expresión no es válida o usa una fuente no compatible. Corrígela antes de guardar.</string>
-    <string name="trigger_expression_unsupported_source">Elige un activador compatible</string>
     <string name="network_validated">Internet validado</string>
     <string name="network_captive_portal">Portal cautivo</string>
     <string name="network_metered">Red de uso medido</string>

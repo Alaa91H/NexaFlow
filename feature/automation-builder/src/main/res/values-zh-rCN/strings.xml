@@ -1010,12 +1010,6 @@
     <string name="rom_setting_trigger_hint">当系统（vendor custom setting）键变更为目标值时触发。从设备中选择键 — 无需输入。</string>
     <string name="rom_setting_pick_key">选择设置键（按类别）</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">超时与重试</string>
-    <string name="http_timeout_hint">放弃前等待服务器的时长。</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">失败时重试次数</string>
-    <string name="http_output_path">将响应存储到上下文路径（可选）</string>
-    <string name="http_output_path_hint">后续操作可通过 %CTX 选择器读取。</string>
     <string name="wait_quick_timer">快速计时</string>
     <string name="wait_1_min">1 分钟</string>
     <string name="wait_5_min">5 分钟</string>
@@ -1147,9 +1141,6 @@
     <string name="migrate_banner_button">立即迁移</string>
     <string name="clamp_range">数值必须在 %1$s 之间 — 已自动调整</string>
     <string name="clamp_range_unit">数值必须在 %1$s %2$s 之间 — 已自动调整</string>
-    <string name="http_retry_timing_label">重试间隔</string>
-    <string name="http_retry_base_ms">基础：%1$d 毫秒</string>
-    <string name="http_retry_cap_ms">上限：%1$d 毫秒</string>
     <string name="pointer_speed_range">指针速度范围为 -7（最慢）到 7（最快）；0 为系统默认值。</string>
     <string name="screensaver_minutes_chip">%1$d 分钟</string>
     <string name="http_allow_private">允许本地/专用网络目标</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">向触发此工作流的发件人发送消息</string>
 
     <string name="task_restore_failed">无法恢复任务的先前设置</string>
-    <string name="trigger_temporal_filters_title">时间筛选器</string>
 
-    <string name="trigger_expression_title">高级触发器表达式</string>
-    <string name="trigger_expression_description">可选的时间历史规则；启用前现有 ANY/ALL 行为保持不变。</string>
-    <string name="trigger_expression_all">全部</string>
-    <string name="trigger_expression_any">任一</string>
-    <string name="trigger_expression_not_state">非状态</string>
-    <string name="trigger_expression_sequence">先 A 后 B</string>
-    <string name="trigger_expression_count">时间窗口内计数</string>
-    <string name="trigger_expression_trigger">第一个触发器</string>
-    <string name="trigger_expression_second_trigger">第二个触发器</string>
-    <string name="trigger_expression_window_seconds">窗口（秒，最多 604800）</string>
-    <string name="trigger_expression_minimum_count">最小次数（1–1000）</string>
-    <string name="trigger_expression_add_nested">将其余触发器嵌套分组</string>
-    <string name="trigger_expression_preview">预览示例</string>
-    <string name="trigger_expression_preview_satisfied">示例结果：条件满足（模拟了更早的事件）</string>
-    <string name="trigger_expression_preview_not_satisfied">示例结果：条件不满足（模拟了更早的事件）</string>
-    <string name="trigger_expression_invalid">表达式无效或使用了不支持的来源。请在保存前修正。</string>
-    <string name="trigger_expression_unsupported_source">请选择受支持的触发器</string>
     <string name="network_validated">已验证的互联网</string>
     <string name="network_captive_portal">强制门户</string>
     <string name="network_metered">按流量计费的网络</string>

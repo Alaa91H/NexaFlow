@@ -1010,12 +1010,6 @@
     <string name="rom_setting_trigger_hint">Bir sistem  anahtarı hedef değere değiştiğinde tetiklenir. Cihazınızdan bir anahtar seçin — yazmaya gerek yok.</string>
     <string name="rom_setting_pick_key">Ayar anahtarı seç (kategorili)</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">Zaman aşımı ve yeniden deneme</string>
-    <string name="http_timeout_hint">Vazgeçmeden önce sunucu ne kadar beklenir.</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">Başarısızlıkta yeniden deneme sayısı</string>
-    <string name="http_output_path">Yanıtı bağlam yoluna kaydet (isteğe bağlı)</string>
-    <string name="http_output_path_hint">Sonraki eylemler %CTX seçicileriyle okuyabilir.</string>
     <string name="wait_quick_timer">Hızlı zamanlayıcı</string>
     <string name="wait_1_min">1 dk</string>
     <string name="wait_5_min">5 dk</string>
@@ -1147,9 +1141,6 @@
     <string name="migrate_banner_button">Şimdi taşı</string>
     <string name="clamp_range">Değer %1$s arasında olmalı — sığacak şekilde ayarlandı</string>
     <string name="clamp_range_unit">Değer %1$s %2$s arasında olmalı — sığacak şekilde ayarlandı</string>
-    <string name="http_retry_timing_label">Yeniden deneme zamanlaması</string>
-    <string name="http_retry_base_ms">Temel: %1$d ms</string>
-    <string name="http_retry_cap_ms">Üst sınır: %1$d ms</string>
     <string name="pointer_speed_range">İşaretçi hızı -7 (en yavaş) ile 7 (en hızlı) arasındadır; 0 sistem varsayılanıdır.</string>
     <string name="screensaver_minutes_chip">%1$d dk</string>
     <string name="http_allow_private">Yerel/özel ağ hedeflerine izin ver</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">Bu iş akışını başlatan gönderene mesaj gönder</string>
 
     <string name="task_restore_failed">Görevin önceki ayarları geri yüklenemedi</string>
-    <string name="trigger_temporal_filters_title">Zamansal filtreler</string>
 
-    <string name="trigger_expression_title">Gelişmiş tetikleyici ifadesi</string>
-    <string name="trigger_expression_description">Zamansal geçmiş kullanan isteğe bağlı kurallar; etkinleştirilene kadar mevcut ANY/ALL davranışı değişmez.</string>
-    <string name="trigger_expression_all">TÜMÜ</string>
-    <string name="trigger_expression_any">HERHANGİ BİRİ</string>
-    <string name="trigger_expression_not_state">Durum DEĞİL</string>
-    <string name="trigger_expression_sequence">Önce A, sonra B</string>
-    <string name="trigger_expression_count">Zaman aralığındaki sayı</string>
-    <string name="trigger_expression_trigger">İlk tetikleyici</string>
-    <string name="trigger_expression_second_trigger">İkinci tetikleyici</string>
-    <string name="trigger_expression_window_seconds">Aralık (saniye, en fazla 604800)</string>
-    <string name="trigger_expression_minimum_count">En az sayı (1–1000)</string>
-    <string name="trigger_expression_add_nested">Kalan tetikleyicileri iç içe grupla</string>
-    <string name="trigger_expression_preview">Örneği önizle</string>
-    <string name="trigger_expression_preview_satisfied">Örnek sonucu: koşul sağlandı (önceki olaylar benzetildi)</string>
-    <string name="trigger_expression_preview_not_satisfied">Örnek sonucu: koşul sağlanmadı (önceki olaylar benzetildi)</string>
-    <string name="trigger_expression_invalid">Bu ifade geçersiz veya desteklenmeyen kaynak kullanıyor. Kaydetmeden önce düzeltin.</string>
-    <string name="trigger_expression_unsupported_source">Desteklenen bir tetikleyici seçin</string>
     <string name="network_validated">Doğrulanmış internet</string>
     <string name="network_captive_portal">Ağ giriş portalı</string>
     <string name="network_metered">Kotalı ağ</string>

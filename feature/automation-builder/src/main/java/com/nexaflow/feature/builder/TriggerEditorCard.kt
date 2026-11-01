@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -188,8 +187,6 @@ fun TriggerEditorCard(
                     onConfirm = { onExpandedChange(false) },
                     onDismiss = { onExpandedChange(false) }
                 ) {
-                    val temporalFiltersBinding =
-                        CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger(draft.type)
                     // A task card configures its already-selected trigger only.
                     // Simple contracts render directly from the canonicalized
                     // catalog schema. Platform pickers and advanced contracts
@@ -204,20 +201,6 @@ fun TriggerEditorCard(
                                 onConfigChange(draft.copy(config = updated))
                             },
                         )
-                        if (temporalFiltersBinding != null) {
-                            HorizontalDivider()
-                            Text(
-                                text = stringResource(R.string.trigger_temporal_filters_title),
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            CanonicalSchemaFieldEditor(
-                                binding = temporalFiltersBinding,
-                                config = draft.config,
-                                onConfigChange = { updated ->
-                                    onConfigChange(draft.copy(config = updated))
-                                },
-                            )
-                        }
                     } else {
                         when (draft.type) {
                 TriggerType.TIME -> TimeTriggerConfig(
@@ -845,20 +828,6 @@ fun TriggerEditorCard(
                 // above; TriggerEditorRoutingTest fails if a type loses its
                 // schema binding and would land here.
                 else -> Unit
-                        }
-                        if (temporalFiltersBinding != null) {
-                            HorizontalDivider()
-                            Text(
-                                text = stringResource(R.string.trigger_temporal_filters_title),
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            CanonicalSchemaFieldEditor(
-                                binding = temporalFiltersBinding,
-                                config = draft.config,
-                                onConfigChange = { updated ->
-                                    onConfigChange(draft.copy(config = updated))
-                                },
-                            )
                         }
                     }
                 }

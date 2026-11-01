@@ -1013,12 +1013,6 @@
     <string name="rom_setting_trigger_hint">Löst aus, wenn ein System-(vendor custom setting-)Schlüssel auf den Zielwert wechselt. Wähle einen Schlüssel von deinem Gerät — ohne Tippen.</string>
     <string name="rom_setting_pick_key">Einstellungsschlüssel wählen (kategorisiert)</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">Timeout und Wiederholungen</string>
-    <string name="http_timeout_hint">Wie lange auf den Server gewartet wird, bevor abgebrochen wird.</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">Wiederholungsversuche bei Fehlschlag</string>
-    <string name="http_output_path">Antwort im Kontextpfad speichern (optional)</string>
-    <string name="http_output_path_hint">Spätere Aktionen können ihn über %CTX-Selektoren lesen.</string>
     <string name="wait_quick_timer">Schnell-Timer</string>
     <string name="wait_1_min">1 Min.</string>
     <string name="wait_5_min">5 Min.</string>
@@ -1150,9 +1144,6 @@
     <string name="migrate_banner_button">Jetzt migrieren</string>
     <string name="clamp_range">Der Wert muss zwischen %1$s liegen — er wurde angepasst</string>
     <string name="clamp_range_unit">Der Wert muss zwischen %1$s %2$s liegen — er wurde angepasst</string>
-    <string name="http_retry_timing_label">Zeitplan der Wiederholungen</string>
-    <string name="http_retry_base_ms">Basis: %1$d ms</string>
-    <string name="http_retry_cap_ms">Obergrenze: %1$d ms</string>
     <string name="pointer_speed_range">Die Zeigergeschwindigkeit reicht von -7 (langsamste) bis 7 (schnellste); 0 ist der Systemstandard.</string>
     <string name="screensaver_minutes_chip">%1$d Min.</string>
     <string name="http_allow_private">Lokale/private Netzwerkziele erlauben</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">Nachricht an den Absender senden, der diesen Ablauf ausgelöst hat</string>
 
     <string name="task_restore_failed">Die vorherigen Aufgabeneinstellungen konnten nicht wiederhergestellt werden</string>
-    <string name="trigger_temporal_filters_title">Zeitfilter</string>
 
-    <string name="trigger_expression_title">Erweiterter Trigger-Ausdruck</string>
-    <string name="trigger_expression_description">Optionale Regeln mit Zeitverlauf; das bestehende ANY/ALL-Verhalten bleibt bis zur Aktivierung unverändert.</string>
-    <string name="trigger_expression_all">ALLE</string>
-    <string name="trigger_expression_any">BELIEBIG</string>
-    <string name="trigger_expression_not_state">NICHT Zustand</string>
-    <string name="trigger_expression_sequence">A dann B</string>
-    <string name="trigger_expression_count">Anzahl im Zeitfenster</string>
-    <string name="trigger_expression_trigger">Erster Trigger</string>
-    <string name="trigger_expression_second_trigger">Zweiter Trigger</string>
-    <string name="trigger_expression_window_seconds">Zeitfenster (Sekunden, max. 604800)</string>
-    <string name="trigger_expression_minimum_count">Mindestanzahl (1–1000)</string>
-    <string name="trigger_expression_add_nested">Übrige Trigger verschachteln</string>
-    <string name="trigger_expression_preview">Beispiel anzeigen</string>
-    <string name="trigger_expression_preview_satisfied">Beispiel: Bedingung erfüllt (frühere Ereignisse simuliert)</string>
-    <string name="trigger_expression_preview_not_satisfied">Beispiel: Bedingung nicht erfüllt (frühere Ereignisse simuliert)</string>
-    <string name="trigger_expression_invalid">Dieser Ausdruck ist ungültig oder verwendet eine nicht unterstützte Quelle. Vor dem Speichern korrigieren.</string>
-    <string name="trigger_expression_unsupported_source">Unterstützten Trigger auswählen</string>
     <string name="network_validated">Internetverbindung bestätigt</string>
     <string name="network_captive_portal">Captive-Portal</string>
     <string name="network_metered">Getaktetes Netzwerk</string>

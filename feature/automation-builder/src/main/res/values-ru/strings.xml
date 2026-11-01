@@ -1010,12 +1010,6 @@
     <string name="rom_setting_trigger_hint">Срабатывает, когда системный ключ  меняется на целевое значение. Выберите ключ с устройства — без ввода текста.</string>
     <string name="rom_setting_pick_key">Выбрать ключ настройки (по категориям)</string>
     <string name="rom_setting_key_category">%1$s • %2$s</string>
-    <string name="http_advanced_label">Тайм-аут и повторы</string>
-    <string name="http_timeout_hint">Сколько ждать сервер, прежде чем сдаться.</string>
-    <string name="http_timeout_seconds">%1$d s</string>
-    <string name="http_retries_label">Повторные попытки при сбое</string>
-    <string name="http_output_path">Сохранить ответ по пути контекста (необязательно)</string>
-    <string name="http_output_path_hint">Последующие действия могут читать его через селекторы %CTX.</string>
     <string name="wait_quick_timer">Быстрый таймер</string>
     <string name="wait_1_min">1 мин</string>
     <string name="wait_5_min">5 мин</string>
@@ -1147,9 +1141,6 @@
     <string name="migrate_banner_button">Мигрировать сейчас</string>
     <string name="clamp_range">Значение должно быть между %1$s — оно было скорректировано</string>
     <string name="clamp_range_unit">Значение должно быть между %1$s %2$s — оно было скорректировано</string>
-    <string name="http_retry_timing_label">Интервал повторов</string>
-    <string name="http_retry_base_ms">База: %1$d мс</string>
-    <string name="http_retry_cap_ms">Потолок: %1$d мс</string>
     <string name="pointer_speed_range">Скорость указателя от -7 (самая медленная) до 7 (самая быстрая); 0 — системное значение по умолчанию.</string>
     <string name="screensaver_minutes_chip">%1$d мин</string>
     <string name="http_allow_private">Разрешить локальные/частные адреса</string>
@@ -1224,25 +1215,7 @@
     <string name="action_sms_reply_sub">Отправить сообщение отправителю, запустившему сценарий</string>
 
     <string name="task_restore_failed">Не удалось восстановить прежние настройки задачи</string>
-    <string name="trigger_temporal_filters_title">Временные фильтры</string>
 
-    <string name="trigger_expression_title">Расширенное выражение триггеров</string>
-    <string name="trigger_expression_description">Дополнительные правила с временной историей; текущее поведение ANY/ALL не меняется до включения.</string>
-    <string name="trigger_expression_all">ВСЕ</string>
-    <string name="trigger_expression_any">ЛЮБОЕ</string>
-    <string name="trigger_expression_not_state">НЕ состояние</string>
-    <string name="trigger_expression_sequence">A, затем B</string>
-    <string name="trigger_expression_count">Количество за интервал</string>
-    <string name="trigger_expression_trigger">Первый триггер</string>
-    <string name="trigger_expression_second_trigger">Второй триггер</string>
-    <string name="trigger_expression_window_seconds">Интервал (секунды, макс. 604800)</string>
-    <string name="trigger_expression_minimum_count">Минимальное количество (1–1000)</string>
-    <string name="trigger_expression_add_nested">Сгруппировать остальные триггеры</string>
-    <string name="trigger_expression_preview">Предпросмотр примера</string>
-    <string name="trigger_expression_preview_satisfied">Результат примера: условие выполнено (предыдущие события смоделированы)</string>
-    <string name="trigger_expression_preview_not_satisfied">Результат примера: условие не выполнено (предыдущие события смоделированы)</string>
-    <string name="trigger_expression_invalid">Выражение неверно или использует неподдерживаемый источник. Исправьте его перед сохранением.</string>
-    <string name="trigger_expression_unsupported_source">Выберите поддерживаемый триггер</string>
     <string name="network_validated">Подключение к интернету подтверждено</string>
     <string name="network_captive_portal">Портал авторизации</string>
     <string name="network_metered">Сеть с тарификацией трафика</string>

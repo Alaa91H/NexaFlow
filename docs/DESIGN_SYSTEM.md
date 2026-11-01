@@ -300,6 +300,34 @@ Widgets: same tokens, 24dp radius, no blur.
 Dialogs and sheets: solid `surfaceContainerHigh`, 28dp radius (top corners for
 sheets), hairline top border, 60% scrim, no blur.
 
+### 8.4 Node configuration depth
+
+A trigger or action editor exposes only the fields that define that option: what
+it watches, where, and which value. Tuning layers that duplicated the engine's
+own defaults were removed from **every** trigger and action, because they turned
+a two-field choice into a form of millisecond durations.
+
+* **Trigger filters are gone.** Debounce, rate limit (count over window), minimum
+  interval, cooldown, stability window and hysteresis — the whole
+  `trigger_temporal_filters_title` block — no longer render, together with the
+  `CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger` helper that fed
+  them. The fields remain part of the stored configuration schema and the engine
+  still reads them, so a task saved earlier keeps its tuned values; a new task
+  runs on the catalog defaults.
+* **The advanced trigger-expression editor is gone.** ALL / ANY / NOT / SEQUENCE
+  / COUNT nodes, nested groups, the sample preview and the seconds window are
+  no longer shown; simple matching stays in the combine selector. A stored
+  expression keeps running untouched, and one that no longer validates is
+  dropped on save instead of blocking every save with a rule the UI can no longer
+  open.
+* **HTTP request actions keep URL, method, headers and body**; timeout, retries,
+  retry backoff and the response output path were removed, so the handler
+  defaults apply.
+
+Rationale: an option that needs a paragraph of explanation is a failure of the
+option, not of the user. Everything removed here was optional tuning, never the
+identity of the option, and no engine capability was deleted.
+
 ---
 
 ## 9. Defaults and recorded decisions

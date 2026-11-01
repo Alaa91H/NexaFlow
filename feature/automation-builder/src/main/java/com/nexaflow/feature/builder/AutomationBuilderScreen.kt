@@ -887,9 +887,13 @@ fun AutomationBuilderScreen(
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
+        // The advanced trigger-expression editor is gone from the builder, so
+        // a stored rule can no longer be repaired here. A rule that still
+        // validates is left untouched (its engine semantics stay identical);
+        // one that no longer validates would otherwise block every save
+        // forever, so it is dropped to the plain match mode the builder shows.
         if (triggerExpressionV2?.let { TriggerExpressionValidator.validate(it, builtTriggers).isNotEmpty() } == true) {
-            showSnackbar(configurationContext.getString(R.string.trigger_expression_invalid))
-            return
+            triggerExpressionV2 = null
         }
         val actions = actionDrafts.map { it.toAction() }
         val builtConstraints = constraints.map { Constraint(it.type, it.config) }
@@ -1340,14 +1344,6 @@ fun AutomationBuilderScreen(
                                         triggerMatchBuiltWarning(triggers) !=
                                             TriggerMatchPolicy.AllModeEventSemantics.NONE
                                 } == true,
-                    )
-                }
-                if (canonicalTriggerNodes.isEmpty()) {
-                    TriggerExpressionEditorCard(
-                        triggers = triggers.map { Trigger(it.type, it.config) },
-                        legacyMatch = triggerMatch,
-                        definition = triggerExpressionV2,
-                        onDefinitionChange = { triggerExpressionV2 = it }
                     )
                 }
 

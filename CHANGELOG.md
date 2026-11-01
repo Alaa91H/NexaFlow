@@ -28,6 +28,7 @@
 
 ### Removed
 
+- **Every timing/tuning layer inside a trigger or action.** The "Trigger filters" block (debounce, rate limit, minimum interval, cooldown, stability window, hysteresis) is gone from all trigger editors, and with it `CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger`. The advanced trigger-expression editor (ALL / ANY / NOT / SEQUENCE / COUNT, nested groups, sample previews, seconds window) is gone from the builder. HTTP request actions lose timeout, retries, retry backoff and the response output path. 27 string keys were deleted in all 10 locales. Stored values and engine behaviour are untouched: saved tasks keep their tuned settings and stored expressions keep running, and a stored expression that no longer validates is dropped on save instead of blocking it. See `docs/DESIGN_SYSTEM.md` §8.4.
 - `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes, together with every `alternatingIndex` parameter.
 
 ## [v3.91.19] - 2026-11-01
