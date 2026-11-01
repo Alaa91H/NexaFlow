@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">बैटरी स्तर और चार्जिंग शर्तें</string>
     <string name="canonical_add_battery">बैटरी शर्त जोड़ें</string>
     <string name="canonical_battery_threshold">सीमा</string>
+    <string name="battery_direction_label">दिशा</string>
     <string name="canonical_battery_toggle_direction">सीमा दिशा बदलें</string>
     <string name="canonical_add_delay">विलंब जोड़ें</string>
     <string name="canonical_store_secret">सुरक्षित रहस्य सहेजें</string>

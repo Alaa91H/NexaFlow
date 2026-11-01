@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">Condições de nível e carregamento</string>
     <string name="canonical_add_battery">Adicionar condição de bateria</string>
     <string name="canonical_battery_threshold">Limite</string>
+    <string name="battery_direction_label">Direção</string>
     <string name="canonical_battery_toggle_direction">Alterar direção do limite</string>
     <string name="canonical_add_delay">Adicionar espera</string>
     <string name="canonical_store_secret">Guardar segredo protegido</string>

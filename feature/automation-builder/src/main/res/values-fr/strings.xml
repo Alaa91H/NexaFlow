@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">Conditions de niveau et de charge</string>
     <string name="canonical_add_battery">Ajouter une condition de batterie</string>
     <string name="canonical_battery_threshold">Seuil</string>
+    <string name="battery_direction_label">Sens</string>
     <string name="canonical_battery_toggle_direction">Changer le sens du seuil</string>
     <string name="canonical_battery_charger">Chargeur : %1$s</string>
     <string name="canonical_battery_charging_state">État de charge : %1$s</string>

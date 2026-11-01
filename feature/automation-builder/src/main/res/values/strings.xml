@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">State-based battery threshold and charging filters</string>
     <string name="canonical_add_battery">Add battery condition</string>
     <string name="canonical_battery_threshold">Threshold</string>
+    <string name="battery_direction_label">Direction</string>
     <string name="canonical_battery_toggle_direction">Change threshold direction</string>
     <string name="canonical_battery_charger">Charger: %1$s</string>
     <string name="canonical_battery_charging_state">Charging state: %1$s</string>

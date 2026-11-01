@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">Pil seviyesi ve şarj koşulları</string>
     <string name="canonical_add_battery">Pil koşulu ekle</string>
     <string name="canonical_battery_threshold">Eşik</string>
+    <string name="battery_direction_label">Yön</string>
     <string name="canonical_battery_toggle_direction">Eşik yönünü değiştir</string>
     <string name="canonical_add_delay">Bekleme ekle</string>
     <string name="canonical_store_secret">Korunan gizli değeri kaydet</string>

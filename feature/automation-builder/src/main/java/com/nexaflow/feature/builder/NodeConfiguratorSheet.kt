@@ -115,16 +115,21 @@ internal fun NodeConfiguratorPanel(
             .padding(horizontal = Dimens.Space1),
         verticalArrangement = Arrangement.spacedBy(Dimens.Space3)
     ) {
-        ScreenHeader(
-            title = title,
-            caption = stringResource(R.string.selected_count, selectedCount),
-            titleStyle = NexaFlowTheme.type.subScreenTitle
-        )
+        // The picker opens on its search field. Callers that already render the
+        // WHEN/THEN section header pass a blank title, so the same word is not
+        // printed twice above the list and nothing pushes the search down.
         SearchPill(
             query = searchQuery,
             onQueryChange = onSearchQueryChange,
             placeholder = stringResource(R.string.search)
         )
+        if (title.isNotBlank()) {
+            ScreenHeader(
+                title = title,
+                caption = stringResource(R.string.selected_count, selectedCount),
+                titleStyle = NexaFlowTheme.type.subScreenTitle
+            )
+        }
         content()
         Row(
             modifier = Modifier.fillMaxWidth(),

@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">バッテリー残量と充電条件</string>
     <string name="canonical_add_battery">バッテリー条件を追加</string>
     <string name="canonical_battery_threshold">しきい値</string>
+    <string name="battery_direction_label">方向</string>
     <string name="canonical_battery_toggle_direction">しきい値の方向を変更</string>
     <string name="canonical_add_delay">待機を追加</string>
     <string name="canonical_store_secret">保護されたシークレットを保存</string>

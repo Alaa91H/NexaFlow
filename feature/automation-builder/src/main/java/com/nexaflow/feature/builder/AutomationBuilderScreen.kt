@@ -1139,88 +1139,8 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(text = stringResource(R.string.section_when))
-                        val batteryTriggerContract = viewModel.executableCanonicalTriggers.firstOrNull {
-                            it.definitionId == CanonicalBatteryTriggerDefinition.ID
-                        }
-                        if (batteryTriggerContract != null) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(stringResource(R.string.canonical_battery_title), style = MaterialTheme.typography.titleSmall)
-                                    Text(stringResource(R.string.canonical_battery_subtitle), style = MaterialTheme.typography.bodySmall)
-                                }
-                                Button(
-                                    enabled = triggers.isEmpty(),
-                                    onClick = {
-                                    canonicalTriggerNodes.add(CanonicalBatteryTriggerDefinition.node(
-                                        id = "native.trigger.${java.util.UUID.randomUUID().toString().replace("-", "")}",
-                                        sequenceIndex = canonicalTriggerNodes.size,
-                                ))
-                                }) { Text(stringResource(R.string.canonical_add_battery)) }
-                            }
-                            canonicalTriggerNodes.forEachIndexed { index, node ->
-                                val threshold = (node.arguments.firstOrNull { it.field == CanonicalBatteryTriggerDefinition.thresholdField }
-                                    ?.value as? com.nexaflow.domain.canonical.IntegerValue)?.value?.toInt() ?: 20
-                                NexaFlowCard {
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text("${stringResource(R.string.canonical_battery_threshold)}: $threshold%")
-                                        SyncedSlider(
-                                            value = threshold.toFloat(),
-                                            valueRange = 0f..100f,
-                                            steps = 99,
-                                            onValueChange = { raw ->
-                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
-                                                    id = node.node.id.value,
-                                                    sequenceIndex = index,
-                                                    thresholdPercent = raw.toInt(),
-                                                    direction = (node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "BELOW",
-                                                    chargerType = (node.arguments.getOrNull(2)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
-                                                    chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
-                                                )
-                                            },
-                                        )
-                                        val charger = (node.arguments.getOrNull(2)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY"
-                                        val chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY"
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                            TextButton(onClick = {
-                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
-                                                    id = node.node.id.value,
-                                                    sequenceIndex = index,
-                                                    thresholdPercent = threshold,
-                                                    direction = if ((node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token == "BELOW") "ABOVE" else "BELOW",
-                                                    chargerType = (node.arguments.getOrNull(2)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
-                                                    chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
-                                                )
-                                            }) { Text(stringResource(R.string.canonical_battery_toggle_direction)) }
-                                            TextButton(onClick = {
-                                                val next = when (charger) { "ANY" -> "AC"; "AC" -> "USB"; "USB" -> "WIRELESS"; else -> "ANY" }
-                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
-                                                    id = node.node.id.value, sequenceIndex = index, thresholdPercent = threshold,
-                                                    direction = (node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "BELOW",
-                                                    chargerType = next, chargingState = chargingState,
-                                                )
-                                            }) { Text(stringResource(R.string.canonical_battery_charger, charger)) }
-                                            TextButton(onClick = {
-                                                val next = when (chargingState) { "ANY" -> "CHARGING"; "CHARGING" -> "NOT_CHARGING"; else -> "ANY" }
-                                                canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
-                                                    id = node.node.id.value, sequenceIndex = index, thresholdPercent = threshold,
-                                                    direction = (node.arguments.getOrNull(1)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "BELOW",
-                                                    chargerType = charger, chargingState = next,
-                                                )
-                                            }) { Text(stringResource(R.string.canonical_battery_charging_state, chargingState)) }
-                                            TextButton(onClick = { canonicalTriggerNodes.removeAt(index) }) {
-                                                Text(stringResource(R.string.remove))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
                         if (canonicalTriggerNodes.isEmpty()) NodeConfiguratorPanel(
-                            title = stringResource(R.string.section_when),
+                            title = "",
                             searchQuery = triggerSearchQuery,
                             onSearchQueryChange = { triggerSearchQuery = it },
                             selectedCount = selectedTriggerTypes.size,
@@ -1336,6 +1256,31 @@ fun AutomationBuilderScreen(
                                 }
                             }
                         }
+
+                        // Battery threshold sits *below* the catalogue, so the
+                        // trigger list starts at its search field instead of
+                        // being pushed down by one special-case trigger. Only
+                        // shown when the canonical battery contract exists and
+                        // nothing else claims the WHEN slot.
+                        val batteryContract = viewModel.executableCanonicalTriggers.firstOrNull {
+                            it.definitionId == CanonicalBatteryTriggerDefinition.ID
+                        }
+                        if (batteryContract != null && triggers.isEmpty()) {
+                            BatteryThresholdSection(
+                                nodes = canonicalTriggerNodes,
+                                addEnabled = true,
+                                onAdd = {
+                                    canonicalTriggerNodes.add(
+                                        CanonicalBatteryTriggerDefinition.node(
+                                            id = "native.trigger.${
+                                                java.util.UUID.randomUUID().toString().replace("-", "")
+                                            }",
+                                            sequenceIndex = canonicalTriggerNodes.size
+                                        )
+                                    )
+                                }
+                            )
+                        }
                     triggers.forEachIndexed { index, draft ->
                 val triggerDragging = triggerDrag.draggedIndex == index
                 if (index > 0) NodeConnector()
@@ -1414,7 +1359,7 @@ fun AutomationBuilderScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
                             SectionHeader(text = stringResource(R.string.section_actions))
                             NodeConfiguratorPanel(
-                                title = stringResource(R.string.section_actions),
+                                title = "",
                                 searchQuery = actionSearchQuery,
                                 onSearchQueryChange = { actionSearchQuery = it },
                                 selectedCount = selectedActionTypes.size,

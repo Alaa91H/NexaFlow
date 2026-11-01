@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">Condiciones de nivel y carga</string>
     <string name="canonical_add_battery">Añadir condición de batería</string>
     <string name="canonical_battery_threshold">Umbral</string>
+    <string name="battery_direction_label">Dirección</string>
     <string name="canonical_battery_toggle_direction">Cambiar dirección del umbral</string>
     <string name="canonical_battery_charger">Cargador: %1$s</string>
     <string name="canonical_battery_charging_state">Estado de carga: %1$s</string>

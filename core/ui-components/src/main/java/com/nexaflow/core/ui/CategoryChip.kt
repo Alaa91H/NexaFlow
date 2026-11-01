@@ -29,6 +29,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowTheme
@@ -94,10 +95,15 @@ fun CategoryChip(
                     modifier = Modifier.size(18.dp)
                 )
             }
+            // One line keeps the 40dp chip height stable on a wrapped chip
+            // row; a label too long for the available width shortens instead of
+            // growing the chip and breaking the rows beside it.
             Text(
                 text = label,
                 style = NexaFlowTheme.type.chip.forUserText(label),
-                color = content
+                color = content,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

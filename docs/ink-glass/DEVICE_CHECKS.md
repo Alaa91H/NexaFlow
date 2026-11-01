@@ -21,6 +21,8 @@ Screenshots in `docs/ink-glass/screenshots/`.
 | 07 | `07-dynamic-scheme.png` | Material You scheme (dynamic colour on) |
 | 08 | `08-dashboard-ink-ar.png` | Ink dashboard after the fixes, Arabic |
 | 09 | `09-dashboard-ink-en.png` | Ink dashboard, English LTR |
+| 10 | `10-picker-wrapped-chips.png` | Picker opening on search, all six category chips wrapped |
+| 11 | `11-battery-below-options.png` | Battery threshold moved below the catalogue |
 
 ## Verified on the device
 
@@ -58,6 +60,26 @@ Screenshots in `docs/ink-glass/screenshots/`.
    gated it in `InkContrastTest`.
 4. **Off switch thumb 2.2:1** — Material's default `outline` on the Ink off
    track; replaced by the shared `NexaFlowSwitch` on `switchThumbOff`.
+
+## Ordering and option-clarity pass (requested after the first device run)
+
+* **The list starts at the search field.** The battery threshold trigger was
+  rendered above the catalogue, so the card opened on a one-off trigger and
+  pushed search, the chips and the rows down. It now renders as its own section
+  *below* all options (`BatteryThresholdSection`), and the picker no longer
+  prints its title twice — the section header is the only heading, so search is
+  the first control.
+* **All category chips fit.** The strip scrolled sideways with a trailing fade
+  and clipped the last categories at 390dp; it now wraps onto a second line with
+  natural widths, so الجدولة / الجهاز / الاتصال / الموقع / التطبيقات / التواصل
+  are all visible and comparable. Same for the eight action categories.
+* **Battery arguments are explicit choices.** The old controls cycled a value on
+  each tap (`Charger: ANY` → AC → USB → WIRELESS → ANY), hiding the option set
+  and punishing a mis-tap. Direction, charger type and charging state are now
+  labelled chip rows — one tap selects, every option visible, identical stored
+  tokens (`BELOW`/`ABOVE`, `ANY`/`AC`/`USB`/`WIRELESS`,
+  `ANY`/`CHARGING`/`NOT_CHARGING`), so existing tasks and the engine are
+  unaffected.
 
 ## Still open
 

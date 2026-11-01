@@ -21,6 +21,9 @@
 
 ### Fixed
 
+- **The trigger picker starts at its search field.** The battery threshold trigger no longer squats above the catalogue; it renders as its own section below all options, so the list opens with search, the “all options” chips and the rows in that order.
+- **Every category chip is on screen.** The picker's chip strip scrolled sideways with an edge fade, so on a 390dp phone the last categories were half visible and read as broken. The chips now wrap onto a second line with natural widths — no clipped labels, no hidden options.
+- **Battery threshold options are visible choices, not a cycle.** Choosing a charger used to mean tapping the same button until it cycled to the wanted value; each argument (direction, charger type, charging state) is now a labelled chip row where one tap picks the value, with the same stored tokens as before.
 - **Readability faults found on a real device** (Android 17, 393dp, Arabic RTL): the bento caption truncated to one line at font scale 200%, the two bento cards sat at different heights, and the Ask pill used `onPrimaryContainer`, which a Material You wallpaper palette can hand back darker than the pill itself (`#002457` on a 6% fill, effectively invisible). The pill now has its own `askPillLabel` role — `#C9D3FF` in Ink, `primary` under dynamic colour — the caption wraps to two lines, and the row is measured with `IntrinsicSize.Max`. All three are gated by `InkContrastTest` and the new device screenshots.
 
 ### Removed

@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">电池电量和充电条件</string>
     <string name="canonical_add_battery">添加电池条件</string>
     <string name="canonical_battery_threshold">阈值</string>
+    <string name="battery_direction_label">方向</string>
     <string name="canonical_battery_toggle_direction">更改阈值方向</string>
     <string name="canonical_add_delay">添加等待</string>
     <string name="canonical_store_secret">保存受保护的密钥</string>

@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">Условия уровня заряда и зарядки</string>
     <string name="canonical_add_battery">Добавить условие батареи</string>
     <string name="canonical_battery_threshold">Порог</string>
+    <string name="battery_direction_label">Направление</string>
     <string name="canonical_battery_toggle_direction">Изменить направление порога</string>
     <string name="canonical_add_delay">Добавить ожидание</string>
     <string name="canonical_store_secret">Сохранить защищённый секрет</string>

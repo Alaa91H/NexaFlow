@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -357,6 +355,7 @@ fun ItemHeader(text: String) {
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CategoryAccordion(
     tabs: List<Pair<String, ImageVector?>>,
@@ -370,30 +369,26 @@ fun CategoryAccordion(
     val selectedIndex = expandedIndex?.takeIf { it in tabs.indices }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // لا نلف شرائح الفئات إلى صف ثانٍ: على الهاتف الضيق قد يبلغ FlowRow
-        // ارتفاعاً غير متوقع بينما تظهر قائمة الخيارات أسفله، فتتراكب العناصر
-        // بصرياً. الصف القابل للسحب يحافظ على ارتفاع ثابت وفئة واحدة في كل صف.
-        LazyRow(
+        // Every category is visible at once. The strip used to scroll sideways
+        // with a trailing fade, so on a 390dp phone the last chips sat half
+        // off-screen and read as broken rather than as more options. Wrapping
+        // keeps natural widths (no ellipsised labels) and lets the whole set be
+        // compared in a glance; the parent already scrolls vertically, so the
+        // extra rows cost nothing.
+        FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("category_tabs"),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            itemsIndexed(
-                items = tabs,
-                key = { index, tab -> "$index:${tab.first}" }
-            ) { index, (label, icon) ->
+            tabs.forEachIndexed { index, (label, icon) ->
                 CategoryChip(
                     selected = selectedIndex == index,
                     onClick = { onExpandedChange(if (selectedIndex == index) null else index) },
                     label = label,
                     leadingIcon = icon,
-                    // Bound each chip so a long localised label is ellipsized
-                    // inside its own cell and never widens the strip into an
-                    // unstable layout on compact RTL displays.
-                    modifier = Modifier
-                        .widthIn(max = 180.dp)
-                        .testTag("category_tab_$index")
+                    modifier = Modifier.testTag("category_tab_$index")
                 )
             }
         }

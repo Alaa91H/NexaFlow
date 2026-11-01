@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">Batterie- und Ladebedingungen</string>
     <string name="canonical_add_battery">Batteriebedingung hinzufügen</string>
     <string name="canonical_battery_threshold">Schwellenwert</string>
+    <string name="battery_direction_label">Richtung</string>
     <string name="canonical_battery_toggle_direction">Schwellenrichtung ändern</string>
     <string name="canonical_battery_charger">Ladegerät: %1$s</string>
     <string name="canonical_battery_charging_state">Ladestatus: %1$s</string>

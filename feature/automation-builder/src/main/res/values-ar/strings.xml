@@ -4,6 +4,7 @@
     <string name="canonical_battery_subtitle">شروط مستوى البطارية والشحن</string>
     <string name="canonical_add_battery">إضافة شرط بطارية</string>
     <string name="canonical_battery_threshold">العتبة</string>
+    <string name="battery_direction_label">الاتجاه</string>
     <string name="canonical_battery_toggle_direction">تغيير اتجاه العتبة</string>
     <string name="canonical_battery_charger">الشاحن: %1$s</string>
     <string name="canonical_battery_charging_state">حالة الشحن: %1$s</string>
