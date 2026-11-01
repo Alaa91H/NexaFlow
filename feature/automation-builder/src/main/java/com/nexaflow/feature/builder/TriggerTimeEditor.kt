@@ -41,7 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.LocalDate
@@ -170,7 +170,7 @@ internal fun TimeRepeatSection(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             repeatOptions.forEach { (value, labelRes) ->
-                SelectChip(
+                CategoryChip(
                     selected = if (value == "ONCE") isOnce else !isOnce,
                     onClick = {
                         val config = if (value == "ONCE") {
@@ -270,7 +270,7 @@ internal fun TimeRepeatSection(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     weekdayOptions.forEach { (day, labelRes) ->
-                        SelectChip(
+                        CategoryChip(
                             selected = day in selectedDays,
                             onClick = {
                                 val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
@@ -297,7 +297,7 @@ internal fun TimeRepeatSection(
                         "FIRST_DAY" to R.string.monthly_first_day,
                         "LAST_DAY" to R.string.monthly_last_day
                     ).forEach { (value, labelRes) ->
-                        SelectChip(
+                        CategoryChip(
                             selected = monthlyDayMode == value,
                             onClick = {
                                 onConfigChange(
@@ -341,7 +341,7 @@ internal fun TimeRepeatSection(
                     "ON_DATE" to R.string.repeat_end_on,
                     "AFTER_OCCURRENCES" to R.string.repeat_end_after
                 ).forEach { (value, labelRes) ->
-                    SelectChip(
+                    CategoryChip(
                         selected = endMode == value,
                         onClick = {
                             onConfigChange(draft.copy(config = intervalConfig + ("endMode" to value)))
@@ -388,7 +388,7 @@ internal fun TimeRepeatSection(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 excludedDates.forEach { date ->
-                    SelectChip(
+                    CategoryChip(
                         selected = false,
                         onClick = {
                             val updated = excludedDates.filterNot { it == date }
@@ -536,14 +536,14 @@ internal fun TimeTriggerConfig(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            SelectChip(
+            CategoryChip(
                 selected = !rangeMode,
                 onClick = {
                     onConfigChange(draft.copy(config = draft.config + ("timeMode" to "SINGLE")))
                 },
                 label = stringResource(R.string.time_single)
             )
-            SelectChip(
+            CategoryChip(
                 selected = rangeMode,
                 onClick = {
                     onConfigChange(
@@ -659,7 +659,7 @@ internal fun TimeZoneSection(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            SelectChip(
+            CategoryChip(
                 selected = !fixed,
                 onClick = {
                     fixed = false
@@ -674,7 +674,7 @@ internal fun TimeZoneSection(
                 },
                 label = stringResource(R.string.time_zone_device)
             )
-            SelectChip(
+            CategoryChip(
                 selected = fixed,
                 onClick = {
                     fixed = true
@@ -721,7 +721,7 @@ internal fun TimeZoneSection(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 COMMON_TIME_ZONES.forEach { zone ->
-                    SelectChip(
+                    CategoryChip(
                         selected = storedZone.trim() == zone,
                         onClick = { onConfigChange(draft.copy(config = draft.config + fixedZoneConfig(zone))) },
                         label = zone

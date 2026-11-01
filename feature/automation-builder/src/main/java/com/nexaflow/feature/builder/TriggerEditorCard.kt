@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +47,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.TriggerType
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -88,12 +88,11 @@ fun TriggerEditorCard(
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate" | "excludedDate"
     // Fixed header row; the builder owns expansion so the selected card is
     // the sole open card and a new card can close the previous one.
-    val accent = builderCardAccent(index)
-    NexaFlowCard(
-        modifier = modifier,
-        containerColor = builderCardContainerColor(index),
-        contentColor = builderCardContentColor
-    ) {
+    // Ink: every node card is the same surface; the hue that identifies it is
+    // the category of its trigger, never an alternating grey.
+    val category = triggerCategoryOf[draft.type]?.let { NexaFlowTheme.categories.of(it.toInkCategory()) }
+        ?: MaterialTheme.colorScheme.primary
+    NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
@@ -144,7 +143,7 @@ fun TriggerEditorCard(
                             Icon(
                                 imageVector = draft.type.icon(),
                                 contentDescription = null,
-                                tint = accent,
+                                tint = category,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
@@ -170,8 +169,8 @@ fun TriggerEditorCard(
                 }
                 TaskNumberBadge(
                     number = index + 1,
-                    containerColor = accent,
-                    contentColor = Color.White
+                    containerColor = category.copy(alpha = NexaFlowAlphas.SelectedRowTint),
+                    contentColor = category
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
@@ -188,8 +187,6 @@ fun TriggerEditorCard(
                     onConfirm = { onExpandedChange(false) },
                     onDismiss = { onExpandedChange(false) }
                 ) {
-                    val temporalFiltersBinding =
-                        CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger(draft.type)
                     // A task card configures its already-selected trigger only.
                     // Simple contracts render directly from the canonicalized
                     // catalog schema. Platform pickers and advanced contracts
@@ -203,21 +200,14 @@ fun TriggerEditorCard(
                             onConfigChange = { updated ->
                                 onConfigChange(draft.copy(config = updated))
                             },
+                            // Charging, headset and Bluetooth events have dedicated
+                            // triggers; keeping them here duplicated three options.
+                            hiddenTokens = if (draft.type == TriggerType.DEVICE) {
+                                hiddenDeviceEventTokens
+                            } else {
+                                emptySet()
+                            },
                         )
-                        if (temporalFiltersBinding != null) {
-                            HorizontalDivider()
-                            Text(
-                                text = stringResource(R.string.trigger_temporal_filters_title),
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            CanonicalSchemaFieldEditor(
-                                binding = temporalFiltersBinding,
-                                config = draft.config,
-                                onConfigChange = { updated ->
-                                    onConfigChange(draft.copy(config = updated))
-                                },
-                            )
-                        }
                     } else {
                         when (draft.type) {
                 TriggerType.TIME -> TimeTriggerConfig(
@@ -368,13 +358,13 @@ fun TriggerEditorCard(
                         // Inside / outside the defined location (both flows).
                         val event = draft.config["event"] ?: "ENTER"
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            SelectChip(
+                            CategoryChip(
                                 selected = event == "ENTER",
                                 onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to "ENTER"))) },
                                 label = stringResource(R.string.location_inside),
                                 modifier = Modifier.weight(1f)
                             )
-                            SelectChip(
+                            CategoryChip(
                                 selected = event == "EXIT",
                                 onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to "EXIT"))) },
                                 label = stringResource(R.string.location_outside),
@@ -432,7 +422,7 @@ fun TriggerEditorCard(
                                 "HINGE" to R.string.sensor_numeric_hinge
                             )
                             kinds.forEach { (value, labelRes) ->
-                                SelectChip(
+                                CategoryChip(
                                     selected = sensor == value,
                                     onClick = {
                                         onConfigChange(
@@ -454,7 +444,7 @@ fun TriggerEditorCard(
                                 listOf("ABOVE" to R.string.sensor_event_above, "BELOW" to R.string.sensor_event_below,
                                     "AT_LEAST" to R.string.sensor_event_at_least, "AT_MOST" to R.string.sensor_event_at_most,
                                     "BETWEEN" to R.string.sensor_event_between).forEach { (comparison, label) ->
-                                    SelectChip(selected = (draft.config["event"] ?: "ABOVE") == comparison,
+                                    CategoryChip(selected = (draft.config["event"] ?: "ABOVE") == comparison,
                                         onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to comparison))) },
                                         label = stringResource(label))
                                 }
@@ -495,7 +485,7 @@ fun TriggerEditorCard(
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 com.nexaflow.domain.models.NumericSensors.samplePeriodsUs.sorted().forEach { period ->
                                     val hz = 1_000_000 / period
-                                    SelectChip(
+                                    CategoryChip(
                                         selected = samplingPeriod == period,
                                         onClick = { onConfigChange(draft.copy(config = draft.config +
                                             (com.nexaflow.domain.models.NumericSensors.SAMPLE_PERIOD_KEY to period.toString()))) },
@@ -520,7 +510,7 @@ fun TriggerEditorCard(
                                         "UNCOVERED" to R.string.sensor_event_uncovered
                                     )
                                     events.forEach { (value, labelRes) ->
-                                        SelectChip(
+                                        CategoryChip(
                                             selected = event == value,
                                             onClick = {
                                                 onConfigChange(
@@ -547,7 +537,7 @@ fun TriggerEditorCard(
                                         "BELOW" to R.string.sensor_event_below
                                     )
                                     events.forEach { (value, labelRes) ->
-                                        SelectChip(
+                                        CategoryChip(
                                             selected = event == value,
                                             onClick = {
                                                 onConfigChange(
@@ -628,7 +618,7 @@ fun TriggerEditorCard(
                         ) {
                             val methods = listOf("ANY", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                             methods.forEach { value ->
-                                SelectChip(
+                                CategoryChip(
                                     selected = method == value,
                                     onClick = {
                                         onConfigChange(draft.copy(config = draft.config + ("method" to value)))
@@ -755,75 +745,14 @@ fun TriggerEditorCard(
                         )
                     }
                 }
-                TriggerType.NOTIFICATION -> {
-                    val packages = (draft.config["packages"] ?: draft.config["package"] ?: "")
-                        .split(',')
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-                    val event = draft.config["event"] ?: "POSTED"
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.NotificationsActive,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.trigger_notification),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                Text(
-                                    text = if (packages.isEmpty()) {
-                                        stringResource(R.string.any_app)
-                                    } else {
-                                        stringResource(R.string.selected_apps_count, packages.size)
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-                        OutlinedButton(
-                            onClick = onPickApp,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Filled.Apps, contentDescription = null)
-                            Text(
-                                text = stringResource(R.string.choose_apps),
-                                modifier = Modifier.padding(start = 6.dp)
-                            )
-                        }
-                        OutlinedTextField(
-                            value = draft.config["contains"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.notification_contains)) },
-                            placeholder = { Text(text = stringResource(R.string.notification_contains_hint)) },
-                            singleLine = true
-                        )
-                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
-                        OptionChips(
-                            options = listOf("POSTED", "REMOVED"),
-                            selected = event,
-                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
-                        )
-                        // Live notification-listener badge (granted / not granted)
-                        // refreshed on resume; tapping it explains and opens the
-                        // notification access settings screen.
-                        SpecialPermissionStatusRow(
-                            hintText = stringResource(R.string.notification_access_hint),
-                            special = SpecialPermission.NOTIFICATION_ACCESS,
-                            context = context,
-                            refreshKey = refreshKey,
-                            onRequest = { onExplainSpecial(SpecialPermission.NOTIFICATION_ACCESS) }
-                        )
-                    }
-                }
+                TriggerType.NOTIFICATION -> NotificationTriggerConfig(
+                    draft = draft,
+                    onConfigChange = onConfigChange,
+                    onPickApp = onPickApp,
+                    onExplainSpecial = onExplainSpecial,
+                    refreshKey = refreshKey,
+                )
+                TriggerType.CHARGER -> ChargerTriggerConfig(draft, onConfigChange)
                 TriggerType.APP_INSTALLED ->
                     AppInstalledConfig(draft, onConfigChange, onPickApp)
                 TriggerType.VOLUME_CHANGED -> VolumeChangedConfig(draft, onConfigChange)
@@ -833,7 +762,20 @@ fun TriggerEditorCard(
                     SignalStrengthConfig(draft, onConfigChange)
                 TriggerType.BATTERY_TEMPERATURE -> BatteryTemperatureConfig(draft, onConfigChange)
                 TriggerType.CLIPBOARD_CHANGED -> ClipboardChangedConfig(draft, onConfigChange)
-                TriggerType.SCREEN_TIMEOUT_CHANGED -> ScreenTimeoutChangedConfig(draft, onConfigChange)
+                TriggerType.SCREEN_TIMEOUT_CHANGED -> ScreenTimeoutChangedConfig(
+                    draft = draft,
+                    onConfigChange = onConfigChange,
+                    // The ROM's current timeout is one of the choices, read from
+                    // the device rather than typed by the user.
+                    deviceTimeoutSeconds = remember(context) {
+                        runCatching {
+                            android.provider.Settings.System.getInt(
+                                context.contentResolver,
+                                android.provider.Settings.System.SCREEN_OFF_TIMEOUT
+                            ) / 1000L
+                        }.getOrNull()?.takeIf { it > 0 }
+                    }
+                )
                 TriggerType.NFC_TAG_SCANNED -> NfcTagScannedConfig(draft, onConfigChange)
                 TriggerType.WEAR_EVENT -> WearEventConfig(draft, onConfigChange)
                 // External component identity and approval are managed only by
@@ -845,20 +787,6 @@ fun TriggerEditorCard(
                 // above; TriggerEditorRoutingTest fails if a type loses its
                 // schema binding and would land here.
                 else -> Unit
-                        }
-                        if (temporalFiltersBinding != null) {
-                            HorizontalDivider()
-                            Text(
-                                text = stringResource(R.string.trigger_temporal_filters_title),
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            CanonicalSchemaFieldEditor(
-                                binding = temporalFiltersBinding,
-                                config = draft.config,
-                                onConfigChange = { updated ->
-                                    onConfigChange(draft.copy(config = updated))
-                                },
-                            )
                         }
                     }
                 }

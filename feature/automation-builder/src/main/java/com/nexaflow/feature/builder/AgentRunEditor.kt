@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nexaflow.core.agentruntime.EnabledAgent
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 
 /**
  * Editor for [com.nexaflow.domain.models.ActionType.AGENT_RUN].
@@ -75,7 +75,7 @@ internal fun AgentRunEditorContent(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 agents.forEach { agent ->
-                    SelectChip(
+                    CategoryChip(
                         selected = agent.id == selectedId,
                         onClick = { onConfigChange(config + (KEY_AGENT_ID to agent.id)) },
                         label = agent.name
@@ -128,12 +128,12 @@ internal fun AgentRunEditorContent(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             val policy = config[KEY_APPROVAL_POLICY]?.uppercase() ?: APPROVAL_FAIL
-            SelectChip(
+            CategoryChip(
                 selected = policy == APPROVAL_FAIL,
                 onClick = { onConfigChange(config + (KEY_APPROVAL_POLICY to APPROVAL_FAIL)) },
                 label = stringResource(R.string.agent_run_approval_fail)
             )
-            SelectChip(
+            CategoryChip(
                 selected = policy == APPROVAL_SKIP,
                 onClick = { onConfigChange(config + (KEY_APPROVAL_POLICY to APPROVAL_SKIP)) },
                 label = stringResource(R.string.agent_run_approval_skip)

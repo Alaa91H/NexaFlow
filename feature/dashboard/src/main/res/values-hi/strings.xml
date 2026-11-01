@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">सेटिंग्स</string>
     <string name="search_hint">कार्य खोजें</string>
-    <string name="clear_search">खोज साफ़ करें</string>
     <string name="no_search_results_title">कोई परिणाम नहीं</string>
     <string name="no_search_results_sub">आपकी खोज से कोई कार्य मेल नहीं खाता।</string>
     <string name="run_now">अभी चलाएँ</string>
@@ -288,4 +287,20 @@
     <string name="ask_nexaflow">NexaFlow से पूछें…</string>
 
     <string name="task_restore_failed">कार्य की पिछली सेटिंग बहाल नहीं की जा सकीं: %1$s</string>
+    <string name="dashboard_title">रूटीन</string>
+    <string name="dashboard_caption">%1$d कार्य · %2$d सक्रिय</string>
+    <string name="bento_next_run">अगला रन</string>
+    <string name="bento_today">आज</string>
+    <string name="bento_runs">रन</string>
+    <string name="bento_no_upcoming">कोई आगामी रन नहीं</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">आज %1$d रन</string>
+    <string name="relative_in_minutes">%1$d मिनट में</string>
+    <string name="relative_in_hours">%1$d घंटे में</string>
+    <string name="relative_in_days">%1$d दिन में</string>
+    <string name="flow_when">कब</string>
+    <string name="flow_then">तब</string>
+    <string name="flow_reverts_auto">रूटीन खत्म होने पर अपने आप वापस हो जाता है</string>
+    <string name="flow_exit_actions">%1$d एक्ज़िट क्रियाएँ चलाता है</string>
+    <string name="status_error">त्रुटि</string>
 </resources>

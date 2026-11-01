@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.EndBehaviorCatalog
@@ -61,12 +61,12 @@ fun EndBehaviorEditor(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            SelectChip(
+            CategoryChip(
                 selected = behavior == null || behavior.mode == EndMode.LEAVE,
                 onClick = { onBehaviorChange(null) },
                 label = stringResource(R.string.end_leave)
             )
-            SelectChip(
+            CategoryChip(
                 selected = behavior?.mode == EndMode.RERUN,
                 onClick = { onBehaviorChange(EndBehavior(EndMode.RERUN)) },
                 label = stringResource(R.string.end_rerun)
@@ -81,18 +81,18 @@ fun EndBehaviorEditor(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    SelectChip(
+                    CategoryChip(
                         selected = on,
                         onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, mapOf("enabled" to "true"))) },
                         label = stringResource(R.string.end_turn_on)
                     )
-                    SelectChip(
+                    CategoryChip(
                         selected = off,
                         onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, mapOf("enabled" to "false"))) },
                         label = stringResource(R.string.end_turn_off)
                     )
                     if (EndBehaviorCatalog.supportsRevert(actionType)) {
-                        SelectChip(
+                        CategoryChip(
                             selected = behavior?.mode == EndMode.REVERT,
                             onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
                             label = stringResource(R.string.end_revert)
@@ -109,7 +109,7 @@ fun EndBehaviorEditor(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    SelectChip(
+                    CategoryChip(
                         selected = behavior?.mode == EndMode.REVERT,
                         onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
                         label = stringResource(R.string.end_revert)
@@ -123,13 +123,13 @@ fun EndBehaviorEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (EndBehaviorCatalog.supportsRevert(actionType)) {
-                        SelectChip(
+                        CategoryChip(
                             selected = behavior?.mode == EndMode.REVERT,
                             onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
                             label = stringResource(R.string.end_revert)
                         )
                     }
-                    SelectChip(
+                    CategoryChip(
                         selected = behavior?.mode == EndMode.SET_VALUE,
                         onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, defaultEndValue(actionType))) },
                         label = stringResource(R.string.end_set_value)
@@ -209,7 +209,7 @@ private fun EndValueEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     streams.forEach { (stream, label) ->
-                        SelectChip(
+                        CategoryChip(
                             selected = selectedStream == stream,
                             onClick = { onConfigChange(config + ("stream" to stream)) },
                             label = label
@@ -236,7 +236,7 @@ private fun EndValueEditor(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 modes.forEach { (value, label) ->
-                    SelectChip(
+                    CategoryChip(
                         selected = (config["mode"] ?: "NORMAL") == value,
                         onClick = { onConfigChange(mapOf("mode" to value)) },
                         label = label
@@ -283,7 +283,7 @@ private fun EndValueEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf(-3, -2, -1, 0, 1, 2, 3).forEach { preset ->
-                        SelectChip(
+                        CategoryChip(
                             selected = value == preset,
                             onClick = { onConfigChange(config + ("speed" to preset.toString())) },
                             label = preset.toString()
@@ -312,7 +312,7 @@ private fun EndValueEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf(1, 5, 10, 30).forEach { preset ->
-                        SelectChip(
+                        CategoryChip(
                             selected = minutes == preset,
                             onClick = { onConfigChange(config + ("minutes" to preset.toString())) },
                             label = stringResource(R.string.screensaver_minutes_chip, preset)
@@ -341,7 +341,7 @@ private fun EndValueEditor(
                 ) {
                     (if (isDensity) listOf("360", "440", "480", "560") else listOf("0.85", "1.0", "1.2", "1.4"))
                         .forEach { preset ->
-                            SelectChip(
+                            CategoryChip(
                                 selected = (if (isDensity) config["dpi"] else config["scale"]) == preset,
                                 onClick = {
                                     onConfigChange(

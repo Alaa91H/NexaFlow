@@ -55,4 +55,9 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:ui-components"))
     testImplementation(libs.junit.junit)
+    // The view model writes through DataStore, so its tests need a real
+    // (Robolectric) context and a test main dispatcher.
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }

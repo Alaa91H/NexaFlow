@@ -7,12 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,86 +20,100 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nexaflow.core.ui.Dimens.RowIconSize
-import com.nexaflow.core.ui.Dimens.Space1
-import com.nexaflow.core.ui.Dimens.Space2
-import com.nexaflow.core.ui.Dimens.Space3
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.theme.NexaFlowCategory
+import com.nexaflow.core.ui.theme.NexaFlowTheme
+import com.nexaflow.core.ui.theme.forText
 
+/**
+ * Settings row (§7.4): same metrics as a picker row — 44dp tile, 13×16
+ * padding, 15.5sp/700 title, 12.5sp meta — so Settings, History and the
+ * pickers read as one system.
+ */
 @Composable
 fun SettingRow(
     icon: ImageVector,
     title: String,
     subtitle: String? = null,
     modifier: Modifier = Modifier,
-    alternatingIndex: Int? = null,
+    category: NexaFlowCategory = NexaFlowCategory.ADVANCED,
+    showDivider: Boolean = true,
     trailing: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val rowSurface = alternatingIndex?.let { alternatingSurfaceColor(it) }
-    val iconSurface = alternatingIndex?.let { alternatingSurfaceColor(it + 1) }
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (rowSurface != null) {
-                    Modifier
-                        .background(rowSurface, MaterialTheme.shapes.small)
-                        .padding(horizontal = Space2, vertical = Space1)
-                } else {
-                    Modifier
-                }
-            )
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = Space3),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Space3)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(RowIconSize.dp)
-                .background(
-                    color = iconSurface ?: MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+    val colors = MaterialTheme.colorScheme
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (showDivider) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Dimens.HairlineBorder)
+                    .background(colors.onSurface.copy(alpha = NexaFlowAlphas.Divider))
             )
         }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
-            if (subtitle != null) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (onClick != null) {
+                        Modifier.clickable(role = Role.Button, onClick = onClick)
+                    } else {
+                        Modifier
+                    }
+                )
+                .padding(horizontal = Dimens.Space4, vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Dimens.TileTextGap)
+        ) {
+            IconTile(
+                icon = icon,
+                category = category,
+                size = Dimens.PickerTile,
+                radius = Dimens.PickerTileRadius,
+                picker = true
+            )
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = title,
+                    style = NexaFlowTheme.type.pickerRowTitle.forText(title),
+                    color = colors.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = NexaFlowTheme.type.meta.forText(subtitle),
+                        color = colors.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            if (trailing != null) {
+                trailing()
+            } else if (onClick != null) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = colors.outline,
+                    modifier = Modifier.size(20.dp)
                 )
             }
-        }
-        if (trailing != null) {
-            trailing()
-        } else if (onClick != null) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline
-            )
         }
     }
 }
 
 @Preview(name = "SettingRow", showBackground = true)
-@Preview(name = "SettingRow (dark)", showBackground = true)
 @Composable
 private fun SettingRowPreview() {
     MaterialTheme {
         SettingRow(
-            icon = Icons.Filled.Wifi,
+            icon = Icons.Filled.Language,
             title = "Wi-Fi",
             subtitle = "Connected to HomeNetwork",
             onClick = {}

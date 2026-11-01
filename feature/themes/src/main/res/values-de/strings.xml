@@ -28,4 +28,10 @@
     <string name="dynamic_color_sub">Wallpaper-Farben verwenden (Material You)</string>
     <string name="accent_disabled_hint">Verfügbar, wenn die dynamische Farbe deaktiviert ist</string>
     <string name="preview_dynamic">Hintergrundfarben (Material You)</string>
+    <string name="accent_ink">Ink</string>
+    <string name="glass_effects">Glaseffekte</string>
+    <string name="glass_effects_sub">Weichzeichnen des Docks; auf nicht unterstützten Geräten automatisch ersetzt.</string>
+    <string name="glass_auto">Automatisch</string>
+    <string name="glass_on">An</string>
+    <string name="glass_off">Aus</string>
 </resources>

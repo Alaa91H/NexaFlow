@@ -122,6 +122,11 @@ IDENTICAL_OK = {
     "Ambient / AOD",
     # Protocol/product names spelled in Latin script by every vendor.
     "API Anthropic Messages",
+    # Storage units: MB/GB are the SI/industry symbols in every locale.
+    "%1$s MB",
+    "%1$s GB",
+    # Name of the shipped colour scheme (like a brand), not a translatable word.
+    "Ink",
 }
 
 # Words that ARE the correct word in a specific locale (same spelling as
@@ -133,12 +138,12 @@ PER_LOCALE_IDENTICAL_OK: dict[str, set[str]] = {
         "Pink", "Minimal", "Start", "System", "Sensor", "Text", "Update",
         "Updates", "Version %1$s", "Global", "Secure", "Timeout",
         "Screenshot", "Wearables", "Plugins", "ms", "%1$d Hz", "Maximum: %1$d%%",
-        "Radius: %1$d m",
+        "Radius: %1$d m", "Radius", "Normal", "Computer / USB",
     },
     "es": {
         "Color", "General", "Manual", "Global", "Total", "Variables",
         "Sensor", "ms", "%1$d Hz", "%1$d min", "1 min", "5 min", "10 min",
-        "Base: %1$d ms",
+        "Base: %1$d ms", "Normal", "No", "Error",
     },
     "fr": {
         "Action", "Actions (%1$d)", "Animations", "Communication",
@@ -148,14 +153,15 @@ PER_LOCALE_IDENTICAL_OK: dict[str, set[str]] = {
         "Notifications", "Orange", "Portrait", "Total", "Version %1$s",
         "Volume", "Volume %1$d", "occurrences", "via %1$s", "ms",
         "%1$d Hz", "%1$d min", "1 min", "5 min", "10 min",
+        "Normal", "Messages", "Promotions", "Routines", "Auto",
     },
     "pt": {
         "Manual", "Global", "Total", "Latitude", "Longitude", "Namespace",
-        "Volume", "Volume: %1$d", "Volume %1$d", "via %1$s", "ms",
+        "Volume", "Volume: %1$d", "Volume %1$d", "via %1$s", "ms", "Normal",
         "%1$d Hz", "%1$d min", "1 min", "5 min", "10 min", "Base: %1$d ms", "Sensor",
     },
     "tr": {
-        "Alarm", "Minimal", "Test", "ms", "%1$d Hz",
+        "Alarm", "Minimal", "Test", "ms", "%1$d Hz", "Normal",
     },
 }
 

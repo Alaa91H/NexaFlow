@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -53,9 +52,7 @@ class RoutineCardHeaderTest {
                         lastRunAt = null
                     ),
                     summary = "Task summary",
-                    nextRun = null,
                     isRunning = false,
-                    containerColor = Color.DarkGray,
                     expanded = expanded,
                     menuExpanded = false,
                     onRun = {},
@@ -74,7 +71,7 @@ class RoutineCardHeaderTest {
 
         assertPersistentHeaderAndSingleToggle()
 
-        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderExpand).performClick()
+        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderCard).performClick()
         composeRule.waitForIdle()
 
         assertPersistentHeaderAndSingleToggle()
@@ -87,7 +84,7 @@ class RoutineCardHeaderTest {
             useUnmergedTree = true
         ).assertIsDisplayed()
         composeRule.onNodeWithTag(RoutineCardTestTags.HeaderToggle).assertIsDisplayed()
-        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderExpand).assertIsDisplayed()
+        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderCard).assertIsDisplayed()
         composeRule.onAllNodesWithTag(RoutineCardTestTags.HeaderToggle).assertCountEquals(1)
     }
 }

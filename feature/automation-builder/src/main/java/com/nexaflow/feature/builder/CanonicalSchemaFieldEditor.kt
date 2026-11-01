@@ -45,7 +45,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.math.BigDecimal
 import java.math.RoundingMode
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.canonical.BooleanValue
 import com.nexaflow.domain.canonical.CanonicalValue
 import com.nexaflow.domain.canonical.CanonicalValueKind
@@ -94,9 +94,10 @@ internal fun CanonicalSchemaFieldEditor(
     config: Map<String, String>,
     onConfigChange: (Map<String, String>) -> Unit,
     modifier: Modifier = Modifier,
+    /** Enum tokens that a dedicated trigger already owns, hidden from the chips. */
+    hiddenTokens: Set<String> = emptySet(),
 ) {
     val schema = binding.schema
-    val storeSecret = LocalWorkflowSecretStore.current
     val parseErrors = remember(schema.schemaId, config, binding.legacyKeys) {
         canonicalFieldParseErrors(schema, binding.legacyKeys, config)
     }
@@ -129,16 +130,22 @@ internal fun CanonicalSchemaFieldEditor(
     }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        state.visibleFields().forEach { field ->
+        val visibleFields = state.visibleFields()
+        // A single enum choice is self-describing ("Connected" / "Disconnected");
+        // printing its storage key above the chips only adds noise.
+        val showLabels = visibleFields.size > 1
+        visibleFields.forEach { field ->
             val legacyKey = binding.legacyKeys[field.id.value] ?: field.id.value
             val current = config[legacyKey]
                 ?: field.default?.raw?.let(::canonicalValueToLegacy)
                 .orEmpty()
             CanonicalFieldControl(
                 field = field,
+                schemaTarget = schema.target.value,
                 rawValue = current,
+                showLabel = showLabels,
                 hasParseError = field.id.value in parseErrors,
-                onStoreSecret = storeSecret,
+                hiddenTokens = hiddenTokens,
                 onValueChange = { updated ->
                     onConfigChange(config + (legacyKey to updated))
                 },
@@ -166,428 +173,6 @@ internal fun CanonicalSchemaFieldEditor(
                 text = issue.message,
                 style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                 color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CanonicalFieldControl(
-    field: NodeSchemaField,
-    rawValue: String,
-    hasParseError: Boolean,
-    onValueChange: (String) -> Unit,
-    onStoreSecret: suspend (String, String) -> Unit = { _, _ -> },
-) {
-    when (field.type) {
-        NodeFieldType.BOOLEAN -> {
-            androidx.compose.foundation.layout.Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(text = field.id.value)
-                Switch(
-                    checked = rawValue.toBooleanStrictOrNull() ?: false,
-                    onCheckedChange = { onValueChange(it.toString()) },
-                )
-            }
-            if (hasParseError) Text(
-                stringResource(R.string.canonical_field_invalid_value),
-                color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-            )
-        }
-        NodeFieldType.ENUM_TOKEN -> {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(text = field.id.value)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    field.allowedTokens.forEach { token ->
-                        SelectChip(
-                            selected = rawValue == token,
-                            onClick = { onValueChange(token) },
-                            label = token,
-                        )
-                    }
-                }
-                if (hasParseError) Text(
-                    stringResource(R.string.canonical_field_invalid_value),
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        NodeFieldType.SECRET_REFERENCE -> {
-            var showSecretDialog by remember(field.id.value) { mutableStateOf(false) }
-            val secretScope = rememberCoroutineScope()
-            var secretInput by remember(field.id.value) { mutableStateOf("") }
-            var secretError by remember(field.id.value) { mutableStateOf(false) }
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                OutlinedTextField(
-                    value = rawValue,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = field.id.value) },
-                    singleLine = true,
-                    isError = hasParseError,
-                    supportingText = if (hasParseError) {
-                        { Text(stringResource(R.string.canonical_field_invalid_value)) }
-                    } else null,
-                )
-                Button(onClick = { secretError = false; secretInput = ""; showSecretDialog = true }) {
-                    Text(stringResource(R.string.canonical_store_secret))
-                }
-            }
-            if (showSecretDialog) {
-                AlertDialog(
-                    onDismissRequest = { secretInput = ""; showSecretDialog = false },
-                    title = { Text(stringResource(R.string.canonical_store_secret)) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(
-                                value = secretInput,
-                                onValueChange = { secretInput = it },
-                                visualTransformation = PasswordVisualTransformation(),
-                                singleLine = true,
-                                label = { Text(stringResource(R.string.canonical_secret_value)) },
-                                isError = secretError,
-                            )
-                            if (secretError) Text(stringResource(R.string.canonical_secret_store_failed))
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(
-                            enabled = rawValue.matches(Regex("[a-z][a-z0-9_.-]{2,127}")) && secretInput.isNotEmpty(),
-                            onClick = {
-                                val submittedSecret = secretInput
-                                secretInput = ""
-                                secretScope.launch {
-                                    runCatching { onStoreSecret(rawValue, submittedSecret) }
-                                        .onSuccess { showSecretDialog = false }
-                                        .onFailure { secretError = true }
-                                }
-                            },
-                        ) { Text(stringResource(R.string.save)) }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { secretInput = ""; showSecretDialog = false }) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                    },
-                )
-            }
-        }
-        NodeFieldType.TIME_OF_DAY -> {
-            var showPicker by remember(field.id.value) { mutableStateOf(false) }
-            val parts = rawValue.split(":")
-            val hour = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, 23) ?: 8
-            val minute = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, 59) ?: 0
-            val pickerState = rememberTimePickerState(initialHour = hour, initialMinute = minute)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = rawValue,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.weight(1f),
-                    label = { Text(text = field.id.value) },
-                    singleLine = true,
-                    isError = hasParseError,
-                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
-                )
-                Button(onClick = { showPicker = true }) { Text(stringResource(R.string.canonical_choose_time)) }
-            }
-            if (showPicker) {
-                androidx.compose.material3.AlertDialog(
-                    onDismissRequest = { showPicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            onValueChange("%02d:%02d".format(pickerState.hour, pickerState.minute))
-                            showPicker = false
-                        }) { Text(stringResource(R.string.ok)) }
-                    },
-                    dismissButton = { TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.cancel)) } },
-                    text = { TimePicker(state = pickerState) },
-                )
-            }
-        }
-        NodeFieldType.DURATION_MS -> {
-            var unitMillis by remember(field.id.value) { mutableStateOf(1_000L) }
-            val displayed = durationDisplayValue(rawValue, unitMillis)
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                OutlinedTextField(
-                    value = displayed,
-                    onValueChange = { input ->
-                        if (input.isBlank()) {
-                            onValueChange("")
-                        } else {
-                            val milliseconds = durationInputToMillis(input, unitMillis)
-                            onValueChange(milliseconds?.toString() ?: input)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(field.id.value) },
-                    singleLine = true,
-                    isError = hasParseError,
-                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    DURATION_UNITS.forEach { (label, millis) ->
-                        SelectChip(
-                            selected = unitMillis == millis,
-                            onClick = { unitMillis = millis },
-                            label = label,
-                        )
-                    }
-                }
-            }
-        }
-        NodeFieldType.DATE -> {
-            var showPicker by remember(field.id.value) { mutableStateOf(false) }
-            val initialMillis = remember(rawValue) {
-                runCatching { LocalDate.parse(rawValue).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }
-                    .getOrDefault(System.currentTimeMillis())
-            }
-            val pickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = rawValue,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.weight(1f),
-                    label = { Text(text = field.id.value) },
-                    singleLine = true,
-                    isError = hasParseError,
-                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
-                )
-                Button(onClick = { showPicker = true }) { Text(stringResource(R.string.canonical_choose_date)) }
-            }
-            if (showPicker) {
-                DatePickerDialog(
-                    onDismissRequest = { showPicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            pickerState.selectedDateMillis?.let { millis ->
-                                onValueChange(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString())
-                            }
-                            showPicker = false
-                        }) { Text(stringResource(R.string.ok)) }
-                    },
-                    dismissButton = { TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.cancel)) } },
-                ) { DatePicker(state = pickerState) }
-            }
-        }
-        NodeFieldType.TIMEZONE_ID -> {
-            val zones = remember { java.util.TimeZone.getAvailableIDs().sorted() }
-            var expanded by remember(field.id.value) { mutableStateOf(false) }
-            Column {
-                OutlinedTextField(
-                    value = rawValue,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(field.id.value) },
-                    singleLine = true,
-                    isError = hasParseError,
-                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
-                    trailingIcon = {
-                        TextButton(onClick = { expanded = true }) {
-                            Text(stringResource(R.string.canonical_browse))
-                        }
-                    },
-                )
-                androidx.compose.material3.DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                ) {
-                    zones.forEach { zone ->
-                        androidx.compose.material3.DropdownMenuItem(
-                            text = { Text(zone) },
-                            onClick = { onValueChange(zone); expanded = false },
-                        )
-                    }
-                }
-            }
-        }
-        NodeFieldType.COLLECTION -> {
-            val hint = remember(field.collectionElementKind) {
-                when (field.collectionElementKind) {
-                    CanonicalValueKind.PACKAGE_ID -> "com.example.app | org.example.app"
-                    CanonicalValueKind.URI -> "content://... | https://..."
-                    CanonicalValueKind.INTEGER, CanonicalValueKind.DURATION_MS,
-                    CanonicalValueKind.TIMESTAMP_MS -> "1 | 2 | 3"
-                    else -> "value 1 | value 2"
-                }
-            }
-            OutlinedTextField(
-                value = rawValue,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(field.id.value) },
-                placeholder = { Text(hint) },
-                isError = hasParseError,
-                supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
-            )
-        }
-        NodeFieldType.PACKAGE_ID -> {
-            val context = LocalContext.current
-            var showPicker by remember(field.id.value) { mutableStateOf(false) }
-            var query by remember(field.id.value) { mutableStateOf("") }
-            val applications = remember(showPicker, context) {
-                if (!showPicker) emptyList() else runCatching {
-                    context.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-                        .map { info ->
-                            info.packageName to context.packageManager.getApplicationLabel(info).toString()
-                        }
-                        .sortedWith(compareBy(Collator.getInstance()) { it.second })
-                }.getOrDefault(emptyList())
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = rawValue,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.weight(1f),
-                    label = { Text(field.id.value) },
-                    singleLine = true,
-                    isError = hasParseError,
-                    supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
-                )
-                Button(onClick = { showPicker = true }) {
-                    Text(stringResource(R.string.canonical_choose_app))
-                }
-            }
-            if (showPicker) {
-                AlertDialog(
-                    onDismissRequest = { showPicker = false },
-                    confirmButton = { TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.cancel)) } },
-                    title = { Text(stringResource(R.string.canonical_choose_app)) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(
-                                value = query,
-                                onValueChange = { query = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                label = { Text(stringResource(R.string.canonical_search_apps)) },
-                                singleLine = true,
-                            )
-                            val filtered = applications.filter { (packageName, label) ->
-                                query.isBlank() || label.contains(query, ignoreCase = true) ||
-                                    packageName.contains(query, ignoreCase = true)
-                            }
-                            if (filtered.isEmpty()) {
-                                Text(stringResource(R.string.canonical_no_apps_found))
-                            } else {
-                                LazyColumn(modifier = Modifier.heightIn(max = 360.dp)) {
-                                    items(filtered, key = { it.first }) { (packageName, label) ->
-                                        TextButton(
-                                            onClick = {
-                                                onValueChange(packageName)
-                                                showPicker = false
-                                            },
-                                            modifier = Modifier.fillMaxWidth(),
-                                        ) {
-                                            Column(modifier = Modifier.fillMaxWidth()) {
-                                                Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                                Text(packageName, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                )
-            }
-        }
-        NodeFieldType.URI -> {
-            val context = LocalContext.current
-            var permissionError by remember(field.id.value) { mutableStateOf(false) }
-            val filePicker = rememberLauncherForActivityResult(
-                ActivityResultContracts.OpenDocument(),
-            ) { uri: Uri? ->
-                if (uri != null) {
-                    val retained = runCatching {
-                        context.contentResolver.takePersistableUriPermission(
-                            uri,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION,
-                        )
-                    }.isSuccess
-                    permissionError = !retained
-                    if (retained) onValueChange(uri.toString())
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = rawValue,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.weight(1f),
-                    label = { Text(field.id.value) },
-                    singleLine = true,
-                    isError = hasParseError,
-                    supportingText = when {
-                        hasParseError -> ({ Text(stringResource(R.string.canonical_field_invalid_value)) })
-                        permissionError -> ({ Text(stringResource(R.string.canonical_file_permission_error)) })
-                        else -> null
-                    },
-                )
-                Button(onClick = { filePicker.launch(arrayOf("*/*")) }) {
-                    Text(stringResource(R.string.canonical_choose_file))
-                }
-            }
-        }
-        NodeFieldType.JSON -> {
-            OutlinedTextField(
-                value = rawValue,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(field.id.value) },
-                minLines = 3,
-                maxLines = 8,
-                isError = hasParseError,
-                supportingText = if (hasParseError) ({ Text(stringResource(R.string.canonical_field_invalid_value)) }) else null,
-            )
-        }
-        NodeFieldType.COORDINATE -> {
-            val coordinates = rawValue.split(",", limit = 2)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = coordinates.getOrNull(0).orEmpty(),
-                    onValueChange = { onValueChange("$it,${coordinates.getOrNull(1).orEmpty()}") },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(stringResource(R.string.canonical_latitude)) },
-                    isError = hasParseError,
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = coordinates.getOrNull(1).orEmpty(),
-                    onValueChange = { onValueChange("${coordinates.getOrNull(0).orEmpty()},$it") },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(stringResource(R.string.canonical_longitude)) },
-                    isError = hasParseError,
-                    singleLine = true,
-                )
-            }
-            if (hasParseError) Text(stringResource(R.string.canonical_field_invalid_value), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
-        }
-        else -> {
-            OutlinedTextField(
-                value = rawValue,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = field.id.value) },
-                singleLine = field.type != NodeFieldType.TEXT,
-                isError = hasParseError,
-                supportingText = if (hasParseError) {
-                    { Text(stringResource(R.string.canonical_field_invalid_value)) }
-                } else if (field.minimum != null || field.maximum != null) {
-                    {
-                        Text(
-                            text = listOfNotNull(field.minimum, field.maximum)
-                                .joinToString("..")
-                        )
-                    }
-                } else {
-                    null
-                },
             )
         }
     }
@@ -705,13 +290,6 @@ private fun canonicalKindFor(type: NodeFieldType): CanonicalValueKind = when (ty
 }
 
 private val EXPRESSION_MARKER = Regex("%(?:CTX\\.|[A-Za-z_])")
-private val DURATION_UNITS = listOf(
-    "ms" to 1L,
-    "s" to 1_000L,
-    "min" to 60_000L,
-    "h" to 3_600_000L,
-    "d" to 86_400_000L,
-)
 
 private fun parseCollectionElement(
     kind: CanonicalValueKind,

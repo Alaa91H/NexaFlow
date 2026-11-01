@@ -231,7 +231,14 @@ fun Project.configureCoverage() {
             "**/dagger/**", "**/ui/theme/*", "**/*Preview*.*", "**/*Screen*.*", "**/*Activity*.*",
             // Hardware-bound implementations cannot execute on the JVM: the
             // Android Keystore provider is only exercised on a real device.
-            "**/*KeystoreSecureStorage*.*"
+            "**/*KeystoreSecureStorage*.*",
+            // Robolectric builds Android components inside its sandbox, so
+            // JaCoCo never attributes their execution to the analysed class:
+            // every @AndroidEntryPoint service and receiver reports 0% however
+            // thoroughly the tests drive it. The notification listener's
+            // decisions live in NotificationListenerKt, which is measured; the
+            // service class is the framework wire that forwards to them.
+            "**/NotificationListener.class"
         )
         classDirectories.setFrom(
             files(

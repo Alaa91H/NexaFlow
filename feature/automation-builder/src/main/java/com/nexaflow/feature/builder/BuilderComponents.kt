@@ -16,8 +16,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -48,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -66,11 +66,17 @@ import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.SystemAppStatusDetector
-import com.nexaflow.core.ui.IconBadge
-import com.nexaflow.core.ui.alternatingSurfaceColor
-import com.nexaflow.core.ui.SelectChip
-import com.nexaflow.core.ui.StatusPill
+import com.nexaflow.core.ui.Dimens
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.IconTile
+import com.nexaflow.core.ui.MultiCheck
+import com.nexaflow.core.ui.PickerGroup
+import com.nexaflow.core.ui.theme.NexaFlowCategory
 import com.nexaflow.core.ui.theme.NexaFlowTheme
+import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
+import com.nexaflow.core.ui.CategoryChip
+import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
@@ -114,13 +120,14 @@ internal fun SyncedSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
-    steps: Int = 0
+    steps: Int = 0,
+    modifier: Modifier = Modifier
 ) {
     val sliderState = remember {
         SliderState(value, steps = steps, trackRange = valueRange)
     }
     SideEffect { sliderState.value = value }
-    Slider(state = sliderState, onValueChange = onValueChange)
+    Slider(state = sliderState, onValueChange = onValueChange, modifier = modifier)
 }
 
 @Composable
@@ -150,7 +157,7 @@ fun OptionChips(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         options.forEach { option ->
-            SelectChip(
+            CategoryChip(
                 selected = selected == option,
                 onClick = { onSelect(option) },
                 label = labels?.get(option) ?: option
@@ -349,6 +356,7 @@ fun ItemHeader(text: String) {
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CategoryAccordion(
     tabs: List<Pair<String, ImageVector?>>,
@@ -362,31 +370,26 @@ fun CategoryAccordion(
     val selectedIndex = expandedIndex?.takeIf { it in tabs.indices }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // لا نلف شرائح الفئات إلى صف ثانٍ: على الهاتف الضيق قد يبلغ FlowRow
-        // ارتفاعاً غير متوقع بينما تظهر قائمة الخيارات أسفله، فتتراكب العناصر
-        // بصرياً. الصف القابل للسحب يحافظ على ارتفاع ثابت وفئة واحدة في كل صف.
-        LazyRow(
+        // Every category is visible at once. The strip used to scroll sideways
+        // with a trailing fade, so on a 390dp phone the last chips sat half
+        // off-screen and read as broken rather than as more options. Wrapping
+        // keeps natural widths (no ellipsised labels) and lets the whole set be
+        // compared in a glance; the parent already scrolls vertically, so the
+        // extra rows cost nothing.
+        FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("category_tabs"),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            itemsIndexed(
-                items = tabs,
-                key = { index, tab -> "$index:${tab.first}" }
-            ) { index, (label, icon) ->
-                SelectChip(
+            tabs.forEachIndexed { index, (label, icon) ->
+                CategoryChip(
                     selected = selectedIndex == index,
                     onClick = { onExpandedChange(if (selectedIndex == index) null else index) },
                     label = label,
                     leadingIcon = icon,
-                    alternatingIndex = index,
-                    // Bound each chip so a long localised label is ellipsized
-                    // inside its own cell and never widens the strip into an
-                    // unstable layout on compact RTL displays.
-                    modifier = Modifier
-                        .widthIn(max = 180.dp)
-                        .testTag("category_tab_$index")
+                    modifier = Modifier.testTag("category_tab_$index")
                 )
             }
         }
@@ -417,12 +420,7 @@ fun CategoryAccordion(
             // Keep the option catalogue in a dedicated layout boundary. This
             // prevents future callers from layering sibling options at the same
             // origin and isolates option drawing from the tab strip above.
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clipToBounds(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
+            PickerGroup {
                 content(index)
             }
         }
@@ -437,19 +435,17 @@ internal fun ActionOptionRow(
     availability: BuilderOptionAvailability = BuilderOptionAvailability.READY,
     onBlockedClick: () -> Unit = {},
     modifier: Modifier = Modifier,
-    alternatingIndex: Int? = null
 ) {
     CatalogOptionRow(
         title = stringResource(option.titleRes),
         subtitle = stringResource(option.subtitleRes),
         icon = option.icon,
-        color = option.color,
         checked = checked,
         onToggle = onToggle,
         availability = availability,
         onBlockedClick = onBlockedClick,
         modifier = modifier,
-        alternatingIndex = alternatingIndex
+        category = option.category.toInkCategory()
     )
 }
 
@@ -467,20 +463,17 @@ internal fun TriggerOptionRow(
     availability: BuilderOptionAvailability = BuilderOptionAvailability.READY,
     onBlockedClick: () -> Unit = {},
     modifier: Modifier = Modifier,
-    alternatingIndex: Int? = null
 ) {
-    val categoryColor = triggerCategoryOf[type]?.color ?: MaterialTheme.colorScheme.primary
     CatalogOptionRow(
         title = stringResource(type.labelRes()),
         subtitle = stringResource(type.descRes()),
         icon = type.icon(),
-        color = categoryColor,
         checked = checked,
         onToggle = onSelect,
         availability = availability,
         onBlockedClick = onBlockedClick,
         modifier = modifier,
-        alternatingIndex = alternatingIndex
+        category = (triggerCategoryOf[type] ?: TriggerCategory.DEVICE).toInkCategory()
     )
 }
 
@@ -489,15 +482,13 @@ private fun CatalogOptionRow(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    color: Color,
     checked: Boolean,
     onToggle: () -> Unit,
     availability: BuilderOptionAvailability,
     onBlockedClick: () -> Unit,
     modifier: Modifier,
-    alternatingIndex: Int?
+    category: NexaFlowCategory,
 ) {
-    val rowSurface = alternatingIndex?.let { alternatingSurfaceColor(it) }
     val isReady = availability == BuilderOptionAvailability.READY
     val isGrantable = availability == BuilderOptionAvailability.PERMISSION_REQUIRED
     val lockedMessage = when (availability) {
@@ -510,16 +501,7 @@ private fun CatalogOptionRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .then(
-                if (rowSurface != null) {
-                    Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(rowSurface)
-                        .padding(horizontal = 8.dp)
-                } else {
-                    Modifier
-                }
-            )
+            .padding(horizontal = 8.dp)
             .semantics(mergeDescendants = true) {
                 role = if (isReady) Role.Checkbox else Role.Button
                 if (isReady) {
@@ -537,20 +519,22 @@ private fun CatalogOptionRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        IconBadge(
+        IconTile(
             icon = icon,
-            containerColor = color.copy(alpha = 0.15f),
-            contentColor = color
+            category = category,
+            size = Dimens.PickerTile,
+            radius = Dimens.PickerTileRadius,
+            picker = true
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleSmall
+                style = NexaFlowTheme.type.pickerRowTitle.forUserText(title)
             )
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
+                style = NexaFlowTheme.type.meta.forUserText(subtitle),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             lockedMessage?.let { message ->
                 Text(
@@ -561,11 +545,7 @@ private fun CatalogOptionRow(
             }
         }
         if (isReady) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = { onToggle() },
-                modifier = Modifier.clearAndSetSemantics { },
-            )
+            MultiCheck(checked = checked)
         } else {
             StatusPill(
                 text = stringResource(
@@ -873,24 +853,24 @@ internal val STREAM_OPTIONS = listOf(
 
 // region Previews
 
-@Preview(name = "SelectChip", showBackground = true)
+@Preview(name = "CategoryChip", showBackground = true)
 @Composable
-private fun SelectChipPreview() {
+private fun CategoryChipPreview() {
     MaterialTheme {
         Column {
-            SelectChip(selected = true, onClick = {}, label = "Selected")
-            SelectChip(selected = false, onClick = {}, label = "Unselected")
+            CategoryChip(selected = true, onClick = {}, label = "Selected")
+            CategoryChip(selected = false, onClick = {}, label = "Unselected")
         }
     }
 }
 
-@Preview(name = "SelectChip – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "CategoryChip – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun SelectChipDarkPreview() {
+private fun CategoryChipDarkPreview() {
     MaterialTheme {
         Column {
-            SelectChip(selected = true, onClick = {}, label = "Selected")
-            SelectChip(selected = false, onClick = {}, label = "Unselected")
+            CategoryChip(selected = true, onClick = {}, label = "Selected")
+            CategoryChip(selected = false, onClick = {}, label = "Unselected")
         }
     }
 }
@@ -933,6 +913,26 @@ private fun CategoryAccordionPreview() {
             content = { Text("Content here", modifier = Modifier.padding(16.dp)) }
         )
     }
+}
+
+/**
+ * Connector between two builder nodes (§7.3): a 2dp `onSurface` 12% line, 16dp
+ * tall, centred on the icon-tile axis so the WHEN / THEN chains read as one
+ * flow instead of a pile of cards.
+ */
+@Composable
+internal fun NodeConnector(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .padding(
+                start = Dimens.Space4 + Dimens.RoutineTile / 2 - Dimens.ConnectorWidth / 2
+            )
+            .width(Dimens.ConnectorWidth)
+            .height(Dimens.ConnectorHeight)
+            .background(
+                MaterialTheme.colorScheme.onSurface.copy(alpha = NexaFlowAlphas.StrongBorder)
+            )
+    )
 }
 
 // endregion

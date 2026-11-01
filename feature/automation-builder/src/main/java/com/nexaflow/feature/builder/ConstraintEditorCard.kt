@@ -50,7 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.models.ConstraintType
 
 /**
@@ -268,7 +268,6 @@ fun ConstraintEditorCard(
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard(
         modifier = modifier,
-        alternatingIndex = index
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Keep controls and text in separate lines. At narrow widths or
@@ -326,7 +325,7 @@ fun ConstraintEditorCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 constraintTypeOptions.forEach { option ->
-                    SelectChip(
+                    CategoryChip(
                         selected = draft.type == option,
                         onClick = {
                             val defaults = defaultConstraintConfig(option)
@@ -350,12 +349,12 @@ fun ConstraintEditorCard(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        SelectChip(
+                        CategoryChip(
                             selected = direction == "ABOVE",
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("direction" to "ABOVE"))) },
                             label = stringResource(R.string.constraint_above)
                         )
-                        SelectChip(
+                        CategoryChip(
                             selected = direction == "BELOW",
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("direction" to "BELOW"))) },
                             label = stringResource(R.string.constraint_below)
@@ -402,12 +401,12 @@ fun ConstraintEditorCard(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        SelectChip(
+                        CategoryChip(
                             selected = currentState == "ON",
                             onClick = { onConfigChange(draft.copy(config = draft.config + (stateKey to "ON"))) },
                             label = onLabel
                         )
-                        SelectChip(
+                        CategoryChip(
                             selected = currentState == "OFF",
                             onClick = { onConfigChange(draft.copy(config = draft.config + (stateKey to "OFF"))) },
                             label = offLabel
@@ -424,13 +423,13 @@ fun ConstraintEditorCard(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        SelectChip(
+                        CategoryChip(
                             selected = currentState == "CHARGING",
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("state" to "CHARGING"))) },
                             label = stringResource(R.string.charging_yes),
                             modifier = Modifier.testTag("constraint_charging_yes")
                         )
-                        SelectChip(
+                        CategoryChip(
                             selected = currentState == "NOT_CHARGING",
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("state" to "NOT_CHARGING"))) },
                             label = stringResource(R.string.charging_no),
@@ -456,7 +455,7 @@ fun ConstraintEditorCard(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         weekdayOptions.forEach { (day, label) ->
-                            SelectChip(
+                            CategoryChip(
                                 selected = day in selectedDays,
                                 onClick = {
                                     val next = if (day in selectedDays) {

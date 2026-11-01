@@ -589,4 +589,5 @@
     <string name="action_sms_reply_sub">Отправить сообщение отправителю SMS, запустившему сценарий</string>
     <string name="action_agent_run">Запустить ИИ-агента</string>
     <string name="action_agent_run_sub">Запускает сохранённого ИИ-агента с запросом</string>
+    <string name="back">Назад</string>
 </resources>

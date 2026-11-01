@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Настройки</string>
     <string name="search_hint">Поиск задач</string>
-    <string name="clear_search">Очистить поиск</string>
     <string name="no_search_results_title">Нет результатов</string>
     <string name="no_search_results_sub">Ни одна задача не соответствует вашему запросу.</string>
     <string name="run_now">Запустить сейчас</string>
@@ -288,4 +287,20 @@
     <string name="ask_nexaflow">Спросить NexaFlow…</string>
 
     <string name="task_restore_failed">Не удалось восстановить прежние настройки задачи: %1$s</string>
+    <string name="dashboard_title">Рутины</string>
+    <string name="dashboard_caption">%1$d задач · %2$d активных</string>
+    <string name="bento_next_run">Следующий запуск</string>
+    <string name="bento_today">Сегодня</string>
+    <string name="bento_runs">запусков</string>
+    <string name="bento_no_upcoming">Нет предстоящих запусков</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">%1$d запусков сегодня</string>
+    <string name="relative_in_minutes">через %1$d мин</string>
+    <string name="relative_in_hours">через %1$d ч</string>
+    <string name="relative_in_days">через %1$d дн</string>
+    <string name="flow_when">КОГДА</string>
+    <string name="flow_then">ТОГДА</string>
+    <string name="flow_reverts_auto">Автоматически возвращается при завершении рутины</string>
+    <string name="flow_exit_actions">Выполняет %1$d действий завершения</string>
+    <string name="status_error">Ошибка</string>
 </resources>

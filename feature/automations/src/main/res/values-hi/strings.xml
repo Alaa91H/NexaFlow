@@ -589,4 +589,5 @@
     <string name="action_sms_reply_sub">वर्कफ़्लो शुरू करने वाले SMS प्रेषक को संदेश भेजें</string>
     <string name="action_agent_run">AI एजेंट चलाएँ</string>
     <string name="action_agent_run_sub">सहेजे गए AI एजेंट को प्रॉम्प्ट के साथ चलाता है</string>
+    <string name="back">वापस</string>
 </resources>

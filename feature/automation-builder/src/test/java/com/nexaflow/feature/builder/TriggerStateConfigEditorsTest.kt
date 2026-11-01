@@ -183,23 +183,34 @@ class TriggerStateConfigEditorsTest {
         assertEquals("WIRELESS", latest?.config?.get("chargerType"))
     }
 
+    /**
+     * Volume is one trigger with a level per stream. The slider writes the
+     * stream's own key and mirrors the first enabled stream onto the legacy
+     * keys, so old readers and the new engine path agree.
+     */
     @Test
-    fun volumeThresholdFieldKeepsOnlyDigits() {
+    fun volumeSliderWritesPerStreamLevelsAndTheLegacyMirror() {
         var latest: TriggerDraft? = null
         host {
-            VolumeChangedConfig(
-                draft = TriggerDraft(TriggerType.VOLUME_CHANGED),
-                onConfigChange = { latest = it },
-            )
+            var draft by remember { mutableStateOf(TriggerDraft(TriggerType.VOLUME_CHANGED)) }
+            VolumeChangedConfig(draft) {
+                draft = it
+                latest = it
+            }
         }
 
-        composeRule.onNode(hasSetTextAction()).performTextReplacement("6a5")
+        composeRule
+            .onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress))
+            .performSemanticsAction(SemanticsActions.SetProgress) { set -> set(65f) }
+        composeRule.waitForIdle()
 
+        assertEquals("65", latest?.config?.get("threshold_MUSIC"))
+        assertEquals("MUSIC", latest?.config?.get("stream"))
         assertEquals("65", latest?.config?.get("threshold"))
     }
 
     @Test
-    fun brightnessThresholdFieldKeepsOnlyDigits() {
+    fun brightnessSliderStoresTheRomLevel() {
         var latest: TriggerDraft? = null
         host {
             BrightnessLevelConfig(
@@ -208,13 +219,16 @@ class TriggerStateConfigEditorsTest {
             )
         }
 
-        composeRule.onNode(hasSetTextAction()).performTextReplacement("2x1")
+        composeRule
+            .onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress))
+            .performSemanticsAction(SemanticsActions.SetProgress) { set -> set(255f) }
+        composeRule.waitForIdle()
 
-        assertEquals("21", latest?.config?.get("threshold"))
+        assertEquals("255", latest?.config?.get("threshold"))
     }
 
     @Test
-    fun storageThresholdFieldKeepsOnlyDigits() {
+    fun storageSliderStoresMegabytes() {
         var latest: TriggerDraft? = null
         host {
             StorageLowConfig(
@@ -223,13 +237,16 @@ class TriggerStateConfigEditorsTest {
             )
         }
 
-        composeRule.onNode(hasSetTextAction()).performTextReplacement("4k8")
+        composeRule
+            .onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress))
+            .performSemanticsAction(SemanticsActions.SetProgress) { set -> set(2048f) }
+        composeRule.waitForIdle()
 
-        assertEquals("48", latest?.config?.get("threshold"))
+        assertEquals("2048", latest?.config?.get("threshold"))
     }
 
     @Test
-    fun batteryTemperatureKeepsOneLeadingSignAndOneDecimalSeparator() {
+    fun batteryTemperatureSliderStoresCelsius() {
         var latest: TriggerDraft? = null
         host {
             BatteryTemperatureConfig(
@@ -238,13 +255,16 @@ class TriggerStateConfigEditorsTest {
             )
         }
 
-        composeRule.onNode(hasSetTextAction()).performTextReplacement("-1.2.3x")
+        composeRule
+            .onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress))
+            .performSemanticsAction(SemanticsActions.SetProgress) { set -> set(45.5f) }
+        composeRule.waitForIdle()
 
-        assertEquals("-1.23", latest?.config?.get("threshold"))
+        assertEquals("45.5", latest?.config?.get("threshold"))
     }
 
     @Test
-    fun screenTimeoutFieldKeepsOnlyDigits() {
+    fun screenTimeoutPresetWritesSeconds() {
         var latest: TriggerDraft? = null
         host {
             ScreenTimeoutChangedConfig(
@@ -253,9 +273,47 @@ class TriggerStateConfigEditorsTest {
             )
         }
 
-        composeRule.onNode(hasSetTextAction()).performTextReplacement("30s")
+        composeRule.onAllNodesWithText(string(R.string.schema_duration_minutes, 1L)).onFirst().performClick()
+        composeRule.waitForIdle()
 
-        assertEquals("30", latest?.config?.get("seconds"))
+        assertEquals("60", latest?.config?.get("seconds"))
+    }
+
+    @Test
+    fun chargerSourceChipWritesTheFilter() {
+        var latest: TriggerDraft? = null
+        host {
+            ChargerTriggerConfig(
+                draft = TriggerDraft(TriggerType.CHARGER),
+                onConfigChange = { latest = it },
+            )
+        }
+
+        composeRule.onNodeWithText(string(R.string.charger_source_usb)).performClick()
+        composeRule.waitForIdle()
+
+        assertEquals("USB", latest?.config?.get("chargerType"))
+    }
+
+    @Test
+    fun notificationKindChipsWriteTheCategoryFilter() {
+        var latest: TriggerDraft? = null
+        host {
+            NotificationTriggerConfig(
+                draft = TriggerDraft(TriggerType.NOTIFICATION),
+                onConfigChange = { latest = it },
+                onPickApp = {},
+                onExplainSpecial = {},
+                refreshKey = 0,
+            )
+        }
+
+        composeRule.onNodeWithText(string(R.string.notification_kind_calls)).performClick()
+        composeRule.waitForIdle()
+
+        val categories = latest?.config?.get("categories").orEmpty()
+        assertEquals(true, categories.contains("call"))
+        assertEquals(true, categories.contains("missed_call"))
     }
 
     @Test

@@ -3,21 +3,17 @@ package com.nexaflow.core.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.nexaflow.core.ui.theme.NexaFlowTheme
+import com.nexaflow.core.ui.theme.forText
 
 /**
- * Google-style section header. Shows the section title in the M3 title-small
- * role on the onSurfaceVariant color, with an optional trailing action
- * (e.g. a "+" add button) aligned to the end.
+ * Section label (13sp/700) above a group of cards or rows. Sentence case,
+ * secondary colour — the eyebrow style is reserved for NEXT RUN / WHEN / THEN.
  */
 @Composable
 fun SectionHeader(
@@ -32,27 +28,11 @@ fun SectionHeader(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.titleSmall,
+            style = NexaFlowTheme.type.sectionLabel.forText(text),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         if (trailing != null) {
             trailing()
         }
-    }
-}
-
-@Preview(name = "SectionHeader", showBackground = true)
-@Preview(name = "SectionHeader (dark)", showBackground = true)
-@Composable
-private fun SectionHeaderPreview() {
-    MaterialTheme {
-        SectionHeader(
-            text = "ROUTINES",
-            trailing = {
-                IconButton(onClick = {}) {
-                    Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                }
-            }
-        )
     }
 }

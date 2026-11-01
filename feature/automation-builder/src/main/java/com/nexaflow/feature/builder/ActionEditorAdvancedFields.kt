@@ -57,7 +57,7 @@ import com.nexaflow.core.rom.NetworkModeSnapshot
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.ShizukuShellBridge
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.variables.VariableResolver
@@ -116,7 +116,7 @@ internal fun VariableInsertChips(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             availableVariables.forEach { name ->
-                SelectChip(
+                CategoryChip(
                     selected = name.lowercase() in used,
                     onClick = {
                         val placeholder = "%$name"
@@ -153,7 +153,7 @@ internal fun ContextPathInsertChips(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            SelectChip(
+            CategoryChip(
                 selected = currentValue.contains("%CTX.", ignoreCase = true),
                 onClick = {
                     val placeholder = "%CTX.$"

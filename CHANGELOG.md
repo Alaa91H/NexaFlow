@@ -2,6 +2,56 @@
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [v3.92.0] - 2026-11-01
+
+**Ink Glass.** One design language now covers every screen: a near-black blue base, tonal cards with hairline borders, category colours that carry meaning, and a single glass Dock in place of the two floating buttons that used to cover the last routine. Behaviour, the domain model, the data layer, the Room schema (v5) and the automation engine are untouched; this release is the interface.
+
+### Added
+
+- **A design-token layer instead of per-screen styling.** The `NexaFlow Ink` seed, tonal neutrals, an `accentLabel` role and the full alpha set (hairline 7%, strong border 12%, chip 17%, divider 5%, selection tint 12%) live in `Color.kt` and `NexaFlowColors`; spacing, radii and touch targets live in `Dimens.kt`. Feature code reads tokens only, so a screen cannot drift from the system.
+- **Category colours.** `NexaFlowCategoryColors` gives every trigger and action family its own hue — time/schedule, location/device, battery/power, connectivity, notifications, sound and advanced — with light variants checked at 4.5:1 for text and 3:1 for boundaries. A routine takes the colour of its first trigger, falling back to its first action.
+- **Shared components in `core/ui-components`:** `IconTile`, `CategoryChip`, `PickerGroup`/`PickerRow`/`MultiCheck`, `SearchPill`, `StatusPill`, `Dock` with `DockPrimaryButton`, `ScreenHeader`, `FlowStepRow`, `BentoStatCard` with a six-bucket sparkline, `ScreenGlow`, and `GlassSurface` — the only blurred element in the app, with a solid fallback on API 26–30, in Battery Saver, or when the new **Glass effects** preference is Off.
+- **Bundled typography.** Plus Jakarta Sans for Latin scripts and IBM Plex Sans Arabic for Arabic, both under the SIL OFL, selected per locale: Arabic, Cyrillic, Devanagari and CJK locales keep a family that covers their glyphs.
+- **New appearance controls.** Themes gains a **Glass effects** selector (Auto / On / Off) and a **Dynamic colour** switch, both persisted in `ThemePreferences`. Ink is the default scheme; dynamic colour is opt-in.
+- **Restructured opt-in documentation:** `docs/DESIGN_SYSTEM.md` (every token and component, §8 decisions, §8.4 option depth, §8.5 schema presentation), `docs/ink-glass/TRIGGER_INVENTORY.md` (group inventory and duplicate audit), `docs/ink-glass/DEVICE_CHECKS.md` (physical-device pass) and `docs/ink-glass/MERGE.md` (how the branch is kept current with `main`).
+
+### Changed
+
+- **Dashboard.** The header keeps the routine count and the active count, a search pill opens the task search, two bento cards report the next run and today's executions with a sparkline, and routines are uniform cards that collapse to one readable row and expand into WHEN → THEN with their exit footnote. Whole-card taps replace the chevron, one card expands at a time, and the Dock — Ask pill plus a primary add button — reserves its own space so the last routine scrolls clear of it.
+- **Trigger and action picker.** A screen header with the selected count, search first, wrapping category chips, and a grouped list with 44dp tinted tiles, multi-check rows and a Dock action that disables at zero selections. The picker starts at search instead of below a special-case trigger.
+- **Automation builder.** The three-step wizard became one page: WHEN, THEN, WHEN THIS ENDS and CONSTRAINTS read top to bottom, each opening its catalogue from an Add pill, with numbered node badges, tile-coloured categories and one Dock carrying the summary, Run now and Create/Save.
+- **Option depth reduced across every trigger and action.** Bounded values are a single −/+ control with a slider and the value above it; durations are preset chips; brightness is a percentage of the ROM scale; storage uses MB/GB; temperature uses °C; the screen-timeout trigger lists the device's own `SCREEN_OFF_TIMEOUT` alongside the presets. No trigger or action asks for a typed number any more.
+- **The Device group was audited, not reordered.** Thirty near-duplicate triggers became deliberate groups — Power, Sound, Display, Device, Location, Apps and Communication — and four duplicates were removed from the *add* flow because a specific trigger already fires the same event (`CONNECTIVITY`, `USB_CONNECTED`, `WIFI_STATE`, `BLUETOOTH_DEVICE`). Saved tasks keep running and stay editable.
+- **Richer single triggers.** Volume is one trigger with a per-stream level, direction and slider; the charger trigger gained a source filter (any / wall / computer / wireless) enforced in the engine; the notification trigger gained a working app picker and the platform's real notification categories; media playback and sound are translated choices instead of free-text fields or token cycling.
+- **History, task details, settings, widgets and dialogs** now use the same tokens: grouped 28dp surfaces, 44dp tinted tiles, Ink status pills, solid sheets with a 60% scrim and no blur.
+- **The branch is rebased onto v3.91.19, not reverted against it.** Gradle 9.8.2, AGP 9.5.0, Kotlin 2.4.21, KSP 2.3.13 and material3 1.5.0-alpha29 stay exactly as that release shipped them: Haze is the only added dependency (version catalog plus checksums for the Compose Multiplatform metadata it pulls), every slider goes through `SyncedSlider` instead of the removed value overload, and the R8 Hilt keep rules, Sentry data-collection defaults and lint gates are intact.
+
+### Fixed
+
+- **Arabic no longer receives letter-spacing or uppercasing.** Both are gated on the script of the string rather than the app locale, so mixed titles such as “تشغيل GPS” keep their joining in any language.
+- **Bidi-safe user text.** Every user-authored title (routine, trigger, action) uses content text direction with start alignment, so Arabic and Latin names render correctly inside the same list.
+- **Contrast and layout faults found on a real device** (Android 17, 393dp, Arabic RTL): the Ask pill uses its own `askPillLabel` role because `onPrimaryContainer` can come back darker than the pill under Material You, the bento caption wraps instead of truncating at font scale 200%, the bento row measures both cards equally, every switch uses one contrast-checked `NexaFlowSwitch` (the default off thumb measured 2.2:1), and the category chip strip wraps instead of hiding options behind an edge fade.
+- **Battery threshold options are visible choices.** Direction, charger type and charging state are labelled chips instead of one button that cycled through values, with the same stored tokens as before.
+- **The charge-source, notification, media and runtime options are translated** in all ten locales instead of rendering storage tokens.
+
+### Removed
+
+- `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes, together with every `alternatingIndex` parameter: category-coloured tiles on uniform cards replace the alternating grey surfaces.
+- **Every timing and tuning layer inside a trigger or action.** The “Trigger filters” block (debounce, rate limit, minimum interval, cooldown, stability window, hysteresis), the advanced trigger-expression editor (ALL / ANY / NOT / SEQUENCE / COUNT, nested groups, sample preview, seconds window) and the HTTP action's timeout, retries, retry backoff and response output path are gone from the interface; 27 string keys were deleted in all ten locales. Stored values and engine behaviour are untouched — saved tasks keep their tuned settings, stored expressions keep running, and an expression that no longer validates is dropped on save instead of blocking it.
+- `BoundedNumberField` and the action timer's numeric box, replaced by the −/+ control and preset chips.
+- `noto_sans_arabic.ttf`, unused since the Arabic family became IBM Plex Sans Arabic, so the release carries no orphaned font.
+- **18 string keys whose screens no longer exist** — the builder's file picker, coordinate fields, secret-store errors, clamp hints, brightness/storage direction hints, the battery cycling labels and the old dashboard search hint — in all ten locales, so the resource gate reports zero orphans.
+
+### Tests and verification
+
+- New coverage: `InkContrastTest` (real Ink schemes and every category tile at 4.5:1 text / 3:1 boundary), glass-mode resolution (API level × Battery Saver × preference), sparkline bucketing, script-aware typography (`ScriptArabicGate`, `ScriptTypographyTest`), category mapping and fallback rules, the updated design tokens, `SchemaFieldPresentationTest`, `ChargerSourceFilterTest`, notification-kind cases in `NotificationTriggerMatcherTest`, and a per-stream case in `VolumeMonitorLifecycleTest`. `AlternatingSurfaceTest` was replaced by the category-mapping tests; `DesignTokensTest` now pins the new `Dimens`; `RoutineCard*Test`, `TaskCardExpansionTest`, `NavigationStyleTest`, `NexaFlowMotionTest` and `DashboardFabActionsTest` still pass.
+- Local gates before pushing: `:app:assembleDebug` (warnings are errors), `:app:assembleRelease` with R8 and resource shrinking, `lintDebug` (no errors), `detekt` on all modules, and the unit suites of `:app`, `:core:ui-components`, `:core:datastore`, `:feature:automation-builder`, `:feature:dashboard`, `:feature:automations`, `:feature:history` and `:feature:themes`. Dependency verification passes with the merged metadata.
+- The architecture-fitness ratchet records the three screens this redesign made larger (the dashboard now owns its bento/search/Dock wiring; the details and agent-settings screens grew by a handful of bytes) and leaves every other pinned hotspot unchanged or smaller.
+- CI runs the full matrix on the tag: string parity and translation completeness in ten locales, hardcoded-text and vendor-neutrality gates, catalog parity, atomic inventory and architecture fitness, coverage and diff-coverage gates, the complete unit-test suite, signed APK verification and the 16 KB alignment check.
+- A physical-device pass on Android 17 is recorded in `docs/ink-glass/DEVICE_CHECKS.md`, including the glass Dock, Arabic RTL, font scale 200% and the picker/builder screens; screenshots are attached to that document.
+
 ## [v3.91.19] - 2026-11-01
 
 ### Fixed

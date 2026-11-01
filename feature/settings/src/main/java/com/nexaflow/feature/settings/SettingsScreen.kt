@@ -50,7 +50,6 @@ import java.io.File
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -92,6 +91,7 @@ import com.nexaflow.core.datastore.AppLanguageManager
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.UpdateCheckFrequency
 import com.nexaflow.core.compat.ChannelTier
+import com.nexaflow.core.ui.NexaFlowSwitch
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.CheckableRow
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -239,7 +239,6 @@ fun SettingsScreen(navController: NavController) {
                             tappedGroup = SettingsGroupId.AUTOMATION
                         )
                     },
-                    alternatingIndex = 0
                 ) {
                 SettingRow(
                     icon = Icons.Filled.Code,
@@ -295,7 +294,6 @@ fun SettingsScreen(navController: NavController) {
                             tappedGroup = SettingsGroupId.BACKUP
                         )
                     },
-                    alternatingIndex = 1
                 ) {
                 SettingRow(
                     icon = Icons.Filled.Upload,
@@ -344,7 +342,6 @@ fun SettingsScreen(navController: NavController) {
                             tappedGroup = SettingsGroupId.UPDATES
                         )
                     },
-                    alternatingIndex = 2
                 ) {
                     SettingRow(
                         icon = Icons.Filled.SystemUpdate,
@@ -357,7 +354,7 @@ fun SettingsScreen(navController: NavController) {
                             }
                         ),
                         trailing = {
-                            Switch(
+                            NexaFlowSwitch(
                                 checked = updateSettings.automaticChecksEnabled,
                                 onCheckedChange = updateSettingsViewModel::setAutomaticChecksEnabled
                             )
@@ -468,7 +465,6 @@ fun SettingsScreen(navController: NavController) {
                             tappedGroup = SettingsGroupId.LOCATION
                         )
                     },
-                    alternatingIndex = 3
                 ) {
                     SettingRow(
                         icon = Icons.Filled.MyLocation,
@@ -513,7 +509,6 @@ fun SettingsScreen(navController: NavController) {
                             tappedGroup = SettingsGroupId.APPEARANCE
                         )
                     },
-                    alternatingIndex = 4
                 ) {
                 SettingRow(
                     icon = Icons.Filled.Palette,
@@ -556,7 +551,6 @@ fun SettingsScreen(navController: NavController) {
                             tappedGroup = SettingsGroupId.ABOUT
                         )
                     },
-                    alternatingIndex = 5
                 ) {
                 // The About information is listed here directly, like the
                 // version above: a user looking for the channel, the community
@@ -616,12 +610,10 @@ private fun SettingsGroupCard(
     title: String,
     expanded: Boolean,
     onExpandedChange: () -> Unit,
-    alternatingIndex: Int,
     content: @Composable ColumnScope.() -> Unit
 ) {
     NexaFlowCard(
         modifier = Modifier.animateContentSize(),
-        alternatingIndex = alternatingIndex
     ) {
         SectionHeader(
             text = title,

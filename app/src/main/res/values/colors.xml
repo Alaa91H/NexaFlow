@@ -4,5 +4,5 @@
          the solid white adaptive background. -->
     <!-- Branded splash (core-splashscreen): matches the white canvas so the
          splash flows into the adaptive icon seamlessly. -->
-    <color name="splash_background">#FFFFFF</color>
+    <color name="splash_background">#F6F7FB</color>
 </resources>

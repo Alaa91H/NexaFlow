@@ -2,6 +2,7 @@ package com.nexaflow.feature.themes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.datastore.GlassEffectsMode
 import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.ThemeSettings
@@ -30,5 +31,9 @@ class ThemeViewModel @Inject constructor(
 
     fun setDynamicColor(enabled: Boolean) {
         viewModelScope.launch { themePreferences.setDynamicColor(enabled) }
+    }
+
+    fun setGlassEffects(mode: GlassEffectsMode) {
+        viewModelScope.launch { themePreferences.setGlassEffects(mode) }
     }
 }

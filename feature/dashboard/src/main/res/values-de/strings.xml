@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Einstellungen</string>
     <string name="search_hint">Aufgaben suchen</string>
-    <string name="clear_search">Suche löschen</string>
     <string name="no_search_results_title">Keine Ergebnisse</string>
     <string name="no_search_results_sub">Keine Aufgaben passen zu deiner Suche.</string>
     <string name="run_now">Jetzt ausführen</string>
@@ -288,4 +287,20 @@
     <string name="ask_nexaflow">NexaFlow fragen…</string>
 
     <string name="task_restore_failed">Die vorherigen Aufgabeneinstellungen konnten nicht wiederhergestellt werden: %1$s</string>
+    <string name="dashboard_title">Routinen</string>
+    <string name="dashboard_caption">%1$d Aufgaben · %2$d aktiv</string>
+    <string name="bento_next_run">Nächster Lauf</string>
+    <string name="bento_today">Heute</string>
+    <string name="bento_runs">Läufe</string>
+    <string name="bento_no_upcoming">Keine anstehenden Läufe</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">%1$d Läufe heute</string>
+    <string name="relative_in_minutes">in %1$d Min.</string>
+    <string name="relative_in_hours">in %1$d Std.</string>
+    <string name="relative_in_days">in %1$d Tagen</string>
+    <string name="flow_when">WENN</string>
+    <string name="flow_then">DANN</string>
+    <string name="flow_reverts_auto">Wird beim Ende der Routine automatisch zurückgesetzt</string>
+    <string name="flow_exit_actions">Führt %1$d Endaktionen aus</string>
+    <string name="status_error">Fehler</string>
 </resources>

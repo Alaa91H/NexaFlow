@@ -47,6 +47,7 @@ PROTOCOL_ALLOWLIST = {
     "docs/RESEARCH_2026.md",  # cited external research sources
     "docs/research/android-automation-expansion-evidence.md",  # external source citations
     "docs/ux/options-simplification-plan-ar.md",  # cites external design references
+    "docs/ink-glass/DEVICE_CHECKS.md",  # device-pass evidence names the test handset
     "docs/superpowers/plans/2026-08-05-project-improvement.md",  # historical planning record
     "docs/superpowers/plans/2026-08-07-exit-options-icons-permissions.md",  # historical planning record
 }

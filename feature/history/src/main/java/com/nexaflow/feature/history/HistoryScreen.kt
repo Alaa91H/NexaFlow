@@ -1,6 +1,8 @@
 ﻿package com.nexaflow.feature.history
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +13,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
@@ -25,6 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -41,12 +47,18 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.nexaflow.core.ui.CategoryChip
+import com.nexaflow.core.ui.CategoryChipRow
+import com.nexaflow.core.ui.Dimens
 import com.nexaflow.core.ui.EmptyState
-import com.nexaflow.core.ui.IconBadge
-import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.theme.NexaFlowTheme
-import com.nexaflow.core.ui.NexaFlowTopBar
+import com.nexaflow.core.ui.IconTile
+import com.nexaflow.core.ui.ScreenHeader
 import com.nexaflow.core.ui.StatusPill
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.theme.NexaFlowCategory
+import com.nexaflow.core.ui.theme.NexaFlowTheme
+import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 import com.nexaflow.domain.models.ExecutionHistoryOutcome
 import com.nexaflow.domain.models.ExecutionOutcomeClassifier
 import com.nexaflow.domain.models.ExecutionRecord
@@ -88,12 +100,22 @@ internal fun HistoryContent(
 ) {
     Scaffold(
         topBar = {
-            NexaFlowTopBar(
-                title = stringResource(
-                    if (isRoutineHistory) R.string.routine_history_title else R.string.history_title
-                ),
-                onBack = onBack
-            )
+            // Ink (§7.4): the sub-screen header instead of the app top bar.
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = Dimens.Space4,
+                    vertical = Dimens.Space2
+                )
+            ) {
+                ScreenHeader(
+                    title = stringResource(
+                        if (isRoutineHistory) R.string.routine_history_title else R.string.history_title
+                    ),
+                    onBack = onBack,
+                    backContentDescription = stringResource(R.string.back),
+                    titleStyle = NexaFlowTheme.type.subScreenTitle
+                )
+            }
         }
     ) { padding ->
         when (val refresh = history.loadState.refresh) {
@@ -178,9 +200,19 @@ internal fun HistoryContent(
                 ) { index ->
                     val entry = history[index]
                     if (entry != null) {
-                        HistoryCard(
+                        val previous = if (index > 0) history[index - 1] else null
+                        val next = if (index + 1 < history.itemCount) history[index + 1] else null
+                        val startsDay = previous == null ||
+                            dayOf(previous.executedAt) != dayOf(entry.executedAt)
+                        val endsDay = next == null ||
+                            dayOf(next.executedAt) != dayOf(entry.executedAt)
+                        if (startsDay) {
+                            HistoryDayLabel(executedAt = entry.executedAt)
+                        }
+                        HistoryRow(
                             entry = entry,
-                            alternatingIndex = index,
+                            isFirstOfDay = startsDay,
+                            isLastOfDay = endsDay,
                             onClick = { onOpen(entry.id) }
                         )
                     }
@@ -213,33 +245,70 @@ internal fun HistoryContent(
 }
 
 @Composable
-private fun HistoryCard(
+private fun HistoryRow(
     entry: ExecutionRecord,
-    alternatingIndex: Int,
+    isFirstOfDay: Boolean,
+    isLastOfDay: Boolean,
     onClick: () -> Unit
 ) {
     val locale = LocalConfiguration.current.locales[0]
-    val timeFormat = remember(locale) { SimpleDateFormat("MMM d, HH:mm", locale) }
-    NexaFlowCard(
-        modifier = Modifier.clickable { onClick() },
-        alternatingIndex = alternatingIndex
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            IconBadge(
-                icon = Icons.Filled.Bolt,
-                containerColor = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
-                contentColor = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
+    val timeFormat = remember(locale) { SimpleDateFormat("HH:mm", locale) }
+    val succeeded = entry.success || ExecutionOutcomeClassifier.isSkipped(entry)
+    val shape = RoundedCornerShape(
+        topStart = if (isFirstOfDay) Dimens.GroupRadius else 0.dp,
+        topEnd = if (isFirstOfDay) Dimens.GroupRadius else 0.dp,
+        bottomStart = if (isLastOfDay) Dimens.GroupRadius else 0.dp,
+        bottomEnd = if (isLastOfDay) Dimens.GroupRadius else 0.dp
+    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .border(
+                Dimens.HairlineBorder,
+                MaterialTheme.colorScheme.onSurface.copy(alpha = NexaFlowAlphas.HairlineBorder),
+                shape
             )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = entry.automationName, style = MaterialTheme.typography.titleSmall)
+            .clickable { onClick() }
+    ) {
+        if (!isFirstOfDay) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Dimens.HairlineBorder)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = NexaFlowAlphas.Divider))
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.Space4, vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Dimens.TileTextGap)
+        ) {
+            IconTile(
+                icon = Icons.Filled.Bolt,
+                category = NexaFlowCategory.ADVANCED,
+                size = Dimens.PickerTile,
+                radius = Dimens.PickerTileRadius,
+                picker = true
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = entry.automationName,
+                    style = NexaFlowTheme.type.pickerRowTitle.forUserText(entry.automationName),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Text(
                     text = stringResource(com.nexaflow.core.execution.ExecutionResultPresentation.summaryRes(entry)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary,
+                    style = NexaFlowTheme.type.meta,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
                 // Skips carry the exact reason in the backend diagnostic message
@@ -255,7 +324,7 @@ private fun HistoryCard(
                 if (!skipReason.isNullOrEmpty()) {
                     Text(
                         text = skipReason,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = NexaFlowTheme.type.meta,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2
                     )
@@ -268,14 +337,14 @@ private fun HistoryCard(
                             R.string.executed_via,
                             stringResource(channelLabelRes(channel))
                         ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
+                        style = NexaFlowTheme.type.meta,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Text(
                     text = timeFormat.format(Date(entry.executedAt)),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    style = NexaFlowTheme.type.meta,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             StatusPill(
@@ -286,11 +355,43 @@ private fun HistoryCard(
                         else -> R.string.status_success
                     }
                 ),
-                background = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
-                contentColor = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
+                background = if (succeeded) {
+                    NexaFlowTheme.colors.successContainer
+                } else {
+                    MaterialTheme.colorScheme.errorContainer
+                },
+                contentColor = if (succeeded) {
+                    NexaFlowTheme.colors.success
+                } else {
+                    MaterialTheme.colorScheme.error
+                }
             )
         }
     }
+}
+
+/** 13sp/700 day separator above the first run of each day (§7.4). */
+@Composable
+private fun HistoryDayLabel(executedAt: Long) {
+    val locale = LocalConfiguration.current.locales[0]
+    val dayFormat = remember(locale) { SimpleDateFormat("EEEE, MMM d", locale) }
+    Text(
+        text = dayFormat.format(Date(executedAt)),
+        style = NexaFlowTheme.type.sectionLabel.forText(dayFormat.format(Date(executedAt))),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = Dimens.Space1, top = Dimens.Space2)
+    )
+}
+
+/** Start-of-day bucket used to group history rows without a second query. */
+private fun dayOf(epochMillis: Long): Long {
+    val calendar = java.util.Calendar.getInstance()
+    calendar.timeInMillis = epochMillis
+    calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+    calendar.set(java.util.Calendar.MINUTE, 0)
+    calendar.set(java.util.Calendar.SECOND, 0)
+    calendar.set(java.util.Calendar.MILLISECOND, 0)
+    return calendar.timeInMillis
 }
 
 /** Maps the stored channel name to its localized label. */
@@ -314,25 +415,23 @@ private fun HistoryOutcomeFilters(
     selectedOutcome: ExecutionHistoryOutcome?,
     onSelectedOutcomeChange: (ExecutionHistoryOutcome?) -> Unit
 ) {
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        FilterChip(
+    // Ink (§7.4): the same category chips as the picker instead of stock
+    // FilterChips, so the filter row matches the rest of the app.
+    CategoryChipRow {
+        CategoryChip(
             selected = selectedOutcome == null,
             onClick = { onSelectedOutcomeChange(null) },
-            label = { Text(stringResource(R.string.history_filter_all_runs)) }
+            label = stringResource(R.string.history_filter_all_runs)
         )
-        FilterChip(
+        CategoryChip(
             selected = selectedOutcome == ExecutionHistoryOutcome.FAILED,
             onClick = { onSelectedOutcomeChange(ExecutionHistoryOutcome.FAILED) },
-            label = { Text(stringResource(R.string.history_filter_failed)) }
+            label = stringResource(R.string.history_filter_failed)
         )
-        FilterChip(
+        CategoryChip(
             selected = selectedOutcome == ExecutionHistoryOutcome.SKIPPED,
             onClick = { onSelectedOutcomeChange(ExecutionHistoryOutcome.SKIPPED) },
-            label = { Text(stringResource(R.string.history_filter_skipped)) }
+            label = stringResource(R.string.history_filter_skipped)
         )
     }
 }

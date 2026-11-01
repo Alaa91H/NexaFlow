@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">設定</string>
     <string name="search_hint">タスクを検索</string>
-    <string name="clear_search">検索をクリア</string>
     <string name="no_search_results_title">結果なし</string>
     <string name="no_search_results_sub">検索に一致するタスクがありません。</string>
     <string name="run_now">今すぐ実行</string>
@@ -288,4 +287,20 @@
     <string name="ask_nexaflow">NexaFlow に質問…</string>
 
     <string name="task_restore_failed">タスクの以前の設定を復元できませんでした: %1$s</string>
+    <string name="dashboard_title">ルーティン</string>
+    <string name="dashboard_caption">%1$d件のタスク · %2$d件が有効</string>
+    <string name="bento_next_run">次回実行</string>
+    <string name="bento_today">今日</string>
+    <string name="bento_runs">回実行</string>
+    <string name="bento_no_upcoming">予定された実行はありません</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">今日は%1$d回実行</string>
+    <string name="relative_in_minutes">%1$d分後</string>
+    <string name="relative_in_hours">%1$d時間後</string>
+    <string name="relative_in_days">%1$d日後</string>
+    <string name="flow_when">トリガー</string>
+    <string name="flow_then">アクション</string>
+    <string name="flow_reverts_auto">ルーティン終了時に自動で戻します</string>
+    <string name="flow_exit_actions">終了アクションを%1$d件実行</string>
+    <string name="status_error">エラー</string>
 </resources>

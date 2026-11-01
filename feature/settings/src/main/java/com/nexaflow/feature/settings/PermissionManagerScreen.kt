@@ -347,14 +347,13 @@ fun PermissionManagerScreen(
                 SectionHeader(text = stringResource(R.string.section_automation))
             }
             item {
-                NexaFlowCard(alternatingIndex = 0) {
+                NexaFlowCard() {
                     entries.forEachIndexed { index, entry ->
                         val granted = grantedStates[entry.key] ?: false
                         SettingRow(
                             icon = entry.icon,
                             title = stringResource(entry.titleRes),
                             subtitle = stringResource(entry.subtitleRes),
-                            alternatingIndex = index,
                             trailing = {
                                 TextButton(onClick = { openPermission(entry) }) {
                                     Text(

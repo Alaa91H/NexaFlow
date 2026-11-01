@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Ayarlar</string>
     <string name="search_hint">Görevlerde ara</string>
-    <string name="clear_search">Aramayı temizle</string>
     <string name="no_search_results_title">Sonuç yok</string>
     <string name="no_search_results_sub">Aramanızla eşleşen görev yok.</string>
     <string name="run_now">Şimdi çalıştır</string>
@@ -288,4 +287,20 @@
     <string name="ask_nexaflow">NexaFlow’a sor…</string>
 
     <string name="task_restore_failed">Görevin önceki ayarları geri yüklenemedi: %1$s</string>
+    <string name="dashboard_title">Rutinler</string>
+    <string name="dashboard_caption">%1$d görev · %2$d etkin</string>
+    <string name="bento_next_run">Sonraki çalışma</string>
+    <string name="bento_today">Bugün</string>
+    <string name="bento_runs">çalışma</string>
+    <string name="bento_no_upcoming">Yaklaşan çalışma yok</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">Bugün %1$d çalışma</string>
+    <string name="relative_in_minutes">%1$d dk içinde</string>
+    <string name="relative_in_hours">%1$d sa içinde</string>
+    <string name="relative_in_days">%1$d gün içinde</string>
+    <string name="flow_when">NE ZAMAN</string>
+    <string name="flow_then">SONRA</string>
+    <string name="flow_reverts_auto">Rutin bittiğinde otomatik olarak geri alınır</string>
+    <string name="flow_exit_actions">%1$d çıkış işlemi çalıştırır</string>
+    <string name="status_error">Hata</string>
 </resources>

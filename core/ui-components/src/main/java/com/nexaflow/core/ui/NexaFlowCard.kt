@@ -1,65 +1,51 @@
 package com.nexaflow.core.ui
 
-import android.content.res.Configuration
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.nexaflow.core.ui.Dimens.Space4
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
 
 /**
- * Google-style filled card. Borderless, 16dp radius, resting on the tonal
- * surface-container tier — the same recipe Google apps (Tasks, Keep, Clock)
- * use for content blocks.
+ * The single content surface of Ink Glass (§6): 24dp radius,
+ * `surfaceContainerLow`, a 1dp hairline, 14dp vertical / 16dp horizontal
+ * padding and no elevation. Category meaning lives in the icon tile, so cards
+ * themselves are uniform — the old alternating grey surfaces are gone.
  */
 @Composable
 fun NexaFlowCard(
     modifier: Modifier = Modifier,
-    containerColor: Color? = null,
-    alternatingIndex: Int? = null,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    radius: Dp = Dimens.CardRadius,
+    contentPadding: PaddingValues = PaddingValues(
+        horizontal = Dimens.Space4,
+        vertical = Dimens.TileTextGap
+    ),
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val resolvedContainerColor = containerColor
-        ?: alternatingIndex?.let { alternatingSurfaceColor(it) }
-        ?: MaterialTheme.colorScheme.surfaceContainerLow
-    Card(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = resolvedContainerColor,
-            contentColor = contentColor
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(radius),
+        color = containerColor,
+        contentColor = contentColor,
+        border = BorderStroke(
+            Dimens.HairlineBorder,
+            MaterialTheme.colorScheme.onSurface.copy(alpha = NexaFlowAlphas.HairlineBorder)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
     ) {
-        Column(modifier = Modifier.padding(Space4), content = content)
-    }
-}
-
-@Preview(name = "NexaFlowCard", showBackground = true)
-@Preview(name = "NexaFlowCard (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(name = "NexaFlowCard (RTL)", showBackground = true, locale = "ar")
-@Composable
-private fun NexaFlowCardPreview() {
-    MaterialTheme {
-        NexaFlowCard {
-            Text(
-                text = "Morning Mode",
-                style = MaterialTheme.typography.titleSmall
-            )
-            Text(
-                text = "When · Time · Then · 3 actions",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
-        }
+        Column(modifier = Modifier.padding(contentPadding), content = content)
     }
 }

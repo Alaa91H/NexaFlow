@@ -32,6 +32,37 @@ class DesignTokensTest {
         assertEquals(Dimens.NavigationBarHeight, 80.dp)
     }
 
+    @Test
+    fun inkDimensMatchTheReference() {
+        assertEquals(Dimens.CardRadius, 24.dp)
+        assertEquals(Dimens.GroupRadius, 28.dp)
+        assertEquals(Dimens.RoutineTile, 48.dp)
+        assertEquals(Dimens.PickerTile, 44.dp)
+        assertEquals(Dimens.SearchHeight, 52.dp)
+        assertEquals(Dimens.ChipHeight, 40.dp)
+        assertEquals(Dimens.CheckSize, 28.dp)
+        assertEquals(Dimens.DockHeight, 68.dp)
+        assertEquals(Dimens.DockRadius, 34.dp)
+        assertEquals(Dimens.DockButton, 52.dp)
+    }
+
+    @Test
+    fun categoryPaletteHasSevenDistinctHues() {
+        val dark = com.nexaflow.core.ui.theme.DarkNexaFlowCategoryColors
+        val hues = listOf(
+            dark.time, dark.location, dark.power, dark.connectivity,
+            dark.notifications, dark.sound, dark.advanced
+        )
+        assertEquals(7, hues.toSet().size)
+        assertEquals(Color(0xFF7FE0A6), dark.power)
+        assertEquals(Color(0xFFB9A4FF), dark.time)
+    }
+
+    @Test
+    fun accentLabelIsThePeriwinkleRole() {
+        assertEquals(Color(0xFF8B9AFF), DarkNexaFlowColors.accentLabel)
+    }
+
     // --- NexaFlowColors: dark-aware success/warning families ---
     @Test
     fun light_successMatchesM3GreenTone40() {

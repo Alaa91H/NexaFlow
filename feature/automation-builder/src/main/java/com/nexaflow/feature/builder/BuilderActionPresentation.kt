@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,8 +41,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.core.rom.NetworkModePolicy
+import com.nexaflow.core.ui.Dock
+import com.nexaflow.core.ui.DockPrimaryButton
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.NexaFlowFloatingActionButton
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -353,33 +355,39 @@ internal fun actionSummaryDetail(option: ActionOption, config: Map<String, Strin
         else -> null
     }
 
-/** The sole lower navigation action for the current builder station. */
+/**
+ * The builder's Dock (§7.3). The builder is one page now, so there is no
+ * per-step Continue button: the leading slot states what the routine already
+ * contains and the trailing [DockPrimaryButton] is the single action that
+ * finishes it — the same glass Dock every other screen uses.
+ */
 @Composable
-internal fun BuilderBottomPrimaryAction(
-    step: Int,
+internal fun BuilderDock(
+    isEditing: Boolean,
     triggerCount: Int,
     actionCount: Int,
-    onAdvance: (Int) -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    // One clear lower action per station: When → Do → Review → Save.
-    when {
-        step == 0 && triggerCount > 0 -> NexaFlowFloatingActionButton(
-            onClick = { onAdvance(1) },
-            icon = Icons.AutoMirrored.Filled.ArrowForward,
-            label = stringResource(R.string.permission_continue)
-        )
-        step == 1 && actionCount > 0 -> NexaFlowFloatingActionButton(
-            onClick = { onAdvance(2) },
-            icon = Icons.AutoMirrored.Filled.ArrowForward,
-            label = stringResource(R.string.quick_save)
-        )
-        step == 2 && triggerCount > 0 && actionCount > 0 -> NexaFlowFloatingActionButton(
-            onClick = onSave,
-            icon = Icons.Filled.Check,
-            label = stringResource(R.string.create_task)
-        )
-    }
+    val summary = stringResource(R.string.builder_dock_summary, triggerCount, actionCount)
+    Dock(
+        modifier = modifier,
+        leading = {
+            Text(
+                text = summary,
+                style = NexaFlowTheme.type.meta,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        action = {
+            DockPrimaryButton(
+                label = stringResource(if (isEditing) R.string.save else R.string.create_task),
+                onClick = onSave
+            )
+        }
+    )
 }
 
 @Composable
@@ -415,12 +423,9 @@ internal fun SelectedActionCard(
     onDragDelta: (Float) -> Unit = {},
     onDragEnd: () -> Unit = {}
 ) {
-    val accent = builderCardAccent(index)
-    NexaFlowCard(
-        modifier = modifier,
-        containerColor = builderCardContainerColor(index),
-        contentColor = builderCardContentColor
-    ) {
+    // Ink: uniform card, category-coloured identity (§7.3).
+    val category = NexaFlowTheme.categories.of(option.category.toInkCategory())
+    NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
@@ -465,8 +470,8 @@ internal fun SelectedActionCard(
                 )
                 TaskNumberBadge(
                     number = index + 1,
-                    containerColor = accent,
-                    contentColor = Color.White
+                    containerColor = category.copy(alpha = NexaFlowAlphas.SelectedRowTint),
+                    contentColor = category
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,

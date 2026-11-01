@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.RebootMode
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 
 /**
  * Editor for the reboot action's declared `mode` field.
@@ -38,7 +38,7 @@ internal fun RebootTargetEditor(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             RebootMode.selectable.forEach { mode ->
-                SelectChip(
+                CategoryChip(
                     selected = (config["mode"] ?: RebootMode.NORMAL) == mode,
                     onClick = { onConfigChange(config + ("mode" to mode)) },
                     label = mode

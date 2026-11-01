@@ -179,12 +179,15 @@ class VolumeMonitor @Inject constructor(
                 .forEach { automation ->
                     val triggerIndex = automation.triggers.indexOfFirst { it.type == TriggerType.VOLUME_CHANGED }
                     val trigger = automation.triggers[triggerIndex]
-                    val streamName = configuredStream(trigger)
-                    val percentage = percentages[streamName]
+                    // One volume trigger can watch several sound streams, each
+                    // with its own level (see the builder's per-stream editor).
+                    val readings = configuredStreams(trigger).mapNotNull { stream ->
+                        percentages[stream]?.let { stream to it }
+                    }
                     val state = runtimeStore.current(automation.id)
                     val recheckKey = "${automation.id}:$triggerIndex"
 
-                    if (percentage == null) {
+                    if (readings.isEmpty()) {
                         stabilityRechecks.cancel(recheckKey)
                         debounceRechecks.cancel(recheckKey)
                         executionEngine.evaluateTriggerStability(automation, triggerIndex, ConditionResult.Unknown)
@@ -193,14 +196,25 @@ class VolumeMonitor @Inject constructor(
                         return@forEach
                     }
 
-                    val threshold = (trigger.config["threshold"] ?: DEFAULT_THRESHOLD.toString())
-                        .toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: DEFAULT_THRESHOLD.toDouble()
-                    val above = (trigger.config["direction"] ?: "ABOVE") != "BELOW"
+                    // Hysteresis is a legacy tuning knob (no UI), so it keeps
+                    // evaluating the first watched stream.
+                    val (primaryStream, primaryPercentage) = readings.first()
+                    val matchesNow = readings.any { (stream, percentage) ->
+                        matches(trigger, percentage, stream)
+                    }
+                    val matchingStream = readings
+                        .firstOrNull { (stream, percentage) -> matches(trigger, percentage, stream) }
+                        ?.first
+                        ?: primaryStream
                     val observation = if ("hysteresis" in trigger.config) {
                         executionEngine.evaluateTriggerThreshold(
-                            automation, triggerIndex, percentage.toDouble(), threshold, above,
+                            automation,
+                            triggerIndex,
+                            primaryPercentage.toDouble(),
+                            thresholdFor(trigger, primaryStream).toDouble(),
+                            isAboveFor(trigger, primaryStream),
                         )
-                    } else if (matches(trigger, percentage)) ConditionResult.Satisfied
+                    } else if (matchesNow) ConditionResult.Satisfied
                     else ConditionResult.Unsatisfied
                     val stable = executionEngine.evaluateTriggerStability(automation, triggerIndex, observation)
                     val stableForMs = (TriggerTemporalFilterConfigParser.parse(trigger.config)
@@ -216,7 +230,7 @@ class VolumeMonitor @Inject constructor(
                         ConditionResult.Satisfied -> when {
                             state?.source == SOURCE -> markLegacyActive(state)
                             state != null -> clearLegacyState(automation.id)
-                            else -> activate(automation, streamName, triggerIndex)
+                            else -> activate(automation, matchingStream, triggerIndex)
                         }
                         ConditionResult.Unsatisfied -> if (state?.source == SOURCE) {
                             requestExit(automation, ExitReason.TRIGGER_FALSE, state.occurrenceId)
@@ -263,12 +277,16 @@ class VolumeMonitor @Inject constructor(
             executionEngine.evaluateTriggerStability(automation, triggerIndex, ConditionResult.Unknown)
             return
         }
-        val threshold = (trigger.config["threshold"] ?: DEFAULT_THRESHOLD.toString())
-            .toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: DEFAULT_THRESHOLD.toDouble()
-        val above = (trigger.config["direction"] ?: "ABOVE") != "BELOW"
         val observation = if ("hysteresis" in trigger.config) {
-            executionEngine.evaluateTriggerThreshold(automation, triggerIndex, percentage.toDouble(), threshold, above)
-        } else if (matches(trigger, percentage)) ConditionResult.Satisfied else ConditionResult.Unsatisfied
+            executionEngine.evaluateTriggerThreshold(
+                automation,
+                triggerIndex,
+                percentage.toDouble(),
+                thresholdFor(trigger, streamName).toDouble(),
+                isAboveFor(trigger, streamName),
+            )
+        } else if (matches(trigger, percentage, streamName)) ConditionResult.Satisfied
+        else ConditionResult.Unsatisfied
         if (executionEngine.evaluateTriggerStability(automation, triggerIndex, observation).result != ConditionResult.Satisfied) return
         if (executionEngine.admitDebouncedTrigger(automation, triggerIndex) == TriggerFilterDecision.Allowed) {
             scope.launch {
@@ -427,16 +445,36 @@ class VolumeMonitor @Inject constructor(
         }
     }
 
-    private fun matches(trigger: Trigger, percentage: Int): Boolean {
-        val threshold = trigger.config["threshold"]
+    private fun matches(trigger: Trigger, percentage: Int, stream: String): Boolean {
+        val threshold = thresholdFor(trigger, stream)
+        return if (!isAboveFor(trigger, stream)) percentage <= threshold else percentage >= threshold
+    }
+
+    /**
+     * Level of one watched stream. `threshold_<STREAM>` is written by the
+     * per-stream editor; `threshold` remains the fallback so tasks saved before
+     * per-stream levels keep their exact behaviour.
+     */
+    private fun thresholdFor(trigger: Trigger, stream: String): Int =
+        (trigger.config["threshold_$stream"] ?: trigger.config["threshold"])
             ?.toIntOrNull()
             ?.coerceIn(0, 100)
             ?: DEFAULT_THRESHOLD
-        return if ((trigger.config["direction"] ?: "ABOVE") == "BELOW") {
-            percentage <= threshold
-        } else {
-            percentage >= threshold
-        }
+
+    private fun isAboveFor(trigger: Trigger, stream: String): Boolean =
+        (trigger.config["direction_$stream"] ?: trigger.config["direction"] ?: "ABOVE") != "BELOW"
+
+    /**
+     * Streams this trigger watches. New tasks declare `streams`; legacy tasks
+     * carry a single `stream` and are read as that one stream.
+     */
+    private fun configuredStreams(trigger: Trigger): List<String> {
+        val declared = trigger.config["streams"].orEmpty()
+            .split(',')
+            .map(String::trim)
+            .filter { it in STREAMS }
+            .distinct()
+        return declared.ifEmpty { listOf(configuredStream(trigger)) }
     }
 
     private fun configuredStream(trigger: Trigger): String =

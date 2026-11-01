@@ -165,18 +165,38 @@ class LegacyTriggerCardRenderTest {
     }
 
     @Test
-    fun volumeTriggerOpensTheStreamAndDirectionSection() {
+    fun volumeTriggerOpensThePerStreamSection() {
         render(TriggerType.VOLUME_CHANGED)
 
-        assertText(R.string.volume_stream)
-        assertText(R.string.volume_direction)
+        // One trigger lists every stream with its own level and direction.
+        assertText(R.string.volume_stream_music)
+        assertText(R.string.volume_above)
+        assertText(R.string.volume_streams_hint)
+    }
+
+    @Test
+    fun chargerTriggerOffersItsChargingSources() {
+        render(TriggerType.CHARGER)
+
+        assertText(R.string.charger_source_label)
+        assertText(R.string.charger_source_usb)
+        assertText(R.string.charger_source_ac)
+    }
+
+    @Test
+    fun notificationTriggerOffersAppAndKindFilters() {
+        render(TriggerType.NOTIFICATION)
+
+        assertText(R.string.choose_apps)
+        assertText(R.string.notification_kind_label)
+        assertText(R.string.notification_kind_messages)
     }
 
     @Test
     fun brightnessTriggerOpensItsDirectionAndThreshold() {
         render(TriggerType.BRIGHTNESS_LEVEL)
 
-        assertText(R.string.trigger_brightness_direction)
+        assertText(R.string.volume_above)
         assertText(R.string.trigger_brightness_threshold)
     }
 
@@ -184,7 +204,7 @@ class LegacyTriggerCardRenderTest {
     fun storageTriggerOpensItsDirectionAndThreshold() {
         render(TriggerType.STORAGE_LOW)
 
-        assertText(R.string.trigger_storage_direction)
+        assertText(R.string.storage_below)
         assertText(R.string.trigger_storage_threshold)
     }
 
@@ -217,10 +237,12 @@ class LegacyTriggerCardRenderTest {
     }
 
     @Test
-    fun screenTimeoutTriggerOpensItsSecondsField() {
+    fun screenTimeoutTriggerOpensTheRomPresets() {
         render(TriggerType.SCREEN_TIMEOUT_CHANGED)
 
-        assertText(R.string.trigger_desc_screen_timeout)
+        // The choices are the ROM's own timeout values, not a typed number.
+        assertText(R.string.trigger_timeout_hint)
+        assertText(R.string.schema_duration_minutes, 1L)
     }
 
     @Test
@@ -235,7 +257,8 @@ class LegacyTriggerCardRenderTest {
         render(TriggerType.WEAR_EVENT)
 
         assertText(R.string.trigger_wear_event_sub)
-        assertText(R.string.state)
+        assertText(R.string.state_connected)
+        assertText(R.string.state_disconnected)
     }
 
     @Test

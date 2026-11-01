@@ -36,10 +36,10 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * The category picker is shared by the trigger and action catalogues. It must
- * stay a single horizontally scrollable strip; wrapping chips into a second
- * line lets the following catalogue rows paint into the same visual space on
- * compact RTL phones.
+ * The category picker is shared by the trigger and action catalogues. The chips
+ * wrap onto a second line so no category is hidden off-screen (the old strip
+ * clipped the last ones at 390dp); wrapping must still lay the catalogue out
+ * strictly *below* the chip block, never in the same visual space.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -57,10 +57,14 @@ class CategoryAccordionLayoutTest {
                 LocalDensity provides Density(density = 1f, fontScale = 1.8f)
             ) {
                 MaterialTheme {
+                    // Wrapped chips take two or more rows at 1.8x font scale, so
+                    // the container is tall enough for the catalogue beneath
+                    // them to stay on screen. The real screen scrolls; this test
+                    // asserts ordering, not viewport fit.
                     Box(
                         modifier = Modifier
                             .width(200.dp)
-                            .height(260.dp)
+                            .height(600.dp)
                     ) {
                         CategoryAccordion(
                             tabs = listOf(
@@ -98,11 +102,11 @@ class CategoryAccordionLayoutTest {
             .boundsInRoot
 
         assertTrue(
-            "Category tabs must occupy one bounded strip instead of wrapping: $tabsBounds",
-            tabsBounds.height <= 72f
+            "Wrapped chips must stay a bounded block, not fill the screen: $tabsBounds",
+            tabsBounds.height in 1f..420f
         )
         assertTrue(
-            "Catalog content must start below the category tabs: tabs=$tabsBounds, content=$contentBounds",
+            "Catalog content must start below the wrapped chips: tabs=$tabsBounds, content=$contentBounds",
             contentBounds.top >= tabsBounds.bottom
         )
     }
@@ -217,13 +221,18 @@ class CategoryAccordionLayoutTest {
 
         composeRule.onAllNodesWithTag("stale_category_content").assertCountEquals(0)
         assertTrue(
-            "A long localised category label must remain within the capped chip width: $firstTabBounds",
-            firstTabBounds.width <= 180f
+            "A long label must not widen its chip past the container: $firstTabBounds",
+            firstTabBounds.width <= 160f
         )
         assertTrue(
-            "The tab strip must retain a single-row height under a 2x RTL font scale: $tabsBounds",
-            tabsBounds.height <= 72f
+            "Wrapping must keep every chip on screen inside a bounded block: $tabsBounds",
+            tabsBounds.height in 1f..420f
         )
+        // The whole point of wrapping: all three long-labelled chips are laid
+        // out and visible, instead of the last ones sitting off-screen.
+        (0..2).forEach { index ->
+            composeRule.onNodeWithTag("category_tab_$index").assertIsDisplayed()
+        }
     }
 
     /**

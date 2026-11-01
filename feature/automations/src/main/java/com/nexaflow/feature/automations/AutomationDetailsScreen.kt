@@ -75,7 +75,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHost
@@ -110,14 +109,18 @@ import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.ManualAdmissionDiagnostics
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.core.execution.RecoveryReviewItem
+import com.nexaflow.core.ui.Dimens
 import com.nexaflow.core.ui.EmptyState
+import com.nexaflow.core.ui.HeaderIconButton
+import com.nexaflow.core.ui.ScreenHeader
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.produceState
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.NexaFlowSwitch
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.alternatingSurfaceColor
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
@@ -183,36 +186,43 @@ fun AutomationDetailsScreen(navController: NavController) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            NexaFlowTopBar(
-                title = stringResource(R.string.automation_title),
-                onBack = { navController.popBackStack() },
-                actions = {
-                    // P2-5: pin this task as a home-screen shortcut that runs it
-                    // through the nexaflow://run-task/{id} deep link.
-                    IconButton(
-                        onClick = {
-                            automation?.let { createTaskShortcut(context, it) }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.AddToHomeScreen,
-                            contentDescription = stringResource(R.string.add_shortcut)
+            // Ink (§7.4): the sub-screen header plus circular header buttons.
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = Dimens.Space4,
+                    vertical = Dimens.Space2
+                )
+            ) {
+                ScreenHeader(
+                    title = stringResource(R.string.automation_title),
+                    onBack = { navController.popBackStack() },
+                    backContentDescription = stringResource(R.string.back),
+                    titleStyle = NexaFlowTheme.type.subScreenTitle,
+                    actions = {
+                        // P2-5: pin this task as a home-screen shortcut that runs it
+                        // through the nexaflow://run-task/{id} deep link.
+                        HeaderIconButton(
+                            icon = Icons.AutoMirrored.Filled.AddToHomeScreen,
+                            contentDescription = stringResource(R.string.add_shortcut),
+                            onClick = { automation?.let { createTaskShortcut(context, it) } }
+                        )
+                        HeaderIconButton(
+                            icon = Icons.Filled.Edit,
+                            contentDescription = stringResource(R.string.edit),
+                            onClick = {
+                                automation?.let {
+                                    navController.navigate("automation_builder?automationId=${it.id}")
+                                }
+                            }
+                        )
+                        HeaderIconButton(
+                            icon = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete),
+                            onClick = { viewModel.delete { navController.popBackStack() } }
                         )
                     }
-                    IconButton(
-                        onClick = {
-                            automation?.let {
-                                navController.navigate("automation_builder?automationId=${it.id}")
-                            }
-                        }
-                    ) {
-                        Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(R.string.edit))
-                    }
-                    IconButton(onClick = { viewModel.delete { navController.popBackStack() } }) {
-                        Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
-                    }
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         val current = automation
@@ -288,7 +298,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.secondary
                             )
-                            Switch(
+                            NexaFlowSwitch(
                                 checked = current.enabled,
                                 onCheckedChange = { viewModel.toggleEnabled(it) }
                             )
@@ -319,7 +329,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     onRefresh = viewModel::refreshDiagnostics
                 )
                 AutomationDetailsSectionCard(
-                    index = 0,
                     title = stringResource(R.string.section_triggers),
                     expanded = triggersExpanded,
                     onExpandedChange = { triggersExpanded = !triggersExpanded }
@@ -337,7 +346,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 icon = icon,
                                 title = stringResource(titleRes),
                                 subtitle = stringResource(subtitleRes),
-                                alternatingIndex = index,
                                 trailing = {
                                     Text(
                                         text = triggerDetail(trigger.config),
@@ -350,7 +358,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 AutomationDetailsSectionCard(
-                    index = 1,
                     title = stringResource(R.string.section_constraints),
                     expanded = constraintsExpanded,
                     onExpandedChange = { constraintsExpanded = !constraintsExpanded }
@@ -368,7 +375,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 icon = icon,
                                 title = stringResource(titleRes),
                                 subtitle = stringResource(R.string.constraint_subtitle),
-                                alternatingIndex = index,
                                 trailing = {
                                     Text(
                                         text = constraintDetail(constraint.config),
@@ -381,7 +387,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 AutomationDetailsSectionCard(
-                    index = 2,
                     title = stringResource(R.string.section_actions),
                     expanded = actionsExpanded,
                     onExpandedChange = { actionsExpanded = !actionsExpanded }
@@ -399,7 +404,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 icon = icon,
                                 title = stringResource(titleRes),
                                 subtitle = stringResource(subtitleRes),
-                                alternatingIndex = index,
                                 trailing = {
                                     val detailText = actionDetail(action.config)
                                     val endText = endBehaviorText(action)
@@ -427,7 +431,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 AutomationDetailsSectionCard(
-                    index = 3,
                     title = stringResource(R.string.section_exit_behavior),
                     expanded = exitBehaviorExpanded,
                     onExpandedChange = { exitBehaviorExpanded = !exitBehaviorExpanded }
@@ -457,7 +460,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                     icon = icon,
                                     title = stringResource(titleRes),
                                     subtitle = endBehaviorText(action).orEmpty(),
-                                    alternatingIndex = index
                                 )
                             }
                             current.exitActions.forEachIndexed { index, action ->
@@ -466,7 +468,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                                     icon = icon,
                                     title = stringResource(titleRes),
                                     subtitle = stringResource(subtitleRes),
-                                    alternatingIndex = perActionEndBehaviors.size + index
                                 )
                             }
                         }
@@ -606,14 +607,12 @@ fun AutomationDetailsScreen(navController: NavController) {
  */
 @Composable
 private fun AutomationDetailsSectionCard(
-    index: Int,
     title: String,
     expanded: Boolean,
     onExpandedChange: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val containerColor = alternatingSurfaceColor(index)
-    NexaFlowCard(containerColor = containerColor) {
+    NexaFlowCard() {
         SectionHeader(
             text = title,
             modifier = Modifier

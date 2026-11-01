@@ -28,4 +28,10 @@
     <string name="dynamic_color_sub">Use wallpaper colors (Material You)</string>
     <string name="accent_disabled_hint">Available when Dynamic color is off</string>
     <string name="preview_dynamic">Wallpaper colors (Material You)</string>
+    <string name="accent_ink">Ink</string>
+    <string name="glass_effects">Glass effects</string>
+    <string name="glass_effects_sub">Blur the Dock; falls back automatically on unsupported devices.</string>
+    <string name="glass_auto">Auto</string>
+    <string name="glass_on">On</string>
+    <string name="glass_off">Off</string>
 </resources>

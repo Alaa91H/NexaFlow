@@ -28,4 +28,10 @@
     <string name="dynamic_color_sub">Использовать цвета обоев (Material You)</string>
     <string name="accent_disabled_hint">Доступно, когда динамический цвет отключён</string>
     <string name="preview_dynamic">Цвета обоев (Material You)</string>
+    <string name="accent_ink">Ink</string>
+    <string name="glass_effects">Стеклянные эффекты</string>
+    <string name="glass_effects_sub">Размывает док; на неподдерживаемых устройствах заменяется автоматически.</string>
+    <string name="glass_auto">Авто</string>
+    <string name="glass_on">Вкл.</string>
+    <string name="glass_off">Выкл.</string>
 </resources>

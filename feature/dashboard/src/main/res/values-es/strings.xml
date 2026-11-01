@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Ajustes</string>
     <string name="search_hint">Buscar tareas</string>
-    <string name="clear_search">Borrar búsqueda</string>
     <string name="no_search_results_title">Sin resultados</string>
     <string name="no_search_results_sub">Ninguna tarea coincide con tu búsqueda.</string>
     <string name="run_now">Ejecutar ahora</string>
@@ -288,4 +287,20 @@
     <string name="ask_nexaflow">Pregunta a NexaFlow…</string>
 
     <string name="task_restore_failed">No se pudo restaurar la configuración anterior de la tarea: %1$s</string>
+    <string name="dashboard_title">Rutinas</string>
+    <string name="dashboard_caption">%1$d tareas · %2$d activas</string>
+    <string name="bento_next_run">Próxima ejecución</string>
+    <string name="bento_today">Hoy</string>
+    <string name="bento_runs">ejecuciones</string>
+    <string name="bento_no_upcoming">Sin ejecuciones próximas</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">%1$d ejecuciones hoy</string>
+    <string name="relative_in_minutes">en %1$d min</string>
+    <string name="relative_in_hours">en %1$d h</string>
+    <string name="relative_in_days">en %1$d d</string>
+    <string name="flow_when">CUÁNDO</string>
+    <string name="flow_then">ENTONCES</string>
+    <string name="flow_reverts_auto">Se revierte automáticamente al terminar la rutina</string>
+    <string name="flow_exit_actions">Ejecuta %1$d acciones de salida</string>
+    <string name="status_error">Error</string>
 </resources>

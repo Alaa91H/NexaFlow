@@ -85,9 +85,7 @@ class RoutineCardLiveStateTest {
                         healthReport = report
                     ),
                     summary = "Health summary",
-                    nextRun = null,
                     isRunning = false,
-                    containerColor = Color.DarkGray,
                     expanded = true,
                     menuExpanded = false,
                     onRun = {},
@@ -152,9 +150,7 @@ class RoutineCardLiveStateTest {
                 RoutineCard(
                     row = AutomationRow(automation = automation, lastRunAt = null),
                     summary = "Disabled exit failure summary",
-                    nextRun = null,
                     isRunning = false,
-                    containerColor = Color.DarkGray,
                     expanded = true,
                     menuExpanded = false,
                     onRun = {},
@@ -229,9 +225,7 @@ class RoutineCardLiveStateTest {
                 RoutineCard(
                     row = AutomationRow(automation = automation, lastRunAt = null),
                     summary = "Active lifecycle summary",
-                    nextRun = null,
                     isRunning = false,
-                    containerColor = Color.DarkGray,
                     expanded = true,
                     menuExpanded = false,
                     onRun = {},
@@ -255,7 +249,9 @@ class RoutineCardLiveStateTest {
             }.getOrDefault(false)
         }
 
-        composeRule.onNodeWithText("Summary").assertIsDisplayed()
+        // The "Summary" detail block is gone: the expanded card now renders the
+        // flow as WHEN/THEN chips (§7.1), while the plain summary text remains
+        // as the card's meta line.
         composeRule.onNodeWithText("Active lifecycle summary").assertIsDisplayed()
         composeRule.onNodeWithText("Conditions are active and the task is currently in effect")
             .assertIsDisplayed()
@@ -295,9 +291,7 @@ class RoutineCardLiveStateTest {
                         lastRunAt = null
                     ),
                     summary = "Rotation test",
-                    nextRun = null,
                     isRunning = false,
-                    containerColor = Color.DarkGray,
                     expanded = true,
                     menuExpanded = false,
                     onRun = {},

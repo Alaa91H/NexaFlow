@@ -110,7 +110,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import com.nexaflow.domain.catalog.AutomationNodeFamily
 import com.nexaflow.domain.models.TriggerType
@@ -313,7 +313,13 @@ internal fun triggerSummary(draft: TriggerDraft): String {
                 .split(',').map { it.trim() }.filter { it.isNotEmpty() }
             val app = if (packages.isEmpty()) stringResource(R.string.any_app)
             else stringResource(R.string.selected_apps_count, packages.size)
-            "$app · ${c["event"] ?: "POSTED"}"
+            val event = when (c["event"] ?: "POSTED") {
+                "REMOVED" -> stringResource(R.string.notification_event_removed)
+                else -> stringResource(R.string.schema_token_posted)
+            }
+            val kinds = notificationKindsFor(notificationKindCategories(c))
+                .map { kind -> stringResource(notificationKindLabelRes(kind)) }
+            listOf(app, event, kinds.joinToString(", ")).filter(String::isNotBlank).joinToString(" · ")
         }
         TriggerType.WEBHOOK -> "${c["method"] ?: "POST"} ${c["path"] ?: "/nexaflow"}"
         TriggerType.ROM_SETTING -> {
@@ -325,9 +331,18 @@ internal fun triggerSummary(draft: TriggerDraft): String {
             "DISCONNECTED" -> stringResource(R.string.state_disconnected)
             else -> stringResource(R.string.state_connected)
         }
-        TriggerType.CHARGER -> when (c["event"] ?: "CONNECTED") {
-            "DISCONNECTED" -> stringResource(R.string.state_disconnected)
-            else -> stringResource(R.string.state_connected)
+        TriggerType.CHARGER -> {
+            val event = when (c["event"] ?: "CONNECTED") {
+                "DISCONNECTED" -> stringResource(R.string.state_disconnected)
+                else -> stringResource(R.string.state_connected)
+            }
+            val source = when (c["chargerType"] ?: "ANY") {
+                "AC" -> stringResource(R.string.charger_source_ac)
+                "USB" -> stringResource(R.string.charger_source_usb)
+                "WIRELESS" -> stringResource(R.string.charger_wireless)
+                else -> null
+            }
+            listOfNotNull(event, source).joinToString(" · ")
         }
         TriggerType.AIRPLANE_MODE ->
             if ((c["state"] ?: "ON") == "ON") stringResource(R.string.builder_state_on)
@@ -353,18 +368,25 @@ internal fun triggerSummary(draft: TriggerDraft): String {
             if ((c["event"] ?: "STARTED") == "STARTED") stringResource(R.string.media_started)
             else stringResource(R.string.media_stopped)
         TriggerType.VOLUME_CHANGED -> {
-            val stream = when (c["stream"] ?: "MUSIC") {
-                "RING" -> stringResource(R.string.volume_stream_ring)
-                "ALARM" -> stringResource(R.string.volume_stream_alarm)
-                "NOTIFICATION" -> stringResource(R.string.volume_stream_notification)
-                else -> stringResource(R.string.volume_stream_music)
+            // "Music above 60% · Ring below 20%" — the collapsed card states
+            // every level the single trigger watches.
+            val levels = mutableListOf<String>()
+            for (setting in volumeStreamSettings(c).filter { it.enabled }) {
+                val stream = when (setting.stream) {
+                    "RING" -> stringResource(R.string.volume_stream_ring)
+                    "ALARM" -> stringResource(R.string.volume_stream_alarm)
+                    "NOTIFICATION" -> stringResource(R.string.volume_stream_notification)
+                    else -> stringResource(R.string.volume_stream_music)
+                }
+                val direction = if (setting.direction == "ABOVE") {
+                    stringResource(R.string.volume_above)
+                } else {
+                    stringResource(R.string.volume_below)
+                }
+                levels += "$stream $direction " +
+                    stringResource(R.string.schema_value_percent, setting.threshold)
             }
-            val direction = if ((c["direction"] ?: "ABOVE") == "ABOVE") {
-                stringResource(R.string.volume_above)
-            } else {
-                stringResource(R.string.volume_below)
-            }
-            "$stream · $direction ${c["threshold"] ?: "50"}"
+            levels.joinToString(" · ")
         }
         // Simple ON/OFF state triggers (custom labels + plain toggle).
         TriggerType.POWER_SAVER, TriggerType.BLUETOOTH_STATE, TriggerType.AUTO_ROTATE,
@@ -380,7 +402,13 @@ internal fun triggerSummary(draft: TriggerDraft): String {
             } else {
                 stringResource(R.string.volume_below)
             }
-            "$direction ${c["threshold"] ?: "128"}"
+            // Stored on the ROM's 0..255 scale; shown as the percentage the
+            // system shade shows.
+            val level = (c["threshold"] ?: "128").toIntOrNull()?.coerceIn(0, 255) ?: 128
+            "$direction " + stringResource(
+                R.string.schema_value_percent,
+                (level / 255f * 100f).toInt().coerceIn(0, 100),
+            )
         }
         TriggerType.STORAGE_LOW -> {
             val direction = if ((c["direction"] ?: "BELOW") == "BELOW") {
@@ -388,7 +416,16 @@ internal fun triggerSummary(draft: TriggerDraft): String {
             } else {
                 stringResource(R.string.storage_above)
             }
-            "$direction ${c["threshold"] ?: "1024"} MB"
+            val megabytes = (c["threshold"] ?: "1024").toIntOrNull()?.coerceAtLeast(0) ?: 1024
+            val amount = if (megabytes >= 1024) {
+                stringResource(
+                    R.string.schema_value_gigabytes,
+                    (megabytes / 1024f).let { if (it == it.toInt().toFloat()) it.toInt().toString() else String.format(java.util.Locale.US, "%.1f", it) },
+                )
+            } else {
+                stringResource(R.string.schema_value_megabytes, megabytes.toString())
+            }
+            "$direction $amount"
         }
         TriggerType.DEVICE_LOCKED ->
             if ((c["state"] ?: "LOCKED") == "LOCKED") stringResource(R.string.device_locked)

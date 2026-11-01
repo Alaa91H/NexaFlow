@@ -589,4 +589,5 @@
     <string name="action_sms_reply_sub">Envoyer un message à l’expéditeur du SMS à l’origine de ce flux</string>
     <string name="action_agent_run">Exécuter un agent IA</string>
     <string name="action_agent_run_sub">Exécute un agent IA enregistré avec une consigne</string>
+    <string name="back">Retour</string>
 </resources>

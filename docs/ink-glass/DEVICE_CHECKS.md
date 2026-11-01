@@ -1,0 +1,167 @@
+# Ink Glass — device pass
+
+Run on a real handset, not an emulator: Xiaomi 23049PCD8G (Redmi Note 12 Turbo),
+**Android 17 / API 37**, 1080 × 2400 at 440 dpi ≈ **393dp** wide — the reference
+artboard is 390dp, so spacing and type land on the same grid.
+
+```bash
+adb install -r app/build/outputs/apk/release/app-release.apk   # debug-signed
+```
+
+Screenshots in `docs/ink-glass/screenshots/`.
+
+| # | Shot | What it shows |
+| --- | --- | --- |
+| 01 | `01-launch.png` | Ink dashboard, Arabic RTL, glass Dock |
+| 02 | `02-builder.png` | Builder, conditions picker (Arabic) |
+| 03 | `03-picker-selected.png` | Picker with a selected row + count |
+| 04 | `04-settings.png` | Settings |
+| 05 | `05-themes.png` | Themes: modes, Dynamic colour, **Glass effects** |
+| 06 | `06-fontscale200.png` | Font scale 2.0 |
+| 07 | `07-dynamic-scheme.png` | Material You scheme (dynamic colour on) |
+| 08 | `08-dashboard-ink-ar.png` | Ink dashboard after the fixes, Arabic |
+| 09 | `09-dashboard-ink-en.png` | Ink dashboard, English LTR |
+| 10 | `10-picker-wrapped-chips.png` | Picker opening on search, all six category chips wrapped |
+| 11 | `11-battery-below-options.png` | Battery threshold moved below the catalogue |
+
+## Verified on the device
+
+* **Ink scheme renders as specified**: `#0A0D14` background, `#141926` cards with
+  the 1dp hairline, `#6D8CFF` primary, `#8B9AFF` eyebrows (sampled from the PNG:
+  the plus button measured exactly `#6D8CFF`, the dock `#262D3E`).
+* **Exactly one glass element per screen** — the Dock. Glass sits on the halo of
+  the two background glows, so the blur has something to refract.
+* **RTL is first-class**: title/start alignment, settings at the end, Dock's Ask
+  pill at the start (right) and the add button at the end (left), category chips
+  and picker rows mirrored, numerals and time strings untouched.
+* **Bento row is now level** — `IntrinsicSize.Max` keeps the sparkline card and
+  the next-run card the same height (they differed before the fix).
+* **Glass effects selector** (Auto / On / Off) and **Dynamic colour** switch are
+  present and persisted; Auto is the default and was the selected chip.
+* **Dynamic colour actually re-themes the Ink alphas** — the dashboard turned
+  neutral grey (`#212124`) with a wallpaper `primary` (`#AEC6FF`), i.e. the
+  "dynamic → M3 roles, keep the alpha tokens" rule from §5.1.
+* **Font scale 200%**: titles wrap, cards grow, the Dock keeps its layout. Two
+  defects were found here and fixed (see below).
+* **Semantics tree** (uiautomator, the same nodes TalkBack reads): the settings
+  button is "الإعدادات", the add button "مهمة جديدة", and the sparkline exposes
+  "0 تشغيلات اليوم" — the text equivalent from §9.
+
+## Defects the device found, fixed in this branch
+
+1. **Bento caption truncated at 200%** — "لا توجد تشغيلات قادمة" collapsed to
+   "لا توجد" because the caption was `maxLines = 1`. Now wraps to two lines.
+2. **Unequal bento heights** — the next-run card was shorter than the sparkline
+   card; the row now measures both cards together.
+3. **Ask pill unreadable under a dynamic scheme** — the label used
+   `onPrimaryContainer`, and the wallpaper palette handed back a *darker* tone
+   (`#002457`) on the 6% pill, dropping it to near-invisible. Added the
+   `askPillLabel` role (`#C9D3FF` in Ink, `primary` under dynamic colour) and
+   gated it in `InkContrastTest`.
+4. **Off switch thumb 2.2:1** — Material's default `outline` on the Ink off
+   track; replaced by the shared `NexaFlowSwitch` on `switchThumbOff`.
+
+## Ordering and option-clarity pass (requested after the first device run)
+
+* **The list starts at the search field.** The battery threshold trigger was
+  rendered above the catalogue, so the card opened on a one-off trigger and
+  pushed search, the chips and the rows down. It now renders as its own section
+  *below* all options (`BatteryThresholdSection`), and the picker no longer
+  prints its title twice — the section header is the only heading, so search is
+  the first control.
+* **All category chips fit.** The strip scrolled sideways with a trailing fade
+  and clipped the last categories at 390dp; it now wraps onto a second line with
+  natural widths, so الجدولة / الجهاز / الاتصال / الموقع / التطبيقات / التواصل
+  are all visible and comparable. Same for the eight action categories.
+* **Battery arguments are explicit choices.** The old controls cycled a value on
+  each tap (`Charger: ANY` → AC → USB → WIRELESS → ANY), hiding the option set
+  and punishing a mis-tap. Direction, charger type and charging state are now
+  labelled chip rows — one tap selects, every option visible, identical stored
+  tokens (`BELOW`/`ABOVE`, `ANY`/`AC`/`USB`/`WIRELESS`,
+  `ANY`/`CHARGING`/`NOT_CHARGING`), so existing tasks and the engine are
+  unaffected.
+
+## Option-simplification pass (requested after the ordering pass)
+
+* **Why.** A trigger or action editor was showing tuning layers on top of the
+  choice itself — millisecond debounce/rate-limit/cooldown/stability/hysteresis
+  fields on most triggers, a five-mode expression builder with nested groups and
+  second windows on the WHEN station, and timeout/retry/backoff/output-path knobs
+  on HTTP requests. None of them are needed to say *when* something happens or
+  *what* should run, and they made a two-field choice read as an unexplained
+  form.
+* **What was removed.** The `trigger_temporal_filters_title` block from both the
+  canonical and the specialised trigger editors, the schema helper that built it,
+  `TriggerExpressionEditorCard` and its preview component, and the HTTP advanced
+  tail. 27 string keys per locale (270 lines) were deleted across the 10 locales,
+  so the strings cannot reappear from a stale resource.
+* **What was deliberately kept.** The configuration schema still accepts those
+  fields and the engine still reads them: a task saved earlier keeps its tuned
+  values, its stored expression still evaluates, and nothing in `domain/`,
+  `core/execution` or the Room schema changed. A stored expression that no longer
+  validates is dropped on save (the builder could otherwise block forever on a
+  rule it can no longer open).
+
+### Verification for this pass
+
+| Check | Result |
+| --- | --- |
+| `:feature:automation-builder:testDebugUnitTest` | PASS (includes the rewritten `TriggerExpressionReferenceRepairTest`, which now asserts the stored-runtime contract without the deleted preview) |
+| `:app:assembleDebug` | PASS |
+| `:app:lintDebug` | PASS — 0 errors, 5 pre-existing warnings; the 11 locale files lint clean after the deletions |
+| Removed resources in the shipped APK | PASS — `aapt2 dump resources app-debug.apk` contains no `trigger_temporal_filters_title`, `trigger_expression_*` or `http_retry*` entries |
+| Device (b3a3beb3, Android 17, Arabic RTL) | PASS — the new APK was installed and driven into the builder. Adding the «تغير مستوى الصوت» trigger, the type that used to carry the widest filter block (debounce, stability, hysteresis, rate limit, cooldown, minimum interval), opens a sheet with only الدفق / الاتجاه / الحد / حفظ. The WHEN station shows no «تعبير محفزات متقدم» card. A text dump of both screens matched **zero** of `فلاتر` / `التثبيط` / `التهدئة` / `التباين` / `استقرار` / `حد المعدل` / `تعبير محفزات`. Screenshot: `screenshots/12-volume-trigger-sheet.png`. The phone dropped off adb before the second (device-trigger) sheet could be captured, so that one is covered by the code removal and the APK resource dump rather than by a screenshot. |
+
+## Single-page builder (§7.3)
+
+* **What was wrong.** "New task" opened a three-step wizard: a
+  `LinearWavyProgressIndicator` over a `PrimaryTabRow` (WHEN / THEN / WHEN THIS
+  ENDS), a Continue button that only advanced a step, and a name/icon card that
+  stayed hidden until the last step. The page had to be scrolled inside a tab
+  that clipped, and the task's own Dock could not save until the wizard reached
+  its third step.
+* **What replaced it.** One scrolling page: header card (icon + name) → WHEN →
+  THEN → WHEN THIS ENDS → CONSTRAINTS, each a 24dp card with its own section
+  header. The two catalogues now open from an `AddNodeButton` pill inside their
+  station and collapse again on confirm, so the page is not permanently doubled
+  in length and a saved task opens on its own flow. The Dock (`BuilderDock`) is
+  the single action: summary on the leading side, `Create task` / `Save` on the
+  trailing side.
+* **Logic untouched.** Draft state, pickers, drag reordering, permission
+  repair, template prefill and `BuilderSaveCoordinator` are unchanged; the exit
+  behaviour and the constraint list simply moved into their own cards instead of
+  living inside the third step's `else` branch.
+
+### Verification for this pass
+
+| Check | Result |
+| --- | --- |
+| `:feature:automation-builder:testDebugUnitTest` | PASS — `BuilderDockTest` replaces `BuilderBottomPrimaryActionTest`: save in one tap, `Save` while editing, the summary text, and an empty routine still offering the action |
+| `:app:assembleDebug` | PASS |
+| `:app:lintDebug` | PASS — 0 errors (see the run log in the branch notes) |
+| Device | Not re-driven for this pass: the phone dropped off adb after the trigger-sheet check. The wizard chrome is deleted code, so there is no path that can still render it; the page order is pinned by the section comments and the Dock by its test. |
+
+## Trigger option rebuild (duplicate audit, sliders, charger sources, notification kinds)
+
+| Check | Result |
+| --- | --- |
+| `:feature:automation-builder:testDebugUnitTest` | PASS — 187 tests, including the rewritten slider/charger/notification render tests and `SchemaFieldPresentationTest` |
+| `:core:automation-engine:testDebugUnitTest` | PASS — `ChargerSourceFilterTest`, notification-kind cases, per-stream volume case |
+| `:app:assembleDebug` | PASS |
+| `:app:lintDebug --rerun-tasks` | PASS — 0 errors, 5 pre-existing warnings; the 10 locale files gained the new keys, so `MissingTranslation` is clean |
+| Device | **Not re-driven**: `adb devices` lists no attached phone on this machine. The controls are covered by Robolectric render tests, but the Arabic rendering of the new rows and the ON/OFF of the new kinds row have not been seen running. |
+
+Two engine paths changed behaviour and must be exercised on hardware before the
+release: charging from a USB computer versus the wall (source filter) and one
+volume trigger watching two streams with different levels.
+
+## Still open
+
+* **TalkBack speech** was not listened to. The semantics tree was inspected
+  instead; the announcement wording still wants a human ear.
+* **Macrobenchmark scroll (50 routines)** is not written or measured — the
+  `:macrobenchmark` module only carries startup and planner benchmarks, and the
+  P90 budget is a measurement, so no number is claimed here.
+* **Routine card / details / history** were not captured on the device: the
+  builder needs a wired trigger-action pair first, and blind `adb input` taps
+  through the config sheets are not a reliable way to create one.

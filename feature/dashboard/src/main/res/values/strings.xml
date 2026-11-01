@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">Settings</string>
     <string name="search_hint">Search tasks</string>
-    <string name="clear_search">Clear search</string>
     <string name="no_search_results_title">No results</string>
     <string name="no_search_results_sub">No tasks match your search.</string>
     <string name="run_now">Run now</string>
@@ -287,4 +286,20 @@
     <string name="trigger_wear_event">Wear OS watch</string>
 
     <string name="ask_nexaflow">Ask NexaFlow…</string>
+    <string name="dashboard_title">Routines</string>
+    <string name="dashboard_caption">%1$d tasks · %2$d active</string>
+    <string name="bento_next_run">Next run</string>
+    <string name="bento_today">Today</string>
+    <string name="bento_runs">runs</string>
+    <string name="bento_no_upcoming">No upcoming runs</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">%1$d runs today</string>
+    <string name="relative_in_minutes">in %1$d min</string>
+    <string name="relative_in_hours">in %1$d h</string>
+    <string name="relative_in_days">in %1$d d</string>
+    <string name="flow_when">WHEN</string>
+    <string name="flow_then">THEN</string>
+    <string name="flow_reverts_auto">Reverts automatically when the routine ends</string>
+    <string name="flow_exit_actions">Runs %1$d exit actions</string>
+    <string name="status_error">Error</string>
 </resources>

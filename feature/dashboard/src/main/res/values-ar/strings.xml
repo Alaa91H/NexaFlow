@@ -2,7 +2,6 @@
 <resources>
     <string name="dashboard_settings">الإعدادات</string>
     <string name="search_hint">ابحث في المهام</string>
-    <string name="clear_search">مسح البحث</string>
     <string name="no_search_results_title">لا توجد نتائج</string>
     <string name="no_search_results_sub">لا توجد مهام تطابق بحثك.</string>
     <string name="run_now">تشغيل الآن</string>
@@ -287,4 +286,20 @@
     <string name="trigger_wear_event">ساعة Wear OS</string>
 
     <string name="ask_nexaflow">اسأل NexaFlow</string>
+    <string name="dashboard_title">الروتينات</string>
+    <string name="dashboard_caption">%1$d مهام · %2$d نشطة</string>
+    <string name="bento_next_run">التشغيل القادم</string>
+    <string name="bento_today">اليوم</string>
+    <string name="bento_runs">تشغيلات</string>
+    <string name="bento_no_upcoming">لا توجد تشغيلات قادمة</string>
+    <string name="bento_next_caption">%1$s · %2$s</string>
+    <string name="bento_today_a11y">%1$d تشغيلات اليوم</string>
+    <string name="relative_in_minutes">خلال %1$d دقيقة</string>
+    <string name="relative_in_hours">خلال %1$d ساعة</string>
+    <string name="relative_in_days">خلال %1$d يوم</string>
+    <string name="flow_when">عندما</string>
+    <string name="flow_then">إذن</string>
+    <string name="flow_reverts_auto">يُعاد تلقائيًا عند انتهاء الروتين</string>
+    <string name="flow_exit_actions">ينفّذ %1$d إجراءات إنهاء</string>
+    <string name="status_error">خطأ</string>
 </resources>

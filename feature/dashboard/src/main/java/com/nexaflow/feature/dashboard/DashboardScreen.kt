@@ -1,99 +1,116 @@
 package com.nexaflow.feature.dashboard
 
+import android.content.Intent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.Card
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.nexaflow.core.execution.ExecutionEngine
-import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
+import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.R as ExecutionR
+import com.nexaflow.core.ui.BentoStatCard
+import com.nexaflow.core.ui.Dock
+import com.nexaflow.core.ui.DockAskPill
+import com.nexaflow.core.ui.DockIconButton
 import com.nexaflow.core.ui.EmptyState
-import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.HeaderIconButton
+import com.nexaflow.core.ui.IconTile
+import com.nexaflow.core.ui.FlowStepRow
+import com.nexaflow.core.ui.NexaFlowSwitch
+import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
+import com.nexaflow.core.ui.StatusPill
+import com.nexaflow.core.ui.StatusPillVariant
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.ScreenGlowVariant
+import com.nexaflow.core.ui.ScreenHeader
+import com.nexaflow.core.ui.SearchPill
 import com.nexaflow.core.ui.SectionHeader
+import com.nexaflow.core.ui.Dimens
+import com.nexaflow.core.ui.executionBuckets
+import com.nexaflow.core.ui.glassSource
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.core.ui.rememberInstalledAppPresentation
+import com.nexaflow.core.ui.screenGlow
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
+import com.nexaflow.core.ui.theme.NexaFlowCategory
+import com.nexaflow.core.ui.theme.NexaFlowTheme
+import com.nexaflow.core.ui.theme.forText
+import com.nexaflow.core.ui.theme.forUserText
 import com.nexaflow.domain.models.Action
-import com.nexaflow.domain.models.hasExecutableEndBehavior
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
-import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
-import com.nexaflow.feature.automations.actionPresentation
+import com.nexaflow.domain.models.hasExecutableEndBehavior
+import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
+import com.nexaflow.feature.automations.actionPresentation
+import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.core.content.FileProvider
-import android.content.Intent
-import java.io.File
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -101,7 +118,8 @@ fun DashboardScreen(navController: NavController) {
     val rows by viewModel.automations.collectAsStateWithLifecycle()
     val runningIds by viewModel.runningIds.collectAsStateWithLifecycle()
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
-    // Compact dark toast: message-sized, centered near the bottom.
+    val todayHours by viewModel.todayExecutionHours.collectAsStateWithLifecycle()
+    // Compact dark toast: message-sized, centered above the Dock.
     var toastText by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -139,108 +157,74 @@ fun DashboardScreen(navController: NavController) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButton = {
-            DashboardFabActions(
-                onAsk = { navController.navigate("ai_chat") },
-                onNewTask = { navController.navigate("automation_builder") }
-            )
-        }
-    ) { innerPadding ->
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val navigationBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val dockBottom = Dimens.DockMarginBottom + navigationBottom
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+            .screenGlow(ScreenGlowVariant.Dashboard)
+            .glassSource()
+    ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = Dimens.ScreenHorizontalPadding,
+                end = Dimens.ScreenHorizontalPadding,
+                top = statusBarTop + Dimens.Space4,
+                bottom = Dimens.DockHeight + dockBottom + Dimens.DockMarginBottom
+            ),
+            verticalArrangement = Arrangement.spacedBy(Dimens.CardGap)
         ) {
-            // ---- Instant search (slim pill) + settings gear beside it ----
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 12.dp)
-                            )
-                            BasicTextField(
-                                value = searchQuery,
-                                onValueChange = { searchQuery = it },
-                                modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 11.dp),
-                                singleLine = true,
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurface
-                                ),
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                decorationBox = { innerTextField ->
-                                    if (searchQuery.isEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.search_hint),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            )
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Close,
-                                        contentDescription = stringResource(R.string.clear_search)
-                                    )
-                                }
-                            } else {
-                                Spacer(modifier = Modifier.size(48.dp))
-                            }
-                        }
-                    }
-                    // Settings gear: the only entry point to settings now.
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = stringResource(R.string.dashboard_settings)
+            item(key = "header") {
+                ScreenHeader(
+                    title = stringResource(R.string.dashboard_title),
+                    caption = stringResource(
+                        R.string.dashboard_caption,
+                        rows.size,
+                        rows.count { it.automation.enabled }
+                    ),
+                    // The header block carries 4dp extra inset so the title
+                    // starts at 20dp instead of the 16dp gutter.
+                    modifier = Modifier.padding(start = Dimens.Space1),
+                    actions = {
+                        HeaderIconButton(
+                            icon = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.dashboard_settings),
+                            onClick = { navController.navigate("settings") }
                         )
                     }
-                }
+                )
+            }
+
+            item(key = "search") {
+                SearchPill(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    placeholder = stringResource(R.string.search_hint),
+                    modifier = Modifier.padding(top = 14.dp, bottom = 12.dp)
+                )
+            }
+
+            item(key = "bento") {
+                DashboardBento(rows = rows, todayHours = todayHours)
             }
 
             // ---- Legacy connectivity migration banner ----
             if (legacyConnectivityTasks.isNotEmpty()) {
                 item(key = "migrate_banner") {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    ) {
-                        androidx.compose.foundation.layout.Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)
-                        ) {
+                    NexaFlowCard(containerColor = MaterialTheme.colorScheme.secondaryContainer) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(
                                 text = stringResource(R.string.migrate_banner_title),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                                style = NexaFlowTheme.type.cardTitle,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Text(
                                 text = stringResource(R.string.migrate_banner_message),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = NexaFlowTheme.type.meta,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Row(
@@ -257,11 +241,14 @@ fun DashboardScreen(navController: NavController) {
             }
 
             // ---- Routines ----
-            item {
-                SectionHeader(text = stringResource(R.string.section_routines))
+            item(key = "section") {
+                SectionHeader(
+                    text = stringResource(R.string.section_routines),
+                    modifier = Modifier.padding(top = 6.dp, start = 6.dp)
+                )
             }
             if (rows.isEmpty()) {
-                item {
+                item(key = "empty") {
                     EmptyState(
                         icon = Icons.Filled.Bolt,
                         title = stringResource(R.string.empty_automations_title),
@@ -269,7 +256,7 @@ fun DashboardScreen(navController: NavController) {
                     )
                 }
             } else if (filteredRows.isEmpty()) {
-                item {
+                item(key = "no_results") {
                     EmptyState(
                         icon = Icons.Filled.Search,
                         title = stringResource(R.string.no_search_results_title),
@@ -277,20 +264,21 @@ fun DashboardScreen(navController: NavController) {
                     )
                 }
             }
-            itemsIndexed(filteredRows, key = { _, row -> row.automation.id }) { index, row ->
+            items(
+                items = filteredRows,
+                key = { row -> row.automation.id },
+                contentType = { "routine" }
+            ) { row ->
                 RoutineCard(
                     row = row,
                     summary = automationSummary(row.automation),
-                    nextRun = nextRunText(row.automation),
                     isRunning = row.automation.id in runningIds,
-                    containerColor = scheduledTaskCardColor(index),
                     expanded = expandedAutomationId == row.automation.id,
                     menuExpanded = actionMenuTarget?.id == row.automation.id,
-                    // Google-2026 Keep-style cascade: each card springs in a
-                    // beat after the one above it, capped so a long list still
-                    // feels instant (no multi-second tail).
+                    // Keep-style cascade: each card springs in a beat after the
+                    // one above it, capped so a long list still feels instant.
                     modifier = Modifier.nexaFlowEntrance(
-                        delayMillis = minOf(index * 40, 400)
+                        delayMillis = minOf(filteredRows.indexOf(row) * 30, 150)
                     ),
                     onRun = {
                         // Ask the gate first: admissible → run; rejected →
@@ -313,7 +301,7 @@ fun DashboardScreen(navController: NavController) {
                             if (json == null) {
                                 toastText = shareTaskFailure
                                 return@launch
-                        }
+                            }
                             val file = runCatching {
                                 val dir = File(context.cacheDir, "backup").apply { mkdirs() }
                                 File(dir, taskFileName(row.automation.name)).apply { writeText(json) }
@@ -349,29 +337,53 @@ fun DashboardScreen(navController: NavController) {
                 )
             }
         }
-    }
 
-    // Compact dark toast: wraps the message, centered near the bottom.
-    // Sibling of Scaffold (direct child of the outer Box) so BottomCenter
-    // alignment applies — inside Scaffold content it would stick to the top.
-    toastText?.let { text ->
-        Box(
+        // The one floating element: a glass Dock that never covers the last card.
+        Dock(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(start = 32.dp, end = 32.dp, bottom = 40.dp)
-                .shadow(8.dp, RoundedCornerShape(24.dp))
-                .background(Color(0xFF323232), RoundedCornerShape(24.dp))
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
-                textAlign = TextAlign.Center
-            )
+                .padding(horizontal = Dimens.DockMarginH, vertical = dockBottom),
+            leading = {
+                DockAskPill(
+                    label = stringResource(R.string.ask_nexaflow),
+                    icon = Icons.Filled.Bolt,
+                    onClick = { navController.navigate("ai_chat") },
+                    modifier = Modifier.weight(1f)
+                )
+            },
+            action = {
+                DockIconButton(
+                    icon = Icons.Filled.Add,
+                    contentDescription = stringResource(R.string.new_routine),
+                    onClick = { navController.navigate("automation_builder") }
+                )
+            }
+        )
+
+        // Compact toast: wraps the message, centered above the Dock so it never
+        // hides the primary action.
+        toastText?.let { text ->
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(
+                        start = 32.dp,
+                        end = 32.dp,
+                        bottom = Dimens.DockHeight + dockBottom + 12.dp
+                    )
+                    .shadow(8.dp, RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.inverseSurface, RoundedCornerShape(24.dp))
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text,
+                    style = NexaFlowTheme.type.meta,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
-    }
     }
 
     deleteTarget?.let { automation ->
@@ -454,7 +466,7 @@ fun DashboardScreen(navController: NavController) {
                 }
             },
             dismissButton = {
-                androidx.compose.foundation.layout.Row {
+                Row {
                     TextButton(onClick = { runBlockDialogTarget = null }) {
                         Text(stringResource(R.string.cancel))
                     }
@@ -497,6 +509,83 @@ fun DashboardScreen(navController: NavController) {
     }
 }
 
+/**
+ * "Next run" and "Today" bento cards. Next run picks the earliest upcoming
+ * TIME trigger across enabled routines; Today counts the six 4-hour buckets of
+ * the current day from durable history.
+ */
+@Composable
+private fun DashboardBento(rows: List<AutomationRow>, todayHours: List<Int>) {
+    val context = LocalContext.current
+    val now = remember(rows) { System.currentTimeMillis() }
+    val next = remember(rows, now) {
+        rows.mapNotNull { row -> nextRunMillis(row.automation, now)?.let { row to it } }
+            .minByOrNull { it.second }
+    }
+    val timeFormat = remember(context) {
+        android.text.format.DateFormat.getTimeFormat(context)
+    }
+    val nextValue = next?.let { timeFormat.format(java.util.Date(it.second)) } ?: "—"
+    val minutes = next?.let { ((it.second - now) / 60_000L).coerceAtLeast(0) }
+    val nextCaption = when {
+        next == null || minutes == null -> stringResource(R.string.bento_no_upcoming)
+        minutes < 60 -> stringResource(
+            R.string.bento_next_caption,
+            next.first.automation.name,
+            stringResource(R.string.relative_in_minutes, minutes.toInt())
+        )
+        minutes < 60 * 24 -> stringResource(
+            R.string.bento_next_caption,
+            next.first.automation.name,
+            stringResource(R.string.relative_in_hours, (minutes / 60).toInt())
+        )
+        else -> stringResource(
+            R.string.bento_next_caption,
+            next.first.automation.name,
+            stringResource(R.string.relative_in_days, (minutes / (60 * 24)).toInt())
+        )
+    }
+    // §7.1: the two bento cards are equal — `IntrinsicSize.Max` keeps the
+    // shorter card level with the one that carries the sparkline (and with
+    // both cards at font scale 200%).
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Max),
+        horizontalArrangement = Arrangement.spacedBy(Dimens.CardGap)
+    ) {
+        BentoStatCard(
+            eyebrow = stringResource(R.string.bento_next_run),
+            value = nextValue,
+            caption = nextCaption,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        )
+        BentoStatCard(
+            eyebrow = stringResource(R.string.bento_today),
+            value = todayHours.size.toString(),
+            caption = stringResource(R.string.bento_runs),
+            sparkline = executionBuckets(todayHours),
+            sparklineDescription = stringResource(R.string.bento_today_a11y, todayHours.size),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        )
+    }
+}
+
+/** Earliest upcoming fire time of an enabled routine's first TIME trigger. */
+internal fun nextRunMillis(automation: Automation, nowMillis: Long): Long? {
+    if (!automation.enabled) return null
+    val trigger = automation.triggers.firstOrNull { it.type == TriggerType.TIME } ?: return null
+    val zone = TimeTriggerCalculator.resolveZone(trigger.config) ?: return null
+    return TimeTriggerCalculator.nextFireTime(
+        config = trigger.config,
+        fromMillis = nowMillis,
+        zone = zone
+    )
+}
 internal fun nextExpandedAutomationId(
     currentExpandedId: String?,
     tappedAutomationId: String
@@ -518,25 +607,25 @@ internal fun taskFileName(taskName: String): String {
 }
 
 /** Stable semantics used by the dashboard Compose contract test. */
+/** Stable semantics used by the dashboard Compose contract test. */
 internal object RoutineCardTestTags {
     const val HeaderIcon = "routine_card_header_icon"
     const val HeaderToggle = "routine_card_header_toggle"
-    const val HeaderExpand = "routine_card_header_expand"
+    const val HeaderCard = "routine_card_header_card"
 }
 
 /**
- * A progressive-disclosure task card. Its header always exposes the task icon,
- * name, enabled state, and explicit expansion control; a tap expands exactly
- * one card on the dashboard to reveal persisted definition and live metadata.
+ * A routine card in the Ink language: category-tinted tile, title, one meta
+ * line, optional status pill and a trailing switch. The whole card toggles its
+ * expansion — there is no chevron. Expanded, it shows the WHEN → THEN logic as
+ * structured rows plus the exit footnote, indented to the text column.
  */
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 internal fun RoutineCard(
     row: AutomationRow,
     summary: String,
-    nextRun: String?,
     isRunning: Boolean,
-    containerColor: Color,
     expanded: Boolean,
     menuExpanded: Boolean,
     onRun: () -> Unit,
@@ -551,122 +640,177 @@ internal fun RoutineCard(
     onDetails: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    NexaFlowCard(
-        modifier = modifier
-            .animateContentSize()
-            .combinedClickable(
-                onClick = onExpandedChange,
-                onLongClick = onLongClick
-            ),
-        containerColor = containerColor
-    ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Column(
+    val automation = row.automation
+    val category = automationCategory(automation)
+    val colors = MaterialTheme.colorScheme
+    val expandLabel = stringResource(
+        if (expanded) R.string.task_details_collapse else R.string.task_details_expand
+    )
+    val stateText = stringResource(
+        when {
+            isRunning -> R.string.task_status_running
+            automation.enabled -> R.string.task_status_enabled
+            else -> R.string.task_status_disabled
+        }
+    )
+    val whenChips = automation.triggers.map { triggerChip(it) }
+    val thenChips = automation.actions.map { actionDisplayText(it) }
+    val footnote = routineFootnote(automation)
+    val status = when {
+        isRunning -> StatusPillVariant.Running
+        row.lastRunSucceeded == false -> StatusPillVariant.Error
+        else -> null
+    }
+
+    Box {
+        NexaFlowCard(
+            modifier = modifier
+                .testTag(RoutineCardTestTags.HeaderCard)
+                .animateContentSize()
+                .combinedClickable(
+                    onClick = onExpandedChange,
+                    onLongClick = onLongClick,
+                    onClickLabel = expandLabel
+                )
+                .semantics { stateDescription = stateText }
+        ) {
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimens.TileTextGap)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                IconTile(
+                    icon = iconVector(automation.icon),
+                    category = category,
+                    modifier = Modifier.testTag(RoutineCardTestTags.HeaderIcon)
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    // Identity stays visible in the collapsed state: users can
-                    // distinguish routines without opening each card.
-                    IconBadge(
-                        modifier = Modifier.testTag(RoutineCardTestTags.HeaderIcon),
-                        icon = iconVector(row.automation.icon),
-                        containerColor = Color(row.automation.backgroundColor),
-                        contentColor = Color(row.automation.iconColor)
+                    Text(
+                        text = automation.name,
+                        style = NexaFlowTheme.type.cardTitle.forUserText(automation.name),
+                        color = colors.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = row.automation.name,
-                        style = MaterialTheme.typography.titleSmall,
+                        text = summary,
+                        style = NexaFlowTheme.type.meta.forUserText(summary),
+                        color = colors.onSurfaceVariant,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        overflow = TextOverflow.Ellipsis
                     )
-                    Switch(
-                        modifier = Modifier.testTag(RoutineCardTestTags.HeaderToggle),
-                        checked = row.automation.enabled,
-                        onCheckedChange = onToggle
-                    )
-                    IconButton(
-                        modifier = Modifier.testTag(RoutineCardTestTags.HeaderExpand),
-                        onClick = onExpandedChange
-                    ) {
-                        Icon(
-                            imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                            contentDescription = stringResource(
-                                if (expanded) R.string.task_details_collapse else R.string.task_details_expand
-                            ),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    if (status != null) {
+                        StatusPill(
+                            text = if (isRunning) stateText else stringResource(R.string.status_error),
+                            variant = status,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                 }
+                NexaFlowSwitch(
+                    checked = automation.enabled,
+                    onCheckedChange = onToggle,
+                    modifier = Modifier
+                        .testTag(RoutineCardTestTags.HeaderToggle)
+                        .width(52.dp)
+                )
+            }
 
-                if (expanded) {
-                    TextButton(onClick = onDetails) { Text(stringResource(R.string.task_access_details)) }
-                    RoutineDetails(
+            NexaFlowAnimatedVisibility(visible = expanded) {
+                Column(
+                    modifier = Modifier.padding(
+                        start = Dimens.RoutineTile + Dimens.TileTextGap,
+                        top = Dimens.TileTextGap
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    FlowStepRow(label = stringResource(R.string.flow_when), chips = whenChips)
+                    FlowStepRow(label = stringResource(R.string.flow_then), chips = thenChips)
+                    if (footnote != null) {
+                        Text(
+                            text = footnote,
+                            style = NexaFlowTheme.type.meta.forUserText(footnote),
+                            color = colors.onSurfaceVariant
+                        )
+                    }
+                    RoutineExpandedDetails(
                         row = row,
-                        summary = summary,
-                        nextRun = nextRun,
-                        isRunning = isRunning,
-                        onToggleToast = { onToggleToast(row.automation, it) }
+                        onToggleToast = { onToggleToast(automation, it) }
                     )
                 }
             }
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = onDismissMenu
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.run_now)) },
-                    onClick = {
-                        onDismissMenu()
-                        onRun()
-                    },
-                    enabled = !isRunning
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.task_access_details)) },
-                    onClick = { onDismissMenu(); onDetails() }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.edit_task)) },
-                    onClick = {
-                        onDismissMenu()
-                        onEdit()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.delete_task)) },
-                    onClick = {
-                        onDismissMenu()
-                        onDelete()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.share_task)) },
-                    onClick = {
-                        onDismissMenu()
-                        onShare()
-                    }
-                )
-            }
+        }
+
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = onDismissMenu
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.run_now)) },
+                onClick = {
+                    onDismissMenu()
+                    onRun()
+                },
+                enabled = !isRunning
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.task_access_details)) },
+                onClick = { onDismissMenu(); onDetails() }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.edit_task)) },
+                onClick = {
+                    onDismissMenu()
+                    onEdit()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.delete_task)) },
+                onClick = {
+                    onDismissMenu()
+                    onDelete()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.share_task)) },
+                onClick = {
+                    onDismissMenu()
+                    onShare()
+                }
+            )
         }
     }
 }
 
+/**
+ * The long-form body of an expanded routine. The WHEN/THEN chips above carry
+ * the flow at a glance; these sections keep the per-node diagnostics, live
+ * runtime state and health the card has always exposed. Presentation only —
+ * every section is shared with the task-details screen.
+ */
 @Composable
-private fun RoutineDetails(
+private fun RoutineExpandedDetails(
     row: AutomationRow,
-    summary: String,
-    nextRun: String?,
-    isRunning: Boolean,
     onToggleToast: (Boolean) -> Unit
 ) {
     val automation = row.automation
     val conditionSnapshot = rememberRoutineConditionSnapshot(automation)
+    val nextRun = nextRunText(automation)
+
+    RoutineMetaLine(nextRun = nextRun, lastRunAt = row.lastRunAt)
+    if (row.lastRunSucceeded == false) {
+        Text(
+            text = stringResource(ExecutionR.string.execution_task_failed),
+            style = NexaFlowTheme.type.meta,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
+
+    // Toast on toggle option — shown for every task in expanded view.
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -674,52 +818,16 @@ private fun RoutineDetails(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(
-                    when {
-                        isRunning -> R.string.task_status_running
-                        automation.enabled -> R.string.task_status_enabled
-                        else -> R.string.task_status_disabled
-                    }
-                ),
-                style = MaterialTheme.typography.labelLarge,
-                color = when {
-                    isRunning -> MaterialTheme.colorScheme.primary
-                    automation.enabled -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
-            RoutineMetaLine(nextRun = nextRun, lastRunAt = row.lastRunAt)
-            if (row.lastRunSucceeded == false) {
-                Text(
-                    text = stringResource(ExecutionR.string.execution_task_failed),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-            }
-        }
-        if (isRunning) {
-            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-        }
-    }
-    // Toast on toggle option — shown for every task in expanded view
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
                 text = stringResource(R.string.toast_on_toggle_title),
-                style = MaterialTheme.typography.bodyMedium
+                style = NexaFlowTheme.type.cardTitle
             )
             Text(
                 text = stringResource(R.string.toast_on_toggle_sub),
-                style = MaterialTheme.typography.bodySmall,
+                style = NexaFlowTheme.type.meta,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Switch(
+        NexaFlowSwitch(
             checked = automation.showToastOnToggle,
             onCheckedChange = onToggleToast
         )
@@ -731,33 +839,132 @@ private fun RoutineDetails(
             lines = listOf(automation.description)
         )
     }
-    RoutineFlowOverview(
-        automation = automation,
-        summary = summary
-    )
-    DetailedReadinessSection(
-        automation = automation,
-        snapshot = conditionSnapshot
-    )
+
+    DetailedReadinessSection(automation = automation, snapshot = conditionSnapshot)
     DetailedLifecycleSection(automation)
     DetailedHealthSection(row.healthReport)
-    DetailedTriggerSection(
-        automation = automation,
-        states = conditionSnapshot.triggerStates
-    )
-    DetailedConstraintSection(
-        automation = automation,
-        states = conditionSnapshot.constraintStates
-    )
-    DetailedActionSection(
-        automation = automation,
-        latestExecution = row.latestExecution
-    )
+    DetailedTriggerSection(automation = automation, states = conditionSnapshot.triggerStates)
+    DetailedConstraintSection(automation = automation, states = conditionSnapshot.constraintStates)
+    DetailedActionSection(automation = automation, latestExecution = row.latestExecution)
     DetailedEndBehaviorSection(automation)
     RoutineCustomizationSection(automation)
-
 }
 
+/** A trigger chip: localized label plus its most meaningful config value. */
+@Composable
+private fun triggerChip(trigger: Trigger): String {
+    val label = stringResource(triggerLabel(trigger.type))
+    val detail = trigger.config["time"]
+        ?: trigger.config["level"]
+        ?: trigger.config["state"]
+        ?: trigger.config["threshold"]
+    return if (detail.isNullOrBlank()) label else "$label · $detail"
+}
+
+/** The exit footnote: revert behaviour, or the number of custom exit actions. */
+@Composable
+private fun routineFootnote(automation: Automation): String? = when {
+    automation.revertOnExit -> stringResource(R.string.flow_reverts_auto)
+    automation.exitActions.isNotEmpty() ->
+        stringResource(R.string.flow_exit_actions, automation.exitActions.size)
+    else -> null
+}
+
+/**
+ * Category of a routine: its first trigger, else its first action, else
+ * Advanced (§5.2). Expressed once here and reused by the dashboard, details
+ * and widgets through [automationCategory].
+ */
+internal fun automationCategory(automation: Automation): NexaFlowCategory =
+    automation.triggers.firstOrNull()?.let { triggerCategory(it.type) }
+        ?: automation.actions.firstOrNull()?.let { actionCategory(it.type) }
+        ?: NexaFlowCategory.ADVANCED
+
+/** Trigger type → Ink category. Time/schedule/display/sleep all read as TIME. */
+internal fun triggerCategory(type: TriggerType): NexaFlowCategory = when (type) {
+    TriggerType.TIME,
+    TriggerType.CALENDAR,
+    TriggerType.DARK_MODE,
+    TriggerType.DND_STATE,
+    TriggerType.STAY_AWAKE_STATE,
+    TriggerType.AUTO_BRIGHTNESS_STATE,
+    TriggerType.SCREEN_TIMEOUT_CHANGED,
+    TriggerType.BRIGHTNESS_LEVEL,
+    TriggerType.SCREEN_ROTATION_STATE,
+    TriggerType.AUTO_ROTATE,
+    TriggerType.ALARM_SET_CHANGED -> NexaFlowCategory.TIME
+
+    TriggerType.LOCATION,
+    TriggerType.LOCATION_STATE,
+    TriggerType.DEVICE,
+    TriggerType.SENSOR -> NexaFlowCategory.LOCATION
+
+    TriggerType.BATTERY,
+    TriggerType.BATTERY_TEMPERATURE,
+    TriggerType.POWER_SAVER,
+    TriggerType.CHARGER,
+    TriggerType.STORAGE_LOW,
+    TriggerType.DATA_SAVER_STATE -> NexaFlowCategory.POWER
+
+    TriggerType.CONNECTIVITY,
+    TriggerType.WIFI_CONNECTED,
+    TriggerType.MOBILE_DATA_CONNECTED,
+    TriggerType.HOTSPOT,
+    TriggerType.BLUETOOTH_DEVICE,
+    TriggerType.BLUETOOTH_STATE,
+    TriggerType.NETWORK_MODE,
+    TriggerType.WIFI_STATE,
+    TriggerType.NFC_STATE,
+    TriggerType.NFC_TAG_SCANNED,
+    TriggerType.WIFI_SIGNAL_STRENGTH,
+    TriggerType.CELL_SIGNAL_STRENGTH,
+    TriggerType.USB_CONNECTED,
+    TriggerType.HDMI_CONNECTED,
+    TriggerType.ETHERNET_CONNECTED,
+    TriggerType.VPN_CONNECTED,
+    TriggerType.AIRPLANE_MODE,
+    TriggerType.DATA_ROAMING_STATE,
+    TriggerType.TIMEZONE_CHANGED -> NexaFlowCategory.CONNECTIVITY
+
+    TriggerType.NOTIFICATION,
+    TriggerType.APPLICATION,
+    TriggerType.APP_INSTALLED,
+    TriggerType.SMS,
+    TriggerType.PLUGIN_EVENT -> NexaFlowCategory.NOTIFICATIONS
+
+    TriggerType.RINGER_MODE,
+    TriggerType.VOLUME_CHANGED,
+    TriggerType.MEDIA_PLAYING,
+    TriggerType.HEADPHONE,
+    TriggerType.CALL_STATE,
+    TriggerType.INCOMING_CALL -> NexaFlowCategory.SOUND
+
+    else -> NexaFlowCategory.ADVANCED
+}
+
+/**
+ * Action type → Ink category, used only as the fallback when a routine has no
+ * triggers. The name heuristic keeps this file independent of the builder's
+ * action catalogue while staying deterministic and testable.
+ */
+internal fun actionCategory(type: com.nexaflow.domain.models.ActionType): NexaFlowCategory {
+    val name = type.name
+    return when {
+        name.contains("VOLUME") || name.contains("SOUND") || name.contains("RINGER") ||
+            name.contains("MEDIA") || name.contains("DND") -> NexaFlowCategory.SOUND
+        name.contains("WIFI") || name.contains("BLUETOOTH") || name.contains("NFC") ||
+            name.contains("DATA") || name.contains("NETWORK") || name.contains("AIRPLANE") ||
+            name.contains("HOTSPOT") || name.contains("VPN") -> NexaFlowCategory.CONNECTIVITY
+        name.contains("BATTERY") || name.contains("POWER") -> NexaFlowCategory.POWER
+        name.contains("LOCATION") || name.contains("GPS") -> NexaFlowCategory.LOCATION
+        name.contains("NOTIFICATION") || name.contains("SMS") || name.contains("APP") ->
+            NexaFlowCategory.NOTIFICATIONS
+        name.contains("BRIGHTNESS") || name.contains("DISPLAY") || name.contains("ROTATION") ||
+            name.contains("DARK") || name.contains("THEME") || name.contains("SCREEN") ->
+            NexaFlowCategory.TIME
+        else -> NexaFlowCategory.ADVANCED
+    }
+}
 @Composable
 internal fun TriggerApps(trigger: Trigger) {
     val packages = trigger.config.selectedPackages()
@@ -861,17 +1068,6 @@ internal fun taskEndBehaviorDetail(action: Action): String {
         }
     }
     return stringResource(R.string.task_details_end_behavior, label)
-}
-
-@Composable
-private fun scheduledTaskCardColor(index: Int): Color =
-    scheduledTaskCardColor(index, isSystemInDarkTheme())
-
-internal fun scheduledTaskCardColor(index: Int, darkTheme: Boolean): Color = when {
-    darkTheme && index % 2 == 0 -> Color(0xFF363636)
-    darkTheme -> Color(0xFF252525)
-    index % 2 == 0 -> Color(0xFFE7E7E7)
-    else -> Color(0xFFD3D3D3)
 }
 
 /** "Next run · 8:00 PM · Last run · 2 h ago" meta line under the title. */
@@ -1042,10 +1238,8 @@ private fun RoutineCardPreview() {
                 ),
                 lastRunAt = System.currentTimeMillis() - 3_600_000L
             ),
-            summary = "Time · 1 action",
-            nextRun = "Next · today 8:00 PM",
+            summary = "Time · Brightness",
             isRunning = false,
-            containerColor = scheduledTaskCardColor(0),
             expanded = true,
             menuExpanded = false,
             onRun = {},

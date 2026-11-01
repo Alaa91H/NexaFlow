@@ -168,7 +168,7 @@ object CompatibilityGate {
         context: Context
     ): List<Pair<TriggerType, CapabilityRequirement>> {
         val p = profile(context)
-        return triggerTypeOptions.mapNotNull { type ->
+        return visibleTriggerTypeOptions.mapNotNull { type ->
             val definition = AutomationNodeCatalog.definitionFor(type)
             if (definition.visibility != AutomationNodeVisibility.DISCOVERABLE) return@mapNotNull null
             if (!engine.isSupported(type, p)) return@mapNotNull null
