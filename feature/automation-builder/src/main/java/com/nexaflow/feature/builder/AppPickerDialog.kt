@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 /**
@@ -218,6 +219,19 @@ fun AppPickerDialog(
                             onToggle = {
                                 if (app in selected) selected.remove(app) else selected.add(app)
                             }
+                        )
+                    }
+                }
+                if (listApps.isEmpty() && recentApps.isEmpty()) {
+                    item(key = "no_apps") {
+                        Text(
+                            text = stringResource(R.string.canonical_no_apps_found),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp)
                         )
                     }
                 }
