@@ -3,6 +3,7 @@ package com.nexaflow.app
 import android.app.Application
 import com.nexaflow.core.datastore.PrivacyPreferences
 import com.nexaflow.core.engine.di.ApplicationScope
+import io.sentry.KeyValueCollectionBehavior
 import io.sentry.Sentry
 import io.sentry.android.core.SentryAndroid
 import io.sentry.android.core.SentryAndroidOptions
@@ -74,7 +75,21 @@ class SentryReporter @Inject constructor(
             options.isEnableNdk = false
             // Never capture screenshots or user input — automation privacy.
             options.isAttachScreenshot = false
-            options.isSendDefaultPii = false
+            // replace the deprecated sendDefaultPii flag: Data Collection is its
+            // successor and gathers more by default, so every category this app
+            // never wants is switched off explicitly instead of inherited.
+            options.dataCollection.apply {
+                userInfo = false
+                cookies = KeyValueCollectionBehavior.off()
+                urlQueryParams = KeyValueCollectionBehavior.off()
+                httpHeaders.request = KeyValueCollectionBehavior.off()
+                httpHeaders.response = KeyValueCollectionBehavior.off()
+                httpBodies = emptySet()
+                graphql.document = false
+                graphql.variables = false
+                filePaths = false
+                databaseQueryData = false
+            }
             options.setTag("app", "nexaflow")
         }
     }

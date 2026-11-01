@@ -381,11 +381,13 @@
         <provider
             android:name="io.sentry.android.core.SentryInitProvider"
             android:authorities="${applicationId}.SentryInitProvider"
-            android:enabled="false" />
+            android:enabled="false"
+            android:exported="false" />
         <provider
             android:name="io.sentry.android.core.SentryPerformanceProvider"
             android:authorities="${applicationId}.SentryPerformanceProvider"
-            android:enabled="false" />
+            android:enabled="false"
+            android:exported="false" />
 
         <!--
             Phone-side Wear OS bridge: receives run and toggle commands from the

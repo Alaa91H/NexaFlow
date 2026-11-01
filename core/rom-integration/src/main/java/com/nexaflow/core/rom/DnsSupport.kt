@@ -154,14 +154,7 @@ object DnsStateReader {
 
     @SuppressLint("MissingPermission")
     private fun activeLinks(connectivity: ConnectivityManager): List<LinkProperties> {
-        val networks = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            listOfNotNull(connectivity.activeNetwork)
-        } else {
-            @Suppress("DEPRECATION")
-            connectivity.allNetworks.filter { network ->
-                connectivity.getNetworkInfo(network)?.isConnected == true
-            }
-        }
+        val networks = listOfNotNull(connectivity.activeNetwork)
         return networks.mapNotNull { network ->
             runCatching { connectivity.getLinkProperties(network) }.getOrNull()
         }

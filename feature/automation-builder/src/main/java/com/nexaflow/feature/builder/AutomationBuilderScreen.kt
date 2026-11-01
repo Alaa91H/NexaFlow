@@ -1160,8 +1160,10 @@ fun AutomationBuilderScreen(
                                 NexaFlowCard {
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Text("${stringResource(R.string.canonical_battery_threshold)}: $threshold%")
-                                        androidx.compose.material3.Slider(
+                                        SyncedSlider(
                                             value = threshold.toFloat(),
+                                            valueRange = 0f..100f,
+                                            steps = 99,
                                             onValueChange = { raw ->
                                                 canonicalTriggerNodes[index] = CanonicalBatteryTriggerDefinition.node(
                                                     id = node.node.id.value,
@@ -1172,8 +1174,6 @@ fun AutomationBuilderScreen(
                                                     chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY",
                                                 )
                                             },
-                                            valueRange = 0f..100f,
-                                            steps = 99,
                                         )
                                         val charger = (node.arguments.getOrNull(2)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY"
                                         val chargingState = (node.arguments.getOrNull(3)?.value as? com.nexaflow.domain.canonical.EnumTokenValue)?.token ?: "ANY"
