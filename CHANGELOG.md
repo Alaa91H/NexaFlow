@@ -40,7 +40,8 @@ _Nothing yet._
 
 - `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes, together with every `alternatingIndex` parameter: category-coloured tiles on uniform cards replace the alternating grey surfaces.
 - **Every timing and tuning layer inside a trigger or action.** The “Trigger filters” block (debounce, rate limit, minimum interval, cooldown, stability window, hysteresis), the advanced trigger-expression editor (ALL / ANY / NOT / SEQUENCE / COUNT, nested groups, sample preview, seconds window) and the HTTP action's timeout, retries, retry backoff and response output path are gone from the interface; 27 string keys were deleted in all ten locales. Stored values and engine behaviour are untouched — saved tasks keep their tuned settings, stored expressions keep running, and an expression that no longer validates is dropped on save instead of blocking it.
-- `BoundedNumberField` and the action timer's numeric box, replaced by the −/+ control and preset chips.- `noto_sans_arabic.ttf`, unused since the Arabic family became IBM Plex Sans Arabic, so the release carries no orphaned font.
+- `BoundedNumberField` and the action timer's numeric box, replaced by the −/+ control and preset chips.
+- `noto_sans_arabic.ttf`, unused since the Arabic family became IBM Plex Sans Arabic, so the release carries no orphaned font.
 - **18 string keys whose screens no longer exist** — the builder's file picker, coordinate fields, secret-store errors, clamp hints, brightness/storage direction hints, the battery cycling labels and the old dashboard search hint — in all ten locales, so the resource gate reports zero orphans.
 
 ### Tests and verification
