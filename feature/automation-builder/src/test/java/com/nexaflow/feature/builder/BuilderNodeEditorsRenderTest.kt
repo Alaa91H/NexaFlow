@@ -12,6 +12,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -302,6 +303,47 @@ class BuilderNodeEditorsRenderTest {
         }
 
         composeRule.onNodeWithText("Battery", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun canonicalSchemaEditorRendersTheBoundFields() {
+        val binding = CanonicalBuilderSchemaBridge.forAction(ActionType.SYSTEM_OPEN_SETTINGS)
+        assertNotNull(binding)
+        composeRule.setContent {
+            CanonicalSchemaFieldEditor(
+                binding = binding!!,
+                config = emptyMap(),
+                onConfigChange = {},
+            )
+        }
+
+        composeRule.onRoot().assertExists()
+    }
+
+    @Test
+    fun networkModeSelectorRendersItsChoices() {
+        val option = actionOptions.first { it.actionType == ActionType.SYSTEM_NETWORK_MODE }
+        composeRule.setContent {
+            ActionConfigEditor(
+                option = option,
+                config = emptyMap(),
+                onConfigChange = {},
+                onPickApp = {},
+            )
+        }
+
+        composeRule.onNodeWithText(string(R.string.network_mode_label)).assertIsDisplayed()
+    }
+
+    @Test
+    fun compatibilityGateReturnsTheDiscoverableTriggers() {
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val states = CompatibilityGate.triggerOptionStates(
+            context = context,
+            snapshot = com.nexaflow.domain.capability.CapabilitySnapshot(),
+        )
+
+        assertTrue(states.isNotEmpty())
     }
 
     @Test

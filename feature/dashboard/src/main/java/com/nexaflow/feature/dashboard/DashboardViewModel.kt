@@ -86,14 +86,7 @@ class DashboardViewModel @Inject constructor(
      * history as the History screen; retention caps the table at 1 000 rows.
      */
     val todayExecutionHours: StateFlow<List<Int>> = historyRepository.getExecutionHistory()
-        .map { records ->
-            val zone = ZoneId.systemDefault()
-            val today = LocalDate.now(zone)
-            records.mapNotNull { record ->
-                val time = Instant.ofEpochMilli(record.executedAt).atZone(zone)
-                if (time.toLocalDate() == today) time.hour else null
-            }
-        }
+        .map { records -> hoursOfToday(records) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _runningIds = MutableStateFlow<Set<String>>(emptySet())
@@ -456,3 +449,20 @@ internal fun emptyHealthReport(automationId: String) = AutomationHealthReport(
     latestFailureMessage = null,
     status = AutomationHealthStatus.NO_EXECUTIONS
 )
+
+/**
+ * Hours-of-day (0–23) of the executions that happened today in [zone].
+ *
+ * The bento's sparkline buckets these into six four-hour bars, so the selection
+ * (and not the bucketing) is what this pins: an old run must not leak into
+ * today's count, and a run at 23:59 must land in the last bucket rather than
+ * tomorrow's.
+ */
+internal fun hoursOfToday(
+    records: List<ExecutionRecord>,
+    zone: ZoneId = ZoneId.systemDefault(),
+    today: LocalDate = LocalDate.now(zone)
+): List<Int> = records.mapNotNull { record ->
+    val time = Instant.ofEpochMilli(record.executedAt).atZone(zone)
+    if (time.toLocalDate() == today) time.hour else null
+}
