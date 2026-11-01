@@ -35,6 +35,18 @@
 -keep class * extends dagger.hilt.internal.GeneratedComponent { *; }
 -dontwarn dagger.hilt.**
 
+# Hilt resolves a ViewModel by checking whether the requested class is present
+# in a map whose keys are generated from @LazyClassKey class-name strings. R8
+# 9.5 (AGP 9.5) dropped the generated key/binding modules for one ViewModel in
+# the release build, so HiltViewModelFactory fell back to NewInstanceFactory and
+# the app died on the start screen with
+# "RuntimeException: Cannot create an instance of class <obfuscated>".
+# Keep the generated Hilt ViewModel modules whole and keep the ViewModel class
+# names stable so the map keys and the runtime classes cannot drift apart.
+-keep class **_HiltModules { *; }
+-keep class **_HiltModules$* { *; }
+-keepnames @dagger.hilt.android.lifecycle.HiltViewModel class *
+
 # --- Framework reflection (documented, not R8-sensitive) -------------------
 # android.os.SystemProperties, android.net.wifi.WifiManager and
 # android.service.quicksettings.TileService are reflected by name, but they

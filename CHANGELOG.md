@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [v3.91.19] - 2026-11-01
+
+### Fixed
+
+- **v3.91.18 crashed on launch; release builds are usable again.** On every start the app died while composing the dashboard with `java.lang.RuntimeException: Cannot create an instance of class <obfuscated>`, so v3.91.18 could not be used past its first frame. Retracing the stack against the release mapping placed the failure in `DashboardScreen` → `hiltViewModel()`, and the frames below it showed `HiltViewModelFactory` quietly delegating to `ViewModelProvider.NewInstanceFactory` — the path taken when the requested class is missing from the Hilt view-model key map. The cause was not application code: R8 9.5.28, which arrived with the AGP 9.5.0 move in v3.91.18, dropped the generated `DashboardViewModel_HiltModules` key and binding modules from the release build (26 of the 27 `@HiltViewModel` classes kept theirs), so the factory fell back to a no-argument constructor the ViewModel never had. `app/proguard-rules.pro` now keeps the generated `_HiltModules` classes and their nested modules whole and keeps `@HiltViewModel` class names stable, so the `@LazyClassKey` map keys that Hilt resolves by class name cannot drift away from the runtime classes under any R8 optimization. The dashboard renders, and screens that resolve their own ViewModels (`AutomationBuilderViewModel` was exercised) compose normally.
+
+### Tests and verification
+
+- Reproduced and diagnosed on a physical device (POCO 23049PCD8G, Android 17 / API 37) rather than from the CI result alone: the published v3.91.18 APK crashes with the same obfuscated class on every launch, the previous v3.91.17 APK launches, and the release APK rebuilt with these rules opens the dashboard, lists it, and opens the automation builder without a single entry in the crash buffer. The release mapping after the change contains `DashboardViewModel_HiltModules` and its `KeyModule`/`BindsModule` entries for all 27 `@HiltViewModel` classes, matching the R8 9.3.16 output that shipped in v3.91.17.
+- `:app:assembleRelease` with R8 full mode and resource shrinking builds clean (17 min on the same host that produced the app), and the APK is verified by installing it, not only by inspecting the mapping.
+
 ## [v3.91.18] - 2026-11-01
 
 ### Changed
