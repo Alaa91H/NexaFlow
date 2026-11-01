@@ -100,23 +100,31 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_SCREEN_TIMEOUT -> {
             val seconds = config["seconds"]?.toIntOrNull() ?: 60
-            SliderRow(
-                label = stringResource(R.string.timeout_label, seconds),
-                value = seconds.toFloat(),
+            SteppedValueRow(
+                label = stringResource(R.string.action_screen_timeout),
+                valueText = stringResource(R.string.timeout_label, seconds),
+                value = seconds.toFloat().coerceIn(10f, 1800f),
                 onValueChange = { onConfigChange(mapOf("seconds" to it.toInt().toString())) },
-                valueRange = 10f..1800f
+                valueRange = 10f..1800f,
+                step = 10f
             )
         }
         ActionType.SYSTEM_SET_TIMER -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // The engine clamps the timer to 1 s..24 h; the bounded field
                 // surfaces that clamp inline instead of silently truncating.
-                BoundedNumberField(
-                    value = config["seconds"] ?: "300",
-                    onValueChange = { onConfigChange(config + ("seconds" to it)) },
-                    min = 1,
-                    max = 86_400,
-                    label = stringResource(R.string.timer_duration_seconds)
+                // A duration is picked with − / + (30 s steps) instead of typed;
+                // the engine clamp remains 1 s..24 h.
+                val timerSeconds = (config["seconds"] ?: "300").toIntOrNull()?.coerceIn(1, 86_400) ?: 300
+                SteppedValueRow(
+                    label = stringResource(R.string.timer_duration_seconds),
+                    valueText = stringResource(R.string.schema_value_seconds, timerSeconds),
+                    value = timerSeconds.toFloat(),
+                    onValueChange = {
+                        onConfigChange(config + ("seconds" to it.toInt().coerceIn(1, 86_400).toString()))
+                    },
+                    valueRange = 1f..86_400f,
+                    step = 30f
                 )
                 OutlinedTextField(
                     value = config["message"] ?: "NexaFlow timer",

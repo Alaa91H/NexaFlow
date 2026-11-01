@@ -141,6 +141,20 @@ Screenshots in `docs/ink-glass/screenshots/`.
 | `:app:lintDebug` | PASS — 0 errors (see the run log in the branch notes) |
 | Device | Not re-driven for this pass: the phone dropped off adb after the trigger-sheet check. The wizard chrome is deleted code, so there is no path that can still render it; the page order is pinned by the section comments and the Dock by its test. |
 
+## Trigger option rebuild (duplicate audit, sliders, charger sources, notification kinds)
+
+| Check | Result |
+| --- | --- |
+| `:feature:automation-builder:testDebugUnitTest` | PASS — 187 tests, including the rewritten slider/charger/notification render tests and `SchemaFieldPresentationTest` |
+| `:core:automation-engine:testDebugUnitTest` | PASS — `ChargerSourceFilterTest`, notification-kind cases, per-stream volume case |
+| `:app:assembleDebug` | PASS |
+| `:app:lintDebug --rerun-tasks` | PASS — 0 errors, 5 pre-existing warnings; the 10 locale files gained the new keys, so `MissingTranslation` is clean |
+| Device | **Not re-driven**: `adb devices` lists no attached phone on this machine. The controls are covered by Robolectric render tests, but the Arabic rendering of the new rows and the ON/OFF of the new kinds row have not been seen running. |
+
+Two engine paths changed behaviour and must be exercised on hardware before the
+release: charging from a USB computer versus the wall (source filter) and one
+volume trigger watching two streams with different levels.
+
 ## Still open
 
 * **TalkBack speech** was not listened to. The semantics tree was inspected

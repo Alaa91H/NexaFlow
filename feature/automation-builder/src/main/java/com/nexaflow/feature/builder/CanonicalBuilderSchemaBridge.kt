@@ -36,6 +36,13 @@ internal data class CanonicalBuilderSchemaBinding(
 
 internal object CanonicalBuilderSchemaBridge {
 
+    /**
+     * Trigger kinds that keep a purpose-built editor because their schema cannot
+     * express the whole contract. Charger filters by charge source (AC / USB /
+     * wireless), which is not part of its event-only catalog schema.
+     */
+    internal val dedicatedTriggerEditors: Set<TriggerType> = setOf(TriggerType.CHARGER)
+
     private val skeletonRules by lazy {
         LegacyMappingTable.all().associateBy { it.kind to it.legacyType }
     }
@@ -141,6 +148,7 @@ internal object CanonicalBuilderSchemaBridge {
     }
 
     fun editingBindingForTrigger(type: TriggerType): CanonicalBuilderSchemaBinding? {
+        if (type in dedicatedTriggerEditors) return null
         if (AutomationOptionCatalog.tierFor(type) == OptionTier.ADVANCED) return null
         val definition = AutomationNodeCatalog.definitionFor(type)
         if (definition.configuration.fields.any { it.valueType !in genericFieldTypes }) {

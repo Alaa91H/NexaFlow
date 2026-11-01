@@ -9,6 +9,9 @@ import com.nexaflow.core.ui.theme.NexaFlowCategory
  */
 internal fun TriggerCategory.toInkCategory(): NexaFlowCategory = when (this) {
     TriggerCategory.SCHEDULE -> NexaFlowCategory.TIME
+    TriggerCategory.POWER -> NexaFlowCategory.POWER
+    TriggerCategory.SOUND -> NexaFlowCategory.SOUND
+    TriggerCategory.DISPLAY -> NexaFlowCategory.TIME
     TriggerCategory.DEVICE -> NexaFlowCategory.LOCATION
     TriggerCategory.CONNECTIVITY -> NexaFlowCategory.CONNECTIVITY
     TriggerCategory.LOCATION -> NexaFlowCategory.LOCATION

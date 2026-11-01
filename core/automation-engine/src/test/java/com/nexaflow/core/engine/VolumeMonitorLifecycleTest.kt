@@ -32,7 +32,8 @@ class VolumeMonitorLifecycleTest {
         "volume-unknown",
         "volume-legacy",
         "volume-disabled",
-        "volume-orphan"
+        "volume-orphan",
+        "volume-streams"
     )
 
     @Before
@@ -119,6 +120,47 @@ class VolumeMonitorLifecycleTest {
         assertNull(runtimeStore.current(task.id))
         assertTrue(activeStore.activeKeys("volume").none { it.startsWith(task.id) })
         assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
+    }
+
+    /**
+     * One volume trigger may watch several streams, each with its own level:
+     * the task owns an occurrence while any watched stream is over its own
+     * threshold and exits only when none is.
+     */
+    @Test
+    fun `per stream levels are evaluated independently inside one trigger`() = runBlocking {
+        val task = testAutomation(
+            id = "volume-streams",
+            triggers = listOf(
+                Trigger(
+                    TriggerType.VOLUME_CHANGED,
+                    mapOf(
+                        "streams" to "MUSIC,RING",
+                        "threshold_MUSIC" to "80",
+                        "direction_MUSIC" to "ABOVE",
+                        "threshold_RING" to "10",
+                        "direction_RING" to "ABOVE",
+                        // Legacy mirror of the first stream; must not win over the
+                        // per-stream values above.
+                        "stream" to "MUSIC",
+                        "threshold" to "80",
+                        "direction" to "ABOVE",
+                    )
+                )
+            )
+        ).copy(enabled = true, actions = emptyList())
+        val repository = FakeRepository(listOf(task))
+        val history = RecordingHistory()
+        val monitor = monitorFor(repository, history)
+
+        // Music is quiet, but the ringer crossed its own (10%) level.
+        monitor.reconcileSnapshot(mapOf("MUSIC" to 20, "RING" to 50))
+        assertTrue(activeStore.activeKeys("volume").any { it.startsWith(task.id) })
+
+        // Both watched streams are below their own thresholds.
+        monitor.reconcileSnapshot(mapOf("MUSIC" to 20, "RING" to 5))
+        assertNull(runtimeStore.current(task.id))
+        assertTrue(history.exits.count { it == EXIT_NOOP_MARKER } == 1)
     }
 
     @Test

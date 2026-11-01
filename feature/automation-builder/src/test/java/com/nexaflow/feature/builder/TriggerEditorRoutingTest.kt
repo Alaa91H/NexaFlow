@@ -65,7 +65,6 @@ class TriggerEditorRoutingTest {
                 TriggerType.NETWORK_MODE,
                 TriggerType.CALENDAR,
                 TriggerType.HEADPHONE,
-                TriggerType.CHARGER,
                 TriggerType.AIRPLANE_MODE,
                 TriggerType.DARK_MODE,
                 TriggerType.CALL_STATE,
@@ -157,6 +156,8 @@ class TriggerEditorRoutingTest {
                 TriggerType.SENSOR,
                 TriggerType.WEBHOOK,
                 TriggerType.ROM_SETTING,
+                // Charger keeps a dedicated editor for its charge-source filter.
+                TriggerType.CHARGER,
                 TriggerType.APP_INSTALLED,
                 TriggerType.VOLUME_CHANGED,
                 TriggerType.BRIGHTNESS_LEVEL,

@@ -200,6 +200,13 @@ fun TriggerEditorCard(
                             onConfigChange = { updated ->
                                 onConfigChange(draft.copy(config = updated))
                             },
+                            // Charging, headset and Bluetooth events have dedicated
+                            // triggers; keeping them here duplicated three options.
+                            hiddenTokens = if (draft.type == TriggerType.DEVICE) {
+                                hiddenDeviceEventTokens
+                            } else {
+                                emptySet()
+                            },
                         )
                     } else {
                         when (draft.type) {
@@ -738,75 +745,14 @@ fun TriggerEditorCard(
                         )
                     }
                 }
-                TriggerType.NOTIFICATION -> {
-                    val packages = (draft.config["packages"] ?: draft.config["package"] ?: "")
-                        .split(',')
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-                    val event = draft.config["event"] ?: "POSTED"
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.NotificationsActive,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.trigger_notification),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                Text(
-                                    text = if (packages.isEmpty()) {
-                                        stringResource(R.string.any_app)
-                                    } else {
-                                        stringResource(R.string.selected_apps_count, packages.size)
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-                        OutlinedButton(
-                            onClick = onPickApp,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Filled.Apps, contentDescription = null)
-                            Text(
-                                text = stringResource(R.string.choose_apps),
-                                modifier = Modifier.padding(start = 6.dp)
-                            )
-                        }
-                        OutlinedTextField(
-                            value = draft.config["contains"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.notification_contains)) },
-                            placeholder = { Text(text = stringResource(R.string.notification_contains_hint)) },
-                            singleLine = true
-                        )
-                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
-                        OptionChips(
-                            options = listOf("POSTED", "REMOVED"),
-                            selected = event,
-                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
-                        )
-                        // Live notification-listener badge (granted / not granted)
-                        // refreshed on resume; tapping it explains and opens the
-                        // notification access settings screen.
-                        SpecialPermissionStatusRow(
-                            hintText = stringResource(R.string.notification_access_hint),
-                            special = SpecialPermission.NOTIFICATION_ACCESS,
-                            context = context,
-                            refreshKey = refreshKey,
-                            onRequest = { onExplainSpecial(SpecialPermission.NOTIFICATION_ACCESS) }
-                        )
-                    }
-                }
+                TriggerType.NOTIFICATION -> NotificationTriggerConfig(
+                    draft = draft,
+                    onConfigChange = onConfigChange,
+                    onPickApp = onPickApp,
+                    onExplainSpecial = onExplainSpecial,
+                    refreshKey = refreshKey,
+                )
+                TriggerType.CHARGER -> ChargerTriggerConfig(draft, onConfigChange)
                 TriggerType.APP_INSTALLED ->
                     AppInstalledConfig(draft, onConfigChange, onPickApp)
                 TriggerType.VOLUME_CHANGED -> VolumeChangedConfig(draft, onConfigChange)
@@ -816,7 +762,20 @@ fun TriggerEditorCard(
                     SignalStrengthConfig(draft, onConfigChange)
                 TriggerType.BATTERY_TEMPERATURE -> BatteryTemperatureConfig(draft, onConfigChange)
                 TriggerType.CLIPBOARD_CHANGED -> ClipboardChangedConfig(draft, onConfigChange)
-                TriggerType.SCREEN_TIMEOUT_CHANGED -> ScreenTimeoutChangedConfig(draft, onConfigChange)
+                TriggerType.SCREEN_TIMEOUT_CHANGED -> ScreenTimeoutChangedConfig(
+                    draft = draft,
+                    onConfigChange = onConfigChange,
+                    // The ROM's current timeout is one of the choices, read from
+                    // the device rather than typed by the user.
+                    deviceTimeoutSeconds = remember(context) {
+                        runCatching {
+                            android.provider.Settings.System.getInt(
+                                context.contentResolver,
+                                android.provider.Settings.System.SCREEN_OFF_TIMEOUT
+                            ) / 1000L
+                        }.getOrNull()?.takeIf { it > 0 }
+                    }
+                )
                 TriggerType.NFC_TAG_SCANNED -> NfcTagScannedConfig(draft, onConfigChange)
                 TriggerType.WEAR_EVENT -> WearEventConfig(draft, onConfigChange)
                 // External component identity and approval are managed only by

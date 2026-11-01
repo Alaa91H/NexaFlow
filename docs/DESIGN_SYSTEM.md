@@ -333,6 +333,27 @@ Rationale: an option that needs a paragraph of explanation is a failure of the
 option, not of the user. Everything removed here was optional tuning, never the
 identity of the option, and no engine capability was deleted.
 
+### 8.5 Node option controls
+
+The renderer that draws every canonical trigger/action field follows four rules,
+so no option ever falls back to a form:
+
+| Field | Control |
+| --- | --- |
+| `ENUM_TOKEN` | `CategoryChip` row with translated labels. A single-choice node prints no header — the chips are their own label. |
+| `INTEGER` / `DECIMAL` / `PERCENTAGE` | `SteppedValueRow`: `−` / `+` buttons around a slider, value line formatted with the field's unit (percent, °C, MB/GB, bars). |
+| `DURATION_MS` | ROM preset chips when the ROM defines the values (screen timeout), otherwise the same stepper in minutes. |
+| `PACKAGE_ID` / package collection | Installed-app sheet; chosen apps become removable chips, never package-name text. |
+
+Vocabulary lives in `SchemaFieldPresentation` (labels, token names, units,
+bounds, step sizes) so the renderer never prints a storage key or an upper-case
+constant. Tokens without a translated resource are humanised (`FIRST_DAY` →
+"First Day") rather than shown raw. The one text box that remains is genuinely
+free text: a webhook path, an SSID, a search phrase.
+
+Trigger groups, the duplicate audit and the per-trigger control matrix are in
+[`docs/ink-glass/TRIGGER_INVENTORY.md`](ink-glass/TRIGGER_INVENTORY.md).
+
 ---
 
 ## 9. Defaults and recorded decisions

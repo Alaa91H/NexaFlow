@@ -48,7 +48,9 @@ class NotificationTriggerMonitor @Inject constructor(
         val key: String,
         val packageName: String,
         val title: String?,
-        val text: String?
+        val text: String?,
+        /** Platform notification category (`msg`, `call`, `promo`…); null when unset. */
+        val category: String? = null
     )
 
     private data class Occurrence(
@@ -64,7 +66,8 @@ class NotificationTriggerMonitor @Inject constructor(
         notificationKey: String,
         packageName: String,
         title: String?,
-        text: String?
+        text: String?,
+        category: String? = null
     ) {
         scope.launch {
             handleEdge(
@@ -72,7 +75,8 @@ class NotificationTriggerMonitor @Inject constructor(
                 notificationKey = notificationKey,
                 packageName = packageName,
                 title = title,
-                text = text
+                text = text,
+                category = category
             )
         }
     }
@@ -81,7 +85,8 @@ class NotificationTriggerMonitor @Inject constructor(
         notificationKey: String,
         packageName: String,
         title: String?,
-        text: String?
+        text: String?,
+        category: String? = null
     ) {
         scope.launch {
             handleEdge(
@@ -89,7 +94,8 @@ class NotificationTriggerMonitor @Inject constructor(
                 notificationKey = notificationKey,
                 packageName = packageName,
                 title = title,
-                text = text
+                text = text,
+                category = category
             )
         }
     }
@@ -132,7 +138,8 @@ class NotificationTriggerMonitor @Inject constructor(
                                     automation = automation,
                                     packageName = snapshot.packageName,
                                     title = snapshot.title,
-                                    text = snapshot.text
+                                    text = snapshot.text,
+                                    category = snapshot.category
                                 )
                         }
                         val exactStillActive = active.any { snapshot ->
@@ -170,7 +177,8 @@ class NotificationTriggerMonitor @Inject constructor(
         notificationKey: String,
         packageName: String,
         title: String?,
-        text: String?
+        text: String?,
+        category: String? = null
     ) = evaluationMutex.withLock {
         val automations = repository.getAutomations().first()
         val now = System.currentTimeMillis()
@@ -179,13 +187,13 @@ class NotificationTriggerMonitor @Inject constructor(
             .filter { automation ->
                 automation.enabled && automation.triggers.any { trigger ->
                     trigger.type == TriggerType.NOTIFICATION &&
-                        matches(trigger.config, packageName, title, text)
+                        matches(trigger.config, packageName, title, text, category)
                 }
             }
             .forEach { automation ->
                 val matching = automation.triggers.withIndex().filter { (_, trigger) ->
                     trigger.type == TriggerType.NOTIFICATION &&
-                        matches(trigger.config, packageName, title, text)
+                        matches(trigger.config, packageName, title, text, category)
                 }
                 val edgeIndices = matching
                     .filter { (_, trigger) ->
@@ -230,7 +238,8 @@ class NotificationTriggerMonitor @Inject constructor(
                                     automation = automation,
                                     packageName = packageName,
                                     title = title,
-                                    text = text
+                                    text = text,
+                                    category = category
                                 )
                         else -> false
                     }
@@ -333,18 +342,20 @@ class NotificationTriggerMonitor @Inject constructor(
         automation: Automation,
         packageName: String,
         title: String?,
-        text: String?
+        text: String?,
+        category: String?
     ): Boolean = automation.triggers.any { trigger ->
         trigger.type == TriggerType.NOTIFICATION &&
-            matches(trigger.config, packageName, title, text)
+            matches(trigger.config, packageName, title, text, category)
     }
 
     private fun matches(
         config: Map<String, String>,
         packageName: String,
         title: String?,
-        text: String?
-    ): Boolean = NotificationTriggerMatcher.matches(config, packageName, title, text)
+        text: String?,
+        category: String?
+    ): Boolean = NotificationTriggerMatcher.matches(config, packageName, title, text, category)
 
     private fun encodeSourceKey(automationId: String, occurrence: Occurrence): String =
         listOf(
@@ -374,19 +385,31 @@ class NotificationTriggerMonitor @Inject constructor(
     }
 }
 
-/** Pure matching for notification package and content filters. */
+/** Pure matching for notification package, category and content filters. */
 internal object NotificationTriggerMatcher {
     fun matches(
         config: Map<String, String>,
         packageName: String,
         title: String?,
-        text: String?
+        text: String?,
+        category: String? = null
     ): Boolean {
         val configuredPackages = config["packages"].orEmpty()
             .takeIf { it.isNotBlank() }
             ?: config["package"].orEmpty()
         val packages = configuredPackages.split(',').map { it.trim() }.filter { it.isNotEmpty() }
         if (packages.isNotEmpty() && packageName !in packages) return false
+
+        // Notification kinds are stored as the platform's own categories, so a
+        // "messages" trigger never fires for a promotion or an ongoing download.
+        val categories = config["categories"].orEmpty()
+            .split(',')
+            .map { it.trim().lowercase(java.util.Locale.ROOT) }
+            .filter { it.isNotEmpty() }
+        if (categories.isNotEmpty()) {
+            val actual = category?.lowercase(java.util.Locale.ROOT)
+            if (actual == null || actual !in categories) return false
+        }
 
         val contains = config["contains"].orEmpty().trim()
         if (contains.isEmpty()) return true

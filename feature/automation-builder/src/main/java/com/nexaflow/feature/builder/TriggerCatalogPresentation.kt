@@ -127,24 +127,34 @@ internal const val LOCATION_RADIUS_MAX_M = 2000
 internal const val LOCATION_RADIUS_STEPS = (LOCATION_RADIUS_MAX_M - LOCATION_RADIUS_MIN_M) / 50 - 1
 
 /**
- * Google-style grouping of trigger types by what they watch, so the picker
- * surfaces the everyday options (time, battery, Wi-Fi…) first and the user
- * reaches the right trigger without scrolling one long flat list.
+ * Grouping of trigger types by the part of the phone they watch.
+ *
+ * The old picker collapsed fourteen domain families into one DEVICE bucket,
+ * which produced a single run of ~30 similar entries (screen, power, sound,
+ * display, storage, sensor…). Power, sound and display now have their own
+ * groups, so every entry sits next to the trigger a user would compare it with.
  */
 enum class TriggerCategory(val headerRes: Int, val color: Color) {
     SCHEDULE(R.string.trigger_cat_schedule, Color(0xFF6750A4)),
-    DEVICE(R.string.trigger_cat_device, Color(0xFF455A64)),
+    POWER(R.string.trigger_cat_power, Color(0xFF2E7D32)),
+    SOUND(R.string.trigger_cat_sound, Color(0xFFB3261E)),
+    DISPLAY(R.string.trigger_cat_display, Color(0xFF7D5260)),
     CONNECTIVITY(R.string.trigger_cat_connectivity, Color(0xFF006A6C)),
+    DEVICE(R.string.trigger_cat_device, Color(0xFF455A64)),
     LOCATION(R.string.trigger_cat_location, Color(0xFF0B57D0)),
     APPS(R.string.trigger_cat_apps, Color(0xFF006D3C)),
     COMMUNICATION(R.string.trigger_cat_communication, Color(0xFF8F4C00))
 }
 
+/** Categories in picker order; only categories with a visible entry are shown. */
 internal val triggerCategories: List<TriggerCategory> = TriggerCategory.entries.toList()
 
 /** Representative icon per trigger category for the accordion chips. */
 internal fun TriggerCategory.icon(): ImageVector = when (this) {
     TriggerCategory.SCHEDULE -> Icons.Filled.Schedule
+    TriggerCategory.POWER -> Icons.Filled.BatteryChargingFull
+    TriggerCategory.SOUND -> Icons.AutoMirrored.Filled.VolumeUp
+    TriggerCategory.DISPLAY -> Icons.Filled.BrightnessHigh
     TriggerCategory.DEVICE -> Icons.Filled.Bolt
     TriggerCategory.CONNECTIVITY -> Icons.Filled.Wifi
     TriggerCategory.LOCATION -> Icons.Filled.Place
@@ -152,77 +162,150 @@ internal fun TriggerCategory.icon(): ImageVector = when (this) {
     TriggerCategory.COMMUNICATION -> Icons.AutoMirrored.Filled.Message
 }
 
-/** Trigger type → presentation category, derived from the domain catalog. */
-internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> =
-    TriggerType.entries.associateWith { type ->
-        AutomationNodeCatalog.definitionFor(type).family.toTriggerCategory()
-    }
+/**
+ * Trigger type → picker group. Assigned explicitly (not derived from the
+ * domain family) because the families are semantic, not navigational: SOUND
+ * holds the sound *state* triggers, while the media-playing trigger is a sound
+ * trigger too even though its family is MEDIA.
+ */
+internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
+    TriggerType.TIME to TriggerCategory.SCHEDULE,
+    TriggerType.CALENDAR to TriggerCategory.SCHEDULE,
+
+    TriggerType.BATTERY to TriggerCategory.POWER,
+    TriggerType.CHARGER to TriggerCategory.POWER,
+    TriggerType.POWER_SAVER to TriggerCategory.POWER,
+    TriggerType.DATA_SAVER_STATE to TriggerCategory.POWER,
+    TriggerType.STORAGE_LOW to TriggerCategory.POWER,
+    TriggerType.BATTERY_TEMPERATURE to TriggerCategory.POWER,
+
+    TriggerType.RINGER_MODE to TriggerCategory.SOUND,
+    TriggerType.VOLUME_CHANGED to TriggerCategory.SOUND,
+    TriggerType.MEDIA_PLAYING to TriggerCategory.SOUND,
+    TriggerType.HEADPHONE to TriggerCategory.SOUND,
+    TriggerType.DND_STATE to TriggerCategory.SOUND,
+
+    TriggerType.BRIGHTNESS_LEVEL to TriggerCategory.DISPLAY,
+    TriggerType.AUTO_BRIGHTNESS_STATE to TriggerCategory.DISPLAY,
+    TriggerType.DARK_MODE to TriggerCategory.DISPLAY,
+    TriggerType.AUTO_ROTATE to TriggerCategory.DISPLAY,
+    TriggerType.SCREEN_ROTATION_STATE to TriggerCategory.DISPLAY,
+    TriggerType.SCREEN_TIMEOUT_CHANGED to TriggerCategory.DISPLAY,
+    TriggerType.STAY_AWAKE_STATE to TriggerCategory.DISPLAY,
+
+    TriggerType.WIFI_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.MOBILE_DATA_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.HOTSPOT to TriggerCategory.CONNECTIVITY,
+    TriggerType.NETWORK_MODE to TriggerCategory.CONNECTIVITY,
+    TriggerType.BLUETOOTH_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.NFC_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.ETHERNET_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.VPN_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.DATA_ROAMING_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.WIFI_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
+    TriggerType.CELL_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
+    TriggerType.NFC_TAG_SCANNED to TriggerCategory.CONNECTIVITY,
+
+    TriggerType.DEVICE to TriggerCategory.DEVICE,
+    TriggerType.DEVICE_LOCKED to TriggerCategory.DEVICE,
+    TriggerType.BOOT_COMPLETED to TriggerCategory.DEVICE,
+    TriggerType.HDMI_CONNECTED to TriggerCategory.DEVICE,
+    TriggerType.SENSOR to TriggerCategory.DEVICE,
+    TriggerType.CLIPBOARD_CHANGED to TriggerCategory.DEVICE,
+    TriggerType.TIMEZONE_CHANGED to TriggerCategory.DEVICE,
+    TriggerType.ALARM_SET_CHANGED to TriggerCategory.DEVICE,
+    TriggerType.WEAR_EVENT to TriggerCategory.DEVICE,
+    TriggerType.ROM_SETTING to TriggerCategory.DEVICE,
+    TriggerType.WEBHOOK to TriggerCategory.DEVICE,
+
+    TriggerType.APPLICATION to TriggerCategory.APPS,
+    TriggerType.APP_INSTALLED to TriggerCategory.APPS,
+    TriggerType.NOTIFICATION to TriggerCategory.APPS,
+
+    TriggerType.SMS to TriggerCategory.COMMUNICATION,
+    TriggerType.INCOMING_CALL to TriggerCategory.COMMUNICATION,
+    TriggerType.CALL_STATE to TriggerCategory.COMMUNICATION,
+
+    TriggerType.LOCATION to TriggerCategory.LOCATION,
+    TriggerType.LOCATION_STATE to TriggerCategory.LOCATION,
+
+    // Kept in the catalog for saved tasks only (see [hiddenTriggerTypes]).
+    TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
+    TriggerType.USB_CONNECTED to TriggerCategory.POWER,
+    TriggerType.WIFI_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.BLUETOOTH_DEVICE to TriggerCategory.CONNECTIVITY,
+    TriggerType.AIRPLANE_MODE to TriggerCategory.CONNECTIVITY,
+    TriggerType.PLUGIN_EVENT to TriggerCategory.DEVICE,
+)
 
 /**
- * The domain catalog keeps richer semantic families than this compact picker.
- * Several families intentionally collapse into DEVICE here to preserve the
- * existing six-category UX while removing duplicate classification data.
+ * Trigger types the picker no longer offers because another entry already
+ * covers every event they can fire. Saved tasks that use them keep running and
+ * stay editable; only the *add* flow is pruned.
  */
-internal fun AutomationNodeFamily.toTriggerCategory(): TriggerCategory = when (this) {
-    AutomationNodeFamily.SCHEDULE -> TriggerCategory.SCHEDULE
-    AutomationNodeFamily.CONNECTIVITY,
-    AutomationNodeFamily.NETWORK -> TriggerCategory.CONNECTIVITY
-    AutomationNodeFamily.LOCATION -> TriggerCategory.LOCATION
-    AutomationNodeFamily.APPLICATIONS -> TriggerCategory.APPS
-    AutomationNodeFamily.COMMUNICATION -> TriggerCategory.COMMUNICATION
-    AutomationNodeFamily.DEVICE,
-    AutomationNodeFamily.DISPLAY,
-    AutomationNodeFamily.SOUND,
-    AutomationNodeFamily.MEDIA,
-    AutomationNodeFamily.NOTIFICATIONS,
-    AutomationNodeFamily.BATTERY,
-    AutomationNodeFamily.SYSTEM,
-    AutomationNodeFamily.ROM,
-    AutomationNodeFamily.DATA,
-    AutomationNodeFamily.FILES,
-    AutomationNodeFamily.FLOW,
-    AutomationNodeFamily.PLUGINS,
-    AutomationNodeFamily.DEVELOPER -> TriggerCategory.DEVICE
-}
+internal val hiddenTriggerTypes: Map<TriggerType, TriggerType> = mapOf(
+    // Legacy combined Wi-Fi/mobile switch replaced by the two explicit kinds.
+    TriggerType.CONNECTIVITY to TriggerType.WIFI_CONNECTED,
+    // A charger event that also carries the source covers USB plugs.
+    TriggerType.USB_CONNECTED to TriggerType.CHARGER,
+    // Wi-Fi on/off is the same signal as connected/disconnected.
+    TriggerType.WIFI_STATE to TriggerType.WIFI_CONNECTED,
+    // Per-device Bluetooth pairing was a free-text identity; the on/off state
+    // trigger covers the same connect/disconnect events without typed data.
+    TriggerType.BLUETOOTH_DEVICE to TriggerType.BLUETOOTH_STATE,
+)
 
 /** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
 val triggerTypeOptions = listOf(
     // SCHEDULE
     TriggerType.TIME,
     TriggerType.CALENDAR,
-    // DEVICE
+    // POWER
     TriggerType.BATTERY,
-    TriggerType.DEVICE,
-    TriggerType.RINGER_MODE,
-    TriggerType.NOTIFICATION,
-    TriggerType.SENSOR,
-    TriggerType.ROM_SETTING,
-    TriggerType.HEADPHONE,
     TriggerType.CHARGER,
-    TriggerType.AIRPLANE_MODE,
-    TriggerType.DARK_MODE,
-    TriggerType.CALL_STATE,
-    TriggerType.MEDIA_PLAYING,
-    TriggerType.VOLUME_CHANGED,
     TriggerType.POWER_SAVER,
-    TriggerType.BRIGHTNESS_LEVEL,
+    TriggerType.DATA_SAVER_STATE,
     TriggerType.STORAGE_LOW,
+    TriggerType.BATTERY_TEMPERATURE,
+    // SOUND
+    TriggerType.RINGER_MODE,
+    TriggerType.VOLUME_CHANGED,
+    TriggerType.MEDIA_PLAYING,
+    TriggerType.HEADPHONE,
+    TriggerType.DND_STATE,
+    // DISPLAY
+    TriggerType.BRIGHTNESS_LEVEL,
+    TriggerType.AUTO_BRIGHTNESS_STATE,
+    TriggerType.DARK_MODE,
     TriggerType.AUTO_ROTATE,
-    TriggerType.DEVICE_LOCKED,
     TriggerType.SCREEN_ROTATION_STATE,
-    TriggerType.WEAR_EVENT,
-    // CONNECTIVITY is intentionally not offered: Wi-Fi and mobile data are
-    // separate triggers (WIFI_CONNECTED / MOBILE_DATA_CONNECTED). The legacy
-    // combined type remains available for saved tasks.
+    TriggerType.SCREEN_TIMEOUT_CHANGED,
+    TriggerType.STAY_AWAKE_STATE,
+    // CONNECTIVITY
     TriggerType.WIFI_CONNECTED,
     TriggerType.MOBILE_DATA_CONNECTED,
     TriggerType.HOTSPOT,
     TriggerType.NETWORK_MODE,
-    TriggerType.BLUETOOTH_DEVICE,
     TriggerType.BLUETOOTH_STATE,
-    TriggerType.WIFI_STATE,
     TriggerType.NFC_STATE,
-    TriggerType.DATA_SAVER_STATE,
+    TriggerType.ETHERNET_CONNECTED,
+    TriggerType.VPN_CONNECTED,
+    TriggerType.DATA_ROAMING_STATE,
+    TriggerType.WIFI_SIGNAL_STRENGTH,
+    TriggerType.CELL_SIGNAL_STRENGTH,
+    TriggerType.NFC_TAG_SCANNED,
+    TriggerType.AIRPLANE_MODE,
+    // DEVICE
+    TriggerType.DEVICE,
+    TriggerType.DEVICE_LOCKED,
+    TriggerType.BOOT_COMPLETED,
+    TriggerType.HDMI_CONNECTED,
+    TriggerType.SENSOR,
+    TriggerType.CLIPBOARD_CHANGED,
+    TriggerType.TIMEZONE_CHANGED,
+    TriggerType.ALARM_SET_CHANGED,
+    TriggerType.WEAR_EVENT,
+    TriggerType.ROM_SETTING,
     TriggerType.WEBHOOK,
     // LOCATION — GPS geofence plus the device location-mode state trigger.
     TriggerType.LOCATION,
@@ -230,28 +313,34 @@ val triggerTypeOptions = listOf(
     // APPS
     TriggerType.APPLICATION,
     TriggerType.APP_INSTALLED,
+    TriggerType.NOTIFICATION,
     // COMMUNICATION
     TriggerType.SMS,
     TriggerType.INCOMING_CALL,
-    // DEVICE (v3.28)
-    TriggerType.BATTERY_TEMPERATURE,
-    TriggerType.USB_CONNECTED,
-    TriggerType.HDMI_CONNECTED,
-    TriggerType.CLIPBOARD_CHANGED,
-    TriggerType.DND_STATE,
-    TriggerType.STAY_AWAKE_STATE,
-    TriggerType.AUTO_BRIGHTNESS_STATE,
-    TriggerType.SCREEN_TIMEOUT_CHANGED,
-    TriggerType.TIMEZONE_CHANGED,
-    TriggerType.BOOT_COMPLETED,
-    TriggerType.ALARM_SET_CHANGED,
-    // CONNECTIVITY (v3.28)
-    TriggerType.WIFI_SIGNAL_STRENGTH,
-    TriggerType.CELL_SIGNAL_STRENGTH,
-    TriggerType.ETHERNET_CONNECTED,
-    TriggerType.VPN_CONNECTED,
-    TriggerType.DATA_ROAMING_STATE,
-    TriggerType.NFC_TAG_SCANNED
+    TriggerType.CALL_STATE
+)
+
+/** The add-flow list: [triggerTypeOptions] minus the documented duplicates. */
+val visibleTriggerTypeOptions: List<TriggerType> =
+    triggerTypeOptions.filterNot { it in hiddenTriggerTypes }
+
+/** Picker categories that still have at least one visible entry, in order. */
+internal val visibleTriggerCategories: List<TriggerCategory> =
+    triggerCategories.filter { category -> visibleTriggerTypeOptions.any { triggerCategoryOf[it] == category } }
+
+/**
+ * Event tokens of the generic DEVICE trigger that another trigger already owns.
+ * Charging, headset and Bluetooth events each have a dedicated trigger with its
+ * own configuration, so offering them here as well was the main source of
+ * "these options look the same" in the Device group.
+ */
+internal val hiddenDeviceEventTokens: Set<String> = setOf(
+    "POWER_CONNECTED",
+    "POWER_DISCONNECTED",
+    "HEADSET_CONNECTED",
+    "HEADSET_DISCONNECTED",
+    "BLUETOOTH_CONNECTED",
+    "BLUETOOTH_DISCONNECTED",
 )
 
 internal val repeatOptions = listOf(
@@ -315,13 +404,26 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> {
         )
         TriggerType.ROM_SETTING -> mapOf("namespace" to "SYSTEM", "key" to "", "operator" to "EQUALS", "value" to "")
         TriggerType.HEADPHONE -> mapOf("event" to "CONNECTED")
-        TriggerType.CHARGER -> mapOf("event" to "CONNECTED")
+        TriggerType.CHARGER -> mapOf("event" to "CONNECTED", "chargerType" to "ANY")
         TriggerType.AIRPLANE_MODE -> mapOf("state" to "ON")
         TriggerType.DARK_MODE -> mapOf("state" to "ON")
         TriggerType.CALL_STATE -> mapOf("event" to "INCOMING")
         TriggerType.APP_INSTALLED -> mapOf("event" to "INSTALLED", "package" to "")
         TriggerType.MEDIA_PLAYING -> mapOf("event" to "STARTED")
-        TriggerType.VOLUME_CHANGED -> mapOf("stream" to "MUSIC", "threshold" to "50", "direction" to "ABOVE")
+        TriggerType.VOLUME_CHANGED -> mapOf(
+            "streams" to "MUSIC",
+            "stream" to "MUSIC",
+            "threshold" to "50",
+            "direction" to "ABOVE",
+            "threshold_MUSIC" to "50",
+            "direction_MUSIC" to "ABOVE",
+            "threshold_RING" to "50",
+            "direction_RING" to "ABOVE",
+            "threshold_ALARM" to "50",
+            "direction_ALARM" to "ABOVE",
+            "threshold_NOTIFICATION" to "50",
+            "direction_NOTIFICATION" to "ABOVE"
+        )
         TriggerType.POWER_SAVER -> mapOf("state" to "ON")
         TriggerType.BLUETOOTH_STATE -> mapOf("state" to "ON")
         TriggerType.BRIGHTNESS_LEVEL -> mapOf("threshold" to "128", "direction" to "ABOVE")

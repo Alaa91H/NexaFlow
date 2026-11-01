@@ -513,9 +513,16 @@ class BatteryMonitor @Inject constructor(
                     val charging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                         status == BatteryManager.BATTERY_STATUS_FULL
                     val wantConnected = (chargerTrigger.config["event"] ?: "CONNECTED") == "CONNECTED"
+                    // Optional source filter: a computer (USB), a wall charger
+                    // (AC) or a wireless pad. "ANY" keeps the old behaviour.
+                    val plugType = BatteryTriggerMatcher.plugTypeName(plugged)
+                    val sourceMatches = ChargerSourceFilter.matches(
+                        chargerTrigger.config["chargerType"],
+                        plugType,
+                    )
                     val chargerKey = "${automation.id}|charger"
                     val now = System.currentTimeMillis()
-                    if (charging == wantConnected) {
+                    if (sourceMatches && charging == wantConnected) {
                         if (!activeBatteryTriggers.contains(chargerKey)) {
                             val last = lastRunAt[automation.id] ?: 0L
                             if (now - last > automation.cooldownMillis) {

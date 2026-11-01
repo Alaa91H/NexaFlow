@@ -20,6 +20,21 @@ class NotificationTriggerMatcherTest {
     }
 
     @Test
+    fun `notification kind filter only accepts the configured categories`() {
+        val config = mapOf("categories" to "msg,email")
+        assertTrue(NotificationTriggerMatcher.matches(config, "com.example.chat", "Hi", "there", "msg"))
+        assertTrue(NotificationTriggerMatcher.matches(config, "com.example.chat", "Hi", "there", "EMAIL"))
+        assertFalse(NotificationTriggerMatcher.matches(config, "com.example.shop", "Sale", "now", "promo"))
+        // A kind-filtered trigger must not fire for a notification without a category.
+        assertFalse(NotificationTriggerMatcher.matches(config, "com.example.chat", "Hi", "there", null))
+    }
+
+    @Test
+    fun `without a kind filter every category still matches`() {
+        assertTrue(NotificationTriggerMatcher.matches(emptyMap(), "com.example.shop", "Sale", "now", "promo"))
+    }
+
+    @Test
     fun `package list takes precedence when present and content spans title and text`() {
         val config = mapOf("package" to "com.example.old", "packages" to "com.example.new", "contains" to "status ready")
         assertTrue(NotificationTriggerMatcher.matches(config, "com.example.new", "Status", "ready"))

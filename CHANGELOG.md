@@ -4,6 +4,26 @@
 
 ### Changed
 
+- **The Device group is audited, not just reordered.** The trigger picker's DEVICE bucket carried thirty near-duplicates; it is now split into Power, Sound, Display, Device, Location, Apps and Communication, and four triggers were removed from the *add* flow because another trigger already fires the same event: the legacy combined `CONNECTIVITY` (Wi-Fi/mobile are separate triggers), `USB_CONNECTED` (a charger event with source USB), `WIFI_STATE` (same signal as connected/disconnected) and `BLUETOOTH_DEVICE` (per-device identity needed typed data). The generic Device trigger no longer offers the charging, headset and Bluetooth events that have their own triggers. Saved tasks keep working and stay editable. Inventory and rationale: `docs/ink-glass/TRIGGER_INVENTORY.md`.
+- **No trigger asks for a typed number any more.** Bounded values are one control — `−` / `+` around a slider with the value line above it — and durations are preset chips. Brightness is shown as a percentage of the ROM scale, storage in MB/GB, temperature in °C, and the screen-timeout trigger lists the device's own `SCREEN_OFF_TIMEOUT` value alongside the standard presets instead of a seconds box. `BoundedNumberField` and the action timer's numeric box were removed with it.
+- **Raw schema keys and tokens never reach the screen.** The canonical editor used to print `event`, `mode` and `CONNECTED`/`NORMAL`/`STARTED` straight from storage. Every field label, token and unit now resolves through `SchemaFieldPresentation` in all 10 locales, and a token without a resource is humanised instead of shouted.
+- **Volume is one trigger with a level per stream.** Music, ringer, alarm and notification each get a switch, an above/below direction and their own slider; stored tasks with the legacy single-stream keys behave exactly as before.
+- **The charger trigger knows its source.** Connected/disconnected plus any / wall (AC) / computer (USB) / wireless, filtered in the engine so "charge from the laptop" and "charge overnight" are separate automations.
+- **Notifications can target an app and a kind.** The app button did nothing on this trigger before (the picker was wired to the app trigger only); it now writes the package list, and the kinds row filters on the platform's real notification categories (messages, calls, reminders, promotions, ongoing/system).
+
+### Fixed
+
+- **The charge-source, notification and media options were untranslated.** They were rendered from storage tokens; they now read as translated choices in every locale, with no header above a single choice.
+
+### Added
+
+- `docs/ink-glass/TRIGGER_INVENTORY.md` and DESIGN_SYSTEM §8.5: the group inventory, the duplicate audit, the per-trigger control matrix and the schema-presentation rules.
+- Coverage: `SchemaFieldPresentationTest`, `ChargerSourceFilterTest`, notification-kind cases in `NotificationTriggerMatcherTest`, and a per-stream case in `VolumeMonitorLifecycleTest`.
+
+### Unchanged
+
+- Stored configuration, Room v5 and the engine's existing knobs. Hidden trigger types and hidden Device events keep evaluating; they are only absent from the add flow.
+
 - **Ink Glass replaces the previous visual language.** One design system now covers every screen: a near-black blue base, tonal 24dp cards with 1dp hairlines instead of alternating grey and dark-grey surfaces, one uniform card style and category-coloured icon tiles, so a route's hue finally carries meaning. Behaviour, domain, data, Room schema and the automation engine are untouched. See `docs/DESIGN_SYSTEM.md`.
 - **The two stacked FABs are gone.** The dashboard now ends in a single glass Dock: the Ask pill plus one primary add button, bottom padding reserved so the last routine scrolls clear of it. Exactly one blurred element per screen; the Dock falls back to a solid surface at 94% on API 26–30, in Battery Saver or when Glass effects is Off, with identical layout.
 - **Routine cards collapse to a readable row and expand into a real flow.** The chevron is replaced by whole-card expansion, and the expanded block shows WHEN and THEN as chips with the exit footnote, above the readiness, lifecycle, health, trigger, constraint, action and end-behaviour diagnostics the card already carried.

@@ -47,7 +47,8 @@ class CanonicalBuilderSchemaBridgeTest {
     @Test
     fun everyNonAdvancedSimpleTriggerUsesCanonicalSchemaEditor() {
         val expected = TriggerType.entries.filter { type ->
-            AutomationOptionCatalog.tierFor(type) != OptionTier.ADVANCED &&
+            type !in CanonicalBuilderSchemaBridge.dedicatedTriggerEditors &&
+                AutomationOptionCatalog.tierFor(type) != OptionTier.ADVANCED &&
                 AutomationNodeCatalog.definitionFor(type)
                     .configuration.fields
                     .all { it.valueType in genericTypes }
@@ -64,6 +65,11 @@ class CanonicalBuilderSchemaBridgeTest {
 
     @Test
     fun specializedContractsStayOnPurposeBuiltEditors() {
+        // The charger trigger owns a dedicated editor for its charge-source
+        // filter, so the generic chip renderer must not claim it.
+        assertNull(
+            CanonicalBuilderSchemaBridge.editingBindingForTrigger(TriggerType.CHARGER),
+        )
         assertNull(
             CanonicalBuilderSchemaBridge.editingBindingForAction(
                 ActionType.SYSTEM_NETWORK_MODE,

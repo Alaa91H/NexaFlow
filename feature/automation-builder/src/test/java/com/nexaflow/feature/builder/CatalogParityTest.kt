@@ -29,9 +29,9 @@ class CatalogParityTest {
                     "PLUGIN_EVENT must stay restricted to verified plugin configuration",
                     type !in triggerTypeOptions
                 )
-            } else if (type == TriggerType.CONNECTIVITY) {
+            } else if (type in hiddenTriggerTypes) {
                 assertTrue(
-                    "legacy CONNECTIVITY must stay hidden; use WIFI_CONNECTED/MOBILE_DATA_CONNECTED",
+                    "$type is a documented duplicate of ${hiddenTriggerTypes[type]} and must not be offered",
                     type !in triggerTypeOptions
                 )
             } else {
@@ -40,6 +40,34 @@ class CatalogParityTest {
                     (counts[type] ?: 0) == 1
                 )
             }
+        }
+    }
+
+    /**
+     * A hidden duplicate must point at a type the picker actually offers, so the
+     * pruning can never remove the only way to express a condition.
+     */
+    @Test
+    fun everyHiddenTriggerPointsAtAVisibleReplacement() {
+        for ((duplicate, replacement) in hiddenTriggerTypes) {
+            assertTrue(
+                "$duplicate is hidden in favour of $replacement, which is not offered",
+                replacement in visibleTriggerTypeOptions
+            )
+            assertTrue(
+                "$replacement must not itself be hidden",
+                replacement !in hiddenTriggerTypes
+            )
+        }
+    }
+
+    @Test
+    fun everyVisibleTriggerHasACategory() {
+        for (type in visibleTriggerTypeOptions) {
+            assertTrue(
+                "$type has no picker category",
+                triggerCategoryOf[type] != null
+            )
         }
     }
 

@@ -1707,50 +1707,32 @@ fun AutomationBuilderScreen(
         val triggerIndex = target.removePrefix("trigger:").toIntOrNull()
         if (triggerIndex != null) {
             val currentTrigger = triggers.getOrNull(triggerIndex)
-            when (currentTrigger?.type) {
-                TriggerType.APPLICATION -> {
-                    val triggerPackages = (currentTrigger.config["packages"] ?: currentTrigger.config["package"] ?: "")
-                        .split(',').map { it.trim() }.filter { it.isNotEmpty() }
-                    AppPickerDialog(
-                        onPickSingle = { app ->
-                            val current = triggers.getOrNull(triggerIndex)
-                            if (current?.type == TriggerType.APPLICATION) {
-                                triggers[triggerIndex] = current.withPickedPackage(app.packageName)
-                            }
-                            appPickerTarget = null
-                        },
-                        onPickMultiple = { apps ->
-                            val current = triggers.getOrNull(triggerIndex)
-                            if (current?.type == TriggerType.APPLICATION) {
-                                triggers[triggerIndex] = apps.fold(current) { draft, app ->
-                                    draft.withPickedPackage(app.packageName)
-                                }
-                            }
-                            appPickerTarget = null
-                        },
-                        multiSelect = true,
-                        preSelectedPackages = triggerPackages,
-                        recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
-                        onDismiss = { appPickerTarget = null }
-                    )
-                }
-                TriggerType.APP_INSTALLED -> {
-                    val packageName = currentTrigger.config["package"]?.trim().orEmpty()
-                    AppPickerDialog(
-                        onPickSingle = { app ->
-                            val current = triggers.getOrNull(triggerIndex)
-                            if (current?.type == TriggerType.APP_INSTALLED) {
-                                triggers[triggerIndex] = current.withPickedPackage(app.packageName)
-                            }
-                            appPickerTarget = null
-                        },
-                        multiSelect = false,
-                        preSelectedPackages = listOfNotNull(packageName.takeIf(String::isNotEmpty)),
-                        recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
-                        onDismiss = { appPickerTarget = null }
-                    )
-                }
-                else -> appPickerTarget = null
+            // Every app-aware trigger opens the same sheet; the draft decides
+            // how the selection is stored (one package or a list). This used
+            // to be restricted to APPLICATION, which made the app button on
+            // the notification trigger do nothing at all.
+            if (currentTrigger == null || currentTrigger.type !in appCapableTriggerTypes) {
+                appPickerTarget = null
+            } else {
+                val multi = currentTrigger.type != TriggerType.APP_INSTALLED
+                AppPickerDialog(
+                    onPickSingle = { app ->
+                        triggers.getOrNull(triggerIndex)?.let { current ->
+                            triggers[triggerIndex] = current.withPickedPackages(listOf(app.packageName))
+                        }
+                        appPickerTarget = null
+                    },
+                    onPickMultiple = { apps ->
+                        triggers.getOrNull(triggerIndex)?.let { current ->
+                            triggers[triggerIndex] = current.withPickedPackages(apps.map { it.packageName })
+                        }
+                        appPickerTarget = null
+                    },
+                    multiSelect = multi,
+                    preSelectedPackages = currentTrigger.pickedPackages(),
+                    recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
+                    onDismiss = { appPickerTarget = null }
+                )
             }
         } else {
             val actionId = target.removePrefix("action:")

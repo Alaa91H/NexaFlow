@@ -45,7 +45,8 @@ class NotificationListener : NotificationListenerService(), NotificationListener
                         key = sbn.key,
                         packageName = sbn.packageName,
                         title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
-                        text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+                        text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString(),
+                        category = sbn.notification.category
                     )
                 }
                 .toList()
@@ -65,14 +66,14 @@ class NotificationListener : NotificationListenerService(), NotificationListener
         val extras = sbn.notification.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-        monitor.onNotificationPosted(sbn.key, packageName, title, text)
+        monitor.onNotificationPosted(sbn.key, packageName, title, text, sbn.notification.category)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-        monitor.onNotificationRemoved(sbn.key, sbn.packageName, title, text)
+        monitor.onNotificationRemoved(sbn.key, sbn.packageName, title, text, sbn.notification.category)
     }
 
     /** Cancels every active notification from [packageName] (blocking start or clear action). */
