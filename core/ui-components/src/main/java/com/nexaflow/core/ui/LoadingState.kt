@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +67,9 @@ fun LoadingState(
             .fillMaxWidth()
             .semantics {
                 if (contentDescription != null) {
+                    // The parameter promises a description; a live region alone
+                    // leaves TalkBack announcing nothing when the skeletons appear.
+                    this.contentDescription = contentDescription
                     liveRegion = LiveRegionMode.Polite
                 }
             },

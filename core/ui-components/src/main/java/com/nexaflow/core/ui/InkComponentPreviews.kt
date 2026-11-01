@@ -43,7 +43,7 @@ import androidx.compose.runtime.CompositionLocalProvider
  * locals directly — the same values `NexaFlowTheme` resolves at runtime.
  */
 @Composable
-private fun InkPreviewSurface(
+internal fun InkPreviewSurface(
     dark: Boolean,
     content: @Composable () -> Unit
 ) {
@@ -69,7 +69,7 @@ private fun InkPreviewSurface(
 }
 
 @Composable
-private fun TileShowcase() {
+internal fun TileShowcase() {
     Column(verticalArrangement = Arrangement.spacedBy(Dimens.CardGap)) {
         IconTile(icon = Icons.Filled.Timer, category = NexaFlowCategory.TIME)
         IconTile(icon = Icons.Filled.LocationOn, category = NexaFlowCategory.LOCATION)
@@ -84,7 +84,7 @@ private fun TileShowcase() {
 }
 
 @Composable
-private fun CardShowcase() {
+internal fun CardShowcase() {
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(Dimens.Space2)) {
             StatusPill(text = "Running", variant = StatusPillVariant.Running)
@@ -108,7 +108,7 @@ private fun CardShowcase() {
 }
 
 @Composable
-private fun GroupShowcase() {
+internal fun GroupShowcase() {
     PickerGroup {
         PickerRow(
             icon = Icons.Filled.Timer,
@@ -131,7 +131,7 @@ private fun GroupShowcase() {
 }
 
 @Composable
-private fun ChromeShowcase() {
+internal fun ChromeShowcase() {
     ScreenHeader(
         title = "Routines",
         caption = "12 tasks · 9 active",
