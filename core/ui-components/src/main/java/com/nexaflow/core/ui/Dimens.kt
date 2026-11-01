@@ -106,6 +106,10 @@ object Dimens {
     /** Gap between an icon tile and its text column. */
     val TileTextGap: Dp = 14.dp
 
+    /** Builder node connector: 2dp line, 16dp tall, centred on the tile axis. */
+    val ConnectorWidth: Dp = 2.dp
+    val ConnectorHeight: Dp = Space4
+
     /** Corner radius for flow chips. */
     val FlowChipRadius: Dp = 12.dp
 

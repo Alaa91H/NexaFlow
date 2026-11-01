@@ -18,6 +18,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -66,6 +69,7 @@ import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.core.ui.Dimens
+import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.IconTile
 import com.nexaflow.core.ui.MultiCheck
 import com.nexaflow.core.ui.PickerGroup
@@ -913,6 +917,26 @@ private fun CategoryAccordionPreview() {
             content = { Text("Content here", modifier = Modifier.padding(16.dp)) }
         )
     }
+}
+
+/**
+ * Connector between two builder nodes (§7.3): a 2dp `onSurface` 12% line, 16dp
+ * tall, centred on the icon-tile axis so the WHEN / THEN chains read as one
+ * flow instead of a pile of cards.
+ */
+@Composable
+internal fun NodeConnector(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .padding(
+                start = Dimens.Space4 + Dimens.RoutineTile / 2 - Dimens.ConnectorWidth / 2
+            )
+            .width(Dimens.ConnectorWidth)
+            .height(Dimens.ConnectorHeight)
+            .background(
+                MaterialTheme.colorScheme.onSurface.copy(alpha = NexaFlowAlphas.StrongBorder)
+            )
+    )
 }
 
 // endregion

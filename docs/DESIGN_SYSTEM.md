@@ -261,10 +261,14 @@ inset.
 
 ### 8.3 Builder, details, history, settings, themes
 
-Builder: header card (name + icon), THEN/WHEN/EXIT eyebrows, one `NexaFlowCard`
-per node with `IconTile` in the node's category colour, a 16dp numbered badge on
-the tile's bottom-end corner, 2dp × 16dp connectors between nodes, `AddNodeButton`
-to add, save/run in the Dock.
+Builder: header card (name + icon), WHEN / THEN / WHEN-THIS-ENDS stations, one
+`NexaFlowCard` per node with its icon and number badge tinted by the node's
+category, and a 2dp × 16dp `NodeConnector` on the tile axis between consecutive
+nodes of a chain. The station's single action lives in the Dock
+(`BuilderBottomPrimaryAction`): the station name on the leading side, a
+`DockPrimaryButton` (Continue → Save → Create) on the trailing side. The builder
+keeps its inline catalogue panel rather than opening the picker sheet, and has
+no Run-now entry point because an unsaved routine cannot be executed.
 
 Details: `ScreenHeader`, hero card (56dp tile, title, status, switch), bento row
 (last/next run), `FlowStepRow`s, history as a grouped surface.

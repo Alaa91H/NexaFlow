@@ -41,10 +41,13 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.core.rom.NetworkModePolicy
+import com.nexaflow.core.ui.Dock
+import com.nexaflow.core.ui.DockPrimaryButton
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowTheme
+import com.nexaflow.core.ui.theme.eyebrowText
+import com.nexaflow.core.ui.theme.forText
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -354,33 +357,53 @@ internal fun actionSummaryDetail(option: ActionOption, config: Map<String, Strin
         else -> null
     }
 
-/** The sole lower navigation action for the current builder station. */
+/**
+ * The builder's lower navigation, in the same glass Dock as every other
+ * screen (§7.3). The leading slot states the station the user is on; the
+ * trailing [DockPrimaryButton] carries the single action for that station:
+ * When → Do → Review → Save.
+ */
 @Composable
 internal fun BuilderBottomPrimaryAction(
     step: Int,
     triggerCount: Int,
     actionCount: Int,
     onAdvance: (Int) -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    // One clear lower action per station: When → Do → Review → Save.
-    when {
-        step == 0 && triggerCount > 0 -> NexaFlowFloatingActionButton(
-            onClick = { onAdvance(1) },
-            icon = Icons.AutoMirrored.Filled.ArrowForward,
-            label = stringResource(R.string.permission_continue)
-        )
-        step == 1 && actionCount > 0 -> NexaFlowFloatingActionButton(
-            onClick = { onAdvance(2) },
-            icon = Icons.AutoMirrored.Filled.ArrowForward,
-            label = stringResource(R.string.quick_save)
-        )
-        step == 2 && triggerCount > 0 && actionCount > 0 -> NexaFlowFloatingActionButton(
-            onClick = onSave,
-            icon = Icons.Filled.Check,
-            label = stringResource(R.string.create_task)
-        )
+    val primaryLabel = when {
+        step == 0 && triggerCount > 0 -> stringResource(R.string.permission_continue)
+        step == 1 && actionCount > 0 -> stringResource(R.string.quick_save)
+        step == 2 && triggerCount > 0 && actionCount > 0 -> stringResource(R.string.create_task)
+        else -> null
+    } ?: return
+    val onPrimary = when (step) {
+        0 -> { { onAdvance(1) } }
+        1 -> { { onAdvance(2) } }
+        else -> onSave
     }
+    // Same station names as the tab strip above, so the Dock never disagrees
+    // with the section the user is editing.
+    val station = when (step) {
+        0 -> stringResource(R.string.section_when)
+        1 -> stringResource(R.string.section_actions)
+        else -> stringResource(R.string.section_exit_behavior)
+    }
+    Dock(
+        modifier = modifier,
+        leading = {
+            Text(
+                text = eyebrowText(station),
+                style = NexaFlowTheme.type.eyebrow.forText(station),
+                color = NexaFlowTheme.colors.accentLabel,
+                maxLines = 1
+            )
+        },
+        action = {
+            DockPrimaryButton(label = primaryLabel, onClick = onPrimary)
+        }
+    )
 }
 
 @Composable

@@ -191,10 +191,10 @@ import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.rom.RootPermissionGranter
+import com.nexaflow.core.ui.Dimens
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.NexaFlowIcons
 import com.nexaflow.core.ui.nexaFlowEffectsSpec
 import com.nexaflow.core.ui.nexaFlowSpatialSpec
@@ -1028,13 +1028,20 @@ fun AutomationBuilderScreen(
                 actions = {}
             )
         },
-        floatingActionButton = {
+        // Ink (§7.3): the builder's action lives in the same glass Dock as every
+        // other screen instead of a floating button over the last card.
+        bottomBar = {
             BuilderBottomPrimaryAction(
                 step = step,
                 triggerCount = triggers.size,
                 actionCount = actionDrafts.size,
                 onAdvance = { nextStep -> step = nextStep },
-                onSave = { save() }
+                onSave = { save() },
+                modifier = Modifier.padding(
+                    start = Dimens.DockMarginH,
+                    end = Dimens.DockMarginH,
+                    bottom = Dimens.DockMarginBottom
+                )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -1044,7 +1051,7 @@ fun AutomationBuilderScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(scrollState)
-                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 112.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // ── Progress bar above tabs — visual feedback for task creation progress.
@@ -1331,6 +1338,7 @@ fun AutomationBuilderScreen(
                         }
                     triggers.forEachIndexed { index, draft ->
                 val triggerDragging = triggerDrag.draggedIndex == index
+                if (index > 0) NodeConnector()
                 CompositionLocalProvider(
                     LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
                 ) {
@@ -1557,6 +1565,7 @@ fun AutomationBuilderScreen(
                         actionDrafts.forEachIndexed { index, draft ->
                             key(draft.id) {
                                 val actionDragging = actionDrag.draggedIndex == index
+                                if (index > 0) NodeConnector()
                                 CompositionLocalProvider(
                                     LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
                                 ) {
