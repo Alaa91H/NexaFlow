@@ -56,7 +56,8 @@ values in this document.
 | Secondary text / meta | `#9AA4B8` | `onSurfaceVariant` |
 | Section label | `#B8C1D6` | `onSurfaceVariant` |
 | Ask pill text | `#C9D3FF` | `onPrimaryContainer` |
-| Unselected checkbox border / toggle thumb off | `#5A6580` / `#8E99B0` | `outline` |
+| Unselected checkbox border | `#5A6580` | `outline` |
+| Toggle thumb off | `#8E99B0` (light: `#6E778C`) | `NexaFlowColors.switchThumbOff` |
 | Running state | `#7FE0A6` | `NexaFlowColors.success` (`#78DAA0` in the semantic palette) |
 
 Ink is the default scheme. Dynamic colour stays available but is opt-in
@@ -216,6 +217,7 @@ it. Glass is never applied per list item.
 | --- | --- |
 | `NexaFlowCard` | 24dp radius, `surfaceContainerLow`, 1dp hairline, 14dp vertical / 16dp horizontal padding, no elevation, no `alternatingIndex`. |
 | `IconTile` | Squircle (`size` 48/44, `radius` 16/14) filled with a category hue at 16% (14% in pickers); 22dp icon in the same hue. Replaces `IconBadge` inside lists. |
+| `NexaFlowSwitch` | Material 3 `Switch` on the Ink colour set: `primary` track with a white thumb when on, `surfaceContainerHighest` track with `switchThumbOff` when off. The single switch everywhere in the app, so the off thumb never falls back to `outline` (which measures 2.2:1 on the dark off track). |
 | `StatusPill` | 6dp dot + label, fully rounded, 3dp × 9dp padding, label 11.5sp/700, 6dp gap. Variants: Running (success), Needs permission (error container), Error. Never used for “idle”. |
 | `BentoStatCard` | 24dp card, eyebrow, 28sp/800 value, 12.5sp caption; the `Today` variant adds a six-bar sparkline (4dp gaps, 22dp max height, 3dp radius bars, one per 4-hour bucket, minimum 2dp, empty bars at 12%). |
 | `SearchPill` | 52dp, fully rounded, `surfaceContainerLow`, hairline, 18dp horizontal padding, 22dp icon, 12dp gap, 15sp hint in secondary colour. |
@@ -232,6 +234,14 @@ RTL (`locale = "ar"`), font scale 2.0, and phone/tablet widths for the chrome.
 
 `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes are
 removed; `IconBadge` survives only where a non-category circle is still right.
+
+Contrast is gated, not eyeballed: `InkContrastTest` builds the real schemes
+(`googleColorScheme(ink, dark)`) and asserts every text pair at ≥ 4.5:1 and
+every non-text boundary at ≥ 3:1 — primary/meta/eyebrow text, the Dock in both
+blur (65%) and fallback (94%) modes, the Ask pill, the Add button, all seven
+category hues on their 16% and 14% tiles in both schemes, and the running and
+needs-permission pills. Editing a palette token to something dimmer fails the
+build.
 
 ---
 

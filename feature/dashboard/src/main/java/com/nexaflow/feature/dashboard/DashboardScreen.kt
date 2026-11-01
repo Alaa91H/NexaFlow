@@ -33,8 +33,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -75,6 +72,7 @@ import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.HeaderIconButton
 import com.nexaflow.core.ui.IconTile
 import com.nexaflow.core.ui.FlowStepRow
+import com.nexaflow.core.ui.NexaFlowSwitch
 import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.core.ui.StatusPillVariant
@@ -700,20 +698,12 @@ internal fun RoutineCard(
                         )
                     }
                 }
-                Switch(
+                NexaFlowSwitch(
                     checked = automation.enabled,
                     onCheckedChange = onToggle,
                     modifier = Modifier
                         .testTag(RoutineCardTestTags.HeaderToggle)
-                        .width(52.dp),
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = colors.primary,
-                        checkedBorderColor = Color.Transparent,
-                        uncheckedThumbColor = colors.outline,
-                        uncheckedTrackColor = colors.surfaceContainerHighest,
-                        uncheckedBorderColor = Color.Transparent
-                    )
+                        .width(52.dp)
                 )
             }
 
@@ -825,17 +815,9 @@ private fun RoutineExpandedDetails(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Switch(
+        NexaFlowSwitch(
             checked = automation.showToastOnToggle,
-            onCheckedChange = onToggleToast,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = MaterialTheme.colorScheme.primary,
-                checkedBorderColor = Color.Transparent,
-                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                uncheckedBorderColor = Color.Transparent
-            )
+            onCheckedChange = onToggleToast
         )
     }
 

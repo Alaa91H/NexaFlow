@@ -8,6 +8,7 @@
 - **The two stacked FABs are gone.** The dashboard now ends in a single glass Dock: the Ask pill plus one primary add button, bottom padding reserved so the last routine scrolls clear of it. Exactly one blurred element per screen; the Dock falls back to a solid surface at 94% on API 26–30, in Battery Saver or when Glass effects is Off, with identical layout.
 - **Routine cards collapse to a readable row and expand into a real flow.** The chevron is replaced by whole-card expansion, and the expanded block shows WHEN and THEN as chips with the exit footnote, above the readiness, lifecycle, health, trigger, constraint, action and end-behaviour diagnostics the card already carried.
 - **The trigger and action picker is rebuilt** around a screen header, search pill, category chips and a 28dp grouped list with 44dp tinted tiles and multi-check rows, with the Add action in the Dock.
+- **Every switch is now one shared component.** `NexaFlowSwitch` owns the Ink track and thumb colours, replacing eleven hand-tuned and default Material switches — the default off thumb was `outline`, which measures 2.2:1 on the dark off track.
 - **Arabic no longer receives letter-spacing or uppercasing.** Both are gated on the script of the string itself, so mixed titles such as “تشغيل GPS” keep their joining in any locale.
 
 ### Added
@@ -16,7 +17,7 @@
 - Plus Jakarta Sans (Latin) and IBM Plex Sans Arabic, bundled under the SIL OFL with per-locale family selection: Arabic, Cyrillic, Devanagari and CJK locales keep a family that covers their glyphs.
 - Shared components in `core/ui-components`: `IconTile`, `StatusPill`, `BentoStatCard` with sparkline, `SearchPill`, `CategoryChip`, `PickerGroup`/`PickerRow`/`MultiCheck`, `Dock`, `ScreenHeader`, `FlowStepRow`, `GlassSurface` and `ScreenGlow`.
 - Themes gains a **Glass effects** selector (Auto / On / Off) and a **Dynamic colour** switch, persisted in `ThemePreferences`.
-- New coverage: glass-mode resolution, sparkline bucketing, script-aware typography, category mapping and the updated design tokens.
+- New coverage: glass-mode resolution, sparkline bucketing, script-aware typography, category mapping, the updated design tokens, and a WCAG gate (`InkContrastTest`) that checks the real Ink schemes and every category tile at 4.5:1 text / 3:1 boundary contrast.
 
 ### Removed
 

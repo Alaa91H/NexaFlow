@@ -75,7 +75,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHost
@@ -120,6 +119,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.produceState
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.NexaFlowSwitch
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
@@ -298,7 +298,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.secondary
                             )
-                            Switch(
+                            NexaFlowSwitch(
                                 checked = current.enabled,
                                 onCheckedChange = { viewModel.toggleEnabled(it) }
                             )

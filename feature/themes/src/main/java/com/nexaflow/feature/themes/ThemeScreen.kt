@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -48,6 +47,7 @@ import androidx.navigation.NavController
 import com.nexaflow.core.datastore.GlassEffectsMode
 import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.datastore.ThemeSettings
+import com.nexaflow.core.ui.NexaFlowSwitch
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.CategoryChip
 import com.nexaflow.core.ui.NexaFlowCard
@@ -201,7 +201,7 @@ fun ThemeScreenContent(
                                         color = MaterialTheme.colorScheme.secondary
                                     )
                                 }
-                                Switch(
+                                NexaFlowSwitch(
                                     checked = theme.dynamicColor,
                                     onCheckedChange = onDynamicColorChange
                                 )

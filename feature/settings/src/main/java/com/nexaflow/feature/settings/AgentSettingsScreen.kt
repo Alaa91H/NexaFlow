@@ -24,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,6 +52,7 @@ import com.nexaflow.core.airuntime.AiRoutingMode
 import com.nexaflow.core.airuntime.AiProviderDefinitionRegistry as Registry
 import com.nexaflow.core.airuntime.AiProviderProtocol
 import com.nexaflow.core.airuntime.AiReasoningLevel
+import com.nexaflow.core.ui.NexaFlowSwitch
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.domain.security.HttpAccessPolicy
@@ -314,7 +314,7 @@ fun AgentSettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
+                        NexaFlowSwitch(
                             checked = state.accessEnabled,
                             onCheckedChange = viewModel::setAccessEnabled
                         )
@@ -387,7 +387,7 @@ fun AgentSettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
+                        NexaFlowSwitch(
                             checked = state.lanAccessEnabled,
                             enabled = state.accessEnabled && state.lanAccessSupported,
                             onCheckedChange = { enabled ->
@@ -672,7 +672,7 @@ fun AgentSettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
+                        NexaFlowSwitch(
                             checked = providerLocal,
                             onCheckedChange = { providerLocal = it }
                         )
@@ -774,7 +774,7 @@ fun AgentSettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            Switch(
+                            NexaFlowSwitch(
                                 checked = allowCloudFallback,
                                 onCheckedChange = { allowCloudFallback = it }
                             )

@@ -31,7 +31,13 @@ data class NexaFlowColors(
      * the label never competes with the primary action colour; under dynamic
      * colour it falls back to `primary` (see the app theme).
      */
-    val accentLabel: Color
+    val accentLabel: Color,
+    /**
+     * Thumb of an off switch / knob of a disabled control. Ink §5.1 pairs the
+     * off track (`surfaceContainerHighest`) with a lighter neutral than
+     * `outline`, because `outline` on that track measures 2.2:1.
+     */
+    val switchThumbOff: Color
 )
 
 /** Google-green tonal palette (seed #2FA84F), tone 40/80 split per M3 spec. */
@@ -44,7 +50,8 @@ val LightNexaFlowColors = NexaFlowColors(
     onWarning = Color.White,
     warningContainer = Color(0xFFFDF3E0),
     onWarningContainer = Color(0xFF2D1600),
-    accentLabel = Color(0xFF3F51B5)
+    accentLabel = Color(0xFF3F51B5),
+    switchThumbOff = Color(0xFF6E778C)
 )
 
 val DarkNexaFlowColors = NexaFlowColors(
@@ -56,7 +63,8 @@ val DarkNexaFlowColors = NexaFlowColors(
     onWarning = Color(0xFF4A2800),
     warningContainer = Color(0xFF683900),
     onWarningContainer = Color(0xFFFFDCC2),
-    accentLabel = Color(0xFF8B9AFF)
+    accentLabel = Color(0xFF8B9AFF),
+    switchThumbOff = Color(0xFF8E99B0)
 )
 
 /** Composition local — provided by the app theme, read by every module. */

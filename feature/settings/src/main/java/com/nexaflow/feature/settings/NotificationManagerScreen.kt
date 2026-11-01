@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.ui.NexaFlowSwitch
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SettingRow
@@ -102,7 +102,7 @@ fun NotificationManagerScreen(navController: NavController) {
                         title = stringResource(R.string.notification_master),
                         subtitle = stringResource(R.string.notification_master_sub),
                         trailing = {
-                            Switch(
+                            NexaFlowSwitch(
                                 checked = settings.enabled,
                                 onCheckedChange = viewModel::setEnabled
                             )
@@ -121,7 +121,7 @@ fun NotificationManagerScreen(navController: NavController) {
                                 title = stringResource(category.titleRes),
                                 subtitle = stringResource(category.subtitleRes),
                                 trailing = {
-                                    Switch(
+                                    NexaFlowSwitch(
                                         checked = category.enabled,
                                         onCheckedChange = category.onToggle,
                                         enabled = !category.locked
