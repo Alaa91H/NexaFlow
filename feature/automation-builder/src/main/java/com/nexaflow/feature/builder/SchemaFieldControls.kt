@@ -49,7 +49,6 @@ import com.nexaflow.domain.canonical.NodeSchemaField
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.text.Collator
 import java.util.Locale
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -389,13 +388,14 @@ private fun PackageFieldControl(
         if (hasParseError) ParseErrorText()
     }
     if (showPicker) {
-        AppChoiceDialog(
-            singleSelection = true,
-            onDismiss = { showPicker = false },
-            onPicked = { packages ->
-                packages.firstOrNull()?.let(onValueChange)
+        // The builder's own picker: one search field, the system-app filter and
+        // the same bottom sheet every other app choice in the app opens.
+        AppPickerDialog(
+            onPickSingle = { app ->
+                onValueChange(app.packageName)
                 showPicker = false
             },
+            onDismiss = { showPicker = false },
         )
     }
 }
@@ -456,97 +456,22 @@ private fun PackagesCollectionControl(
         }
     }
     if (showPicker) {
-        AppChoiceDialog(
-            singleSelection = false,
-            preselected = packages.toSet(),
-            onDismiss = { showPicker = false },
-            onPicked = { picked ->
-                onValueChange(picked.joinToString(","))
+        AppPickerDialog(
+            onPickSingle = { app ->
+                onValueChange(app.packageName)
                 showPicker = false
             },
+            onDismiss = { showPicker = false },
+            onPickMultiple = { picked ->
+                onValueChange(picked.joinToString(",") { it.packageName })
+                showPicker = false
+            },
+            multiSelect = true,
+            preSelectedPackages = packages,
         )
     }
 }
 
-/** Installed-app list used by both package controls (single and multi choice). */
-@Composable
-private fun AppChoiceDialog(
-    singleSelection: Boolean,
-    onDismiss: () -> Unit,
-    onPicked: (List<String>) -> Unit,
-    preselected: Set<String> = emptySet(),
-) {
-    val context = LocalContext.current
-    var query by remember { mutableStateOf("") }
-    val applications = remember {
-        runCatching {
-            context.packageManager.getInstalledApplications(0)
-                .map { info -> info.packageName to context.packageManager.getApplicationLabel(info).toString() }
-                .sortedWith(compareBy(Collator.getInstance()) { it.second })
-        }.getOrDefault(emptyList())
-    }
-    val selected = remember(preselected) { mutableStateOf(preselected) }
-    val filtered = applications.filter { (packageName, label) ->
-        query.isBlank() || label.contains(query, ignoreCase = true) ||
-            packageName.contains(query, ignoreCase = true)
-    }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.canonical_choose_app)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.canonical_search_apps)) },
-                    singleLine = true,
-                )
-                if (filtered.isEmpty()) {
-                    Text(stringResource(R.string.canonical_no_apps_found))
-                } else {
-                    LazyColumn(modifier = Modifier.heightIn(max = 360.dp)) {
-                        items(filtered, key = { it.first }) { (packageName, label) ->
-                            val isSelected = packageName in selected.value
-                            TextButton(
-                                onClick = {
-                                    if (singleSelection) {
-                                        onPicked(listOf(packageName))
-                                    } else {
-                                        selected.value = if (isSelected) selected.value - packageName
-                                        else selected.value + packageName
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Column(modifier = Modifier.fillMaxWidth()) {
-                                    Text(
-                                        text = label,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurface,
-                                    )
-                                    Text(packageName, style = MaterialTheme.typography.bodySmall)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            if (!singleSelection) {
-                TextButton(onClick = { onPicked(selected.value.toList()) }) {
-                    Text(stringResource(R.string.save))
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        },
-    )
-}
 
 @Composable
 private fun TimeOfDayFieldControl(
