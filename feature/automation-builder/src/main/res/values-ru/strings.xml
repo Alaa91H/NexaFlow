@@ -302,7 +302,6 @@
     <string name="move_up">Вверх</string>
     <string name="move_down">Вниз</string>
     <string name="remove_action">Удалить шаг выполнения</string>
-    <string name="quick_save">Быстрое сохранение</string>
     <string name="saved_successfully">Задача сохранена</string>
     <string name="save_failed">Не удалось сохранить задачу</string>
     <string name="next_needs_trigger">Сначала добавьте хотя бы одно условие</string>
@@ -1232,4 +1231,5 @@
     <string name="agent_run_approval_fail">Остановить запуск</string>
     <string name="agent_run_approval_skip">Пропустить инструмент</string>
     <string name="agent_run_result_label">Переменная результата (необязательно)</string>
+    <string name="builder_dock_summary">%1$d триггеров · %2$d действий</string>
 </resources>

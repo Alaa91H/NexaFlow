@@ -311,7 +311,6 @@
     <string name="search_apps">Search apps…</string>
     <string name="show_system_apps">Show system apps</string>
     <string name="app_count">%1$d app(s)</string>
-    <string name="quick_save">Quick save</string>
     <string name="saved_successfully">Task saved</string>
     <string name="save_failed">Couldn\'t save task</string>
     <string name="task_restore_failed">Couldn\'t restore the task\'s previous settings</string>
@@ -1239,4 +1238,5 @@
     <string name="agent_run_approval_fail">Stop the run</string>
     <string name="agent_run_approval_skip">Skip the tool</string>
     <string name="agent_run_result_label">Result variable (optional)</string>
+    <string name="builder_dock_summary">%1$d triggers · %2$d actions</string>
 </resources>

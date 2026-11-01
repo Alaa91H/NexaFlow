@@ -302,7 +302,6 @@
     <string name="move_up">Yukarı taşı</string>
     <string name="move_down">Aşağı taşı</string>
     <string name="remove_action">Yürütme adımını kaldır</string>
-    <string name="quick_save">Hızlı kaydet</string>
     <string name="saved_successfully">Görev kaydedildi</string>
     <string name="save_failed">Görev kaydedilemedi</string>
     <string name="next_needs_trigger">Önce en az bir koşul ekleyin</string>
@@ -1232,4 +1231,5 @@
     <string name="agent_run_approval_fail">Çalıştırmayı durdur</string>
     <string name="agent_run_approval_skip">Aracı atla</string>
     <string name="agent_run_result_label">Sonuç değişkeni (isteğe bağlı)</string>
+    <string name="builder_dock_summary">%1$d tetikleyici · %2$d eylem</string>
 </resources>

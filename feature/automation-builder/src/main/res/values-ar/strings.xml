@@ -304,7 +304,6 @@
     <string name="move_up">تحريك للأعلى</string>
     <string name="move_down">تحريك للأسفل</string>
     <string name="remove_action">إزالة خطوة التنفيذ</string>
-    <string name="quick_save">حفظ سريع</string>
     <string name="saved_successfully">تم حفظ المهمة</string>
     <string name="save_failed">تعذر حفظ المهمة</string>
     <string name="task_restore_failed">تعذر استعادة إعدادات المهمة السابقة</string>
@@ -1230,4 +1229,5 @@
     <string name="agent_run_approval_fail">إيقاف التشغيل</string>
     <string name="agent_run_approval_skip">تخطّي الأداة</string>
     <string name="agent_run_result_label">متغير النتيجة (اختياري)</string>
+    <string name="builder_dock_summary">%1$d شروط · %2$d تنفيذ</string>
 </resources>

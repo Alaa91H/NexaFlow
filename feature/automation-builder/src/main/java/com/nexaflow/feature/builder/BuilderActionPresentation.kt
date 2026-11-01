@@ -46,8 +46,6 @@ import com.nexaflow.core.ui.DockPrimaryButton
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.theme.NexaFlowAlphas
 import com.nexaflow.core.ui.theme.NexaFlowTheme
-import com.nexaflow.core.ui.theme.eyebrowText
-import com.nexaflow.core.ui.theme.forText
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -358,50 +356,36 @@ internal fun actionSummaryDetail(option: ActionOption, config: Map<String, Strin
     }
 
 /**
- * The builder's lower navigation, in the same glass Dock as every other
- * screen (§7.3). The leading slot states the station the user is on; the
- * trailing [DockPrimaryButton] carries the single action for that station:
- * When → Do → Review → Save.
+ * The builder's Dock (§7.3). The builder is one page now, so there is no
+ * per-step Continue button: the leading slot states what the routine already
+ * contains and the trailing [DockPrimaryButton] is the single action that
+ * finishes it — the same glass Dock every other screen uses.
  */
 @Composable
-internal fun BuilderBottomPrimaryAction(
-    step: Int,
+internal fun BuilderDock(
+    isEditing: Boolean,
     triggerCount: Int,
     actionCount: Int,
-    onAdvance: (Int) -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val primaryLabel = when {
-        step == 0 && triggerCount > 0 -> stringResource(R.string.permission_continue)
-        step == 1 && actionCount > 0 -> stringResource(R.string.quick_save)
-        step == 2 && triggerCount > 0 && actionCount > 0 -> stringResource(R.string.create_task)
-        else -> null
-    } ?: return
-    val onPrimary = when (step) {
-        0 -> { { onAdvance(1) } }
-        1 -> { { onAdvance(2) } }
-        else -> onSave
-    }
-    // Same station names as the tab strip above, so the Dock never disagrees
-    // with the section the user is editing.
-    val station = when (step) {
-        0 -> stringResource(R.string.section_when)
-        1 -> stringResource(R.string.section_actions)
-        else -> stringResource(R.string.section_exit_behavior)
-    }
+    val summary = stringResource(R.string.builder_dock_summary, triggerCount, actionCount)
     Dock(
         modifier = modifier,
         leading = {
             Text(
-                text = eyebrowText(station),
-                style = NexaFlowTheme.type.eyebrow.forText(station),
-                color = NexaFlowTheme.colors.accentLabel,
-                maxLines = 1
+                text = summary,
+                style = NexaFlowTheme.type.meta,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
         action = {
-            DockPrimaryButton(label = primaryLabel, onClick = onPrimary)
+            DockPrimaryButton(
+                label = stringResource(if (isEditing) R.string.save else R.string.create_task),
+                onClick = onSave
+            )
         }
     )
 }

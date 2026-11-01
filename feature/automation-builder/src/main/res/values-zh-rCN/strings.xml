@@ -302,7 +302,6 @@
     <string name="move_up">上移</string>
     <string name="move_down">下移</string>
     <string name="remove_action">移除执行步骤</string>
-    <string name="quick_save">快速保存</string>
     <string name="saved_successfully">任务已保存</string>
     <string name="save_failed">无法保存任务</string>
     <string name="next_needs_trigger">请先添加至少一个条件</string>
@@ -1232,4 +1231,5 @@
     <string name="agent_run_approval_fail">停止运行</string>
     <string name="agent_run_approval_skip">跳过该工具</string>
     <string name="agent_run_result_label">结果变量（可选）</string>
+    <string name="builder_dock_summary">%1$d 个触发条件 · %2$d 个操作</string>
 </resources>

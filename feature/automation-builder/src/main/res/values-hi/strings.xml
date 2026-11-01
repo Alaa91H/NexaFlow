@@ -302,7 +302,6 @@
     <string name="move_up">ऊपर ले जाएं</string>
     <string name="move_down">नीचे ले जाएं</string>
     <string name="remove_action">निष्पादन चरण हटाएँ</string>
-    <string name="quick_save">त्वरित सहेजें</string>
     <string name="saved_successfully">कार्य सहेजा गया</string>
     <string name="save_failed">कार्य सहेजा नहीं जा सका</string>
     <string name="next_needs_trigger">पहले कम से कम एक शर्त जोड़ें</string>
@@ -1232,4 +1231,5 @@
     <string name="agent_run_approval_fail">रन रोकें</string>
     <string name="agent_run_approval_skip">टूल छोड़ें</string>
     <string name="agent_run_result_label">परिणाम वेरिएबल (वैकल्पिक)</string>
+    <string name="builder_dock_summary">%1$d ट्रिगर · %2$d क्रियाएँ</string>
 </resources>

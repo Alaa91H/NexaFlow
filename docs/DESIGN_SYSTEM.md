@@ -271,14 +271,19 @@ inset.
 
 ### 8.3 Builder, details, history, settings, themes
 
-Builder: header card (name + icon), WHEN / THEN / WHEN-THIS-ENDS stations, one
-`NexaFlowCard` per node with its icon and number badge tinted by the node's
-category, and a 2dp × 16dp `NodeConnector` on the tile axis between consecutive
-nodes of a chain. The station's single action lives in the Dock
-(`BuilderBottomPrimaryAction`): the station name on the leading side, a
-`DockPrimaryButton` (Continue → Save → Create) on the trailing side. The builder
-keeps its inline catalogue panel rather than opening the picker sheet, and has
-no Run-now entry point because an unsaved routine cannot be executed.
+Builder: **one page**, top to bottom — a header card (icon + name), then WHEN,
+THEN, WHEN THIS ENDS and CONSTRAINTS as 24dp `NexaFlowCard`s with their own
+section headers, one card per node tinted by the node's category.
+
+There is no step wizard: no `PrimaryTabRow`, no progress bar and no per-step
+Continue button. The trigger and action catalogues open from an `AddNodeButton`
+pill inside their own station (`Add trigger` / `Add action`) and close again on
+confirm, so the page never shows two open pickers at once and an existing task
+opens on its own flow. The single action lives in the Dock (`BuilderDock`): the
+leading slot states what the routine already contains
+(“{triggers} triggers · {actions} actions”) and the trailing `DockPrimaryButton`
+saves (`Create task`, or `Save` when editing). The builder still has no Run-now
+entry point because an unsaved routine cannot be executed.
 
 Details: `ScreenHeader` with `HeaderIconButton` actions (shortcut, edit, delete)
 over the existing detail sections; the deep-link and per-node diagnostics are

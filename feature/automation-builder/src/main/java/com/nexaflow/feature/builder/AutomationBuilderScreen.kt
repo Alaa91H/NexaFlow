@@ -12,7 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,12 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -134,7 +127,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -165,9 +157,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -194,10 +184,9 @@ import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.ui.Dimens
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
+import com.nexaflow.core.ui.AddNodeButton
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowIcons
-import com.nexaflow.core.ui.nexaFlowEffectsSpec
-import com.nexaflow.core.ui.nexaFlowSpatialSpec
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
@@ -302,9 +291,11 @@ fun AutomationBuilderScreen(
     // P2-11: the editable draft survives rotation AND process death via
     // rememberSaveable (custom savers serialize the immutable drafts to Bundle).
     var name by rememberSaveable { mutableStateOf("") }
-    // Guided creation: 0 = when, 1 = do, 2 = review and save.
-    // The data model is unchanged; only the order in which decisions are shown changes.
-    var step by rememberSaveable { mutableStateOf(0) }
+    // One page (§7.3): the trigger and action catalogues open on demand instead
+    // of living on separate wizard steps, so a routine reads top-to-bottom
+    // WHEN → THEN → WHEN THIS ENDS and the Dock always saves.
+    var showTriggerPicker by rememberSaveable { mutableStateOf(true) }
+    var showActionPicker by rememberSaveable { mutableStateOf(false) }
     val triggers = rememberSaveable(saver = TriggerDraftListSaver) { mutableStateListOf<TriggerDraft>() }
     // How multiple triggers combine. NEW tasks default to ALL: users expect
     // every configured condition to hold before the task runs (the dominant
@@ -495,10 +486,13 @@ fun AutomationBuilderScreen(
                 expandedTriggerIndex = null
                 expandedActionCardId = null
                 // A template is only a starting point. Prefill the editable name,
-                // show the full review station, and persist it disabled on first save.
+                // show its flow, and persist it disabled on first save.
                 name = configurationContext.getString(starterRoutineTitleRes(template.id))
                 appliedTemplateId = requestedId
-                step = if (triggers.isNotEmpty() && actionDrafts.isNotEmpty()) 2 else 0
+                // A prefilled template already has nodes: open the page on them
+                // instead of on an empty catalogue.
+                showTriggerPicker = triggers.isEmpty()
+                showActionPicker = actionDrafts.isEmpty()
             }
         }
     }
@@ -518,6 +512,9 @@ fun AutomationBuilderScreen(
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
         triggerMatchName = loaded.triggerMatch.name
         triggerExpressionV2 = loaded.triggerExpressionV2
+        // An existing task opens on its own flow, not on an empty catalogue.
+        showTriggerPicker = false
+        showActionPicker = false
         selectedTriggerTypes.clear()
         selectedActionTypes.clear()
         expandedTriggerIndex = null
@@ -1024,22 +1021,20 @@ fun AutomationBuilderScreen(
         topBar = {
             NexaFlowTopBar(
                 title = if (isEditing) stringResource(R.string.edit_task_title) else stringResource(R.string.builder_title),
-                onBack = {
-                    // Walk through the guided creation flow before leaving it.
-                    if (step > 0) step -= 1 else navController.popBackStack()
-                },
+                // One page, one back: there are no steps left to unwind first.
+                onBack = { navController.popBackStack() },
                 // No starter routines — clean, professional builder without templates
                 actions = {}
             )
         },
-        // Ink (§7.3): the builder's action lives in the same glass Dock as every
-        // other screen instead of a floating button over the last card.
+        // Ink (§7.3): one page, one action. The Dock carries the section
+        // summary on the leading side and Save / Create on the trailing side,
+        // instead of a per-step Continue button in a three-page wizard.
         bottomBar = {
-            BuilderBottomPrimaryAction(
-                step = step,
-                triggerCount = triggers.size,
+            BuilderDock(
+                isEditing = isEditing,
+                triggerCount = triggers.size + canonicalTriggerNodes.size,
                 actionCount = actionDrafts.size,
-                onAdvance = { nextStep -> step = nextStep },
                 onSave = { save() },
                 modifier = Modifier.padding(
                     start = Dimens.DockMarginH,
@@ -1058,37 +1053,9 @@ fun AutomationBuilderScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── Progress bar above tabs — visual feedback for task creation progress.
-            // M3 Expressive wavy linear bar: the 2026 determinate-progress language.
-            val stepProgress by animateFloatAsState(
-                targetValue = (step + 1) / 3f,
-                animationSpec = nexaFlowSpatialSpec()
-            )
-            LinearWavyProgressIndicator(
-                progress = { stepProgress },
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-            )
-            // ── Top tabs: Triggers | Executions | When Task Ends ─────
-            // Professional, easy navigation between the three builder sections.
-            androidx.compose.material3.PrimaryTabRow(selectedTabIndex = step, containerColor = MaterialTheme.colorScheme.surface) {
-                listOf(
-                    R.string.section_when to Icons.Filled.Schedule,
-                    R.string.section_actions to Icons.Filled.PlayArrow,
-                    R.string.section_exit_behavior to Icons.Filled.Restore
-                ).forEachIndexed { index, (titleRes, icon) ->
-                    androidx.compose.material3.Tab(
-                        selected = step == index,
-                        onClick = { step = index },
-                        text = { Text(stringResource(titleRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        icon = { Icon(icon, null) }
-                    )
-                }
-            }
-
-            // ── Name + icon belong to review, after the routine has meaning ─
-            if (step == 2) NexaFlowCard {
+            // Name and icon sit at the top: on a single page the routine is
+            // named where it is built, not on a separate final review screen.
+            NexaFlowCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -1116,72 +1083,280 @@ fun AutomationBuilderScreen(
                 }
             }
 
-
-            // The transitionSpec lambda is not composable, so the specs are
-            // read here in the composable body (transitionSpec captures them).
-            val stepSpatial = nexaFlowSpatialSpec<IntOffset>()
-            val stepEffects = nexaFlowEffectsSpec<Float>()
-            AnimatedContent(
-                targetState = step,
-                transitionSpec = {
-                    // Google 2026 directional step transition: content slides
-                    // with the M3 Expressive spatial spring while fading.
-                    val direction = if (targetState > initialState) 1 else -1
-                    (slideInHorizontally(
-                        animationSpec = stepSpatial,
-                        initialOffsetX = { it / 3 * direction }
-                    ) + fadeIn(animationSpec = stepEffects)) togetherWith
-                        (slideOutHorizontally(
-                            animationSpec = stepSpatial,
-                            targetOffsetX = { -it / 3 * direction }
-                        ) + fadeOut(animationSpec = stepEffects))
-                },
-                label = "wizardStep"
-            ) { currentStep ->
-                if (currentStep == 0) {
-                // ── Step 1: trigger + its constraints ───────────────
-                NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SectionHeader(text = stringResource(R.string.section_when))
-                        if (canonicalTriggerNodes.isEmpty()) NodeConfiguratorPanel(
-                            title = "",
-                            searchQuery = triggerSearchQuery,
-                            onSearchQueryChange = { triggerSearchQuery = it },
-                            selectedCount = selectedTriggerTypes.size,
-                            confirmLabel = stringResource(R.string.add_trigger),
-                            confirmEnabled = selectedTriggerTypes.isNotEmpty(),
-                            onConfirm = {
-                                selectedTriggerTypes.forEach { type ->
-                                    triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+            // ── WHEN: the triggers, their combine rule and the picker ─
+            NexaFlowCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SectionHeader(text = stringResource(R.string.section_when))
+                    // The catalogue opens from an Add pill instead of sitting
+                    // open under the list: one page stays readable, and the
+                    // same picker serves the trigger and action stations.
+                    if (canonicalTriggerNodes.isEmpty() && !showTriggerPicker) {
+                        AddNodeButton(
+                            label = stringResource(R.string.add_trigger),
+                            icon = Icons.Filled.Add,
+                            onClick = { showTriggerPicker = true }
+                        )
+                    }
+                    if (canonicalTriggerNodes.isEmpty() && showTriggerPicker) NodeConfiguratorPanel(
+                        title = "",
+                        searchQuery = triggerSearchQuery,
+                        onSearchQueryChange = { triggerSearchQuery = it },
+                        selectedCount = selectedTriggerTypes.size,
+                        confirmLabel = stringResource(R.string.add_trigger),
+                        confirmEnabled = selectedTriggerTypes.isNotEmpty(),
+                        onConfirm = {
+                            selectedTriggerTypes.forEach { type ->
+                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                            }
+                            expandedTriggerIndex = triggers.lastIndex.takeIf { it >= 0 }
+                            selectedTriggerTypes.clear()
+                            showTriggerPicker = false
+                        }
+                    ) {
+                        val visibleTriggers = if (triggerSearchQuery.isBlank()) {
+                            supportedTriggers.filter { it != TriggerType.BATTERY }
+                        } else {
+                            supportedTriggers.filter { type -> type != TriggerType.BATTERY &&
+                                configurationContext.getString(type.labelRes())
+                                    .contains(triggerSearchQuery, ignoreCase = true) ||
+                                    configurationContext.getString(type.descRes())
+                                        .contains(triggerSearchQuery, ignoreCase = true)
+                            }
+                        }
+                        if (triggerSearchQuery.isNotBlank()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                visibleTriggers.forEachIndexed { optionIndex, type ->
+                                    TriggerOptionRow(
+                                        type = type,
+                                        checked = type in selectedTriggerTypes,
+                                        availability = triggerAvailabilityByType[type]
+                                            ?: BuilderOptionAvailability.READY,
+                                        onBlockedClick = { requestGrantForTrigger(type) },
+                                        onSelect = {
+                                            if (type in selectedTriggerTypes) {
+                                                selectedTriggerTypes.remove(type)
+                                            } else {
+                                                selectedTriggerTypes.add(type)
+                                            }
+                                        }
+                                    )
                                 }
-                                expandedTriggerIndex = triggers.lastIndex.takeIf { it >= 0 }
-                                selectedTriggerTypes.clear()
+                            }
+                        } else {
+                            Text(
+                                text = stringResource(R.string.option_tier_all),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            CategoryAccordion(
+                                tabs = triggerCategories.map { category ->
+                                    stringResource(category.headerRes) to category.icon()
+                                },
+                                expandedIndex = expandedTriggerCategory,
+                                onExpandedChange = { expandedTriggerCategory = it }
+                            ) { categoryIndex ->
+                                val category = triggerCategories[categoryIndex]
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    visibleTriggers
+                                        .filter {
+                                            triggerCategoryOf[it] == category &&
+                                                AutomationOptionCatalog.tierFor(it) == OptionTier.BROWSE
+                                        }
+                                        .forEachIndexed { optionIndex, type ->
+                                            TriggerOptionRow(
+                                                type = type,
+                                                checked = type in selectedTriggerTypes,
+                                                availability = triggerAvailabilityByType[type]
+                                                    ?: BuilderOptionAvailability.READY,
+                                                onBlockedClick = { requestGrantForTrigger(type) },
+                                                onSelect = {
+                                                    if (type in selectedTriggerTypes) {
+                                                        selectedTriggerTypes.remove(type)
+                                                    } else {
+                                                        selectedTriggerTypes.add(type)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                }
+                            }
+
+                            val advancedTriggers = visibleTriggers.filter {
+                                AutomationOptionCatalog.tierFor(it) == OptionTier.ADVANCED
+                            }
+                            if (advancedTriggers.isNotEmpty()) {
+                                AdvancedOptionsHeader(
+                                    title = stringResource(R.string.option_tier_advanced),
+                                    expanded = showAdvancedTriggerOptions,
+                                    onToggle = {
+                                        showAdvancedTriggerOptions = !showAdvancedTriggerOptions
+                                    }
+                                )
+                                if (showAdvancedTriggerOptions) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        advancedTriggers.forEachIndexed { optionIndex, type ->
+                                            TriggerOptionRow(
+                                                type = type,
+                                                checked = type in selectedTriggerTypes,
+                                                availability = triggerAvailabilityByType[type]
+                                                    ?: BuilderOptionAvailability.READY,
+                                                onBlockedClick = { requestGrantForTrigger(type) },
+                                                onSelect = {
+                                                    if (type in selectedTriggerTypes) {
+                                                        selectedTriggerTypes.remove(type)
+                                                    } else {
+                                                        selectedTriggerTypes.add(type)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Battery threshold sits *below* the catalogue, so the
+                    // trigger list starts at its search field instead of
+                    // being pushed down by one special-case trigger. Only
+                    // shown when the canonical battery contract exists and
+                    // nothing else claims the WHEN slot.
+                    val batteryContract = viewModel.executableCanonicalTriggers.firstOrNull {
+                        it.definitionId == CanonicalBatteryTriggerDefinition.ID
+                    }
+                    if (batteryContract != null && triggers.isEmpty()) {
+                        BatteryThresholdSection(
+                            nodes = canonicalTriggerNodes,
+                            addEnabled = true,
+                            onAdd = {
+                                canonicalTriggerNodes.add(
+                                    CanonicalBatteryTriggerDefinition.node(
+                                        id = "native.trigger.${
+                                            java.util.UUID.randomUUID().toString().replace("-", "")
+                                        }",
+                                        sequenceIndex = canonicalTriggerNodes.size
+                                    )
+                                )
+                            }
+                        )
+                    }
+                triggers.forEachIndexed { index, draft ->
+            val triggerDragging = triggerDrag.draggedIndex == index
+            if (index > 0) NodeConnector()
+            CompositionLocalProvider(
+                LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
+            ) {
+                TriggerEditorCard(
+                    draft = draft,
+                    index = index,
+                    total = triggers.size,
+                    modifier = Modifier.taskDragOffset(triggerDrag, draft, triggerDragging),
+                    isDragging = triggerDragging,
+                    onMoveUp = { moveTrigger(index, index - 1) },
+                    onMoveDown = { moveTrigger(index, index + 1) },
+                    onDragStart = { startDrag(triggerDrag, index) },
+                    onDragDelta = { dragBy(triggerDrag, triggers, it) { f, t -> moveTrigger(f, t) } },
+                    onDragEnd = { endDrag(triggerDrag) },
+                    onConfigChange = { updated ->
+                        triggers[index] = updated
+                    },
+                    onRemove = {
+                        triggerExpressionV2 = triggerExpressionV2?.removeTriggerReference(index)
+                        triggers.removeAt(index)
+                        expandedTriggerIndex = when {
+                            expandedTriggerIndex == index -> null
+                            expandedTriggerIndex != null && expandedTriggerIndex!! > index -> expandedTriggerIndex!! - 1
+                            else -> expandedTriggerIndex
+                        }
+                    },
+                    expanded = expandedTriggerIndex == index,
+                    onExpandedChange = { expanded ->
+                        expandedTriggerIndex = if (expanded) index else null
+                    },
+                    onPickApp = { appPickerTarget = "trigger:$index" },
+                    onRequestPermission = { requestPermissions(it) },
+                    onExplainSpecial = { explainSpecialPermission(it) },
+                    refreshKey = permissionRefreshTick,
+                    onPickFromMap = { launchMapPicker(index) },
+                    onUseCurrentLocation = { locateAndFill(index) }
+                )
+            }
+        }
+
+            // Combine rule: visible only when two or more triggers exist —
+            // with one trigger the choice has no meaning.
+            if (triggers.size > 1) {
+                TriggerMatchSelector(
+                    selected = triggerMatch,
+                    onSelect = { triggerMatchName = it.name },
+                    allModeSemantics = triggerMatchBuiltWarning(triggers),
+                    legacyReviewRequired =
+                        loadedAutomation?.workflowVersion
+                            ?.let { version ->
+                                version <
+                                    Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION &&
+                                    triggerMatch == TriggerMatchMode.ALL &&
+                                    triggerMatchBuiltWarning(triggers) !=
+                                        TriggerMatchPolicy.AllModeEventSemantics.NONE
+                            } == true,
+                )
+            }
+
+                }
+            }
+            // ── THEN: what the routine does ──────────────────────
+            NexaFlowCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SectionHeader(text = stringResource(R.string.section_actions))
+                        if (!showActionPicker) {
+                            AddNodeButton(
+                                label = stringResource(R.string.add_action),
+                                icon = Icons.Filled.Add,
+                                onClick = { showActionPicker = true }
+                            )
+                        }
+                        if (showActionPicker) NodeConfiguratorPanel(
+                            title = "",
+                            searchQuery = actionSearchQuery,
+                            onSearchQueryChange = { actionSearchQuery = it },
+                            selectedCount = selectedActionTypes.size,
+                            confirmLabel = stringResource(R.string.add_action),
+                            confirmEnabled = selectedActionTypes.isNotEmpty(),
+                            onConfirm = {
+                                selectedActionTypes.forEach { type ->
+                                    supportedActions.firstOrNull { it.actionType == type }?.let { option ->
+                                        actionDrafts.add(ActionDraft(option = option))
+                                    }
+                                }
+                                expandedActionCardId = actionDrafts.lastOrNull()?.id
+                                selectedActionTypes.clear()
+                                showActionPicker = false
                             }
                         ) {
-                            val visibleTriggers = if (triggerSearchQuery.isBlank()) {
-                                supportedTriggers.filter { it != TriggerType.BATTERY }
+                            val visibleActions = if (actionSearchQuery.isBlank()) {
+                                supportedActions
                             } else {
-                                supportedTriggers.filter { type -> type != TriggerType.BATTERY &&
-                                    configurationContext.getString(type.labelRes())
-                                        .contains(triggerSearchQuery, ignoreCase = true) ||
-                                        configurationContext.getString(type.descRes())
-                                            .contains(triggerSearchQuery, ignoreCase = true)
+                                supportedActions.filter { option ->
+                                    configurationContext.getString(option.titleRes)
+                                        .contains(actionSearchQuery, ignoreCase = true) ||
+                                        configurationContext.getString(option.subtitleRes)
+                                            .contains(actionSearchQuery, ignoreCase = true)
                                 }
                             }
-                            if (triggerSearchQuery.isNotBlank()) {
+                            if (actionSearchQuery.isNotBlank()) {
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    visibleTriggers.forEachIndexed { optionIndex, type ->
-                                        TriggerOptionRow(
-                                            type = type,
-                                            checked = type in selectedTriggerTypes,
-                                            availability = triggerAvailabilityByType[type]
+                                    visibleActions.forEachIndexed { optionIndex, option ->
+                                        ActionOptionRow(
+                                            option = option,
+                                            checked = option.actionType in selectedActionTypes,
+                                            availability = actionAvailabilityByType[option.actionType]
                                                 ?: BuilderOptionAvailability.READY,
-                                            onBlockedClick = { requestGrantForTrigger(type) },
-                                            onSelect = {
-                                                if (type in selectedTriggerTypes) {
-                                                    selectedTriggerTypes.remove(type)
+                                            onBlockedClick = { requestGrantForAction(option.actionType) },
+                                            onToggle = {
+                                                if (option.actionType in selectedActionTypes) {
+                                                    selectedActionTypes.remove(option.actionType)
                                                 } else {
-                                                    selectedTriggerTypes.add(type)
+                                                    selectedActionTypes.add(option.actionType)
                                                 }
                                             }
                                         )
@@ -1194,31 +1369,31 @@ fun AutomationBuilderScreen(
                                     fontWeight = FontWeight.SemiBold,
                                 )
                                 CategoryAccordion(
-                                    tabs = triggerCategories.map { category ->
+                                    tabs = actionCategories.map { category ->
                                         stringResource(category.headerRes) to category.icon()
                                     },
-                                    expandedIndex = expandedTriggerCategory,
-                                    onExpandedChange = { expandedTriggerCategory = it }
+                                    expandedIndex = expandedActionCategory,
+                                    onExpandedChange = { expandedActionCategory = it }
                                 ) { categoryIndex ->
-                                    val category = triggerCategories[categoryIndex]
+                                    val category = actionCategories[categoryIndex]
                                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        visibleTriggers
+                                        optionsForActionCategory(category, visibleActions)
                                             .filter {
-                                                triggerCategoryOf[it] == category &&
-                                                    AutomationOptionCatalog.tierFor(it) == OptionTier.BROWSE
+                                                AutomationOptionCatalog.tierFor(it.actionType) ==
+                                                    OptionTier.BROWSE
                                             }
-                                            .forEachIndexed { optionIndex, type ->
-                                                TriggerOptionRow(
-                                                    type = type,
-                                                    checked = type in selectedTriggerTypes,
-                                                    availability = triggerAvailabilityByType[type]
+                                            .forEachIndexed { optionIndex, option ->
+                                                ActionOptionRow(
+                                                    option = option,
+                                                    checked = option.actionType in selectedActionTypes,
+                                                    availability = actionAvailabilityByType[option.actionType]
                                                         ?: BuilderOptionAvailability.READY,
-                                                    onBlockedClick = { requestGrantForTrigger(type) },
-                                                    onSelect = {
-                                                        if (type in selectedTriggerTypes) {
-                                                            selectedTriggerTypes.remove(type)
+                                                    onBlockedClick = { requestGrantForAction(option.actionType) },
+                                                    onToggle = {
+                                                        if (option.actionType in selectedActionTypes) {
+                                                            selectedActionTypes.remove(option.actionType)
                                                         } else {
-                                                            selectedTriggerTypes.add(type)
+                                                            selectedActionTypes.add(option.actionType)
                                                         }
                                                     }
                                                 )
@@ -1226,31 +1401,32 @@ fun AutomationBuilderScreen(
                                     }
                                 }
 
-                                val advancedTriggers = visibleTriggers.filter {
-                                    AutomationOptionCatalog.tierFor(it) == OptionTier.ADVANCED
+                                val advancedActions = visibleActions.filter {
+                                    AutomationOptionCatalog.tierFor(it.actionType) ==
+                                        OptionTier.ADVANCED
                                 }
-                                if (advancedTriggers.isNotEmpty()) {
+                                if (advancedActions.isNotEmpty()) {
                                     AdvancedOptionsHeader(
                                         title = stringResource(R.string.option_tier_advanced),
-                                        expanded = showAdvancedTriggerOptions,
+                                        expanded = showAdvancedActionOptions,
                                         onToggle = {
-                                            showAdvancedTriggerOptions = !showAdvancedTriggerOptions
+                                            showAdvancedActionOptions = !showAdvancedActionOptions
                                         }
                                     )
-                                    if (showAdvancedTriggerOptions) {
+                                    if (showAdvancedActionOptions) {
                                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                            advancedTriggers.forEachIndexed { optionIndex, type ->
-                                                TriggerOptionRow(
-                                                    type = type,
-                                                    checked = type in selectedTriggerTypes,
-                                                    availability = triggerAvailabilityByType[type]
+                                            advancedActions.forEachIndexed { optionIndex, option ->
+                                                ActionOptionRow(
+                                                    option = option,
+                                                    checked = option.actionType in selectedActionTypes,
+                                                    availability = actionAvailabilityByType[option.actionType]
                                                         ?: BuilderOptionAvailability.READY,
-                                                    onBlockedClick = { requestGrantForTrigger(type) },
-                                                    onSelect = {
-                                                        if (type in selectedTriggerTypes) {
-                                                            selectedTriggerTypes.remove(type)
+                                                    onBlockedClick = { requestGrantForAction(option.actionType) },
+                                                    onToggle = {
+                                                        if (option.actionType in selectedActionTypes) {
+                                                            selectedActionTypes.remove(option.actionType)
                                                         } else {
-                                                            selectedTriggerTypes.add(type)
+                                                            selectedActionTypes.add(option.actionType)
                                                         }
                                                     }
                                                 )
@@ -1260,454 +1436,231 @@ fun AutomationBuilderScreen(
                                 }
                             }
                         }
-
-                        // Battery threshold sits *below* the catalogue, so the
-                        // trigger list starts at its search field instead of
-                        // being pushed down by one special-case trigger. Only
-                        // shown when the canonical battery contract exists and
-                        // nothing else claims the WHEN slot.
-                        val batteryContract = viewModel.executableCanonicalTriggers.firstOrNull {
-                            it.definitionId == CanonicalBatteryTriggerDefinition.ID
-                        }
-                        if (batteryContract != null && triggers.isEmpty()) {
-                            BatteryThresholdSection(
-                                nodes = canonicalTriggerNodes,
-                                addEnabled = true,
-                                onAdd = {
-                                    canonicalTriggerNodes.add(
-                                        CanonicalBatteryTriggerDefinition.node(
-                                            id = "native.trigger.${
-                                                java.util.UUID.randomUUID().toString().replace("-", "")
-                                            }",
-                                            sequenceIndex = canonicalTriggerNodes.size
-                                        )
-                                    )
-                                }
-                            )
-                        }
-                    triggers.forEachIndexed { index, draft ->
-                val triggerDragging = triggerDrag.draggedIndex == index
-                if (index > 0) NodeConnector()
-                CompositionLocalProvider(
-                    LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
-                ) {
-                    TriggerEditorCard(
-                        draft = draft,
-                        index = index,
-                        total = triggers.size,
-                        modifier = Modifier.taskDragOffset(triggerDrag, draft, triggerDragging),
-                        isDragging = triggerDragging,
-                        onMoveUp = { moveTrigger(index, index - 1) },
-                        onMoveDown = { moveTrigger(index, index + 1) },
-                        onDragStart = { startDrag(triggerDrag, index) },
-                        onDragDelta = { dragBy(triggerDrag, triggers, it) { f, t -> moveTrigger(f, t) } },
-                        onDragEnd = { endDrag(triggerDrag) },
-                        onConfigChange = { updated ->
-                            triggers[index] = updated
-                        },
-                        onRemove = {
-                            triggerExpressionV2 = triggerExpressionV2?.removeTriggerReference(index)
-                            triggers.removeAt(index)
-                            expandedTriggerIndex = when {
-                                expandedTriggerIndex == index -> null
-                                expandedTriggerIndex != null && expandedTriggerIndex!! > index -> expandedTriggerIndex!! - 1
-                                else -> expandedTriggerIndex
-                            }
-                        },
-                        expanded = expandedTriggerIndex == index,
-                        onExpandedChange = { expanded ->
-                            expandedTriggerIndex = if (expanded) index else null
-                        },
-                        onPickApp = { appPickerTarget = "trigger:$index" },
-                        onRequestPermission = { requestPermissions(it) },
-                        onExplainSpecial = { explainSpecialPermission(it) },
-                        refreshKey = permissionRefreshTick,
-                        onPickFromMap = { launchMapPicker(index) },
-                        onUseCurrentLocation = { locateAndFill(index) }
-                    )
-                }
-            }
-
-                // Combine rule: visible only when two or more triggers exist —
-                // with one trigger the choice has no meaning.
-                if (triggers.size > 1) {
-                    TriggerMatchSelector(
-                        selected = triggerMatch,
-                        onSelect = { triggerMatchName = it.name },
-                        allModeSemantics = triggerMatchBuiltWarning(triggers),
-                        legacyReviewRequired =
-                            loadedAutomation?.workflowVersion
-                                ?.let { version ->
-                                    version <
-                                        Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION &&
-                                        triggerMatch == TriggerMatchMode.ALL &&
-                                        triggerMatchBuiltWarning(triggers) !=
-                                            TriggerMatchPolicy.AllModeEventSemantics.NONE
-                                } == true,
-                    )
-                }
-
+                    val waitActionOption = actionOptions.firstOrNull {
+                        it.actionType == ActionType.SYSTEM_WAIT
                     }
-                }
-            } else if (currentStep == 1) {
-                // ── Step 2: actions + end behavior ───────────────────
-                NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
-                            SectionHeader(text = stringResource(R.string.section_actions))
-                            NodeConfiguratorPanel(
-                                title = "",
-                                searchQuery = actionSearchQuery,
-                                onSearchQueryChange = { actionSearchQuery = it },
-                                selectedCount = selectedActionTypes.size,
-                                confirmLabel = stringResource(R.string.add_action),
-                                confirmEnabled = selectedActionTypes.isNotEmpty(),
-                                onConfirm = {
-                                    selectedActionTypes.forEach { type ->
-                                        supportedActions.firstOrNull { it.actionType == type }?.let { option ->
-                                            actionDrafts.add(ActionDraft(option = option))
-                                        }
-                                    }
-                                    expandedActionCardId = actionDrafts.lastOrNull()?.id
-                                    selectedActionTypes.clear()
-                                }
-                            ) {
-                                val visibleActions = if (actionSearchQuery.isBlank()) {
-                                    supportedActions
-                                } else {
-                                    supportedActions.filter { option ->
-                                        configurationContext.getString(option.titleRes)
-                                            .contains(actionSearchQuery, ignoreCase = true) ||
-                                            configurationContext.getString(option.subtitleRes)
-                                                .contains(actionSearchQuery, ignoreCase = true)
-                                    }
-                                }
-                                if (actionSearchQuery.isNotBlank()) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        visibleActions.forEachIndexed { optionIndex, option ->
-                                            ActionOptionRow(
-                                                option = option,
-                                                checked = option.actionType in selectedActionTypes,
-                                                availability = actionAvailabilityByType[option.actionType]
-                                                    ?: BuilderOptionAvailability.READY,
-                                                onBlockedClick = { requestGrantForAction(option.actionType) },
-                                                onToggle = {
-                                                    if (option.actionType in selectedActionTypes) {
-                                                        selectedActionTypes.remove(option.actionType)
-                                                    } else {
-                                                        selectedActionTypes.add(option.actionType)
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    Text(
-                                        text = stringResource(R.string.option_tier_all),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                    CategoryAccordion(
-                                        tabs = actionCategories.map { category ->
-                                            stringResource(category.headerRes) to category.icon()
-                                        },
-                                        expandedIndex = expandedActionCategory,
-                                        onExpandedChange = { expandedActionCategory = it }
-                                    ) { categoryIndex ->
-                                        val category = actionCategories[categoryIndex]
-                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                            optionsForActionCategory(category, visibleActions)
-                                                .filter {
-                                                    AutomationOptionCatalog.tierFor(it.actionType) ==
-                                                        OptionTier.BROWSE
-                                                }
-                                                .forEachIndexed { optionIndex, option ->
-                                                    ActionOptionRow(
-                                                        option = option,
-                                                        checked = option.actionType in selectedActionTypes,
-                                                        availability = actionAvailabilityByType[option.actionType]
-                                                            ?: BuilderOptionAvailability.READY,
-                                                        onBlockedClick = { requestGrantForAction(option.actionType) },
-                                                        onToggle = {
-                                                            if (option.actionType in selectedActionTypes) {
-                                                                selectedActionTypes.remove(option.actionType)
-                                                            } else {
-                                                                selectedActionTypes.add(option.actionType)
-                                                            }
-                                                        }
-                                                    )
-                                                }
-                                        }
-                                    }
-
-                                    val advancedActions = visibleActions.filter {
-                                        AutomationOptionCatalog.tierFor(it.actionType) ==
-                                            OptionTier.ADVANCED
-                                    }
-                                    if (advancedActions.isNotEmpty()) {
-                                        AdvancedOptionsHeader(
-                                            title = stringResource(R.string.option_tier_advanced),
-                                            expanded = showAdvancedActionOptions,
-                                            onToggle = {
-                                                showAdvancedActionOptions = !showAdvancedActionOptions
-                                            }
-                                        )
-                                        if (showAdvancedActionOptions) {
-                                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                                advancedActions.forEachIndexed { optionIndex, option ->
-                                                    ActionOptionRow(
-                                                        option = option,
-                                                        checked = option.actionType in selectedActionTypes,
-                                                        availability = actionAvailabilityByType[option.actionType]
-                                                            ?: BuilderOptionAvailability.READY,
-                                                        onBlockedClick = { requestGrantForAction(option.actionType) },
-                                                        onToggle = {
-                                                            if (option.actionType in selectedActionTypes) {
-                                                                selectedActionTypes.remove(option.actionType)
-                                                            } else {
-                                                                selectedActionTypes.add(option.actionType)
-                                                            }
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        val waitActionOption = actionOptions.firstOrNull {
-                            it.actionType == ActionType.SYSTEM_WAIT
-                        }
-                        if (waitActionOption != null) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = stringResource(R.string.action_sequence_title),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.action_sequence_subtitle),
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                                Button(onClick = {
-                                    actionDrafts.add(
-                                        ActionDraft(
-                                            option = waitActionOption,
-                                            config = mapOf("seconds" to "5")
-                                        )
-                                    )
-                                }) { Text(stringResource(R.string.canonical_add_delay)) }
-                            }
-                        }
-                        actionDrafts.forEachIndexed { index, draft ->
-                            key(draft.id) {
-                                val actionDragging = actionDrag.draggedIndex == index
-                                if (index > 0) NodeConnector()
-                                CompositionLocalProvider(
-                                    LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
-                                ) {
-                                    SelectedActionCard(
-                                        modifier = Modifier.taskDragOffset(actionDrag, draft, actionDragging),
-                                        isDragging = actionDragging,
-                                        onDragStart = { startDrag(actionDrag, index) },
-                                        onDragDelta = { dragBy(actionDrag, actionDrafts, it) { from, to -> moveAction(from, to) } },
-                                        onDragEnd = { endDrag(actionDrag) },
-                                        option = draft.option,
-                                        index = index,
-                                        total = actionDrafts.size,
-                                        config = draft.config,
-                                        onConfigChange = { config ->
-                                            val current = actionDrafts.indexOfFirst { it.id == draft.id }
-                                            if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(config = config)
-                                        },
-                                        onMoveUp = { moveAction(index, index - 1) },
-                                        onMoveDown = { moveAction(index, index + 1) },
-                                        onRemove = {
-                                            val current = actionDrafts.indexOfFirst { it.id == draft.id }
-                                            if (current >= 0) actionDrafts.removeAt(current)
-                                            if (expandedActionCardId == draft.id) expandedActionCardId = null
-                                        },
-                                        onPickApp = { appPickerTarget = "action:${draft.id}" },
-                                        onRequestPermission = { requestPermissions(it) },
-                                        onExplainSpecial = { explainSpecialPermission(it) },
-                                        refreshKey = permissionRefreshTick,
-                                        context = context,
-                                        availableVariables = availableVariables,
-                                        automations = automations,
-                                        onPluginConfigure = {
-                                            if (draft.config["package"].isNullOrBlank() || draft.config["receiver"].isNullOrBlank()) {
-                                                pluginPickerTarget = draft.id
-                                            } else {
-                                                configurePlugin(
-                                                    actionId = draft.id,
-                                                    packageName = draft.config["package"],
-                                                    receiver = draft.config["receiver"],
-                                                    editActivityClass = draft.config["editActivity"],
-                                                    config = draft.config
-                                                )
-                                            }
-                                        },
-                                        expanded = expandedActionCardId == draft.id,
-                                        onExpandedChange = { expanded ->
-                                            expandedActionCardId = if (expanded) draft.id else null
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                // ── Step 3: When task ends — strictly exit behavior with circular icons
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (actionDrafts.isEmpty()) {
-                        NexaFlowCard {
-                            Text(
-                                text = stringResource(R.string.end_behavior_add_first),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                    } else {
-                        val actionsWithEndOptions = actionDrafts.filter { draft ->
-                            draft.option.actionType in EndBehaviorCatalog.toggleActions ||
-                                draft.option.actionType in EndBehaviorCatalog.valueActions ||
-                                draft.option.actionType in EndBehaviorCatalog.revertOnlyActions
-                        }
-                        if (actionsWithEndOptions.isEmpty()) {
-                            NexaFlowCard {
+                    if (waitActionOption != null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = stringResource(R.string.end_behavior_none_supported),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.secondary
+                                    text = stringResource(R.string.action_sequence_title),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    text = stringResource(R.string.action_sequence_subtitle),
+                                    style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                        } else {
-                            actionsWithEndOptions.forEach { draft ->
-                                NexaFlowCard {
+                            Button(onClick = {
+                                actionDrafts.add(
+                                    ActionDraft(
+                                        option = waitActionOption,
+                                        config = mapOf("seconds" to "5")
+                                    )
+                                )
+                            }) { Text(stringResource(R.string.canonical_add_delay)) }
+                        }
+                    }
+                    actionDrafts.forEachIndexed { index, draft ->
+                        key(draft.id) {
+                            val actionDragging = actionDrag.draggedIndex == index
+                            if (index > 0) NodeConnector()
+                            CompositionLocalProvider(
+                                LocalWorkflowSecretStore provides viewModel::storeWorkflowSecret
+                            ) {
+                                SelectedActionCard(
+                                    modifier = Modifier.taskDragOffset(actionDrag, draft, actionDragging),
+                                    isDragging = actionDragging,
+                                    onDragStart = { startDrag(actionDrag, index) },
+                                    onDragDelta = { dragBy(actionDrag, actionDrafts, it) { from, to -> moveAction(from, to) } },
+                                    onDragEnd = { endDrag(actionDrag) },
+                                    option = draft.option,
+                                    index = index,
+                                    total = actionDrafts.size,
+                                    config = draft.config,
+                                    onConfigChange = { config ->
+                                        val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                        if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(config = config)
+                                    },
+                                    onMoveUp = { moveAction(index, index - 1) },
+                                    onMoveDown = { moveAction(index, index + 1) },
+                                    onRemove = {
+                                        val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                        if (current >= 0) actionDrafts.removeAt(current)
+                                        if (expandedActionCardId == draft.id) expandedActionCardId = null
+                                    },
+                                    onPickApp = { appPickerTarget = "action:${draft.id}" },
+                                    onRequestPermission = { requestPermissions(it) },
+                                    onExplainSpecial = { explainSpecialPermission(it) },
+                                    refreshKey = permissionRefreshTick,
+                                    context = context,
+                                    availableVariables = availableVariables,
+                                    automations = automations,
+                                    onPluginConfigure = {
+                                        if (draft.config["package"].isNullOrBlank() || draft.config["receiver"].isNullOrBlank()) {
+                                            pluginPickerTarget = draft.id
+                                        } else {
+                                            configurePlugin(
+                                                actionId = draft.id,
+                                                packageName = draft.config["package"],
+                                                receiver = draft.config["receiver"],
+                                                editActivityClass = draft.config["editActivity"],
+                                                config = draft.config
+                                            )
+                                        }
+                                    },
+                                    expanded = expandedActionCardId == draft.id,
+                                    onExpandedChange = { expanded ->
+                                        expandedActionCardId = if (expanded) draft.id else null
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            // ── WHEN THIS ENDS ───────────────────────────────────
+            // Exit behaviour is a station of the same page: one card, one
+            // header, and no nested card per action.
+            NexaFlowCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SectionHeader(text = stringResource(R.string.section_exit_behavior))
+                    val actionsWithEndOptions = actionDrafts.filter { draft ->
+                        draft.option.actionType in EndBehaviorCatalog.toggleActions ||
+                            draft.option.actionType in EndBehaviorCatalog.valueActions ||
+                            draft.option.actionType in EndBehaviorCatalog.revertOnlyActions
+                    }
+                    when {
+                        actionDrafts.isEmpty() -> Text(
+                            text = stringResource(R.string.end_behavior_add_first),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        actionsWithEndOptions.isEmpty() -> Text(
+                            text = stringResource(R.string.end_behavior_none_supported),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        else -> actionsWithEndOptions.forEach { draft ->
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    IconBadge(
+                                        icon = draft.option.icon,
+                                        containerColor = Color.White,
+                                        contentColor = Color(selectedIconColor)
+                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(draft.option.titleRes),
+                                            style = MaterialTheme.typography.titleSmall
+                                        )
+                                        Text(
+                                            text = stringResource(draft.option.subtitleRes),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+                                EndBehaviorEditor(
+                                    actionType = draft.option.actionType,
+                                    behavior = draft.endBehavior,
+                                    onBehaviorChange = { behavior ->
+                                        val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                        if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(endBehavior = behavior)
+                                    },
+                                    showLabel = false
+                                )
+                            }
+                        }
+                    }
+                    if (selectedExitActions.isNotEmpty() || actionsWithEndOptions.isNotEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            SectionHeader(text = stringResource(R.string.exit_extra_section))
+                            if (selectedExitActions.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.exit_extra_sub),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            } else {
+                                selectedExitActions.forEach { option ->
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
                                         IconBadge(
-                                            icon = draft.option.icon,
+                                            icon = option.icon,
                                             containerColor = Color.White,
                                             contentColor = Color(selectedIconColor)
                                         )
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
-                                                text = stringResource(draft.option.titleRes),
+                                                text = stringResource(option.titleRes),
                                                 style = MaterialTheme.typography.titleSmall
                                             )
                                             Text(
-                                                text = stringResource(draft.option.subtitleRes),
+                                                text = stringResource(option.subtitleRes),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.secondary
                                             )
                                         }
                                     }
-                                    EndBehaviorEditor(
-                                        actionType = draft.option.actionType,
-                                        behavior = draft.endBehavior,
-                                        onBehaviorChange = { behavior ->
-                                            val current = actionDrafts.indexOfFirst { it.id == draft.id }
-                                            if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(endBehavior = behavior)
-                                        },
-                                        showLabel = false
-                                    )
                                 }
                             }
-                        }
-                        // Extra exit actions (custom when task ends)
-                        if (selectedExitActions.isNotEmpty() || actionsWithEndOptions.isNotEmpty()) {
-                            NexaFlowCard {
-                                SectionHeader(text = stringResource(R.string.exit_extra_section))
-                                if (selectedExitActions.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.exit_extra_sub),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
-                                } else {
-                                    selectedExitActions.forEach { option ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            IconBadge(
-                                                icon = option.icon,
-                                                containerColor = Color.White,
-                                                contentColor = Color(selectedIconColor)
-                                            )
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    text = stringResource(option.titleRes),
-                                                    style = MaterialTheme.typography.titleSmall
-                                                )
-                                                Text(
-                                                    text = stringResource(option.subtitleRes),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.secondary
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        Text(
-                            text = stringResource(R.string.section_constraints),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = if (constraints.isEmpty()) {
-                                stringResource(R.string.constraints_empty_hint)
-                            } else {
-                                stringResource(R.string.section_constraints)
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        SectionHeader(
-                            text = stringResource(R.string.section_constraints),
-                            trailing = {
-                                IconButton(onClick = { showConstraintPicker = true }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Add,
-                                        contentDescription = stringResource(R.string.add_constraint)
-                                    )
-                                }
-                            }
-                        )
-                        constraints.forEachIndexed { index, draft ->
-                            val constraintDragging = constraintDrag.draggedIndex == index
-                            ConstraintEditorCard(
-                                draft = draft,
-                                index = index,
-                                total = constraints.size,
-                                modifier = Modifier.taskDragOffset(constraintDrag, draft, constraintDragging),
-                                isDragging = constraintDragging,
-                                onMoveUp = { moveConstraint(index, index - 1) },
-                                onMoveDown = { moveConstraint(index, index + 1) },
-                                onDragStart = { startDrag(constraintDrag, index) },
-                                onDragDelta = { dragBy(constraintDrag, constraints, it) { f, t -> moveConstraint(f, t) } },
-                                onDragEnd = { endDrag(constraintDrag) },
-                                initiallyExpanded = index == lastAddedConstraint,
-                                onConfigChange = { constraints[index] = it },
-                                onRemove = { constraints.removeAt(index) }
-                            )
                         }
                     }
                 }
             }
+
+            // ── Constraints: the extra conditions, same page ──────
+            NexaFlowCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SectionHeader(
+                        text = stringResource(R.string.section_constraints),
+                        trailing = {
+                            IconButton(onClick = { showConstraintPicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = stringResource(R.string.add_constraint)
+                                )
+                            }
+                        }
+                    )
+                    if (constraints.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.constraints_empty_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    constraints.forEachIndexed { index, draft ->
+                        val constraintDragging = constraintDrag.draggedIndex == index
+                        ConstraintEditorCard(
+                            draft = draft,
+                            index = index,
+                            total = constraints.size,
+                            modifier = Modifier.taskDragOffset(constraintDrag, draft, constraintDragging),
+                            isDragging = constraintDragging,
+                            onMoveUp = { moveConstraint(index, index - 1) },
+                            onMoveDown = { moveConstraint(index, index + 1) },
+                            onDragStart = { startDrag(constraintDrag, index) },
+                            onDragDelta = { dragBy(constraintDrag, constraints, it) { f, t -> moveConstraint(f, t) } },
+                            onDragEnd = { endDrag(constraintDrag) },
+                            initiallyExpanded = index == lastAddedConstraint,
+                            onConfigChange = { constraints[index] = it },
+                            onRemove = { constraints.removeAt(index) }
+                        )
+                    }
+                }
             }
         }
     }

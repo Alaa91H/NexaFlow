@@ -302,7 +302,6 @@
     <string name="move_up">Mover para cima</string>
     <string name="move_down">Mover para baixo</string>
     <string name="remove_action">Remover etapa de execução</string>
-    <string name="quick_save">Salvar rapidamente</string>
     <string name="saved_successfully">Tarefa salva</string>
     <string name="save_failed">Não foi possível guardar a tarefa</string>
     <string name="next_needs_trigger">Adicione pelo menos uma condição primeiro</string>
@@ -1232,4 +1231,5 @@
     <string name="agent_run_approval_fail">Parar a execução</string>
     <string name="agent_run_approval_skip">Ignorar a ferramenta</string>
     <string name="agent_run_result_label">Variável de resultado (opcional)</string>
+    <string name="builder_dock_summary">%1$d gatilhos · %2$d ações</string>
 </resources>

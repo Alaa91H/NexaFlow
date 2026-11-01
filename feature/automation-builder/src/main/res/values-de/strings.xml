@@ -305,7 +305,6 @@
     <string name="move_up">Nach oben</string>
     <string name="move_down">Nach unten</string>
     <string name="remove_action">Ausführungsschritt entfernen</string>
-    <string name="quick_save">Schnellspeichern</string>
     <string name="saved_successfully">Aufgabe gespeichert</string>
     <string name="save_failed">Aufgabe konnte nicht gespeichert werden</string>
     <string name="next_needs_trigger">Füge zuerst mindestens eine Bedingung hinzu</string>
@@ -1232,4 +1231,5 @@
     <string name="agent_run_approval_fail">Lauf abbrechen</string>
     <string name="agent_run_approval_skip">Tool überspringen</string>
     <string name="agent_run_result_label">Ergebnisvariable (optional)</string>
+    <string name="builder_dock_summary">%1$d Auslöser · %2$d Aktionen</string>
 </resources>

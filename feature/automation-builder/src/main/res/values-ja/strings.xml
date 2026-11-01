@@ -302,7 +302,6 @@
     <string name="move_up">上へ移動</string>
     <string name="move_down">下へ移動</string>
     <string name="remove_action">実行ステップを削除</string>
-    <string name="quick_save">クイック保存</string>
     <string name="saved_successfully">タスクを保存しました</string>
     <string name="save_failed">タスクを保存できませんでした</string>
     <string name="next_needs_trigger">先に条件を1つ以上追加してください</string>
@@ -1232,4 +1231,5 @@
     <string name="agent_run_approval_fail">実行を停止</string>
     <string name="agent_run_approval_skip">ツールをスキップ</string>
     <string name="agent_run_result_label">結果変数（任意）</string>
+    <string name="builder_dock_summary">%1$d トリガー · %2$d アクション</string>
 </resources>

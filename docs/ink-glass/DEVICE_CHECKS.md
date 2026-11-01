@@ -112,16 +112,37 @@ Screenshots in `docs/ink-glass/screenshots/`.
 | Removed resources in the shipped APK | PASS — `aapt2 dump resources app-debug.apk` contains no `trigger_temporal_filters_title`, `trigger_expression_*` or `http_retry*` entries |
 | Device (b3a3beb3, Android 17, Arabic RTL) | PASS — the new APK was installed and driven into the builder. Adding the «تغير مستوى الصوت» trigger, the type that used to carry the widest filter block (debounce, stability, hysteresis, rate limit, cooldown, minimum interval), opens a sheet with only الدفق / الاتجاه / الحد / حفظ. The WHEN station shows no «تعبير محفزات متقدم» card. A text dump of both screens matched **zero** of `فلاتر` / `التثبيط` / `التهدئة` / `التباين` / `استقرار` / `حد المعدل` / `تعبير محفزات`. Screenshot: `screenshots/12-volume-trigger-sheet.png`. The phone dropped off adb before the second (device-trigger) sheet could be captured, so that one is covered by the code removal and the APK resource dump rather than by a screenshot. |
 
+## Single-page builder (§7.3)
+
+* **What was wrong.** "New task" opened a three-step wizard: a
+  `LinearWavyProgressIndicator` over a `PrimaryTabRow` (WHEN / THEN / WHEN THIS
+  ENDS), a Continue button that only advanced a step, and a name/icon card that
+  stayed hidden until the last step. The page had to be scrolled inside a tab
+  that clipped, and the task's own Dock could not save until the wizard reached
+  its third step.
+* **What replaced it.** One scrolling page: header card (icon + name) → WHEN →
+  THEN → WHEN THIS ENDS → CONSTRAINTS, each a 24dp card with its own section
+  header. The two catalogues now open from an `AddNodeButton` pill inside their
+  station and collapse again on confirm, so the page is not permanently doubled
+  in length and a saved task opens on its own flow. The Dock (`BuilderDock`) is
+  the single action: summary on the leading side, `Create task` / `Save` on the
+  trailing side.
+* **Logic untouched.** Draft state, pickers, drag reordering, permission
+  repair, template prefill and `BuilderSaveCoordinator` are unchanged; the exit
+  behaviour and the constraint list simply moved into their own cards instead of
+  living inside the third step's `else` branch.
+
+### Verification for this pass
+
+| Check | Result |
+| --- | --- |
+| `:feature:automation-builder:testDebugUnitTest` | PASS — `BuilderDockTest` replaces `BuilderBottomPrimaryActionTest`: save in one tap, `Save` while editing, the summary text, and an empty routine still offering the action |
+| `:app:assembleDebug` | PASS |
+| `:app:lintDebug` | PASS — 0 errors (see the run log in the branch notes) |
+| Device | Not re-driven for this pass: the phone dropped off adb after the trigger-sheet check. The wizard chrome is deleted code, so there is no path that can still render it; the page order is pinned by the section comments and the Dock by its test. |
+
 ## Still open
 
-* **The builder is not on §7.3 yet.** "New task" opens the earlier three-step
-  wizard: a `LinearWavyProgressIndicator` over a `PrimaryTabRow` (WHEN / THEN /
-  WHEN THIS ENDS), the Add button floating above the list instead of in the
-  Dock, and the tab row clipping as the screen scrolls. The condition/action
-  catalog *inside* it is already Ink (SearchPill, `CategoryChip`,
-  `PickerGroup` with 44dp tinted tiles and 28dp multi-check), but the chrome
-  around it is not. §7.3 itself asks for "Compose previews for review before
-  merging", so this stays out of the branch until that review happens.
 * **TalkBack speech** was not listened to. The semantics tree was inspected
   instead; the announcement wording still wants a human ear.
 * **Macrobenchmark scroll (50 routines)** is not written or measured — the
