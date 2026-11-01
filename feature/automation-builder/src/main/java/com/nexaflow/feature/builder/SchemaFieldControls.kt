@@ -710,7 +710,7 @@ internal fun SteppedValueRow(
                     contentDescription = stringResource(R.string.schema_decrease),
                 )
             }
-            androidx.compose.material3.Slider(
+            SyncedSlider(
                 value = value,
                 onValueChange = { onValueChange(it.coerceIn(valueRange)) },
                 valueRange = valueRange,

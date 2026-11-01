@@ -10,20 +10,6 @@
 - **Volume is one trigger with a level per stream.** Music, ringer, alarm and notification each get a switch, an above/below direction and their own slider; stored tasks with the legacy single-stream keys behave exactly as before.
 - **The charger trigger knows its source.** Connected/disconnected plus any / wall (AC) / computer (USB) / wireless, filtered in the engine so "charge from the laptop" and "charge overnight" are separate automations.
 - **Notifications can target an app and a kind.** The app button did nothing on this trigger before (the picker was wired to the app trigger only); it now writes the package list, and the kinds row filters on the platform's real notification categories (messages, calls, reminders, promotions, ongoing/system).
-
-### Fixed
-
-- **The charge-source, notification and media options were untranslated.** They were rendered from storage tokens; they now read as translated choices in every locale, with no header above a single choice.
-
-### Added
-
-- `docs/ink-glass/TRIGGER_INVENTORY.md` and DESIGN_SYSTEM §8.5: the group inventory, the duplicate audit, the per-trigger control matrix and the schema-presentation rules.
-- Coverage: `SchemaFieldPresentationTest`, `ChargerSourceFilterTest`, notification-kind cases in `NotificationTriggerMatcherTest`, and a per-stream case in `VolumeMonitorLifecycleTest`.
-
-### Unchanged
-
-- Stored configuration, Room v5 and the engine's existing knobs. Hidden trigger types and hidden Device events keep evaluating; they are only absent from the add flow.
-
 - **Ink Glass replaces the previous visual language.** One design system now covers every screen: a near-black blue base, tonal 24dp cards with 1dp hairlines instead of alternating grey and dark-grey surfaces, one uniform card style and category-coloured icon tiles, so a route's hue finally carries meaning. Behaviour, domain, data, Room schema and the automation engine are untouched. See `docs/DESIGN_SYSTEM.md`.
 - **The two stacked FABs are gone.** The dashboard now ends in a single glass Dock: the Ask pill plus one primary add button, bottom padding reserved so the last routine scrolls clear of it. Exactly one blurred element per screen; the Dock falls back to a solid surface at 94% on API 26–30, in Battery Saver or when Glass effects is Off, with identical layout.
 - **Routine cards collapse to a readable row and expand into a real flow.** The chevron is replaced by whole-card expansion, and the expanded block shows WHEN and THEN as chips with the exit footnote, above the readiness, lifecycle, health, trigger, constraint, action and end-behaviour diagnostics the card already carried.
@@ -31,17 +17,20 @@
 - **The routine builder is one page instead of a three-step wizard.** The wavy progress bar, the `WHEN / THEN / WHEN THIS ENDS` tab strip and the per-step Continue button are gone: the builder now reads top-to-bottom as WHEN, THEN, WHEN THIS ENDS and CONSTRAINTS, each area opening its catalogue from an Add pill. One Dock carries the whole task — the summary “{triggers} · {actions}” on the leading side and Create task / Save on the trailing side.
 - **Every switch is now one shared component.** `NexaFlowSwitch` owns the Ink track and thumb colours, replacing eleven hand-tuned and default Material switches — the default off thumb was `outline`, which measures 2.2:1 on the dark off track.
 - **Arabic no longer receives letter-spacing or uppercasing.** Both are gated on the script of the string itself, so mixed titles such as “تشغيل GPS” keep their joining in any locale.
+- **The branch is rebased onto the stable toolchain release (v3.91.19), not reverted against it.** Gradle 9.8.2, AGP 9.5.0, Kotlin 2.4.21 and material3 1.5.0-alpha29 stay exactly as that release shipped them; Haze is the only added dependency (version catalog entry plus checksums for the Compose Multiplatform metadata it pulls), and every slider — including the battery threshold that now lives in its own section — goes through the release's `SyncedSlider` instead of the removed value overload. The conflict-by-conflict record is in `docs/ink-glass/MERGE.md`.
 
 ### Added
 
+- `docs/ink-glass/TRIGGER_INVENTORY.md` and DESIGN_SYSTEM §8.5: the group inventory, the duplicate audit, the per-trigger control matrix and the schema-presentation rules.
 - Ink seed and neutral palette, `accentLabel`, the seven-hue category palette with light variants, and the full alpha-token set.
 - Plus Jakarta Sans (Latin) and IBM Plex Sans Arabic, bundled under the SIL OFL with per-locale family selection: Arabic, Cyrillic, Devanagari and CJK locales keep a family that covers their glyphs.
 - Shared components in `core/ui-components`: `IconTile`, `StatusPill`, `BentoStatCard` with sparkline, `SearchPill`, `CategoryChip`, `PickerGroup`/`PickerRow`/`MultiCheck`, `Dock`, `ScreenHeader`, `FlowStepRow`, `GlassSurface` and `ScreenGlow`.
 - Themes gains a **Glass effects** selector (Auto / On / Off) and a **Dynamic colour** switch, persisted in `ThemePreferences`.
-- New coverage: glass-mode resolution, sparkline bucketing, script-aware typography, category mapping, the updated design tokens, and a WCAG gate (`InkContrastTest`) that checks the real Ink schemes and every category tile at 4.5:1 text / 3:1 boundary contrast.
+- Coverage: glass-mode resolution, sparkline bucketing, script-aware typography, category mapping, the updated design tokens, a WCAG gate (`InkContrastTest`) that checks the real Ink schemes and every category tile at 4.5:1 text / 3:1 boundary contrast, `SchemaFieldPresentationTest`, `ChargerSourceFilterTest`, notification-kind cases in `NotificationTriggerMatcherTest`, and a per-stream case in `VolumeMonitorLifecycleTest`.
 
 ### Fixed
 
+- **The charge-source, notification and media options were untranslated.** They were rendered from storage tokens; they now read as translated choices in every locale, with no header above a single choice.
 - **The trigger picker starts at its search field.** The battery threshold trigger no longer squats above the catalogue; it renders as its own section below all options, so the list opens with search, the “all options” chips and the rows in that order.
 - **Every category chip is on screen.** The picker's chip strip scrolled sideways with an edge fade, so on a 390dp phone the last categories were half visible and read as broken. The chips now wrap onto a second line with natural widths — no clipped labels, no hidden options.
 - **Battery threshold options are visible choices, not a cycle.** Choosing a charger used to mean tapping the same button until it cycled to the wanted value; each argument (direction, charger type, charging state) is now a labelled chip row where one tap picks the value, with the same stored tokens as before.
@@ -51,6 +40,10 @@
 
 - **Every timing/tuning layer inside a trigger or action.** The "Trigger filters" block (debounce, rate limit, minimum interval, cooldown, stability window, hysteresis) is gone from all trigger editors, and with it `CanonicalBuilderSchemaBridge.temporalFiltersBindingForTrigger`. The advanced trigger-expression editor (ALL / ANY / NOT / SEQUENCE / COUNT, nested groups, sample previews, seconds window) is gone from the builder. HTTP request actions lose timeout, retries, retry backoff and the response output path. 27 string keys were deleted in all 10 locales. Stored values and engine behaviour are untouched: saved tasks keep their tuned settings and stored expressions keep running, and a stored expression that no longer validates is dropped on save instead of blocking it. See `docs/DESIGN_SYSTEM.md` §8.4.
 - `AlternatingSurface`, `SelectChip` and the `BuilderCardAccent` palettes, together with every `alternatingIndex` parameter.
+
+### Unchanged
+
+- Stored configuration, Room v5 and the engine's existing knobs. Hidden trigger types and hidden Device events keep evaluating; they are only absent from the add flow.
 
 ## [v3.91.19] - 2026-11-01
 

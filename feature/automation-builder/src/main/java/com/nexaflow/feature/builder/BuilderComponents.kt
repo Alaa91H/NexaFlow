@@ -120,13 +120,14 @@ internal fun SyncedSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
-    steps: Int = 0
+    steps: Int = 0,
+    modifier: Modifier = Modifier
 ) {
     val sliderState = remember {
         SliderState(value, steps = steps, trackRange = valueRange)
     }
     SideEffect { sliderState.value = value }
-    Slider(state = sliderState, onValueChange = onValueChange)
+    Slider(state = sliderState, onValueChange = onValueChange, modifier = modifier)
 }
 
 @Composable
