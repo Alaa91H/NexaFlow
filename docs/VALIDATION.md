@@ -1,5 +1,24 @@
 # Validation record
 
+## Release-launch crash: Hilt view-model modules under R8 9.5 (v3.91.19) — 2026-11-01 (physical device + local release build)
+
+The v3.91.18 release APK crashed on every launch. This record covers the
+diagnosis on a real device and the release build that fixes it.
+
+| Command / Evidence | Result |
+|---|---|
+| `adb install` of the published `NexaFlow-v3.91.18.apk`, then launch | FAIL — `RuntimeException: Cannot create an instance of class pg1` on every start |
+| R8 `Retrace 9.5.28` against the release mapping from the tag run | `pg1` = `com.nexaflow.feature.dashboard.DashboardViewModel`; frames show `HiltViewModelFactory.create` delegating to `SavedStateViewModelFactory` → `NewInstanceFactory` → `JvmViewModelProviders.createViewModel`, i.e. a Hilt key-map miss |
+| Mapping comparison, v3.91.17 (R8 9.3.16) vs v3.91.18 (R8 9.5.28) | 27 `@HiltViewModel` classes in the phone APK; v3.91.18 kept `*_HiltModules` for 26, dropping `DashboardViewModel`'s key and binding modules |
+| `adb install` of `NexaFlow-v3.91.17.apk`, then launch | PASS — `MainActivity` resumed, no crash buffer entries (release builds were fine before AGP 9.5.0) |
+| `./gradlew :app:assembleRelease -PallowDebugSigning=true` with the new keep rules | PASS — R8 full mode + resource shrinking, 17 min |
+| Release mapping after the change | `DashboardViewModel_HiltModules`, `…$KeyModule` and `…$BindsModule` present with names kept, for all 27 view models |
+| `adb install` of the rebuilt release APK, launch, dashboard, then open the automation builder | PASS — dashboard renders its empty state, the builder screen resolves `AutomationBuilderViewModel`, crash buffer empty throughout |
+
+**NOT TESTED:** the Wear APK (no Hilt view models on the watch surface), and
+any behaviour beyond the two screens exercised above. v3.91.18 remains broken;
+v3.91.19 supersedes it.
+
 ## Explicit run lifecycle, budget terminality and run details (P1/P2, Unreleased) — 2026-10-31 (local, no device)
 
 This change makes the existing `AgentRun` lifecycle explicit and testable rather
