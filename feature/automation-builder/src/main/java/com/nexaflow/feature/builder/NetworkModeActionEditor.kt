@@ -1,6 +1,7 @@
 package com.nexaflow.feature.builder
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.RingtoneManager
@@ -95,7 +96,15 @@ private val TURN_ON_TOGGLE_ACTIONS = setOf(
 @Composable
 internal fun NetworkModeSelector(
     config: Map<String, String>,
-    onConfigChange: (Map<String, String>) -> Unit
+    onConfigChange: (Map<String, String>) -> Unit,
+    /**
+     * Reads the device's per-SIM capabilities. Production always uses the real
+     * reader; tests inject a snapshot so the available-state UI can be composed
+     * without privileged telephony access.
+     */
+    readSnapshot: suspend (Context) -> NetworkModeSnapshot = { context ->
+        NetworkModeCapabilities(context.applicationContext).read()
+    },
 ) {
     val context = LocalContext.current
     var snapshot by remember { mutableStateOf<NetworkModeSnapshot?>(null) }
@@ -108,9 +117,7 @@ internal fun NetworkModeSelector(
         permissionRevision += 1
     }
     LaunchedEffect(context, permissionRevision) {
-        snapshot = withContext(Dispatchers.IO) {
-            NetworkModeCapabilities(context.applicationContext).read()
-        }
+        snapshot = withContext(Dispatchers.IO) { readSnapshot(context) }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
